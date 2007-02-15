@@ -1,0 +1,90 @@
+.kind:: EquivalenceRelation
+.kind:: EquivalenceRelationByDictOwner
+.kind:: Helper
+.kind:: IdentitySet
+.kind:: IdentitySetNotEmpty
+.kind:: IdentitySetSingleton
+.kind:: Kind
+.kind:: KindOfClassFamily
+.kind:: KindOfRetClaSetFamily
+.kind:: KindOfSizeFamily
+.kind:: KindOfTypeFamily
+.kind:: KindOfInViaFamily
+.kind:: KindWithAlt
+.kind:: MappingProxy
+.kind:: MorePrinter
+.kind:: Partition
+.kind:: Paths
+.kind:: ReferencePattern
+.kind:: RootStateType
+.kind:: SetOfKind
+.kind:: Stat
+.kind:: UniSet
+.kind:: UniSetAvantGarde
+.kind:: Use
+
+.superkind:: IdentitySet+
+..eg: hp.iso(1)
+...in context:
+from guppy import hpy
+hp=hpy()
+
+.superkind:: AltOperator+
+..eg: '=='
+
+.superkind:: EquivalenceRelation+
+
+.superkind:: Kind+
+
+.superkind:: SetOfKind+
+
+.superkind:: UniSet+
+
+.superkind:: loadablefilenamestring+
+
+.superkind:: loadableiterableofstrings+
+
+
+.superkind:: objectaddress+
+..eg: id(None)
+
+.superkind:: profilefilename+
+
+.superkind:: relationname+
+..eg: '[0]'
+..eg: '.a'
+
+.superkind:: typeorclass+
+..eg: int
+..eg: C
+...in context:
+class C:
+    pass    
+
+.superkind:: typeorclassexceptdict+
+..eg: int
+..eg: C
+...in context:
+class C:
+    pass    
+
+.superkind:: typeorclassoremptytuple+
+..eg: ()
+..eg: C
+...in context:
+class C:
+    pass    
+
+.superkind:: moduleaddress+
+..eg: id(sys)
+...in context:
+import sys
+
+.superkind:: modulename+
+..eg: 'sys'
+
+.superkind:: writeable_filename_or_file+
+
+.superkind:: writing_mode_string+
+..eg: 'a'
+

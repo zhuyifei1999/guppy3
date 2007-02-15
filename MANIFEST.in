@@ -1,0 +1,12 @@
+include setup.py
+include ANNOUNCE
+include ANNOUNCE-*
+include MANIFEST.in
+include MANIFEST
+include changelog
+include gsl-mode-0.1.el
+include src/sets/*.[ch]
+include src/heapy/*.[ch]
+include specs/*.gsl
+include doc/*html
+include doc/*jpg
