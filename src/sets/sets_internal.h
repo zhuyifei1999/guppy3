@@ -15,11 +15,11 @@ extern DL_IMPORT(PyTypeObject) NyUnion_Type;
 #define NyCplBitSet_Check(op) PyObject_TypeCheck(op, &NyCplBitSet_Type)
 #define NyMutBitSet_Check(op) PyObject_TypeCheck(op, &NyMutBitSet_Type)
 
-NyImmBitSetObject *NyImmBitSet_New(int size);
+NyImmBitSetObject *NyImmBitSet_New(NyBit size);
 NyCplBitSetObject *NyCplBitSet_New(NyImmBitSetObject *v);
 NyMutBitSetObject *NyMutBitSet_New(void);
 
-typedef int (*NySetVisitor)(int, void *) ;
+typedef int (*NySetVisitor)(NyBit, void *) ;
 
 typedef int (*NyIterableVisitor)(PyObject *, void *);
 
@@ -45,13 +45,13 @@ extern DL_IMPORT(NyCplBitSetObject) _NyImmBitSet_OmegaStruct;
 
 
 extern DL_IMPORT(PyObject *) NyMutBitSet_AsImmBitSet(NyMutBitSetObject *v);
-extern DL_IMPORT(int) NyMutBitSet_clrbit(NyMutBitSetObject *v, long bit);
-extern DL_IMPORT(int) NyMutBitSet_setbit(NyMutBitSetObject *v, long bit);
-extern DL_IMPORT(int) NyMutBitSet_hasbit(NyMutBitSetObject *v, long bit);
-extern DL_IMPORT(int) NyImmBitSet_hasbit(NyImmBitSetObject *v, long bit);
+extern DL_IMPORT(int) NyMutBitSet_clrbit(NyMutBitSetObject *v, NyBit bit);
+extern DL_IMPORT(int) NyMutBitSet_setbit(NyMutBitSetObject *v, NyBit bit);
+extern DL_IMPORT(int) NyMutBitSet_hasbit(NyMutBitSetObject *v, NyBit bit);
+extern DL_IMPORT(int) NyImmBitSet_hasbit(NyImmBitSetObject *v, NyBit bit);
 
 extern DL_IMPORT(int) NyMutBitSet_clear(NyMutBitSetObject *v);
-extern DL_IMPORT(long) NyMutBitSet_pop(NyMutBitSetObject *v, int i);
+extern DL_IMPORT(long) NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i);
 
 int cplbitset_traverse(NyHeapTraverse *ta);
 int mutbitset_indisize(NyMutBitSetObject *v);

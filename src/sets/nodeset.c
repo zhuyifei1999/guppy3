@@ -126,7 +126,7 @@ PyDoc_STRVAR(mutnodeset_doc,
 
 /* Forward decls */
 
-static PyObject * nodeset_bitno_to_obj(int bitno);
+static PyObject * nodeset_bitno_to_obj(NyBit bitno);
 PyTypeObject NyImmNodeSet_Type;
 PyTypeObject NyMutNodeSet_Type;
 
@@ -222,7 +222,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
 {
     PyObject *bitobj =  hi->bitset_iter->ob_type->tp_iternext(hi->bitset_iter);
     PyObject *ret;
-    int bitno;
+    NyBit bitno;
     if (!bitobj)
       return 0;
     bitno = PyInt_AsLong(bitobj);
@@ -354,7 +354,7 @@ nodeset_obj_to_bitno(PyObject *obj)
 }
 
 static PyObject *
-nodeset_bitno_to_obj(int bitno)
+nodeset_bitno_to_obj(NyBit bitno)
 {
     return (PyObject *)(bitno * ALIGN);
 }
@@ -495,7 +495,7 @@ typedef struct {
 
 
 static int
-mutnodeset_iterate_visit(int bitno, nodeset_iterate_visit_arg *arg)
+mutnodeset_iterate_visit(NyBit bitno, nodeset_iterate_visit_arg *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
     if (arg->ns->flags & NS_HOLDOBJECTS)
@@ -627,7 +627,7 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
 	return 0;
 	
     } else {
-	int bitno = nodeset_obj_to_bitno(obj);
+	NyBit bitno = nodeset_obj_to_bitno(obj);
 	return NyMutBitSet_hasbit((NyMutBitSetObject *)v->u.bitset, bitno);
     }
 }
@@ -637,7 +637,7 @@ int
 NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
 {
     if (NyMutNodeSet_Check(v)) {
-	int bitno = nodeset_obj_to_bitno(obj);
+	NyBit bitno = nodeset_obj_to_bitno(obj);
 	int r = NyMutBitSet_setbit((NyMutBitSetObject *)v->u.bitset, bitno);
 	if (r == -1)
 	  return -1;
@@ -678,7 +678,7 @@ int
 NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
 {
     if (NyMutNodeSet_Check(v)) {
-	int bitno = nodeset_obj_to_bitno(obj);
+	NyBit bitno = nodeset_obj_to_bitno(obj);
 	int r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
 	if (r == -1)
 	  return -1;
@@ -846,7 +846,7 @@ typedef struct {
 } NSOPARG;
 
 static int
-nodeset_op_set(int bitno, NSOPARG *arg)
+nodeset_op_set(NyBit bitno, NSOPARG *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
     arg->ns->u.nodes[arg->i] = obj;
@@ -1081,9 +1081,10 @@ nodeset_ior(NyNodeSetObject *v, PyObject *w)
 
 
 
-static int
-nodeset_length(NyNodeSetObject *v)
+static NySize
+nodeset_length(PyObject *_v)
 {
+    NyNodeSetObject *v=(void*)_v;
     return v->ob_size;
 }
 
@@ -1135,7 +1136,7 @@ static PyNumberMethods nodeset_as_number = {
 };
 
 static PyMappingMethods nodeset_as_mapping = {
-	(inquiry)nodeset_length,      /*mp_length*/
+	nodeset_length,		      /*mp_length*/
 	(binaryfunc)0, 		      /*mp_subscript*/
 	(objobjargproc)0,	      /*mp_ass_subscript*/
 };

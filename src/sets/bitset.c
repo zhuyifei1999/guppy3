@@ -371,15 +371,15 @@ static PyObject *mutbitset_as_immbitset_and_cpl(NyMutBitSetObject *v, int cpl);
 static PyObject *mutbitset_as_immbitset_and_del(NyMutBitSetObject *v);
 static NyImmBitSetObject *mutbitset_as_noncomplemented_immbitset_subtype(
     NyMutBitSetObject *v, PyTypeObject *type);
-static NyBitField *mutbitset_findpos_ins(NyMutBitSetObject *v, int pos);
-static NyBitField *mutbitset_findpos(NyMutBitSetObject *v, int pos);
+static NyBitField *mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos);
+static NyBitField *mutbitset_findpos(NyMutBitSetObject *v, NyBit pos);
 static NySetField *mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi);
 static int mutbitset_iop_iterable(NyMutBitSetObject *ms, int op, PyObject *v);
 static NyMutBitSetObject *mutbitset_new_from_arg(PyObject *arg);
 static int mutbitset_reset(NyMutBitSetObject *v, NyImmBitSetObject *set);
 
-static NySetField *root_ins1(NyMutBitSetObject *v, NySetField *sf, int pos);
-static NyImmBitSetObject *immbitset_realloc(NyImmBitSetObject *self, int size);
+static NySetField *root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos);
+static NyImmBitSetObject *immbitset_realloc(NyImmBitSetObject *self, NyBit size);
 
 
 static int mutbitset_ior_field(NyMutBitSetObject *v, NyBitField *w);
@@ -390,7 +390,7 @@ static PyObject *NyBitSet_FormMethod;
 
 static NyImmBitSetObject * cplbitset_cpl(NyCplBitSetObject*v);
 
-NyImmBitSetObject *sf_slice(NySetField *ss, NySetField *se, int ilow, int ihigh);
+NyImmBitSetObject *sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh);
 
 /* NyBitSet_Type -- Base type with no operations, just a doc string */
 
@@ -474,8 +474,8 @@ NyIterable_Check(PyObject *o)
 	    PySequence_Check(o));
 }
 
-static int
-bitno_modiv(long bitno, long *div) {
+static NyBit
+bitno_modiv(NyBit bitno, NyBit *div) {
     /* We need divmod a'la Python: using algo from intobject.c */
     long xdivy = bitno / NyBits_N;
     long xmody = bitno - xdivy * NyBits_N;
@@ -496,7 +496,7 @@ bitno_modiv(long bitno, long *div) {
 
 
 static void
-bitno_to_field(long bitno, NyBitField *f) {
+bitno_to_field(NyBit bitno, NyBitField *f) {
     f->bits = 1l<<bitno_modiv(bitno, &f->pos);
 }
 
@@ -595,13 +595,13 @@ bits_length(NyBits bits) {
     
 }
 
-static long
+static NyBit
 field_first(NyBitField *f)
 {
     return bits_first(f->bits) + f->pos * NyBits_N;
 }
 
-static long
+static NyBit
 field_last(NyBitField *f)
 {
     return bits_last(f->bits) + f->pos * NyBits_N;
@@ -609,8 +609,8 @@ field_last(NyBitField *f)
 
 /* Quoting listobject.c */
 
-static int
-roundupsize(int n)
+static NyBit
+roundupsize(NyBit n)
 {
 	unsigned int nbits = 0;
 	unsigned int n2 = (unsigned int)n >> 5;
@@ -644,7 +644,7 @@ roundupsize(int n)
 	return ((n >> nbits) + 1) << nbits;
  }
 
-static long
+static NyBit
 bitno_from_object(PyObject *arg)
 {
     /* Get a bit number from a Python object.
@@ -653,7 +653,7 @@ bitno_from_object(PyObject *arg)
     if (PyInt_Check(arg)) {
 	return PyInt_AS_LONG((PyIntObject*) arg);
     } else if (PyLong_Check(arg)) {
-	return PyLong_AsLong(arg);
+	return PyLong_AsLong(arg); // xxx should really use Py_ssize_t or something..
     } else {
 	PyErr_SetString(PyExc_TypeError, "bitno_from_object: an int or long was expected");
 	return -1;
@@ -661,7 +661,7 @@ bitno_from_object(PyObject *arg)
 }
 
 NyImmBitSetObject *
-NyImmBitSet_SubtypeNew(PyTypeObject *type, int size)
+NyImmBitSet_SubtypeNew(PyTypeObject *type, NyBit size)
 {
     if (!size && type == &NyImmBitSet_Type) {
 	Py_INCREF(NyImmBitSet_Empty);
@@ -680,7 +680,7 @@ NyImmBitSet_SubtypeNew(PyTypeObject *type, int size)
 
 
 NyImmBitSetObject *
-NyImmBitSet_New(int size)
+NyImmBitSet_New(NyBit size)
 {
     return NyImmBitSet_SubtypeNew(&NyImmBitSet_Type, size);
 }
@@ -864,17 +864,17 @@ NyMutBitSet_New()
 }
 
 static void
-fp_move(NyBitField *dst, NyBitField *src, int n) {
+fp_move(NyBitField *dst, NyBitField *src, NyBit n) {
     memmove(dst, src, n * sizeof(NyBitField));
 }
 
 static void
-sfp_move(NySetField *dst, NySetField *src, int n) {
+sfp_move(NySetField *dst, NySetField *src, NyBit n) {
     memmove(dst, src, n * sizeof(NySetField));
 }
 
 static NyBitField *
-bitfield_binsearch(NyBitField *lo, NyBitField *hi, int pos)
+bitfield_binsearch(NyBitField *lo, NyBitField *hi, NyBit pos)
 {
     for (;;) {
 	NyBitField *cur = lo + (hi - lo) / 2;
@@ -894,7 +894,7 @@ bitfield_binsearch(NyBitField *lo, NyBitField *hi, int pos)
 }
 
 static NySetField *
-setfield_binsearch(NySetField *lo, NySetField *hi, int pos)
+setfield_binsearch(NySetField *lo, NySetField *hi, NyBit pos)
 {
     for (;;) {
 	NySetField *cur = lo + (hi - lo) / 2;
@@ -912,14 +912,14 @@ setfield_binsearch(NySetField *lo, NySetField *hi, int pos)
 static void
 union_dealloc(NyUnionObject *v)
 {
-    int i;
+    NyBit i;
     for (i = 0; i < v->cur_size; i++)
       Py_XDECREF(v->ob_field[i].set);
     PyObject_Del(v);
 }
 
 static NyUnionObject *
-union_realloc(NyUnionObject *self, int size)
+union_realloc(NyUnionObject *self, NyBit size)
 {
     /* Changes the allocated size to make room for up-rounded size items */
     size = roundupsize(size);
@@ -938,11 +938,11 @@ union_realloc(NyUnionObject *self, int size)
 }
 
 static NySetField *
-root_ins1(NyMutBitSetObject *v, NySetField *sf, int pos)
+root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
 {
     NyUnionObject *bs = v->root;
-    int where = sf - &bs->ob_field[0];
-    int cur_size = bs->cur_size;
+    NyBit where = sf - &bs->ob_field[0];
+    NyBit cur_size = bs->cur_size;
     if (cur_size >= bs->ob_size) {
 	if (bs == &v->fst_root) {
 	    if (cur_size >= NyUnion_MINSIZE) {
@@ -973,13 +973,13 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, int pos)
 }
 
 static NyImmBitSetObject *
-immbitset_realloc(NyImmBitSetObject *self, int size)
+immbitset_realloc(NyImmBitSetObject *self, NyBit size)
 {
     NyImmBitSetObject *ret;
     /* Changes the allocated size to make room for up-rounded size items
        Allocates a new object if self == 0,
      */
-    int upsize = roundupsize(size);
+    NyBit upsize = roundupsize(size);
     if (!self) {
 	ret = NyImmBitSet_New(upsize);
 	return ret;
@@ -1023,7 +1023,7 @@ sf_getrange_mut(NySetField *sf, NyBitField **shi)
 }
 
 static int
-sf_realloc(NySetField *v, int size)
+sf_realloc(NySetField *v, NyBit size)
 {
     if (!v->set) {
 	v->set = immbitset_realloc(0, size);
@@ -1046,7 +1046,7 @@ sf_realloc(NySetField *v, int size)
 }
 
 static NyBitField *
-sf_ins1(NySetField *sf, NyBitField *f, int pos)
+sf_ins1(NySetField *sf, NyBitField *f, NyBit pos)
 {
     NyBitField *lo_tot = sf->set->ob_field;
     NyBitField *hi_tot = sf->set->ob_field + sf->set->ob_size;
@@ -1061,7 +1061,7 @@ sf_ins1(NySetField *sf, NyBitField *f, int pos)
 
     if (tot_size * 8 < sf->set->ob_size * 7) {
 	/* Not extremely filled. May pay to center it. */
-	int move = ((hi_tot - sf->hi) - (sf->lo - lo_tot)) / 2;
+	NyBit move = ((hi_tot - sf->hi) - (sf->lo - lo_tot)) / 2;
 	fp_move(sf->lo + move, sf->lo, tot_size);
 	f += move;
 	sf->lo += move;
@@ -1079,7 +1079,7 @@ sf_ins1(NySetField *sf, NyBitField *f, int pos)
     hi_tot = sf->set->ob_field + sf->set->ob_size;
     lo_tot = sf->set->ob_field;
     {
-	int move = ((hi_tot - sf->hi) - (sf->lo - lo_tot)) / 2;
+	NyBit move = ((hi_tot - sf->hi) - (sf->lo - lo_tot)) / 2;
 	fp_move(sf->lo + move, sf->lo, tot_size);
 	f += move;
 	sf->lo += move;
@@ -1102,11 +1102,10 @@ sf_ins1(NySetField *sf, NyBitField *f, int pos)
 }
 
 static NyBitField *
-mutbitset_split_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, int pos)
-{
-    int sfpos = sf - v->root->ob_field;
-    int a_size = f - sf->lo;
-    int b_size = sf->hi - f;
+mutbitset_split_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, NyBit pos) {
+    NyBit sfpos = sf - v->root->ob_field;
+    NyBit a_size = f - sf->lo;
+    NyBit b_size = sf->hi - f;
     NySetField *nsf = root_ins1(v, sf+1, pos);
     assert(a_size >= 0);
     assert(b_size >= 0);
@@ -1129,7 +1128,7 @@ mutbitset_split_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, int po
 }
 
 static NyBitField *
-mutbitset_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, int pos)
+mutbitset_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, NyBit pos)
 {
     if (f - sf->lo > v->splitting_size &&
 	sf->hi - f > v->splitting_size)
@@ -1144,7 +1143,7 @@ mutbitset_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, int pos)
 }
 
 static NyBitField *
-mutbitset_findpos(NyMutBitSetObject *v, int pos)
+mutbitset_findpos(NyMutBitSetObject *v, NyBit pos)
 {
     NyBitField *f = v->cur_field;
     NySetField *sf;
@@ -1169,7 +1168,7 @@ mutbitset_findpos(NyMutBitSetObject *v, int pos)
 
 
 static NyBitField *
-mutbitset_findpos_mut(NyMutBitSetObject *v, int pos)
+mutbitset_findpos_mut(NyMutBitSetObject *v, NyBit pos)
 {
     NyBitField *f = v->cur_field;
     NyUnionObject *root;
@@ -1203,7 +1202,7 @@ mutbitset_findpos_mut(NyMutBitSetObject *v, int pos)
 
 
 static NyBitField *
-mutbitset_findpos_ins(NyMutBitSetObject *v, int pos)
+mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
 {
     int ins = 1;
     NySetField *sf;
@@ -1256,7 +1255,7 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi)
     NyUnionObject *root = v->root;
     if (root->ob_refcnt > 1) {
 	NyUnionObject *nroot = PyObject_NewVar(NyUnionObject, &NyUnion_Type, root->ob_size);
-	int i;
+	NyBit i;
 	if (!nroot)
 	  return 0;
 	nroot->cur_size = root->cur_size;
@@ -1279,8 +1278,8 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi)
 static NyImmBitSetObject *
 mutbitset_as_noncomplemented_immbitset_subtype(NyMutBitSetObject *v, PyTypeObject *type)
 {
-    int j;
-    int size = 0;
+    NyBit j;
+    NyBit size = 0;
     NyImmBitSetObject *bs;
     NySetField *slo, *shi, *s;
     NyBitField *fhi, *flo, *f;
@@ -1354,7 +1353,7 @@ mutbitset_as_immbitset_and_del(NyMutBitSetObject *v)
 
 
 int
-NyMutBitSet_hasbit(NyMutBitSetObject *v, long bit)
+NyMutBitSet_hasbit(NyMutBitSetObject *v, NyBit bit)
 {
     NyBitField f, *fp;
     bitno_to_field(bit, &f);
@@ -1366,7 +1365,7 @@ NyMutBitSet_hasbit(NyMutBitSetObject *v, long bit)
 static int
 mutbitset_contains(NyMutBitSetObject *v, PyObject *w)
 {
-    long bit = bitno_from_object(w);
+    NyBit bit = bitno_from_object(w);
     if (bit == -1 && PyErr_Occurred())
       return -1;
     return NyMutBitSet_hasbit(v, bit);
@@ -1378,7 +1377,7 @@ mutbitset_clear(NyMutBitSetObject *v)
     if (v->root != &v->fst_root) {
 	Py_DECREF(v->root);
     } else {
-	int i;
+	NyBit i;
 	for (i = 0; i < v->root->cur_size; i++)
 	  Py_DECREF(v->root->ob_field[i].set);
     }
@@ -1455,7 +1454,7 @@ mutbitset_ior_field(NyMutBitSetObject *v, NyBitField *w)
 }
 
 static int
-mutbitset_ior_fields(NyMutBitSetObject *v, NyBitField *w, int n)
+mutbitset_ior_fields(NyMutBitSetObject *v, NyBitField *w, NyBit n)
 {
     for (; n--;)
       if (mutbitset_ior_field(v, w++))
@@ -1588,7 +1587,7 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, int n)
 	  }
 	break;
       case NyBits_SUBR: {
-	  int i;
+	  NyBit i;
 	  for (i = 0; i < n; i++) {
 	      if (w[i].bits) {
 		  if (!mutbitset_findpos_ins(v, w[i].pos))
@@ -1618,7 +1617,7 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, int n)
 }
 
 static int
-mutbitset_iop_bitno(NyMutBitSetObject *v, int op, long bitno)
+mutbitset_iop_bitno(NyMutBitSetObject *v, int op, NyBit bitno)
 {
     NyBitField f;
     bitno_to_field(bitno, &f);
@@ -1626,7 +1625,7 @@ mutbitset_iop_bitno(NyMutBitSetObject *v, int op, long bitno)
 }
 
 static int
-mutbitset_iop_bits(NyMutBitSetObject *v, int op, long pos, NyBits *bits, int n)
+mutbitset_iop_bits(NyMutBitSetObject *v, int op, NyBit pos, NyBits *bits, NyBit n)
 {
     NySetField *s, *end_s;
     NyBitField *f, *end_f;
@@ -1884,8 +1883,8 @@ mutbitset_iop_PyIntObject(NyMutBitSetObject *ms, int op, PyObject *v)
 static int
 mutbitset_iop_PyListObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
-    int size = PyList_GET_SIZE(v);
-    int i;
+    NyBit size = PyList_GET_SIZE(v);
+    NyBit i;
     NyMutBitSetObject *tms;
     if (op == NyBits_AND) {
 	tms = NyMutBitSet_New();
@@ -1919,8 +1918,8 @@ mutbitset_iop_PyListObject(NyMutBitSetObject *ms, int op, PyObject *v)
 static int
 mutbitset_iop_PyTupleObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
-    int size = PyTuple_GET_SIZE(v);
-    int i;
+    NyBit size = PyTuple_GET_SIZE(v);
+    NyBit i;
     NyMutBitSetObject *tms;
     if (op == NyBits_AND) {
 	tms = NyMutBitSet_New();
@@ -1955,7 +1954,7 @@ mutbitset_iop_PyTupleObject(NyMutBitSetObject *ms, int op, PyObject *v)
 static int
 mutbitset_iop_PyDictObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
-    int i;
+    long i;
     NyMutBitSetObject *tms;
     PyObject *key, *value;
     if (op == NyBits_AND) {
@@ -2166,9 +2165,10 @@ mutbitset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)mutbitset_subtype_new_from_arg(type, arg);
 }
 
-static int
-mutbitset_length(NyMutBitSetObject *v)
+static NySize
+    mutbitset_length(PyObject *_v)
 {
+    NyMutBitSetObject *v=(void*)_v;
     NySetField *s, *end_s;
     NyBitField *f, *end_f;
     int n = 0;
@@ -2280,13 +2280,13 @@ mutbitset_set_or_clr(NyMutBitSetObject *v, long bitno, int set_or_clr)
 
 
 int
-NyMutBitSet_setbit(NyMutBitSetObject *v, long bitno)
+NyMutBitSet_setbit(NyMutBitSetObject *v, NyBit bitno)
 {
   return mutbitset_set_or_clr(v, bitno, 1);
 }
 
 int
-NyMutBitSet_clrbit(NyMutBitSetObject *v, long bitno)
+NyMutBitSet_clrbit(NyMutBitSetObject *v, NyBit bitno)
 {
   return mutbitset_set_or_clr(v, bitno, 0);
 }
@@ -2321,7 +2321,7 @@ mutbitset_tacbit(NyMutBitSetObject *v, PyObject *w)
 
 static int
 bitfields_iterate(NyBitField *f, NyBitField *end_f,
-		   int (*visit)(int, void *),
+		   int (*visit)(NyBit, void *),
 		   void *arg)
 {
     for (;f < end_f; f++) {
@@ -2344,7 +2344,7 @@ bitfields_iterate(NyBitField *f, NyBitField *end_f,
 
 static int
 mutbitset_iterate(NyMutBitSetObject *v,
-		   int (*visit)(int, void *),
+		   int (*visit)(NyBit, void *),
 		   void *arg)
 {
     NySetField *s, *end_s;
@@ -2359,7 +2359,7 @@ mutbitset_iterate(NyMutBitSetObject *v,
 
 static int
 immbitset_iterate(NyImmBitSetObject *v,
-		   int (*visit)(int, void *),
+		   int (*visit)(NyBit, void *),
 		   void *arg)
 {
     return bitfields_iterate(&v->ob_field[0], &v->ob_field[v->ob_size],
@@ -2369,7 +2369,7 @@ immbitset_iterate(NyImmBitSetObject *v,
 
 int
 NyAnyBitSet_iterate(PyObject *v,
-		   int (*visit)(int, void *),
+		   NySetVisitor visit,
 		   void *arg)
 {
     if (NyImmBitSet_Check(v))
@@ -2388,7 +2388,7 @@ static PyObject *
 mutbitset_append_or_remove(NyMutBitSetObject *v, PyObject *w, int ap, char *errmsg)
 {
     NyBitField f, *fp;
-    long bitno = bitno_from_object(w);
+    NyBit bitno = bitno_from_object(w);
     if (bitno == -1 && PyErr_Occurred())
       return 0;
     bitno_to_field(bitno, &f);
@@ -2469,12 +2469,12 @@ _mutbitset_clear(NyMutBitSetObject *self, PyObject *args)
 }
 
 long
-NyMutBitSet_pop(NyMutBitSetObject *v, int i)
+NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
 {
-    int j;
+    NyBit j;
     NySetField *s, *end_s;
     NyBitField *f, *end_f;
-    long ret = 0;
+    NyBit ret = 0;
     s=0;end_s=0; /* avoid warnings */
     if (v->cpl) {
 	PyErr_SetString(PyExc_ValueError,
@@ -2520,18 +2520,18 @@ NyMutBitSet_pop(NyMutBitSetObject *v, int i)
 static PyObject *
 mutbitset_pop(NyMutBitSetObject *v, PyObject *args)
 {
-    int i = -1;
-    long bit;
+    NyBit i = -1;
+    NyBit bit;
     if (!PyArg_ParseTuple(args, "|i:pop", &i))
       return NULL;
     bit = NyMutBitSet_pop(v, i);
     if (bit == -1 && PyErr_Occurred())
       return 0;
-    return PyInt_FromLong(bit);
+    return PyInt_FromLong(bit); /// xxx from ...
 }
 
 static PyObject *
-mutbitset_slice(NyMutBitSetObject *a, int ilow, int ihigh)
+mutbitset_slice(NyMutBitSetObject *a, NyBit ilow, NyBit ihigh)
 {
     
     NySetField *ss, *se;
@@ -2555,9 +2555,9 @@ mutbitset_slice(NyMutBitSetObject *a, int ilow, int ihigh)
 */
 
 static int
-NySlice_GetIndices(PySliceObject *r, int *start, int *stop)
+NySlice_GetIndices(PySliceObject *r, NyBit *start, NyBit *stop)
 {
-    int sstep, *step = &sstep;
+    NyBit sstep, *step = &sstep;
 	if (r->step == Py_None) {
 		*step = 1;
 	} else {
@@ -2588,11 +2588,11 @@ NySlice_GetIndices(PySliceObject *r, int *start, int *stop)
 static PyObject *
 mutbitset_subscript(NyMutBitSetObject *v, PyObject *w)
 {
-    int i;
+    NyBit i;
     NySetField *s, *end_s;
     NyBitField *f, *end_f;
     if (PySlice_Check(w)) {
-	int start, stop;
+	NyBit start, stop;
 	if (NySlice_GetIndices((PySliceObject *)w, &start, &stop) == -1)
 	  return NULL;
 	return mutbitset_slice(v, start, stop);
@@ -2660,7 +2660,7 @@ NyCplBitSet_New_Del(NyImmBitSetObject *v)
 }
 
 static NyBitField *
-immbitset_findpos(NyImmBitSetObject *v, int pos)
+immbitset_findpos(NyImmBitSetObject *v, NyBit pos)
 {
     NyBitField *f = v->ob_field;
     NyBitField *hi = & v->ob_field[v->ob_size];
@@ -2764,7 +2764,7 @@ immbitset_and(NyImmBitSetObject *v, PyObject *w, int wt)
 
 
 int
-NyImmBitSet_hasbit(NyImmBitSetObject *v, long bit)
+NyImmBitSet_hasbit(NyImmBitSetObject *v, NyBit bit)
 {
     NyBitField f, *fp;
     bitno_to_field(bit, &f);
@@ -2839,12 +2839,14 @@ immbitset_complement(NyImmBitSetObject *v)
     return (PyObject *)NyCplBitSet_New(v);
 }
 
-static int
-immbitset_length(NyImmBitSetObject *v)
+static NySize
+immbitset_length(PyObject *_v)
 {
-    int n = v->ob_length; /* n.b. int not long, that's what we need to return & check */
+    NyImmBitSetObject *v=(void*)_v;
+
+    NySize n = v->ob_length;
     if (n == -1) {
-	int i;
+	NySize i;
 	for (i = 0, n = 0; i < v->ob_size; i++) {
 	    n += bits_length(v->ob_field[i].bits);
 	    if (n < 0) {
@@ -2861,9 +2863,9 @@ int
 NyAnyBitSet_length(PyObject *v)
 {
     if (NyImmBitSet_Check(v))
-      return immbitset_length((NyImmBitSetObject *)v);
+      return immbitset_length(v);
     else if (NyMutBitSet_Check(v))
-      return mutbitset_length((NyMutBitSetObject *)v);
+      return mutbitset_length(v);
     else {
 	PyErr_SetString(PyExc_ValueError, "NyAnyBitSet_length: bitset required.");
 	return -1;
@@ -2871,7 +2873,7 @@ NyAnyBitSet_length(PyObject *v)
 }			
 
 int
-pos_add_check(long a, long b)
+pos_add_check(NyBit a, NyBit b)
 {
     long tst;
     tst = a + b;
@@ -2882,7 +2884,7 @@ pos_add_check(long a, long b)
 }
 
 static NyImmBitSetObject *
-immbitset_lshift(NyImmBitSetObject *v, long w)
+immbitset_lshift(NyImmBitSetObject *v, NyBit w)
 {
     long posshift;
     int remshift;
@@ -2939,7 +2941,7 @@ immbitset_lshift(NyImmBitSetObject *v, long w)
 }
 
 NyImmBitSetObject *
-sf_slice(NySetField *ss, NySetField *se, int ilow, int ihigh)
+sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
 {
     long nbits = 0;
     long nbitswanted;
@@ -3036,7 +3038,7 @@ sf_slice(NySetField *ss, NySetField *se, int ilow, int ihigh)
 }
 
 static NyImmBitSetObject *
-immbitset_slice(NyImmBitSetObject *a, int ilow, int ihigh)
+immbitset_slice(NyImmBitSetObject *a, NyBit ilow, NyBit ihigh)
 {
     
     NySetField s;
@@ -3053,9 +3055,9 @@ immbitset_slice(NyImmBitSetObject *a, int ilow, int ihigh)
 static PyObject *
 immbitset_subscript(NyImmBitSetObject *v, PyObject *w)
 {
-    int i;
+    long i;
     if (PySlice_Check(w)) {
-	int start, stop;
+	NyBit start, stop;
 	if (NySlice_GetIndices((PySliceObject *)w, &start, &stop) == -1)
 	  return NULL;
 	return (PyObject *)immbitset_slice(v, start, stop);
@@ -3080,7 +3082,7 @@ immbitset_subscript(NyImmBitSetObject *v, PyObject *w)
 PyObject *
 immbitset_long(NyImmBitSetObject *v)
 {
-    int num_poses, pos;
+    NyBit num_poses, pos;
     NyBits bits, *buf;
     NyBitField *f = &v->ob_field[0];
     NyBitField *f_stop = &v->ob_field[v->ob_size];
@@ -3406,7 +3408,7 @@ immbitset_repr(NyImmBitSetObject *a)
 {
 	char buf[256];
 	PyObject *s, *t, *comma, *v, *iter;
-	int i, len;
+	NyBit i, len;
 	len = a->ob_size;
 	if (len == 0) {
 		PyOS_snprintf(buf, sizeof(buf), "ImmBitSet([])");
@@ -3475,8 +3477,8 @@ immbitset_xor(NyImmBitSetObject *v, PyObject *w, int wt)
 typedef struct {
 	PyObject_HEAD
 	NyImmBitSetObject *immbitset;
-	int fldpos;
-	int bitpos;
+	NyBit fldpos;
+	NyBit bitpos;
 } NyImmBitSetIterObject;
 
 
@@ -3512,9 +3514,9 @@ static PyObject *
 bsiter_iternext(NyImmBitSetIterObject *bi)
 {
     NyImmBitSetObject *bs = bi->immbitset;
-    int fldpos = bi->fldpos;
+    NyBit fldpos = bi->fldpos;
     if (fldpos < bs->ob_size) {
-	int bitpos = bi->bitpos;
+	NyBit bitpos = bi->bitpos;
 	NyBitField *f = &bs->ob_field[fldpos];
 	NyBits bits = f->bits >> bitpos;
 	long rebit;
@@ -3594,7 +3596,7 @@ cplbitset_complement(NyCplBitSetObject *v)
 static PyObject *
 cplbitset_int(NyCplBitSetObject *v)
 {
-    PyObject *w = immbitset_int(v->ob_val);
+    PyObject *w = immbitset_int(v->ob_val); // xxx
     PyObject *x;
     if (!w) return 0;
     x = PyNumber_Invert(w);
@@ -3931,7 +3933,7 @@ static PyMethodDef immbitset_methods[] = {
 
 
 static PySequenceMethods immbitset_as_sequence = {
-	(inquiry)0,/* NOT USED - can be automatically called would be slow *//* sq_length */
+	0,/* NOT USED - can be automatically called would be slow *//* sq_length */
 	0,					/* sq_concat */
 	0,					/* sq_repeat */
 	0,					/* sq_item */
@@ -3945,7 +3947,7 @@ static PySequenceMethods immbitset_as_sequence = {
 
 
 static PyMappingMethods immbitset_as_mapping = {
-	(inquiry)immbitset_length,	       /*mp_length*/
+	immbitset_length,	       /*mp_length*/
 	(binaryfunc)immbitset_subscript, /*mp_subscript*/
 	(objobjargproc)0,	      /*mp_ass_subscript*/
 };
@@ -4326,7 +4328,7 @@ static PyMemberDef mutbitset_members[] = {
 };
 
 static PyMappingMethods mutbitset_as_mapping = {
-	(inquiry)mutbitset_length,	       /*mp_length*/
+	mutbitset_length,	       /*mp_length*/
 	(binaryfunc)mutbitset_subscript, /*mp_subscript*/
 	(objobjargproc)0,	      /*mp_ass_subscript*/
 };
@@ -4663,7 +4665,8 @@ NyBitSet_Form(PyObject *args)
     PyObject *str;
     NyImmBitSetObject *bs;
     char *s;
-    int len, sz, flags;
+    NyBit len,sz;
+    int flags;
     if (!(args && PyTuple_Check(args)) && PyTuple_GET_SIZE(args) == 2) {
 	PyErr_SetString(PyExc_TypeError, "NyBitSet_Form() requires exactly 2 arguments");
 	return 0;

@@ -1,3 +1,11 @@
+2008-03-13  Sverker Nilsson  <sverker@sverker-laptop>
+	*  Starting modifications to work with 64 bits.
+	   
+	*  guppy/src/sets/ (bitset.h, nodeset.c, bitset.c), maybe others,
+	changes to especially the index type used as bit number in bitsets.
+	Defining type NyBit for this and also NySize. They are just
+	longs right now. Testing with Ubuntu 7.10 / AMD 64. 
+
 2007-02-16  Sverker Nilsson  <sverker@localhost>
 
 	* Put it under svn. Changed to call it 0.1.7 in README and ANNOUNCE

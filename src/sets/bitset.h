@@ -7,11 +7,16 @@ extern "C" {
 
 typedef unsigned long NyBits;
 
+typedef long NyBit;		// Index into bitset
+
+typedef long NySize;
+
 /* Number of bits in a NyBits field */
 
 #define NyBits_N	((long)(sizeof(NyBits) * 8))
 /* Had to hardcode the size, the definition above didn't work in preprocessor */
-#define NyBits_32 1	/* xxx this didnt work: (NyBits_N == 32) */
+#define NyBits_32 0	/* xxx this didnt work: (NyBits_N == 32) */
+#define NyBits_64 1
 
 #define NyPos_MAX	(LONG_MAX/NyBits_N)
 #define NyPos_MIN	(LONG_MIN/NyBits_N)
@@ -25,7 +30,7 @@ typedef struct {
 
 typedef struct {
     PyObject_VAR_HEAD
-    long ob_length;		/* Result for len(), -1 if not yet calculated */
+    NySize ob_length;		/* Result for len(), -1 if not yet calculated */
     NyBitField ob_field[1];	/* The bit fields, ob_size of these */
 } NyImmBitSetObject;
 			      
@@ -88,7 +93,7 @@ typedef struct {
     int (*mbs_set_or_clr)(NyMutBitSetObject *v, long bitno, int set_or_clr);
     PyObject *(*mbs_as_immutable)(NyMutBitSetObject *v);
     int (*iterate)(PyObject *v,
-		   int (*visit)(int, void *),
+		   int (*visit)(NyBit, void *),
 		   void *arg
 		   );
 
