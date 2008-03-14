@@ -861,9 +861,10 @@ least once after update, so that it will not be cleared too early."},
 #undef OFF
 
 
-static int
-ng_length(NyNodeGraphObject *ng)
+static long
+ng_length(PyObject *_ng)
 {
+    NyNodeGraphObject *ng=(void*)_ng;
     ng_maybesortetc(ng);
     return ng->used_size;
 }
@@ -958,7 +959,7 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
 
 
 static PyMappingMethods ng_as_mapping = {
-    (inquiry)ng_length,       /*mp_length*/
+    ng_length,		       /*mp_length*/
     (binaryfunc)ng_subscript, /*mp_subscript*/
     (objobjargproc)ng_ass_sub,/*mp_ass_subscript*/
 };

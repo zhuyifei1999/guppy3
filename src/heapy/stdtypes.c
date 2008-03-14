@@ -48,7 +48,7 @@ dict_size(PyObject *obj) {
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
 {
     PyObject *pk, *pv;
-    int i = 0;
+    long i = 0;
     int ix = 0;
     if (!dict)
       return 0;

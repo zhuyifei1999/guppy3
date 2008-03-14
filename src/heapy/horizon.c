@@ -52,7 +52,7 @@ horizon_remove(NyHorizonObject *v)
     }
     *p = v->next;
     if (!rm.horizons && rm.types) {
-	int i = 0;
+	long i = 0;
 	PyObject *pk, *pv;
 	while (PyDict_Next(rm.types, &i, &pk, &pv)) {
 	    ((PyTypeObject *)pk)->tp_dealloc = (destructor) PyInt_AsLong(pv);

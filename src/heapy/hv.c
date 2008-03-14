@@ -326,7 +326,7 @@ static ExtraType xt_error = {
 #define XT_HD 		4
 #define XT_HI 		5
 
-#define XT_HASH(hv, type)	(((int)type >> 4) & XT_MASK)
+#define XT_HASH(hv, type)	(((Py_uintptr_t)type >> 4) & XT_MASK)
 
 void
 xt_findout_size(ExtraType *xt)
