@@ -2165,7 +2165,7 @@ mutbitset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)mutbitset_subtype_new_from_arg(type, arg);
 }
 
-static NySize
+static Py_ssize_t
     mutbitset_length(PyObject *_v)
 {
     NyMutBitSetObject *v=(void*)_v;
@@ -2839,14 +2839,14 @@ immbitset_complement(NyImmBitSetObject *v)
     return (PyObject *)NyCplBitSet_New(v);
 }
 
-static NySize
+static Py_ssize_t
 immbitset_length(PyObject *_v)
 {
     NyImmBitSetObject *v=(void*)_v;
 
-    NySize n = v->ob_length;
+    Py_ssize_t n = v->ob_length;
     if (n == -1) {
-	NySize i;
+	Py_ssize_t i;
 	for (i = 0, n = 0; i < v->ob_size; i++) {
 	    n += bits_length(v->ob_field[i].bits);
 	    if (n < 0) {
@@ -2875,7 +2875,7 @@ NyAnyBitSet_length(PyObject *v)
 int
 pos_add_check(NyBit a, NyBit b)
 {
-    long tst;
+    NyBit tst;
     tst = a + b;
     if (NyPos_MIN <= tst && tst <= NyPos_MAX)
       return 0;
@@ -4665,7 +4665,7 @@ NyBitSet_Form(PyObject *args)
     PyObject *str;
     NyImmBitSetObject *bs;
     char *s;
-    NyBit len,sz;
+    Py_ssize_t len,sz;
     int flags;
     if (!(args && PyTuple_Check(args)) && PyTuple_GET_SIZE(args) == 2) {
 	PyErr_SetString(PyExc_TypeError, "NyBitSet_Form() requires exactly 2 arguments");

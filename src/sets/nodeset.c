@@ -1081,7 +1081,7 @@ nodeset_ior(NyNodeSetObject *v, PyObject *w)
 
 
 
-static NySize
+static Py_ssize_t
 nodeset_length(PyObject *_v)
 {
     NyNodeSetObject *v=(void*)_v;

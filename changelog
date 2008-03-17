@@ -2,10 +2,8 @@
 
 	* Several files, to make it complie without warnings in 32 bit
 	  mode. 
-	  NyBit is now defined depending on __LP64__ and also depending 
-	  on the Python version and uses Py_ssize_t, long or int depending
-	  on  the combination of Python version and architecture. So it
-	  compiles with 2.4 and 2.5. Remains to test in 64 bit again...
+	  NyBit is now defined depending on __LP64__ and uses long or int
+	  depending on the architecture. Remains to test in 64 bit again...
 
 	* src/sets/bitset.h: using __LP64__ macro to indirectly define internal
 	  conditional flags, NyBits_32 resp. NyBits_64

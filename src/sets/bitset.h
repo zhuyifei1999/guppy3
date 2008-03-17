@@ -24,22 +24,19 @@ typedef unsigned long NyBits;
 #ifdef __LP64__		/* can't use sizeof */
 #define NyBits_32 0
 #define NyBits_64 1
-#if PY_VERSION_HEX < 0x02050000
-    typedef long NyBit;
-    typedef long NySize;
-#else    
-    typedef Py_ssize_t NyBit;
-    typedef Py_ssize_t NySize;
-#endif
+typedef long NyBit;
+#define NyBit_MAX LONG_MAX
+#define NyBit_MIN LONG_MIN
 #else
 #define NyBits_32 1
 #define NyBits_64 0
-    typedef Py_ssize_t NyBit;
-    typedef Py_ssize_t NySize;
+typedef int NyBit;
+#define NyBit_MAX INT_MAX
+#define NyBit_MIN INT_MIN
 #endif
 
-#define NyPos_MAX	(LONG_MAX/NyBits_N)
-#define NyPos_MIN	(LONG_MIN/NyBits_N)
+#define NyPos_MAX	(NyBit_MAX/NyBits_N)
+#define NyPos_MIN	(NyBit_MIN/NyBits_N)
 
 typedef struct {
     NyBit pos;		/* The position of the first bit / NyBits_N */
@@ -50,7 +47,7 @@ typedef struct {
 
 typedef struct {
     PyObject_VAR_HEAD
-    NySize ob_length;		/* Result for len(), -1 if not yet calculated */
+    Py_ssize_t ob_length;	/* Result for len(), -1 if not yet calculated */
     NyBitField ob_field[1];	/* The bit fields, ob_size of these */
 } NyImmBitSetObject;
 			      
