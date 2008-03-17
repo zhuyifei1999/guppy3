@@ -861,7 +861,7 @@ least once after update, so that it will not be cleared too early."},
 #undef OFF
 
 
-static long
+static Py_ssize_t
 ng_length(PyObject *_ng)
 {
     NyNodeGraphObject *ng=(void*)_ng;

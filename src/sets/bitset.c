@@ -1954,7 +1954,7 @@ mutbitset_iop_PyTupleObject(NyMutBitSetObject *ms, int op, PyObject *v)
 static int
 mutbitset_iop_PyDictObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
-    long i;
+    Py_ssize_t i;
     NyMutBitSetObject *tms;
     PyObject *key, *value;
     if (op == NyBits_AND) {
@@ -1966,7 +1966,7 @@ mutbitset_iop_PyDictObject(NyMutBitSetObject *ms, int op, PyObject *v)
       tms = ms;
     i = 0;
     while (PyDict_Next(v, &i, &key, &value)) {
-	long bit = bitno_from_object(key);
+	NyBit bit = bitno_from_object(key);
 	if (bit == -1 && PyErr_Occurred())
 	  goto Err;
 	if (mutbitset_iop_bitno(tms, op, bit) == -1)
@@ -2254,7 +2254,7 @@ mutbitset_repr(NyMutBitSetObject *a)
 }
 
 static int
-mutbitset_set_or_clr(NyMutBitSetObject *v, long bitno, int set_or_clr)
+mutbitset_set_or_clr(NyMutBitSetObject *v, NyBit bitno, int set_or_clr)
 {
     NyBitField f, *fp;
     int ap = set_or_clr;
@@ -2886,11 +2886,11 @@ pos_add_check(NyBit a, NyBit b)
 static NyImmBitSetObject *
 immbitset_lshift(NyImmBitSetObject *v, NyBit w)
 {
-    long posshift;
-    int remshift;
-    long n;
-    long lopos, hipos;
-    int i;
+    NyBit posshift;
+    NyBit remshift;
+    NyBit n;
+    NyBit lopos, hipos;
+    NyBit i;
     if (v == NyImmBitSet_Empty) {
 	Py_INCREF(NyImmBitSet_Empty);
 	return NyImmBitSet_Empty;
@@ -3540,7 +3540,7 @@ bsiter_iternext(NyImmBitSetIterObject *bi)
 }
 
 static int
-cplbitset_hasbit(NyCplBitSetObject *v, long bit)
+cplbitset_hasbit(NyCplBitSetObject *v, NyBit bit)
 {
     return !NyImmBitSet_hasbit(v->ob_val, bit);
 }
@@ -3548,7 +3548,7 @@ cplbitset_hasbit(NyCplBitSetObject *v, long bit)
 static int
 cplbitset_contains(NyCplBitSetObject *v, PyObject *w)
 {
-    long bit = bitno_from_object(w);
+    NyBit bit = bitno_from_object(w);
     if (bit == -1 && PyErr_Occurred())
       return -1;
     return cplbitset_hasbit(v, bit);
@@ -4502,11 +4502,11 @@ NyImmBitSet_Range(long lo, long hi, long step)
     NyBitField fst, *f, *fhi, fs[NyBits_N];
     NyImmBitSetObject *v;
 
-    long bitno, bitno_per_block, hipos, hibit, bit, pos, fstbit;
-    long size, posadd, pos_per_block, d, lim, bign, bp;
-    long bitnos[NyBits_N+1];
+    NyBit bitno, bitno_per_block, hipos, hibit, bit, pos, fstbit;
+    NyBit size, posadd, pos_per_block, d, lim, bign, bp;
+    NyBit bitnos[NyBits_N+1];
 
-    int blocksize, i, j, nf, nblocks, n, extra;
+    NyBit blocksize, i, j, nf, nblocks, n, extra;
 
     if (step <= 0) {
 	PyErr_SetString(PyExc_ValueError, "bitrange() arg 3 must be positive");

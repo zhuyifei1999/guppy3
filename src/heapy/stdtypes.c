@@ -4,6 +4,15 @@
 #include "frameobject.h"
 #include "unicodeobject.h"
 
+/* Defining Py_ssize_t for backwards compatibility, from PEP 353 */
+
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
+
+
 #include "heapdef.h"
 #include "stdtypes.h"
 
@@ -48,7 +57,7 @@ dict_size(PyObject *obj) {
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
 {
     PyObject *pk, *pv;
-    long i = 0;
+    Py_ssize_t i = 0;
     int ix = 0;
     if (!dict)
       return 0;

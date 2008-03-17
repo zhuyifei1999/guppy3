@@ -5,29 +5,44 @@
 extern "C" {
 #endif
 
+/* Defining Py_ssize_t for backwards compatibility, from PEP 353 */
+
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
+
 typedef unsigned long NyBits;
 
-typedef long NyBit;		// Index into bitset
-
-typedef long NySize;
 
 /* Number of bits in a NyBits field */
 
 #define NyBits_N	((long)(sizeof(NyBits) * 8))
 
+
 #ifdef __LP64__		/* can't use sizeof */
 #define NyBits_32 0
 #define NyBits_64 1
+#if PY_VERSION_HEX < 0x02050000
+    typedef long NyBit;
+    typedef long NySize;
+#else    
+    typedef Py_ssize_t NyBit;
+    typedef Py_ssize_t NySize;
+#endif
 #else
-#define NyBits_32 0
-#define NyBits_64 1
+#define NyBits_32 1
+#define NyBits_64 0
+    typedef Py_ssize_t NyBit;
+    typedef Py_ssize_t NySize;
 #endif
 
 #define NyPos_MAX	(LONG_MAX/NyBits_N)
 #define NyPos_MIN	(LONG_MIN/NyBits_N)
 
 typedef struct {
-    long pos;		/* The position of the first bit / NyBits_N */
+    NyBit pos;		/* The position of the first bit / NyBits_N */
     NyBits bits;	/* The bits as a mask */
 } NyBitField;
 
@@ -93,18 +108,18 @@ typedef struct {
        All 3 functions return previous bit: 0 (clr) or 1 (set)
        On error, -1 is returned.
     */
-    int (*mbs_setbit)(NyMutBitSetObject *v, long bitno);
-    int (*mbs_clrbit)(NyMutBitSetObject *v, long bitno); 
-    int (*mbs_set_or_clr)(NyMutBitSetObject *v, long bitno, int set_or_clr);
+    int (*mbs_setbit)(NyMutBitSetObject *v, NyBit bitno);
+    int (*mbs_clrbit)(NyMutBitSetObject *v, NyBit bitno); 
+    int (*mbs_set_or_clr)(NyMutBitSetObject *v, NyBit bitno, int set_or_clr);
     PyObject *(*mbs_as_immutable)(NyMutBitSetObject *v);
     int (*iterate)(PyObject *v,
 		   int (*visit)(NyBit, void *),
 		   void *arg
 		   );
 
-    int (*mbs_hasbit)(NyMutBitSetObject *v, long bitno);
-    int (*ibs_hasbit)(NyImmBitSetObject *v, long bitno);
-    int (*cpl_hasbit)(NyCplBitSetObject *v, long bitno);
+    int (*mbs_hasbit)(NyMutBitSetObject *v, NyBit bitno);
+    int (*ibs_hasbit)(NyImmBitSetObject *v, NyBit bitno);
+    int (*cpl_hasbit)(NyCplBitSetObject *v, NyBit bitno);
     int (*mbs_clear)(NyMutBitSetObject *v);
 } NyBitSet_Exports;
 
