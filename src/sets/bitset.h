@@ -21,23 +21,20 @@ typedef unsigned long NyBits;
 #define NyBits_N	((long)(sizeof(NyBits) * 8))
 
 
-#ifdef __LP64__		/* can't use sizeof */
-#define NyBits_32 0
-#define NyBits_64 1
-#define NyBit_MAX LONG_MAX
-#define NyBit_MIN LONG_MIN
-#else
-#define NyBits_32 1
-#define NyBits_64 0
-#define NyBit_MAX INT_MAX
-#define NyBit_MIN INT_MIN
-#endif
+typedef Py_intptr_t NyBit;
 
-typedef Py_intptr_t NyBit;	/* What is the limits for this type? */
+/* Largest positive value of type NyBit. */
+#define NyBit_MAX ((NyBit)(((Py_uintptr_t)-1)>>1))
+/* Smallest negative value of type NyBit. */
+#define NyBit_MIN (-NyBit_MAX-1)
 
 
 #define NyPos_MAX	(NyBit_MAX/NyBits_N)
 #define NyPos_MIN	(NyBit_MIN/NyBits_N)
+
+#ifdef __LPR64__	/* Can't use above types or defs */
+#define NyBits_64 1
+#endif
 
 typedef struct {
     NyBit pos;		/* The position of the first bit / NyBits_N */

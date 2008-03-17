@@ -519,11 +519,7 @@ bits_first(NyBits bits)
 	i += 32;
 	bits = bits >> 32;
     }
-#elif NyBits_32
-#else
-  assert(0);
 #endif
-    
     if (!(bits & 0xffff)) {
 	i += 16;
 	bits = bits >> 16;
