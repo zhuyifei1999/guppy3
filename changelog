@@ -1,6 +1,9 @@
+2008-03-17  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* Changing some more occurences of int to long or NyBit where appr.
+
 2008-03-13  Sverker Nilsson  <sverker@sverker-laptop>
 	*  Starting modifications to work with 64 bits.
-	   
 	*  guppy/src/sets/ (bitset.h, nodeset.c, bitset.c), maybe others,
 	changes to especially the index type used as bit number in bitsets.
 	Defining type NyBit for this and also NySize. They are just

@@ -347,7 +347,7 @@ mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)NyMutNodeSet_SubtypeNewIterable(type, iterable, 0);
 }
 
-static int
+static NyBit
 nodeset_obj_to_bitno(PyObject *obj)
 {
     return (unsigned long) obj / ALIGN;
