@@ -1,6 +1,14 @@
 2008-03-17  Sverker Nilsson  <sverker@sverker-laptop>
 
-	* Changing some more occurences of int to long or NyBit where appr.
+	* src/sets/bitset.h: using __LP64__ macro to indirectly define internal
+	  conditional flags, NyBits_32 resp. NyBits_64
+	
+	*  guppy/heapy/__init__.py : checked sys.maxint to detmine arch
+	   some size-dependent tests are relaxed if not 32-bit arch
+	*  guppy/heapy/test_heapyc.py : relaxed a timing test
+	
+	* src/sets/nodeset.c &c. changed some more occurences of int to NyBit
+	  or perhaps they just became long in some place.
 
 2008-03-13  Sverker Nilsson  <sverker@sverker-laptop>
 	*  Starting modifications to work with 64 bits.

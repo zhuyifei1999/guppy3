@@ -218,7 +218,7 @@ class TestHeapView(TestCase):
 	elapsed1 = clock() - start
 	# print elapsed1, len(x)
 	
-	self.assert_(elapsed1 < 2.0 * elapsed0)
+	self.assert_(elapsed1 < 3.0 * elapsed0)
 
 
     def test_unregistered_hiding(self):

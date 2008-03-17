@@ -16,10 +16,9 @@ class _GLUECLAMP_:
 
     # This flag should be cleared on systems with different memory sizes,
     # otherwise some size-dependent tests will fail.
-    # How this is to be done automatically, is yet to be determined
-    # on an indivudal case.
 
-    allocation_behaves_as_originally = True
+    import sys
+    allocation_behaves_as_originally = sys.maxint==0x7fffffff
 
     #
 

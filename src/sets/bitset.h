@@ -14,9 +14,14 @@ typedef long NySize;
 /* Number of bits in a NyBits field */
 
 #define NyBits_N	((long)(sizeof(NyBits) * 8))
-/* Had to hardcode the size, the definition above didn't work in preprocessor */
-#define NyBits_32 0	/* xxx this didnt work: (NyBits_N == 32) */
+
+#ifdef __LP64__		/* can't use sizeof */
+#define NyBits_32 0
 #define NyBits_64 1
+#else
+#define NyBits_32 0
+#define NyBits_64 1
+#endif
 
 #define NyPos_MAX	(LONG_MAX/NyBits_N)
 #define NyPos_MIN	(LONG_MIN/NyBits_N)
