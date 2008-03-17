@@ -2,8 +2,9 @@
 
 	* Several files, to make it complie without warnings in 32 bit
 	  mode. 
-	  NyBit is now defined depending on __LP64__ and uses long or int
-	  depending on the architecture. Remains to test in 64 bit again...
+	  NyBit is now defined as Py_intptr_t but limits are besed on
+	  INT_MAX or LONG_MAX because it checks __LP64__ and assumes
+	  they are 64 or 32 bit.
 
 	* src/sets/bitset.h: using __LP64__ macro to indirectly define internal
 	  conditional flags, NyBits_32 resp. NyBits_64

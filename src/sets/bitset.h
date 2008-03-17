@@ -24,16 +24,17 @@ typedef unsigned long NyBits;
 #ifdef __LP64__		/* can't use sizeof */
 #define NyBits_32 0
 #define NyBits_64 1
-typedef long NyBit;
 #define NyBit_MAX LONG_MAX
 #define NyBit_MIN LONG_MIN
 #else
 #define NyBits_32 1
 #define NyBits_64 0
-typedef int NyBit;
 #define NyBit_MAX INT_MAX
 #define NyBit_MIN INT_MIN
 #endif
+
+typedef Py_intptr_t NyBit;	/* What is the limits for this type? */
+
 
 #define NyPos_MAX	(NyBit_MAX/NyBits_N)
 #define NyPos_MIN	(NyBit_MIN/NyBits_N)
