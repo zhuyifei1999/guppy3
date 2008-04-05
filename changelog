@@ -1,3 +1,12 @@
+2008-04-05  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* src/sets/bitset.c (bits_first): Removed xxx etc from comment, no 
+	problem with being hardcoded for size and now tested with 64 bits.
+	(sf_realloc): changed the update of v->lo and v->hi to use better
+	defined pointer-arithmetic within allocated arrays. This solved a
+	problem with 64 bit mode in (at least) Python 2.4. May be a
+	coincidence that it seemed to work with 2.5.
+
 2008-03-17  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* Several files, to make it complie without warnings in 32 bit

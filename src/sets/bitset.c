@@ -504,7 +504,7 @@ bitno_to_field(NyBit bitno, NyBitField *f) {
 
  Only to be used when some bit is set.
 
- xxx Hardcoded for 64 or 32 bit fields, tested only on 32 bit fields
+ Hardcoded for 64 or 32 bit fields
 
 */
 
@@ -1027,13 +1027,12 @@ sf_realloc(NySetField *v, NyBit size)
 	  return -1;
 	v->lo = v->hi = v->set->ob_field + v->set->ob_size/2;
     } else {
+	NyBitField *ofield = &v->set->ob_field[0];
 	NyImmBitSetObject *bs = immbitset_realloc(v->set, size);
-	long diff;
 	if (!bs)
 	  return -1;
-	diff = bs->ob_field - v->set->ob_field;
-	v->lo += diff;
-	v->hi += diff;
+	v->lo = &bs->ob_field[0] + (v->lo - ofield);
+	v->hi = &bs->ob_field[0] + (v->hi - ofield);
 	v->set = bs;
 	assert(bs->ob_field <= v->hi && v->hi <= bs->ob_field+bs->ob_size);
 	assert(bs->ob_field <= v->lo && v->lo < bs->ob_field+bs->ob_size);
