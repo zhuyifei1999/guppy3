@@ -424,7 +424,7 @@ dict (no owner)
 	    s.referrers
 	slow = time() - t
 	# print slow, fast, faster
-	self.assert_(not slow > fast * 2)
+	self.assert_(not slow > fast * 4)
 	    
 
     def test_via(self, vlist=['v',]): # vlist is just to make v unoptimizable

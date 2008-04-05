@@ -1,5 +1,9 @@
 2008-04-05  Sverker Nilsson  <sverker@sverker-laptop>
 
+	* guppy/heapy/test/test_Classifiers.py (SpecialCases): 
+	Relaxed the timing test in test_alt_retclaset with a factor 2
+	from 2 to 4.
+	
 	* guppy/heapy/test/test_heapyc.py (TestHeapView):
 	in test_timing:
 	it failed in python2.3 64 bit, I removed the check for now,
