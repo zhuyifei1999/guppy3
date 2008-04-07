@@ -153,6 +153,9 @@ class SoKind(object):
 	b = self.classifier.mod.Use.union(other.kinds)
 	return a == b
 
+    def __hash__(self):
+        return hash(repr(self))
+
     def __repr__(self):
 	return self.classifier.get_sokindrepr(self)
     def _get_refdby(self):

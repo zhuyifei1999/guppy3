@@ -4,21 +4,21 @@ class FirstCase(support.TestCase):
 	support.TestCase.setUp(self)
 
     def test_1(self):
-	as = self.assert_
+	asrt = self.assert_
 	a = []
 	b = []
 	c = self.iso(a, b)
-	as( len(c.nodes) == 2)
-	as( a in c )
-	as( b in c )
-	as( [] not in c )
-	as( c not in c )
+	asrt( len(c.nodes) == 2)
+	asrt( a in c )
+	asrt( b in c )
+	asrt( [] not in c )
+	asrt( c not in c )
 
 	d = self.idset(c.nodes)
 
-	as( c.nodes == d.nodes )
+	asrt( c.nodes == d.nodes )
 
-	as( c == d )
+	asrt( c == d )
 
     def test_2(self):
 	# Test standard set operations

@@ -13,12 +13,12 @@ class FirstCase(TestCase):
 
 	a = []
 	b = []
-	as = iso(a)
+	as_ = iso(a)
 	bs = iso(b)
-	ab = as | bs
+	ab = as_ | bs
 	# Make sure hiding is carried on with set operations
 	self.assert_(ab.referrers.kind == self.types.FrameType)
-	self.assert_((as | bs).referrers.kind == self.types.FrameType)
+	self.assert_((as_ | bs).referrers.kind == self.types.FrameType)
 	self.assert_(V.referrers(iso(a)).kind == self.types.FrameType)
 	self.assert_(V.referrers(iso(b)).kind == self.types.FrameType)
 

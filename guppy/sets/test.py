@@ -60,8 +60,8 @@ def distributive(a, b, c):
     assert (a & b) | (b & c) | (c & a) == (a | b) & (b | c) & (c | a)
     assert not (a & b == a & c and a | b == a | c) or (b == c)
     
-def test_set_operations(as, bs, cs):
-    for a in as:
+def test_set_operations(as_, bs, cs):
+    for a in as_:
 	idempotence(a)
 	for b in bs:
 	    inclusion(a, b)
@@ -72,10 +72,10 @@ def test_set_operations(as, bs, cs):
 		distributive(a, b, c)
 		deMorgan(a, b, c)
 
-def test_set_sub(as, bs):
+def test_set_sub(as_, bs):
     def imp(a, b):
 	assert not a or b
-    for a in as:
+    for a in as_:
 	for b in bs:
 	    imp(len(a) != len(b), a != b)
 	    imp(a < b, b > a and (not b < a))
@@ -86,9 +86,9 @@ def test_set_sub(as, bs):
 	    imp(a >= b, b <= a and (b < a or a == b) and not a < b)
 
 
-def test_set_len(as, bs):
+def test_set_len(as_, bs):
     # If a set can provide a len(), it should be convertible to a list
-    for a in as:
+    for a in as_:
 	assert len(a) == len(list(a))
 	assert len(a&a) == len(a)
 	assert len(a|a) == len(a)
@@ -101,8 +101,8 @@ def test_set_len(as, bs):
 	    assert len(a - b) == len(list(a - b))
 	    assert len(a ^ b) == len(list(a ^ b))
 
-def test_set_convert(as, bs):
-    for a in as:
+def test_set_convert(as_, bs):
+    for a in as_:
 	for b in bs:
 	    # Conversions
 
@@ -915,17 +915,17 @@ MutBitSet([])
 
 	for a in (0, 1, 2, range(31), range(32), range(33), randlong()):
 	    for b in (0, 1, 2, range(31), range(32), range(33), randlong()):
-		for as in ( bitset(a), ~bitset(a), bitsmut(a), bitsmut(~bitset(a))):
-		    for bs in (as, ~as, bitset(b), ~bitset(b), bitsmut(b), bitsmut(~bitset(b))):
-			t = as <= bs
-			assert t == (bs >= as)
-			assert t == ((as & bs) == as)
-			assert t == ((long(as) & long(bs)) == long(as))
+		for as_ in ( bitset(a), ~bitset(a), bitsmut(a), bitsmut(~bitset(a))):
+		    for bs in (as_, ~as_, bitset(b), ~bitset(b), bitsmut(b), bitsmut(~bitset(b))):
+			t = as_ <= bs
+			assert t == (bs >= as_)
+			assert t == ((as_ & bs) == as_)
+			assert t == ((long(as_) & long(bs)) == long(as_))
 			
-			t = as < bs
-			assert t == (bs > as)
-			assert t == ((as <= bs) and (as != bs))
-			assert t == ((as <= bs) and (long(as) != long(bs)))
+			t = as_ < bs
+			assert t == (bs > as_)
+			assert t == ((as_ <= bs) and (as_ != bs))
+			assert t == ((as_ <= bs) and (long(as_) != long(bs)))
 
 
     def test18(self):

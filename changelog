@@ -1,5 +1,17 @@
 2008-04-07  Sverker Nilsson  <sverker@sverker-laptop>
 
+	* guppy/heapy/test/test_View.py (FirstCasetest_cal_hiding): as->as_
+
+	* guppy/heapy/test/test_UniSet.py (FirstCase): as->asrt
+
+	* guppy/sets/test.py (test_set_operations and others): as->as_
+
+	* guppy/heapy/test/test_Classifiers.py (SpecialCases.test_2): as->asrt
+
+	* guppy/heapy/Classifiers.py (SoKind.__hash__): added
+
+	* For Python 2.6a2 ^^^
+	
 	* specs/index.gsl: Added commentary in download section
 	referringing to svn as source of latest changes esp. 64 bit.
 	

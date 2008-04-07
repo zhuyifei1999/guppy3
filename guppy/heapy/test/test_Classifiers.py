@@ -177,7 +177,7 @@ class SpecialCases(TestCase):
 	    def x(self):
 		return 1
 	
-	def as(x):
+	def asrt(x):
 	    self.assert_(x)
 
 	def no(x):
@@ -189,9 +189,9 @@ class SpecialCases(TestCase):
 
 	no(dict in (ty(dict) | ty(int)))
 	no([] in (ty(dict) | ty(int)))
-	as({} in (ty(dict) | ty(int)))
-	as(dict in (ty(dict) | ty(int) | ty(type(dict))))
-	as(list(ty(list) & iso({})) == [])
+	asrt({} in (ty(dict) | ty(int)))
+	asrt(dict in (ty(dict) | ty(int) | ty(type(dict))))
+	asrt(list(ty(list) & iso({})) == [])
 
 	# When creating ISO classes, we don't want to memoize them
 	# which would leak the elements.
