@@ -392,15 +392,41 @@ rationale and some use cases for Heapy (version 0.1).
 ..a
 ...name=Download
 ...h2: Download
+..p
 
-..p: Source code in tar gzip format.
+The latest version is in the svn trunk directory. As of this writing,
+(2008-04-07) I have tested revision 14 successfully with 64 bits for
+Python 2.3, 2.4, and 2.5 . (Remains to test with Python 2.6) No other
+major changes than 64-bit compatibility has been made from Guppy 2.6
+version below.
+
+..p
+In the nearest future, I plan to add some interactive help and some
+simple examples, perhaps a tutorial. Look out for this in the svn HEAD
+if you want the latest. I may make a new release (2.7) in perhaps a
+month or so.
+
+..p
+To check out the latest (HEAD) revision, you can do:
+
+..pre
+svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+
+..p
+To check out the currently tested revision, you can do:
+
+..pre
+svn co -14 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+
+
+..p: Older source code in tar gzip format.
 ..table
 ...tr
 ....td
 .....a: guppy-0.1.6.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.6.tar.gz
 
-....td: Newest version. Updated 2006-10-16. Quick bug fix version,
+....td: Updated 2006-10-16. Doesn't work with 64 bits. -- Quick bug fix version,
 correcting the name of the Root object in the hpy instance. This is a
 kind of bug the automatic test generation should have catched, since
 it was specified with another name in the documentation, but I yet

@@ -1,3 +1,12 @@
+2008-04-07  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* specs/index.gsl: Added commentary in download section
+	referringing to svn as source of latest changes esp. 64 bit.
+	
+
+	* Added specs/genguppydoc.py, to be able to regenerate docs from
+	svn'd files.
+
 2008-04-05  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/test/test_Classifiers.py (SpecialCases): 
