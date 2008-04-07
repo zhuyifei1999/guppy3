@@ -395,7 +395,7 @@ rationale and some use cases for Heapy (version 0.1).
 ..p
 
 The latest version is in the svn trunk directory. As of this writing,
-(2008-04-07) I have tested revision 14 successfully with 64 bits for
+(2008-04-07) I have tested revision 15 successfully with 64 bits for
 Python 2.3, 2.4, and 2.5 . (Remains to test with Python 2.6) No other
 major changes than 64-bit compatibility has been made from Guppy 2.6
 version below.
@@ -416,7 +416,7 @@ svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 To check out the currently tested revision, you can do:
 
 ..pre
-svn co -14 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r15 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..p: Older source code in tar gzip format.
