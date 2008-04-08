@@ -26,7 +26,7 @@ specs/*.gsl		Specifications
 
 REQUIREMENTS
 
-You should have Python 2.3, 2.4 or 2.5
+You should have Python 2.3, 2.4, 2.5 or 2.6
 
 To build the system so you can use Heapy, you should have what is
 needed to build extension modules from source code. The extension
@@ -117,7 +117,7 @@ to pass in different installations.
 
 LICENSE
 
-Copyright (C) 2005, 2006 Sverker Nilsson, S. Nilsson Computer System AB
+Copyright (C) 2005 -- 2008 Sverker Nilsson, S. Nilsson Computer System AB
 
 The right is granted to copy and use this code according to the rules
 in what is commonly referred to as an MIT license.

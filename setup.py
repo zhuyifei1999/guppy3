@@ -22,6 +22,14 @@ def doit():
       version="0.1.7",
       description="Guppy-PE -- A Python Programming Environment",
       long_description="""\
+Guppy-PE is a library and programming environment for Python,
+currently providing in particular the Heapy subsystem, which supports
+object and heap memory sizing, profiling and debugging. It also
+includes a prototypical specification language, the Guppy Specificaion
+Language (GSL), which can be used to formally specify aspects of
+Python programs and generate tests and documentation from a common
+source.
+
 The guppy top-level package contains the following subpackages:
 
 etc	Support modules. Contains especially the Glue protocol module.

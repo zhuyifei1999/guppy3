@@ -1,3 +1,5 @@
+	Version 0.1.7
+	
 2008-04-07  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/test/test_View.py (FirstCasetest_cal_hiding): as->as_

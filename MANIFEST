@@ -108,7 +108,6 @@ specs/heapykinds.gsl
 specs/help_Prof.gsl
 specs/index.gsl
 specs/kindnames.gsl
-specs/main.gsl
 specs/sets.gsl
 src/heapy/classifier.c
 src/heapy/classifier.h

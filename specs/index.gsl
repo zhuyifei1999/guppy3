@@ -403,8 +403,7 @@ version below.
 ..p
 In the nearest future, I plan to add some interactive help and some
 more examples to the documentation, perhaps a tutorial. Look out for
-this in the svn HEAD if you want the latest. I may make a new release
-(0.1.7) in perhaps a month or so.
+this in the svn HEAD if you want the latest. 
 
 ..p
 To check out the latest (HEAD) revision, you can do:
@@ -419,8 +418,13 @@ To check out the revision tested as of this writing (2008-04-07), you can do:
 svn co -r18 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
-..p: Older source code in tar gzip format.
+..p: Source code releases.
 ..table
+...tr
+....td
+.....a: guppy-0.1.7
+......href=http://pypi.python.org/pypi/guppy/0.1.7
+....td: Updated 2008-04-08. Works with 64 bits and Python 2.6 .
 ...tr
 ....td
 .....a: guppy-0.1.6.tar.gz
