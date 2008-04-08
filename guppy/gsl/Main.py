@@ -255,8 +255,8 @@ class Description:
     args = ()
 
 
-    def aspects_extend(self, as):
-	for asp in as:
+    def aspects_extend(self, as_):
+	for asp in as_:
 	    try:
 		k = asp.src.definame
 		# k = asp.tgt.definame # Humm
@@ -1457,10 +1457,10 @@ class Returns(Description):
 # help functions
 
 def find_aspects_inseq(seq, tag):
-    as = []
+    as_ = []
     for o in seq:
-	as.extend(o.find_aspects(tag))
-    return as
+	as_.extend(o.find_aspects(tag))
+    return as_
 
 # Beam base class
 

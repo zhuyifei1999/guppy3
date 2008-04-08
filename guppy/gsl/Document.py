@@ -512,29 +512,29 @@ class Document:
 
 class Attributes:
     d_tag = 'attributes'
-    def __init__(self, as):
-	self.as = as
+    def __init__(self, as_):
+	self.as_ = as_
 
     def find_kind_aspects(self):
-	return self.as[0].find_kind_aspects()
+	return self.as_[0].find_kind_aspects()
     
     def get_link_name(self):
-	return self.as[0].mod.tgt_prefix+'(%s)'%','.join([x.get_link_name() for x in self.as])
+	return self.as_[0].mod.tgt_prefix+'(%s)'%','.join([x.get_link_name() for x in self.as_])
 
     def get_name(self):
-	return ', '.join([x.get_name() for x in self.as])
+	return ', '.join([x.get_name() for x in self.as_])
 
     def get_kind(self):
-	return self.as[0].get_kind()
+	return self.as_[0].get_kind()
 
     def get_self_name(self):
-	return self.as[0].get_self_name()
+	return self.as_[0].get_self_name()
 
     def find_aspects(self, tag):
-	return self.as[0].find_aspects(tag)
+	return self.as_[0].find_aspects(tag)
 	
     def is_method(self):
-	self.as[0].is_method()
+	self.as_[0].is_method()
 
 
 class SubDoc(Document):
@@ -556,18 +556,18 @@ class SubDoc(Document):
 	    if t != 'attribute':
 		nkas.append(ka)
 		continue
-	    for (i, as) in attrs:
-		a = as[0]
+	    for (i, as_) in attrs:
+		a = as_[0]
 		if (a.src.node is ka.src.node
 		    and len(a.aspects) == len(ka.aspects)):
-		    as.append(ka)
+		    as_.append(ka)
 		    break
 	    else:
 		attrs.append((len(nkas), [ka]))
 		nkas.append(ka)
-	for (i, as) in attrs:
-	    if len(as) > 1:
-		nkas[i] = Attributes(as)
+	for (i, as_) in attrs:
+	    if len(as_) > 1:
+		nkas[i] = Attributes(as_)
 	return nkas
 
 

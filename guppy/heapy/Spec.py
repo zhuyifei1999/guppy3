@@ -240,7 +240,7 @@ class MappingFamily(SpecFamily):
 
     def __call__(self, *args):
 	ts = []
-	as = []
+	as_ = []
 	ret = None
 	i = 0
 	setcast = self.specmod.setcast
@@ -256,23 +256,23 @@ class MappingFamily(SpecFamily):
 		elif ai.endswith('='):
 		    i += 1
 		    t = setcast(args[i])
-		    as.append('%s=%args[%d]'%(ai[:-1], len(ts)))
+		    as_.append('%s=%args[%d]'%(ai[:-1], len(ts)))
 		    ts.append(t)
 		elif ai == '*':
 		    i += 1
 		    t = setcast(args[i])
-		    as.append('*args[%d]'%len(ts))
+		    as_.append('*args[%d]'%len(ts))
 		    ts.append(self.specmod.sequence(t))
 		else:
 		    raise SyntaxError, \
 			  "Invalid argument specifier: %r"%ai
 				     
 	    else:
-		as.append('args[%d]'%len(ts))
+		as_.append('args[%d]'%len(ts))
 		ts.append(setcast(ai))
 	    i += 1
 		
-	fn = 'lambda f: lambda *args: f('+','.join(as)+')'
+	fn = 'lambda f: lambda *args: f('+','.join(as_)+')'
 	f = eval(fn)
 	ts = self.specmod.cprod(*ts)
 	if ret is None:
@@ -1150,9 +1150,9 @@ class TestEnv:
 	return True
 	    
     def forall_pairs(self, collection, func, message=''):
-	as = self.get_examples(collection)
+	as_ = self.get_examples(collection)
 	n = 0
-	for a in as:
+	for a in as_:
 	    for b in self.get_examples(collection):
 		if not func(self, a, b):
 		    self.failed('forall_pairs: a = %s, b = %s, from: %s'%(
@@ -1163,9 +1163,9 @@ class TestEnv:
 	return True
 
     def forall_triples(self, collection, func, message=''):
-	as = self.get_examples(collection)
+	as_ = self.get_examples(collection)
 	n = 0
-	for a in as:
+	for a in as_:
 	    for b in self.get_examples(collection):
 		for c in self.get_examples(collection):
 		    if not func(self, a, b, c):
