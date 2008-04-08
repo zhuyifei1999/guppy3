@@ -1,14 +1,15 @@
-	Version 0.1.7
+	Version 0.1.8
 
 
-	
 2008-04-08  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/gsl/Main.py (find_aspects_inseq): as->as_
 	  Several other GSL-related files as -> as_
 	  untabified setup.py to look better in pypi
 	
-	
+
+	Version 0.1.7
+
 2008-04-07  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/test/test_View.py (FirstCasetest_cal_hiding): as->as_

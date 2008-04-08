@@ -422,8 +422,8 @@ svn co -r18 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy gu
 ..table
 ...tr
 ....td
-.....a: guppy-0.1.7
-......href=http://pypi.python.org/pypi/guppy/0.1.7
+.....a: guppy-0.1.8
+......href=http://pypi.python.org/pypi/guppy/0.1.8
 ....td: Updated 2008-04-08. Works with 64 bits and Python 2.6 .
 ...tr
 ....td

@@ -1,4 +1,4 @@
-I am happy to announce Guppy-PE 0.1.7
+I am happy to announce Guppy-PE 0.1.8
 
 Guppy-PE is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -19,10 +19,10 @@ new release in perhaps a month or so.
 
 License: MIT
 
-Guppy-PE 0.1.7 is available in source tarball format on the Python
+Guppy-PE 0.1.8 is available in source tarball format on the Python
 Package Index (a.k.a. Cheeseshop):
 
-        http://pypi.python.org/pypi/guppy/0.1.7
+        http://pypi.python.org/pypi/guppy/0.1.8
 
 The project homepage is on Sourceforge:
 
