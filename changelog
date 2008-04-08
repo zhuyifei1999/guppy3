@@ -6,6 +6,7 @@
 
 	* guppy/gsl/Main.py (find_aspects_inseq): as->as_
 	  Several other GSL-related files as -> as_
+	  untabified setup.py to look better in pypi
 	
 	
 2008-04-07  Sverker Nilsson  <sverker@sverker-laptop>

@@ -3,19 +3,19 @@ import sys
 from glob import glob
 
 setsc = Extension("guppy.sets.setsc",
-		  [
-		      "src/sets/sets.c",
-		      "src/sets/bitset.c",
-		      "src/sets/nodeset.c"
-		      ]
-		  )
+                  [
+                      "src/sets/sets.c",
+                      "src/sets/bitset.c",
+                      "src/sets/nodeset.c"
+                      ]
+                  )
 
 heapyc = Extension("guppy.heapy.heapyc",
-		   [
-		       'src/heapy/heapyc.c',
-		       'src/heapy/stdtypes.c'
-		       ]
-		   )
+                   [
+                       'src/heapy/heapyc.c',
+                       'src/heapy/stdtypes.c'
+                       ]
+                   )
 
 def doit():
     setup(name="guppy",
@@ -32,16 +32,16 @@ source.
 
 The guppy top-level package contains the following subpackages:
 
-etc	Support modules. Contains especially the Glue protocol module.
+etc     Support modules. Contains especially the Glue protocol module.
 
-gsl	The Guppy Specification Language implementation. This can
-	be used to create documents and tests from a common source.
+gsl     The Guppy Specification Language implementation. This can
+        be used to create documents and tests from a common source.
 
-heapy	The heap analysis toolset. It can be used to find information
-	about the objects in the heap and display the information
-	in various ways.
+heapy   The heap analysis toolset. It can be used to find information
+        about the objects in the heap and display the information
+        in various ways.
 
-sets	Bitsets and 'nodesets' implemented in C.
+sets    Bitsets and 'nodesets' implemented in C.
 
 
 """,
