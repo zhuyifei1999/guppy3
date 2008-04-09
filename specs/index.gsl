@@ -1,6 +1,13 @@
+.macro:: header
+..header
+...link
+....rel=stylesheet
+....href=css/guppy.css
+
 .document: index
 ..output: html
 ..document_title: Guppy-PE: A Python Programming Environment
+..use: header
 
 ..div
 ...dl
@@ -72,7 +79,7 @@ source.
 ..p: Guppy is an umbrella package combining Heapy and GSL with support
 utilities such as the Glue module that keeps things together.
 
-..p: The name guppy was choosen because I found it in a backward-dictionary
+..p: The name guppy was chosen because I found it in a backward-dictionary
 as a word ending with py and I thought it was cute enough and that it
 would not so likely conflict with some other package name. It was to
 be a general name since all kinds of packages should fit under this
@@ -318,12 +325,15 @@ explains what they mean.
 and can also be browsed here via the following links.
 
 ...table:
+....class=list
 ....tr:
+.....class=odd
 .....td
 ......a: Document example
 .......href=docexample.html
 .....td: Explains the meaning of some aspects of the documents.
 ....tr:
+.....class=even
 .....td
 ......a: Guppy
 .......href=guppy.html
@@ -332,24 +342,28 @@ and can also be browsed here via the following links.
 ......t:, the top level module.
 
 ....tr:
+.....class=odd
 .....td
 ......a: Profile Browser
 .......href=ProfileBrowser.html
 .....td: How to use the graphical heap profile browser.
 
 ....tr:
+.....class=even
 .....td
 ......a: Screenshot
 .......href=pbscreen.jpg
 .....td: Example showing the graphical heap profile browser in action.
 
 ....tr:
+.....class=odd
 .....td
 ......a: GSL
 .......href=gsl.html
 .....td: The Guppy Specification Language.
 
 ....tr:
+.....class=even
 .....td
 ......a: heapyc
 .......href=heapyc.html
@@ -358,16 +372,23 @@ and can also be browsed here via the following links.
 is an internal interface and may be subject to change.
 
 ....tr:
+.....class=odd
 .....td
 ......a: sets
 .......href=sets.html
 .....td: Specification of the interface to the
 setsc extension module which contains bitsets and nodesets.
+....tr:
+.....td
+......id=last
+......colspan=5
 
 ..p: The following documentation is not included with the source code.
 
 ...table
+....class=list
 ....tr:
+.....class=odd
 .....td
 ......a: heapy-thesis.pdf
 .......href=http://guppy-pe.sourceforge.net/heapy-thesis.pdf
@@ -377,17 +398,23 @@ for Python", which presents background, design, implementation,
 rationale and some use cases for Heapy (version 0.1).
 
 ....tr
+.....class=even
 .....td
 ......a: Metadata and Abstract
 .......href=http://www.diva-portal.org/liu/abstract.xsql?dbid=7247
 .....td: Published at
-......a: Linkoping University Electronic Press.
+......a: Linköping University Electronic Press.
 .......href= http://www.ep.liu.se/
 ....tr:
+.....class=odd
 .....td
 ......a: heapy-presentation.pdf
 .......href=http://guppy-pe.sourceforge.net/heapy-presentation.pdf
 .....td: Slides from the presentation.
+....tr
+.....td
+......id=last
+......colspan=5
 
 ..a
 ...name=Download
@@ -405,27 +432,30 @@ In the nearest future, I plan to add some interactive help and some
 more examples to the documentation, perhaps a tutorial. Look out for
 this in the svn HEAD if you want the latest. 
 
-..p
-To check out the latest (HEAD) revision, you can do:
+..p: To check out the latest (HEAD) revision, you can do:
 
 ..pre
 svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
-..p
-To check out the revision tested as of this writing (2008-04-07), you can do:
+..p: To check out the latest release as of this writing
+(2008-04-08, guppy-0.1.8), you can do:
 
 ..pre
-svn co -r18 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r23 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
-..p: Source code releases.
+..h3: Source code releases in tarball format
 ..table
+...class=list
+...style=margin-bottom: 10px;
 ...tr
+....class=odd
 ....td
 .....a: guppy-0.1.8
 ......href=http://pypi.python.org/pypi/guppy/0.1.8
 ....td: Updated 2008-04-08. Works with 64 bits and Python 2.6 .
 ...tr
+....class=even
 ....td
 .....a: guppy-0.1.6.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.6.tar.gz
@@ -439,6 +469,7 @@ quick fix now.
 
 
 ...tr
+....class=odd
 ....td
 .....a: guppy-0.1.5.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.5.tar.gz
@@ -449,6 +480,7 @@ for shpaths and representing the source of the shortest paths in terms
 of a Root object in the hpy instance. See changelog.
 
 ...tr
+....class=even
 ....td
 .....a: guppy-0.1.4.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.4.tar.gz
@@ -459,6 +491,7 @@ and some test improvements.
 
 
 ...tr
+....class=odd
 ....td
 .....a: guppy-0.1.3.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.3.tar.gz
@@ -472,6 +505,7 @@ fixes, see changelog.
 
 
 ...tr
+....class=even
 ....td
 .....a: guppy-0.1.2.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.2.tar.gz
@@ -480,6 +514,7 @@ fixes, see changelog.
 fixed. See the included changelog.
 
 ...tr
+....class=odd
 ....td
 .....a: guppy-0.1.1.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.1.tar.gz
@@ -487,11 +522,16 @@ fixed. See the included changelog.
 was changed to be ANSI compatible and I also changed some help text that
 had become outdated.
 ...tr
+....class=even
 ....td
 .....a: guppy-0.1.tar.gz
 ......href=http://guppy-pe.sourceforge.net/guppy-0.1.tar.gz
 ....td: Original version. Extension modules could not be compiled using
 strict ANSI C compilers.
+...tr
+....td
+.....id=last
+.....colspan=5
 
 ..c:
 ...a: http://sourceforge.net/project/showfiles.php?group_id=105577

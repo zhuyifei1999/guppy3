@@ -1,0 +1,191 @@
+/*
+Style information specific to the Guppy-PE project home page.
+
+Adapted/copied/based/stolen from:
+
+Style information specific to the Cheese Shop web interface.
+
+$id$
+*/
+td.content {
+  padding: 2px;
+}
+p.ok {
+  background-color: #22bb22;
+  padding: 5 5 5 5;
+  color: white;
+  font-weight: bold;
+}
+p.error {
+  background-color: #bb2222;
+  padding: 5 5 5 5;
+  color: white;
+  font-weight: bold;
+}
+
+/* style for forms */
+table.form {
+  padding: 2;
+  border-spacing: 0px;
+  border-collapse: separate;
+}
+
+table.form th {
+  color: #333388;
+  text-align: right;
+  vertical-align: top;
+  font-weight: normal;
+  padding-right: 0.5em;
+}
+
+table.form th.header {
+  font-weight: bold;
+  text-align: left;
+}
+
+table.form th.required {
+  font-weight: bold;
+}
+
+table.form td {
+  color: #333333;
+  empty-cells: show;
+  vertical-align: top;
+}
+
+table.form td.optional {
+  font-weight: bold;
+  font-style: italic;
+}
+
+/* style for lists */
+table.list {
+  border-spacing: 0px;
+  border-collapse: separate;
+  width: 100%;
+}
+
+table.list th {
+  text-align: left;
+  padding: 2px 4px 2px 4px;
+  color: #333;
+  background-color: #ccc;
+  border-bottom: 1px solid #ccc;
+  vertical-align: top;
+  empty-cells: show;
+}
+table.list th a[href]:hover { color: #404070 }
+table.list th a[href]:link { color: #404070 }
+table.list th a[href] { color: #404070 }
+table.list th.group {
+  background-color: #f4f4ff;
+  text-align: center;
+}
+
+table.list td {
+  padding: 2px 4px 2px 4px;
+  border: 0px 2px 0px 2px;
+  border-right: 1px solid #ccc;
+  color: #333;
+  background-color: white;
+  vertical-align: top;
+  empty-cells: show;
+}
+
+table.list tr.normal td {
+  background-color: white;
+}
+
+table.list tr.odd td {
+  background-color: #efefef;
+}
+
+table.list td#last {
+  border-top: 1px solid #ccc;
+  border-left: none;
+  border-right: none;
+}
+
+table.list tr:first-child td,
+table.list tr:first-child th {
+    border-top: 1px solid #ccc;
+}
+table.list td:first-child {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+}
+
+table.list tr.navigation th {
+  text-align: right;
+}
+table.list tr.navigation th:first-child {
+  border-right: none;
+  text-align: left;
+}
+
+/* style for role lists */
+table.roles {
+  border-spacing: 0px;
+  border-collapse: separate;
+  width: 100%;
+}
+
+table.roles th.header{
+  padding-top: 10px;
+  border-bottom: 1px solid gray;
+  font-weight: bold;
+  background-color: white;
+  color: #707040;
+}
+
+table.roles th {
+  border-bottom: 1px solid #afafaf;
+  font-weight: bold;
+  text-align: left;
+}
+
+table.roles td {
+  vertical-align: top;
+  empty-cells: show;
+}
+
+
+/* style for history displays */
+table.history {
+  border-spacing: 0px;
+  border-collapse: separate;
+}
+
+table.history th.header{
+  padding-top: 10px;
+  border-bottom: 1px solid gray;
+  font-weight: bold;
+  background-color: white;
+  color: #707040;
+  font-size: 100%;
+}
+
+table.history th {
+  border-bottom: 1px solid #afafaf;
+  font-weight: bold;
+  text-align: left;
+  font-size: 90%;
+  padding-right: 1em;
+}
+
+table.history td {
+  font-size: 90%;
+  vertical-align: top;
+  empty-cells: show;
+  padding-right: 1em;
+}
+
+table.history tr.last td {
+  border-bottom: 1px solid gray;
+}
+
+ul.nodot {
+    list-style-type: none;
+}
+
+</style>

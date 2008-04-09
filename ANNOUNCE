@@ -1,12 +1,12 @@
-I am happy to announce Guppy-PE 0.1.8
+I am happy to announce Guppy-PE 0.1.9
 
 Guppy-PE is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
 object and heap memory sizing, profiling and debugging. It also
-includes a prototypical specification language, the Guppy Specificaion
-Language (GSL), which can be used to formally specify aspects of
-Python programs and generate tests and documentation from a common
-source.
+includes a prototypical specification language, the Guppy
+Specification Language (GSL), which can be used to formally specify
+aspects of Python programs and generate tests and documentation from a
+common source.
 
 The current version is updated to work in 64-bit mode and with
 Python-2.6, and still works in 32-bit mode and with Python 2.3, 2.4
@@ -19,10 +19,10 @@ new release in perhaps a month or so.
 
 License: MIT
 
-Guppy-PE 0.1.8 is available in source tarball format on the Python
+Guppy-PE 0.1.9 is available in source tarball format on the Python
 Package Index (a.k.a. Cheeseshop):
 
-        http://pypi.python.org/pypi/guppy/0.1.8
+        http://pypi.python.org/pypi/guppy/0.1.9
 
 The project homepage is on Sourceforge:
 

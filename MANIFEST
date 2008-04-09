@@ -109,6 +109,7 @@ specs/help_Prof.gsl
 specs/index.gsl
 specs/kindnames.gsl
 specs/sets.gsl
+specs/genguppydoc.py
 src/heapy/classifier.c
 src/heapy/classifier.h
 src/heapy/heapdef.h

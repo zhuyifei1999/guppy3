@@ -4,9 +4,8 @@
 <html lang=en>
  <head>
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
-  <title>
- Guppy-PE: A Python Programming Environment
-</title></head>
+  <title> Guppy-PE: A Python Programming Environment</title>
+  <link rel='stylesheet' href='css/guppy.css'></head>
  <body>
   <div>
   <div>
@@ -59,7 +58,7 @@ source.
 utilities such as the Glue module that keeps things together.
 </p>
   <p>
- The name guppy was choosen because I found it in a backward-dictionary
+ The name guppy was chosen because I found it in a backward-dictionary
 as a word ending with py and I thought it was cute enough and that it
 would not so likely conflict with some other package name. It was to
 be a general name since all kinds of packages should fit under this
@@ -327,61 +326,62 @@ explains what they mean.
  Some documentation is included with the source code distribution
 and can also be browsed here via the following links.
 
-   <table>
-    <tr>
+   <table class='list'>
+    <tr class='odd'>
      <td><a href='docexample.html'> Document example</a></td>
      <td> Explains the meaning of some aspects of the documents.</td></tr>
-    <tr>
+    <tr class='even'>
      <td><a href='guppy.html'> Guppy</a></td>
      <td> Specification of<code> guppy</code>
 , the top level module.
 </td></tr>
-    <tr>
+    <tr class='odd'>
      <td><a href='ProfileBrowser.html'> Profile Browser</a></td>
      <td>
  How to use the graphical heap profile browser.
 </td></tr>
-    <tr>
+    <tr class='even'>
      <td><a href='pbscreen.jpg'> Screenshot</a></td>
      <td>
  Example showing the graphical heap profile browser in action.
 </td></tr>
-    <tr>
+    <tr class='odd'>
      <td><a href='gsl.html'> GSL</a></td>
      <td>
  The Guppy Specification Language.
 </td></tr>
-    <tr>
+    <tr class='even'>
      <td><a href='heapyc.html'> heapyc</a></td>
      <td>
  Specification of the heapyc extension module. Note that this
 is an internal interface and may be subject to change.
 </td></tr>
-    <tr>
+    <tr class='odd'>
      <td><a href='sets.html'> sets</a></td>
      <td>
  Specification of the interface to the
-setsc extension module which contains bitsets and nodesets.
-</td></tr></table></p>
+setsc extension module which contains bitsets and nodesets.</td></tr>
+    <tr>
+     <td id='last' colspan='5'></td></tr></table></p>
   <p>
  The following documentation is not included with the source code.
 
-   <table>
-    <tr>
+   <table class='list'>
+    <tr class='odd'>
      <td><a href='http://guppy-pe.sourceforge.net/heapy-thesis.pdf'> heapy-thesis.pdf</a></td>
      <td>
  The master's thesis, &quot;Heapy: A Memory Profiler and Debugger
 for Python&quot;, which presents background, design, implementation,
 rationale and some use cases for Heapy (version 0.1).
 </td></tr>
-    <tr>
+    <tr class='even'>
      <td><a href='http://www.diva-portal.org/liu/abstract.xsql?dbid=7247'> Metadata and Abstract</a></td>
-     <td> Published at<a href='http://www.ep.liu.se/'> Linkoping University Electronic Press.</a></td></tr>
-    <tr>
+     <td> Published at<a href='http://www.ep.liu.se/'> Linköping University Electronic Press.</a></td></tr>
+    <tr class='odd'>
      <td><a href='http://guppy-pe.sourceforge.net/heapy-presentation.pdf'> heapy-presentation.pdf</a></td>
-     <td>
- Slides from the presentation.
-</td></tr></table></p><a name='Download'>
+     <td> Slides from the presentation.</td></tr>
+    <tr>
+     <td id='last' colspan='5'></td></tr></table></p><a name='Download'>
    <h2> Download</h2></a>
   <p>
 
@@ -397,24 +397,25 @@ more examples to the documentation, perhaps a tutorial. Look out for
 this in the svn HEAD if you want the latest. 
 </p>
   <p>
-To check out the latest (HEAD) revision, you can do:
+ To check out the latest (HEAD) revision, you can do:
 </p>
   <pre>
 svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 </pre>
   <p>
-To check out the revision tested as of this writing (2008-04-07), you can do:
+ To check out the latest release as of this writing
+(2008-04-08, guppy-0.1.8), you can do:
 </p>
   <pre>
-svn co -r18 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r23 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 </pre>
-  <p> Source code releases.</p>
-  <table>
-   <tr>
+  <h3> Source code releases in tarball format</h3>
+  <table class='list' style='margin-bottom: 10px;'>
+   <tr class='odd'>
     <td><a href='http://pypi.python.org/pypi/guppy/0.1.8'> guppy-0.1.8</a></td>
     <td> Updated 2008-04-08. Works with 64 bits and Python 2.6 .</td></tr>
-   <tr>
+   <tr class='even'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.6.tar.gz'> guppy-0.1.6.tar.gz</a></td>
     <td>
  Updated 2006-10-16. Doesn't work with 64 bits. -- Quick bug fix version,
@@ -425,7 +426,7 @@ need some time to get that to work... so I am just uploading this
 quick fix now.
 
 </td></tr>
-   <tr>
+   <tr class='odd'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.5.tar.gz'> guppy-0.1.5.tar.gz</a></td>
     <td>
  Updated 2006-10-12. Fixed bugs wrt remote
@@ -433,7 +434,7 @@ monitoring and HTML rendering. New features include the shorthand sp
 for shpaths and representing the source of the shortest paths in terms
 of a Root object in the hpy instance. See changelog.
 </td></tr>
-   <tr>
+   <tr class='even'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.4.tar.gz'> guppy-0.1.4.tar.gz</a></td>
     <td>
  Updated 2006-10-11. Most changes are to make it work with
@@ -441,7 +442,7 @@ Python 2.5; other changes include improved error reporting in Glue.py
 and some test improvements.
 
 </td></tr>
-   <tr>
+   <tr class='odd'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.3.tar.gz'> guppy-0.1.3.tar.gz</a></td>
     <td>
  Updated 2006-03-02.
@@ -452,24 +453,25 @@ with Python2.4 (used to crash with array objects). A bunch of other
 fixes, see changelog.
 
 </td></tr>
-   <tr>
+   <tr class='even'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.2.tar.gz'> guppy-0.1.2.tar.gz</a></td>
     <td>
  Pointer comparison bugs and test portability problems were
 fixed. See the included changelog.
 </td></tr>
-   <tr>
+   <tr class='odd'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.1.tar.gz'> guppy-0.1.1.tar.gz</a></td>
     <td>
  The C source code for the extension modules
 was changed to be ANSI compatible and I also changed some help text that
 had become outdated.</td></tr>
-   <tr>
+   <tr class='even'>
     <td><a href='http://guppy-pe.sourceforge.net/guppy-0.1.tar.gz'> guppy-0.1.tar.gz</a></td>
     <td>
  Original version. Extension modules could not be compiled using
-strict ANSI C compilers.
-</td></tr></table><! --  --><a name='Credits'>
+strict ANSI C compilers.</td></tr>
+   <tr>
+    <td id='last' colspan='5'></td></tr></table><! --  --><a name='Credits'>
    <h2> Credits</h2></a>
   <ul>
    <li>
@@ -506,4 +508,4 @@ system:
    <dd><a href='http://sourceforge.net/tracker/?group_id=105577&atid=641821'> http://sourceforge.net/tracker/?group_id=105577&amp;atid=641821</a></dd>
    <dt> The Sourceforge project summary page is:</dt>
    <dd><a href='http://sourceforge.net/projects/guppy-pe'> http://sourceforge.net/projects/guppy-pe</a></dd></dl>
-  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Tue Apr  8 18:42:31 2008</div></body></html>
+  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Wed Apr  9 00:20:49 2008</div></body></html>

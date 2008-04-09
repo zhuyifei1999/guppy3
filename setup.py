@@ -19,16 +19,16 @@ heapyc = Extension("guppy.heapy.heapyc",
 
 def doit():
     setup(name="guppy",
-      version="0.1.8",
+      version="0.1.9",
       description="Guppy-PE -- A Python Programming Environment",
       long_description="""\
 Guppy-PE is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
 object and heap memory sizing, profiling and debugging. It also
-includes a prototypical specification language, the Guppy Specificaion
-Language (GSL), which can be used to formally specify aspects of
-Python programs and generate tests and documentation from a common
-source.
+includes a prototypical specification language, the Guppy
+Specification Language (GSL), which can be used to formally specify
+aspects of Python programs and generate tests and documentation from a
+common source.
 
 The guppy top-level package contains the following subpackages:
 
