@@ -23,6 +23,7 @@ The following files are not in packages but on the toplevel:
 gsl-mode-0.1.el		Emacs mode for GSL
 doc/*.html, *.jpg	Documentation
 specs/*.gsl		Specifications
+specs/genguppydoc.py	Regenerates the doc/*.html files from specs/*.gsl
 
 REQUIREMENTS
 

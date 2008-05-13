@@ -8,14 +8,8 @@ Specification Language (GSL), which can be used to formally specify
 aspects of Python programs and generate tests and documentation from a
 common source.
 
-The current version is updated to work in 64-bit mode and with
-Python-2.6, and still works in 32-bit mode and with Python 2.3, 2.4
-and 2.5. No other major changes have been made from Guppy 0.1.6.
+...
 
-In the nearest future, I plan to add interactive help and more
-examples to the documentation, perhaps a tutorial. Look out for this
-in the svn HEAD if you want the latest version. I will try to make a
-new release in perhaps a month or so.
 
 License: MIT
 

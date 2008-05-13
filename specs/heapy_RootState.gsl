@@ -6,7 +6,7 @@
 ...p
 The type of an object with special functionality that gives access to
 internals of the Python interpreter and thread structures.  It is used
-as a top level root when traversing the heap to to make sure to find
+as a top level root when traversing the heap to make sure to find
 some special objects that may otherwise be hidden.
 ...p
 There are no references from the RootState object to the special

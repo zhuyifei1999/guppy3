@@ -1,6 +1,4 @@
 from distutils.core import setup, Extension
-import sys
-from glob import glob
 
 setsc = Extension("guppy.sets.setsc",
                   [
@@ -42,8 +40,6 @@ heapy   The heap analysis toolset. It can be used to find information
         in various ways.
 
 sets    Bitsets and 'nodesets' implemented in C.
-
-
 """,
       author="Sverker Nilsson",
       author_email="sn@sncs.se",
