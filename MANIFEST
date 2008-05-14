@@ -1,9 +1,8 @@
 ANNOUNCE
 ANNOUNCE-0.1.5
-MANIFEST
+ChangeLog
 MANIFEST.in
 README
-changelog
 gsl-mode-0.1.el
 setup.py
 doc/ProfileBrowser.html
@@ -25,6 +24,7 @@ guppy/etc/Compat.py
 guppy/etc/ExecfileWithModuleInfo.py
 guppy/etc/FSA.py
 guppy/etc/Glue.py
+guppy/etc/Help.py
 guppy/etc/IterPermute.py
 guppy/etc/KanExtension.py
 guppy/etc/KnuthBendix.py
@@ -109,7 +109,6 @@ specs/help_Prof.gsl
 specs/index.gsl
 specs/kindnames.gsl
 specs/sets.gsl
-specs/genguppydoc.py
 src/heapy/classifier.c
 src/heapy/classifier.h
 src/heapy/heapdef.h

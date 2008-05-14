@@ -3,7 +3,7 @@ include ANNOUNCE
 include ANNOUNCE-*
 include MANIFEST.in
 include MANIFEST
-include changelog
+include ChangeLog
 include gsl-mode-0.1.el
 include src/sets/*.[ch]
 include src/heapy/*.[ch]
