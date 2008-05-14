@@ -1,3 +1,8 @@
+2008-05-14  Sverker Nilsson  <sverker@sverker-laptop>
+
+	*  (specs/index.gsl): Added external resources documentation
+	section and two external links.
+
 2008-04-09  Sverker Nilsson  <sverker@sverker-laptop>
 
 	*  (changelog): Renamed to ChangeLog since Emacs insists on having

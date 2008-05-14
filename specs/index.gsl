@@ -416,6 +416,22 @@ rationale and some use cases for Heapy (version 0.1).
 ......id=last
 ......colspan=5
 
+..h3: External resources
+
+..p: Thanks to all that have used and commented on Heapy on various
+blogs. I think the following links may be especially useful to get
+started. More tips are very welcome!
+
+..ul
+...li
+....a:How to use guppy/heapy for tracking down memory usage
+.....href=http://www.pkgcore.org/trac/pkgcore/doc/dev-notes/heapy.rst
+....t: (pkgcore - Trac)
+...li
+....a:Debugging Django memory leak with TrackRefs and Guppy
+.....href=http://blog.redinnovation.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy
+....t: (Redi for Life)
+
 ..a
 ...name=Download
 ...h2: Download
