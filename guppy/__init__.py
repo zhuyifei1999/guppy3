@@ -15,7 +15,7 @@ __all__ = ('hpy', 'Root')
 import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
 
-from guppy.help import Help
+from guppy.interactivehelp import Help
 help = Help(filename='./help/guppy.html')
 
 def __str__(self):

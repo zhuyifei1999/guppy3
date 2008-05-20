@@ -47,7 +47,7 @@ heapy
        about the objects in the heap and display the information
        in various ways.
 
-help 
+ihelp
        Interactive text-based help, with data files in HTML format.
 
 sets 

@@ -1,4 +1,4 @@
-#._cv_part guppy.help
+#._cv_part guppy.interactivehelp
 
 class Help:
     def __init__(self, filename):
