@@ -1,3 +1,10 @@
+2008-05-20  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/etc/PrettyPrintHTML.py: Added
+
+	* guppy/gsl/Html.py (Node2Html): visit_comment: Made it not
+	output anything to the XHTML file.
+
 2008-05-14  Sverker Nilsson  <sverker@sverker-laptop>
 
 	*  (specs/index.gsl): Added external resources documentation
@@ -31,7 +38,7 @@
 
 	* guppy/heapy/test/test_View.py (FirstCasetest_cal_hiding): as->as_
 
-	* guppy/heapy/test/test_UniSet.py (FirstCase): as->asrt
+X	* guppy/heapy/test/test_UniSet.py (FirstCase): as->asrt
 
 	* guppy/sets/test.py (test_set_operations and others): as->as_
 

@@ -55,6 +55,9 @@ class RelationTestCase(TestCase):
 	v2 = 'v2'
 	v3 = range(100, 200)
 	x = [v1, v2, v3]
+        # xxx Why are these commented out?
+        # It works when I remove the first comment...
+        # Didn't it work in some other arch?
 	#self.chkrel(x, v1, '%s[0]')
 	#self.chkrel(x, v2, '%s[1]')
 	#self.chkrel(x, v3, '%s[2]')

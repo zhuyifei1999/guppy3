@@ -204,7 +204,8 @@ class Node2Html:
 	self.append('<col width="%s" />'%node.arg)
 
     def visit_comment(self, node):
-	self.append('<! -- %s -->'%node.arg)
+        return
+        #self.append('<!-- %s -->'%node.arg)
 
     def visit_default(self, node):
 	if node.tag in self.mod.stdhtml:
