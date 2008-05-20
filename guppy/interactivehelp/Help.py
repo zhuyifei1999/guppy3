@@ -2,6 +2,8 @@
 
 from guppy.help.PrettyPrintHTML import prettyPrintHTML
 
+# Just a test comment added, worried about svn status ...
+
 class HelpPrinter:
     def __init__(self, msg):
         self.msg = msg
