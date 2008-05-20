@@ -1,5 +1,8 @@
 2008-05-20  Sverker Nilsson  <sverker@sverker-laptop>
 
+	*  (Default): Made ihelp directory and made guppy.help work first
+	version. 
+
 	* guppy/etc/PrettyPrintHTML.py: Added
 
 	* guppy/gsl/Html.py (Node2Html): visit_comment: Made it not
