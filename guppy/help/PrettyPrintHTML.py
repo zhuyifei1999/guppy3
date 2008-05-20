@@ -1,4 +1,4 @@
-#._cv_part guppy.etc.PrettyPrintHtml.py
+#._cv_part guppy.help.PrettyPrintHTML.py
 
 # Code copied (thanks!) from:
 # http://www.bazza.com/~eaganj/weblog/2006/04/04/printing-html-as-text-in-python-with-unicode/
@@ -33,7 +33,7 @@ class UnicodeHTMLParser(htmllib.HTMLParser):
 def prettyPrintHTML(html):
     " Strip HTML formatting to produce plain text suitable for printing. "
     sio = cStringIO.StringIO()
-    # cStringIO doesn’t like Unicode, so wrap with a utf8 encoder/decoder.
+    # cStringIO doesn't like Unicode, so wrap with a utf8 encoder/decoder.
     encoder, decoder, reader, writer = codecs.lookup('utf8')
     utf8io = codecs.StreamReaderWriter(sio, reader, writer, 'replace')
     writer = formatter.DumbWriter(utf8io)

@@ -1,6 +1,6 @@
-#._cv_part guppy.etc.Help
+#._cv_part guppy.help.Help
 
-from guppy.etc.PrettyPrintHTML import prettyPrintHTML
+from guppy.help.PrettyPrintHTML import prettyPrintHTML
 
 class HelpPrinter:
     def __init__(self, msg):

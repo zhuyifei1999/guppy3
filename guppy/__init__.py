@@ -15,6 +15,12 @@ __all__ = ('hpy', 'Root')
 import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
 
+from guppy.help import Help
+help = Help(filename='./help/guppy.html')
+
+def __str__(self):
+    return 'guppy module'
+
 def hpy(ht = None):
     """\
     Main entry point to the Heapy system.
