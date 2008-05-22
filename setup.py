@@ -35,6 +35,10 @@ common source.
 
 The guppy top-level package contains the following subpackages:
 
+doc
+       Documentation files. These are data files in a subpackage
+       so they get automatically installed, to support interactive help.
+
 etc
        Support modules. Contains especially the Glue protocol module.
 
@@ -46,9 +50,6 @@ heapy
        The heap analysis toolset. It can be used to find information
        about the objects in the heap and display the information
        in various ways.
-
-ihelp
-       Interactive text-based help, with data files in HTML format.
 
 sets 
        Bitsets and 'nodesets' implemented in C.
@@ -64,7 +65,7 @@ sets
             "guppy.heapy",
             "guppy.heapy.test",
             "guppy.sets",
-            "guppy.help"
+            "guppy.interhelp"
             ],
           package_data={"guppy" : ["help/*.html"]},
           ext_modules=[setsc, heapyc]
