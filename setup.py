@@ -36,8 +36,8 @@ common source.
 The guppy top-level package contains the following subpackages:
 
 doc
-       Documentation files. These are data files in a subpackage
-       so they get automatically installed, to support interactive help.
+       Documentation files. These are in a package so they get installed
+       at a well-defined place, especially to support interactive help.
 
 etc
        Support modules. Contains especially the Glue protocol module.
@@ -60,14 +60,14 @@ sets
           license='MIT',
           packages=[
             "guppy",
+            "guppy.doc",
             "guppy.etc",
             "guppy.gsl",
             "guppy.heapy",
             "guppy.heapy.test",
             "guppy.sets",
-            "guppy.interhelp"
             ],
-          package_data={"guppy" : ["help/*.html"]},
+          package_data={"guppy.doc" : ["help/*.html"]},
           ext_modules=[setsc, heapyc]
           )
 

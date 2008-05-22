@@ -14,14 +14,14 @@ hpy()	Create an object that provides a Heapy entry point.
 Root()	Create an object that provides a top level entry point.
 
 """
-''' '''
+
 __all__ = ('help', 'hpy', 'Root')
 
 import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
 
-from guppy import ihelp
-help = ihelp.Help(
+from guppy import doc
+help = doc.Help(
     web='http://guppy-pe.sourceforge.net/guppy.html',
     filename='guppy.html')
 

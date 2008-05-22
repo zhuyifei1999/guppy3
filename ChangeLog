@@ -1,3 +1,13 @@
+2008-05-22  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* Removed ihelp pkg. Changes to various files to reflect ihelp->doc .
+	
+	* Moved ihelp.__init__.py into guppy/doc
+	
+	* Moved top-level doc dir into guppy package
+	
+	*  ihelp.__init__.py : continued improving text html rendering
+
 2008-05-21  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/Spec.py: 

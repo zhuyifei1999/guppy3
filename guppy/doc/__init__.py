@@ -1,4 +1,4 @@
-#._cv_part guppy.ihelp
+#._cv_part guppy.doc
 
 # The prettyPrintHTML Code is adapted from:
 # http://www.bazza.com/~eaganj/weblog/2006/04/04/printing-html-as-text-in-python-with-unicode/
@@ -231,7 +231,7 @@ class HelpHandler:
     def _get_text(self):
         text = ''
         if self.top.webarg:
-            text += "Web doc page: %s\n"%self.webarg
+            text += "Web doc page: %s\n"%self.top.webarg
         if self.top.textarg:
             text += self.textarg
         if self.top.filenamearg:
@@ -264,7 +264,7 @@ Help class
         print self
         x=raw_input()
 
-    def __getattr__(self, attr):
+    def _getattr__(self, attr):
         hh = self.help_handler
         ad = hh.parser.anchordict
         inv = {}
@@ -290,7 +290,7 @@ Help class
         return HelpHandler(self.mod, self)
 
     def _get_mod(self):
-        mod = guppy.Root().guppy.ihelp
+        mod = guppy.Root().guppy.doc
         return mod
 
     def _get_more(self):

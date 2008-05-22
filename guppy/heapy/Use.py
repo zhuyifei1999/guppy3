@@ -226,8 +226,7 @@ Look at '%shelp' for more info."""%self.reprefix
 	'_parent.UniSet:uniset_from_setcastable',
 	'_parent:View',
 	'_parent.View:_hiding_tag_',
-	'_root.guppy.gsl.Help:doc',
-	'_root.guppy.ihelp:Help',
+	'_root.guppy.doc:Help',
         '_root.time:ctime',
         '_root:warnings',
 	)
