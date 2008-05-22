@@ -11,6 +11,9 @@ class _GLUECLAMP_:
     def _get_gcobjs(self):
 	return self.Nothing
 
+    def _get_help(self):
+        return self.Help(filename='heapy_Use.html')
+
     def _get_relheap(self):
 	return self.Nothing
 
@@ -34,6 +37,13 @@ class _GLUECLAMP_:
 
     def _get_Root(self):
         return self.View.heapyc.RootState
+
+    def __repr__(self):
+        return """Top level interface to Heapy.
+Look at '%shelp' for more info."""%self.reprefix
+        
+
+    __str__=__repr__
 
     def heapg(self, rma=1):
         self.warnings.warn(
@@ -217,6 +227,7 @@ class _GLUECLAMP_:
 	'_parent:View',
 	'_parent.View:_hiding_tag_',
 	'_root.guppy.gsl.Help:doc',
+	'_root.guppy.ihelp:Help',
         '_root.time:ctime',
         '_root:warnings',
 	)

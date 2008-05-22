@@ -1,13 +1,13 @@
 #._cv_part guppy.heapy.Spec
 
-'''
+"""
 Contains some experimental set constructions.
 In the current state, not to be used by the faint-hearted.
 It is likely due for some major refactoring and has probably
 many bugs, it was a long time since I run the tests.
 You don't get any other documentation than this right now.
 
-'''
+"""
 
 
 DEBUG=1

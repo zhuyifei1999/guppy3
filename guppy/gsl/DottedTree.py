@@ -1,6 +1,6 @@
 #._cv_part guppy.gsl.DottedTree
 
-'''
+"""
 Handling of tree structures given in a special 'dotted' syntax.
 This represents trees of nodes with strings as tags,
 in a readable and writable and easy to parse syntax.
@@ -21,7 +21,7 @@ Currently the following invariant has been tested for some strings:
 
 [It only holds on stripped results but may be fixed sometime.]
 
-'''
+"""
 
 class Node(object):
     __slots__ = 'tag', 'children', 'index', 

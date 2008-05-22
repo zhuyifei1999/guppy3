@@ -1,5 +1,5 @@
 #._cv_part guppy.etc.RE_Rect
-''' Support functions for RE simplification.
+""" Support functions for RE simplification.
 This module is intended for use by the RE module.
 It is in a separate module to keep RE itself cleaner
 since the algorithm, 'rectangle selection', is a quite
@@ -15,7 +15,7 @@ The trace parameter is for debugging.
 
 pr() gives some example usages of chooserects.
 
-'''
+"""
 
 from guppy.sets import immbitset, mutbitset, immbitrange
 

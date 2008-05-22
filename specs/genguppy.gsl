@@ -38,6 +38,10 @@ KindOfRetClaSetFamily,KindOfInViaFamily,IdentitySet,IdentitySetNotEmpty,Identity
 ..output: html
 ..man page of: Use
 
+.document: test_heapy
+..output: tester
+..test of: Use
+
 .document: heapy_RootState
 ..output: html
 ..man page of: RootStateType

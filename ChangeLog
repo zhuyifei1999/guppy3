@@ -1,3 +1,17 @@
+2008-05-21  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/heapy/Spec.py: 
+
+	* guppy/gsl/Filer.py: 
+
+	* guppy/gsl/DottedTree.py: 
+
+	* guppy (docstring): Changed quotes to """ from ''' because I
+	found pydoc.gui() (in Python 2.5) didn't recognize it otherwise.
+
+	* guppy/etc/Glue.py (Share.getattr2): Made it try getattr3 with
+	the CLAMP first even if it was a package.
+
 2008-05-20  Sverker Nilsson  <sverker@sverker-laptop>
 
 	*  (Default): Made ihelp directory and made guppy.help work first

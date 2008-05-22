@@ -199,7 +199,10 @@ class Share:
 		self.recursion += 1
 		try:
 		    if self.ispackage:
-                        x = self.getattr_package(inter, name)
+                        try:
+                            x = self.getattr3(inter, name)
+                        except:
+                            x = self.getattr_package(inter, name)
 		    else:
 			x = self.getattr3(inter, name)
 		except NoSuchAttributeError:
@@ -375,6 +378,13 @@ class _GLUECLAMP_:
 
 
 def Root():
+    """\
+Create a new guppy Root object.
+
+All functionality in the system may be accessed from this object.
+Modules are imported on demand when accessed. Other objects may be
+created or imported on demand using Guppy Glue+ directives.
+"""
     share = Share(None, None, '', None)
     r = Owner('').makeInterface({'_name':''}, share, '')
     share.root_interface = r
