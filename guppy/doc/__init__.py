@@ -16,6 +16,12 @@ from htmllib import HTMLParser
 
 thisdir = os.path.dirname(__file__)
 
+def utf8StringIO():
+    sio = cStringIO.StringIO()
+    # cStringIO doesn't like Unicode, so wrap with a utf8 encoder/decoder.
+    encoder, decoder, reader, writer = codecs.lookup('utf8')
+    return codecs.StreamReaderWriter(sio, reader, writer, 'replace')
+
 class HelpTextWriter(formatter.DumbWriter):
     def __init__(self, *args, **kwds):
         formatter.DumbWriter.__init__(self, *args, **kwds)
@@ -73,11 +79,12 @@ class HelpTextWriter(formatter.DumbWriter):
 class UnicodeHTMLParser(HTMLParser):
     " HTMLParser that can handle unicode charrefs "
     
-    def __init__(self, *args, **kwds):
-        HTMLParser.__init__(self, *args, **kwds)
-        self.anchordict = {}
-
     entitydefs = dict([ (k, unichr(v)) for k, v in htmlentitydefs.name2codepoint.items() ])
+    def reset(self)
+        HTMLParser.reset
+        self.index2href = []
+        self.href2index = {}
+        self.data2href = {}
 
     def handle_charref(self, name):
         "Override builtin version to return unicode instead of binary strings for 8-bit chars."
@@ -106,23 +113,37 @@ class UnicodeHTMLParser(HTMLParser):
         attribute anchordict. It also keeps a list of unique hyperlinks.
 
         """
-        self.anchor = href
-        if self.anchor:
-            if href not in self.anchordict:
-                self.anchordict[href] = (len(self.anchordict), name, type)
-                self.anchorlist.append(href)
+        self.anchor = (href, name, type)
+        if href:
+            self.save_bgn()
 
 
     def anchor_end(self):
         """This method is called at the end of an anchor region.
 
-        The default implementation adds a textual footnote marker using an
+        The implementation adds a textual footnote marker using an
         index into the list of hyperlinks created by the anchor_bgn()method.
 
         """
-        if self.anchor:
-            self.handle_data("[%d]" % self.anchordict[self.anchor][0])
-            self.anchor = None
+        href, name, type = self.anchor
+        if href:
+            data = self.save_end()
+            self.handle_data(data)
+            data = data.strip()
+            if href in self.href2index:
+                index = self.href2index[href][0]
+            else:
+                index = len(self.index2href)
+                self.href2index = index
+                self.index2href.append(href)
+            self.handle_data("[%d]" % index)
+            
+            if data in self.data2href:
+                if self.data2href[data] != href:
+                    raise Exception, "Same data %s with different href's %s,%s"%(
+                        data, href, self.data2href[data])
+                else:
+                    self.data2href[data] = href
 
     # --- Headings
 
@@ -164,26 +185,6 @@ class UnicodeHTMLParser(HTMLParser):
         self.formatter.end_paragraph(0)
         self.list_stack.append(['dl', '', 0])
 
-    
-def prettyPrintHTML(html):
-    " Strip HTML formatting to produce plain text suitable for printing. "
-    sio = cStringIO.StringIO()
-    # cStringIO doesn't like Unicode, so wrap with a utf8 encoder/decoder.
-    encoder, decoder, reader, writer = codecs.lookup('utf8')
-    utf8io = codecs.StreamReaderWriter(sio, reader, writer, 'replace')
-    writer = HelpTextWriter(utf8io)
-    prettifier = formatter.AbstractFormatter(writer)
-    parser = UnicodeHTMLParser(prettifier)
-    parser.feed(html)
-    parser.close()
-    utf8io.seek(0)
-    result = utf8io.read()
-    sio.close()
-    utf8io.close()
-    return result #.lstrip()
-
-
-
 class HelpHandler:
     def __init__(self, mod, top):
         self.mod = mod
@@ -212,10 +213,7 @@ class HelpHandler:
     
     def prettyPrintHTML(self, html):
         " Strip HTML formatting to produce plain text suitable for printing. "
-        sio = cStringIO.StringIO()
-        # cStringIO doesn't like Unicode, so wrap with a utf8 encoder/decoder.
-        encoder, decoder, reader, writer = codecs.lookup('utf8')
-        utf8io = codecs.StreamReaderWriter(sio, reader, writer, 'replace')
+        utf8io = utf8StringIO()
         writer = HelpTextWriter(utf8io)
         prettifier = formatter.AbstractFormatter(writer)
         self.parser = UnicodeHTMLParser(prettifier)
@@ -224,7 +222,6 @@ class HelpHandler:
         parser.close()
         utf8io.seek(0)
         result = utf8io.read()
-        sio.close()
         utf8io.close()
         return result #.lstrip()
 
@@ -233,7 +230,7 @@ class HelpHandler:
         if self.top.webarg:
             text += "Web doc page: %s\n"%self.top.webarg
         if self.top.textarg:
-            text += self.textarg
+            text += self.top.textarg
         if self.top.filenamearg:
             text +=  self.prettyPrintHTML(
                 open(os.path.join(thisdir,self.top.filenamearg)).read())
@@ -273,7 +270,7 @@ Help class
         raise AttributeError, attr
 
     def __getitem__(self, idx):
-        return self.help_handler.parser.anchorlist[idx]
+        return self.help_handler.parser.index2href[idx]
 
     def __repr__(self):
         hh = self.help_handler
