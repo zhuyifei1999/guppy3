@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #._cv_part guppy.doc
 
 # The prettyPrintHTML Code is adapted from:
@@ -23,22 +24,18 @@ def utf8StringIO():
     return codecs.StreamReaderWriter(sio, reader, writer, 'replace')
 
 class HelpTextWriter(formatter.DumbWriter):
-    def __init__(self, *args, **kwds):
-        formatter.DumbWriter.__init__(self, *args, **kwds)
+    def reset(self):
+        formatter.DumbWriter.reset(self)
         self.margin = 0
 
     def new_margin(self, tag, level):
         #print >>self.file, "new_margin(%s, %d)" % (`margin`, level)
         self.margin = level*4
 
-    def set_margin(self):
-        if self.margin > self.col:
+    def indento_margin(self):
+        if self.col < self.margin:
             self.file.write(' '*(self.margin-self.col))
             self.col = self.margin
-
-    def reset(self):
-        self.col = self.margin = 0
-        self.atbreak = 0
 
     def _send_literal_data(self, data):
         rows = data.split('\n')
@@ -53,7 +50,7 @@ class HelpTextWriter(formatter.DumbWriter):
 
     def send_flowing_data(self, data):
         if not data: return
-        self.set_margin()
+        self.indento_margin()
         atbreak = self.atbreak or data[0].isspace()
         col = self.col
         maxcol = self.maxcol
@@ -73,15 +70,13 @@ class HelpTextWriter(formatter.DumbWriter):
         self.col = col
         self.atbreak = data[-1].isspace()
 
+class HelpTextHTMLParser(HTMLParser):
+    " HTMLParser tailored to handle help text and can handle unicode charrefs"
 
-
-
-class UnicodeHTMLParser(HTMLParser):
-    " HTMLParser that can handle unicode charrefs "
-    
     entitydefs = dict([ (k, unichr(v)) for k, v in htmlentitydefs.name2codepoint.items() ])
-    def reset(self)
-        HTMLParser.reset
+
+    def reset(self):
+        HTMLParser.reset(self)
         self.index2href = []
         self.href2index = {}
         self.data2href = {}
@@ -117,7 +112,6 @@ class UnicodeHTMLParser(HTMLParser):
         if href:
             self.save_bgn()
 
-
     def anchor_end(self):
         """This method is called at the end of an anchor region.
 
@@ -131,19 +125,20 @@ class UnicodeHTMLParser(HTMLParser):
             self.handle_data(data)
             data = data.strip()
             if href in self.href2index:
-                index = self.href2index[href][0]
+                index = self.href2index[href]
             else:
                 index = len(self.index2href)
-                self.href2index = index
+                self.href2index[href] = index
                 self.index2href.append(href)
             self.handle_data("[%d]" % index)
             
             if data in self.data2href:
                 if self.data2href[data] != href:
-                    raise Exception, "Same data %s with different href's %s,%s"%(
+                    raise Exception, "Same data: '%s' with different href's: '%s','%s'"%(
                         data, href, self.data2href[data])
-                else:
-                    self.data2href[data] = href
+            else:
+                self.data2href[data] = href
+        self.anchor = None
 
     # --- Headings
 
@@ -153,7 +148,6 @@ class UnicodeHTMLParser(HTMLParser):
         else:
             self.formatter.end_paragraph(0)
         self.formatter.push_font(('h%d'%level, 0, 1, 0))
-
 
     def start_h1(self, attrs):
         self.start_hx(1, attrs)
@@ -196,7 +190,7 @@ class HelpHandler:
         return firstindex+self.mod.pagerows
 
     def ppob(self, ob, index):
-        text = self.top.text
+        text = self.text
         splitext = text.split('\n')
         nextindex = index+self.mod.pagerows
         pst = splitext [index:nextindex]
@@ -216,7 +210,7 @@ class HelpHandler:
         utf8io = utf8StringIO()
         writer = HelpTextWriter(utf8io)
         prettifier = formatter.AbstractFormatter(writer)
-        self.parser = UnicodeHTMLParser(prettifier)
+        self.parser = HelpTextHTMLParser(prettifier)
         parser = self.parser
         parser.feed(html)
         parser.close()
@@ -262,7 +256,7 @@ Help class
         x=raw_input()
 
     def _getattr__(self, attr):
-        hh = self.help_handler
+        hh = self.handler
         ad = hh.parser.anchordict
         inv = {}
         if attr in ad:
@@ -270,10 +264,10 @@ Help class
         raise AttributeError, attr
 
     def __getitem__(self, idx):
-        return self.help_handler.parser.index2href[idx]
+        return self.handler.parser.index2href[idx]
 
     def __repr__(self):
-        hh = self.help_handler
+        hh = self.handler
         mp = self.mod._root.guppy.etc.OutputHandling.basic_more_printer(
             self, hh, 0)
         r = repr(mp)
@@ -283,7 +277,7 @@ Help class
     def _get_help(self):
         return Help(text=self.__doc__)
 
-    def _get_help_handler(self):
+    def _get_handler(self):
         return HelpHandler(self.mod, self)
 
     def _get_mod(self):
@@ -292,29 +286,25 @@ Help class
 
     def _get_more(self):
         mp = self.mod._root.guppy.etc.OutputHandling.basic_more_printer(
-            self, self.help_handler, self.nextindex)
+            self, self.handler, self.nextindex)
         return mp
     
-    def _get_text(self):
-        text = ''
-        if self.webarg:
-            text += "Web doc page: %s\n"%self.webarg
-        if self.textarg:
-            text += self.textarg
-        if self.filenamearg:
-            text +=  prettyPrintHTML(
-                open(os.path.join(thisdir,self.filenamearg)).read())
-        return text
+    def go(self, name):
+        href = self.handler.parser.data2href[name]
+        return href
 
-    help_handler = property(fget=_get_help_handler)
+    handler = property(fget=_get_handler)
     help = property(fget=_get_help)
     mod = property(fget=_get_mod)
     more = property(fget=_get_more)
     read = property(fget=_get_read)
-    text = property(fget=_get_text)
 
 
 a=3
+
+class X:
+    def __repr__(self):
+        return 'å'
 
 print 'hello!', a
 
