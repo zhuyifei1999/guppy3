@@ -79,7 +79,7 @@ class HelpTextHTMLParser(HTMLParser):
         HTMLParser.reset(self)
         self.index2href = []
         self.href2index = {}
-        self.data2href = {}
+        self.data2hrefs = {}
 
     def handle_charref(self, name):
         "Override builtin version to return unicode instead of binary strings for 8-bit chars."
@@ -132,12 +132,7 @@ class HelpTextHTMLParser(HTMLParser):
                 self.index2href.append(href)
             self.handle_data("[%d]" % index)
             
-            if data in self.data2href:
-                if self.data2href[data] != href:
-                    raise Exception, "Same data: '%s' with different href's: '%s','%s'"%(
-                        data, href, self.data2href[data])
-            else:
-                self.data2href[data] = href
+            self.data2hrefs.setdefault(data,[]).append(href)
         self.anchor = None
 
     # --- Headings
@@ -255,13 +250,17 @@ Help class
         print self
         x=raw_input()
 
-    def _getattr__(self, attr):
-        hh = self.handler
-        ad = hh.parser.anchordict
-        inv = {}
-        if attr in ad:
-            return ad[attr]
-        raise AttributeError, attr
+    def __getattr__(self, attr):
+        while 1:
+            if attr.startswith('go'):
+                try:
+                    return self.go(attr[2:])
+                except KeyError:
+                    print "Help text has no link %r"%attr[2:]
+                    self.print_available_links()
+            else:
+                print 'attr', attr
+                raise AttributeError, attr
 
     def __getitem__(self, idx):
         return self.handler.parser.index2href[idx]
@@ -290,8 +289,8 @@ Help class
         return mp
     
     def go(self, name):
-        href = self.handler.parser.data2href[name]
-        return href
+        hrefs = self.handler.parser.data2hrefs[name]
+        return hrefs
 
     handler = property(fget=_get_handler)
     help = property(fget=_get_help)

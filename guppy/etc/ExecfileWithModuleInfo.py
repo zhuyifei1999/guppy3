@@ -3,7 +3,7 @@
 import sys, os, imp, md5
 
 _VERBOSE   = True
-_RELOAD_ALWAYS = False
+_RELOAD_ALWAYS = True # False
 _MAGIC = '#._cv_part'
 
 modsums = {}

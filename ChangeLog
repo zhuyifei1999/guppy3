@@ -1,6 +1,10 @@
 2008-05-22  Sverker Nilsson  <sverker@sverker-laptop>
 
-	* Removed ihelp pkg. Changes to various files to reflect ihelp->doc .
+	* README (License): Added modify and redistribute wording to
+	the License for clarity, still refers to MIT license.
+
+	* Removed ihelp pkg. Changes to various files to reflect
+	ihelp->doc .
 	
 	* Moved ihelp.__init__.py into guppy/doc
 	
