@@ -12,10 +12,12 @@ import cStringIO
 import formatter
 import htmlentitydefs
 import htmllib
+import urllib2 as urllib
 
 from htmllib import HTMLParser
+from urlparse import urldefrag
 
-thisdir = os.path.dirname(__file__)
+THISDIR = os.path.dirname(__file__)
 
 def utf8StringIO():
     sio = cStringIO.StringIO()
@@ -132,7 +134,7 @@ class HelpTextHTMLParser(HTMLParser):
                 self.index2href.append(href)
             self.handle_data("[%d]" % index)
             
-            self.data2hrefs.setdefault(data,[]).append(href)
+            self.data2hrefs.setdefault(data,{})[index]=href
         self.anchor = None
 
     # --- Headings
@@ -174,18 +176,66 @@ class HelpTextHTMLParser(HTMLParser):
         self.formatter.end_paragraph(0)
         self.list_stack.append(['dl', '', 0])
 
+class Document:
+    ''' Abstracts a document, derived from one HTML file '''
+    def __init__(self, mod, url):
+        self.mod = mod
+        self.url = url
+        filename = url
+        self.filename = os.path.join(THISDIR,filename)
+        self.reset()
+
+    def getdoc(self, hrefdata=None, url=None, idx=None):
+        try:
+            hrefs = self.doc.hrefsbydata(name)
+        except KeyError:
+            print "Help text has no link %r"%name
+            self.print_available_links()
+        
+        return hrefs
+
+    def hrefsbydata(self, data):
+        return self.parser.data2hrefs[data]
+
+    def hrefbyindex(self, idx):
+        return self.parser.index2href[idx]
+
+    def reset(self):
+        html = self.readhtml()
+        self.text = self.prettyPrintHTML(html)
+
+    def readhtml(self):
+        return open(self.filename).read()
+
+    def prettyPrintHTML(self, html):
+        " Strip HTML formatting to produce plain text suitable for printing. "
+        utf8io = utf8StringIO()
+        writer = HelpTextWriter(utf8io)
+        prettifier = formatter.AbstractFormatter(writer)
+        self.parser = parser = HelpTextHTMLParser(prettifier)
+        parser.feed(html)
+        parser.close()
+
+
+        utf8io.seek(0)
+        result = utf8io.read()
+        utf8io.close()
+        return result #.lstrip()
+
 class HelpHandler:
+    ''' Handles a particular help strategy
+    '''
+
     def __init__(self, mod, top):
         self.mod = mod
         self.top = top
         self.output_buffer = self.mod._parent.etc.OutputHandling.output_buffer()
-        self.text
 
     def get_more_index(self, firstindex):
         return firstindex+self.mod.pagerows
 
     def ppob(self, ob, index):
-        text = self.text
+        text = self.get_text()
         splitext = text.split('\n')
         nextindex = index+self.mod.pagerows
         pst = splitext [index:nextindex]
@@ -200,33 +250,15 @@ class HelpHandler:
 		%numore
         self.nextindex = nextindex
     
-    def prettyPrintHTML(self, html):
-        " Strip HTML formatting to produce plain text suitable for printing. "
-        utf8io = utf8StringIO()
-        writer = HelpTextWriter(utf8io)
-        prettifier = formatter.AbstractFormatter(writer)
-        self.parser = HelpTextHTMLParser(prettifier)
-        parser = self.parser
-        parser.feed(html)
-        parser.close()
-        utf8io.seek(0)
-        result = utf8io.read()
-        utf8io.close()
-        return result #.lstrip()
-
-    def _get_text(self):
+    def get_text(self):
         text = ''
         if self.top.webarg:
             text += "Web doc page: %s\n"%self.top.webarg
         if self.top.textarg:
             text += self.top.textarg
-        if self.top.filenamearg:
-            text +=  self.prettyPrintHTML(
-                open(os.path.join(thisdir,self.top.filenamearg)).read())
-        self.text = text
+        if self.top.doc:
+            text +=  self.top.doc.text
         return text
-
-    text = property(fget=_get_text)
 
 class Help:
     """\
@@ -237,33 +269,27 @@ Help class
 
 """
 
-    def __init__(self, mod=None, web=None,text=None, filename=None):
+    def __init__(self, mod=None, web=None,text=None, filename=None, doc=None):
 
-        if mod is not None:
-            self.mod = mod
-            # Otherwise generate it when needed via _get_mod
+        self.mod = mod
         self.webarg = web
-        self.filenamearg = filename
         self.textarg = text
-
-    def _get_read(self):
-        print self
-        x=raw_input()
+        if doc is None:
+            doc = mod.getdoc(filename)
+        self.doc = doc
+        self.handler = HelpHandler(self.mod, self)
 
     def __getattr__(self, attr):
         while 1:
             if attr.startswith('go'):
-                try:
-                    return self.go(attr[2:])
-                except KeyError:
-                    print "Help text has no link %r"%attr[2:]
-                    self.print_available_links()
+                return self.go(attr[2:])
             else:
                 print 'attr', attr
                 raise AttributeError, attr
 
     def __getitem__(self, idx):
-        return self.handler.parser.index2href[idx]
+        href = self.hrefbyindex(idx)
+        return self.gohref(href)
 
     def __repr__(self):
         hh = self.handler
@@ -276,40 +302,84 @@ Help class
     def _get_help(self):
         return Help(text=self.__doc__)
 
-    def _get_handler(self):
-        return HelpHandler(self.mod, self)
-
-    def _get_mod(self):
-        mod = guppy.Root().guppy.doc
-        return mod
-
     def _get_more(self):
+        repr(self)	# Just to calculate nextindex ...
         mp = self.mod._root.guppy.etc.OutputHandling.basic_more_printer(
             self, self.handler, self.nextindex)
         return mp
     
-    def go(self, name):
-        hrefs = self.handler.parser.data2hrefs[name]
-        return hrefs
+    def hrefbydata(self, name):
+        while 1:
+            try:
+                hrefs = self.doc.hrefsbydata(name)
+            except KeyError:
+                print "Help text has no link %r"%name
+                self.print_available_links()
+            else:
+                if len(hrefs) == 1:
+                    return hrefs.values()[0]
+                print "Ambiguos name: ", hrefs
 
-    handler = property(fget=_get_handler)
+    def hrefbyindex(self, index):
+        try:
+            href = self.doc.hrefbyindex(index)
+        except KeyError:
+            print "Help text has no link %r"%index
+        return href
+
+    def go(self, name=None):
+        href = self.hrefbydata(name)
+        return self.gohref(href)
+
+    def gohref(self, href):
+        return self.mod.Help(filename=href)
+        
+        return href
+    
+        
+        
+
     help = property(fget=_get_help)
-    mod = property(fget=_get_mod)
     more = property(fget=_get_more)
-    read = property(fget=_get_read)
 
 
-a=3
+class StaticHelp:
+    ''' For use in modules and classes to minimize memory impact.
+        Does not cache anything but creates a (dynamic) Help instance
+        each time it is used, which it acts as a proxy to.
+    '''
+
+    def __init__(self, *args, **kwds):
+        self._args = args
+        self._kwds = kwds
+
+    def __getattr__(self, attr):
+        mod = guppy.Root().guppy.doc
+        dynhelp = Help(mod, *self._args, **self._kwds)
+        return getattr(dynhelp, attr)
 
 class X:
     def __repr__(self):
         return 'å'
 
-print 'hello!', a
-
 class _GLUECLAMP_:
-    pagerows=20
+    #'public'
+
+    pagerows=20		# Default number of rows to show at a time
+
     def Help(self, *args, **kwds):
         return Help(self, *args, **kwds)
     
-        
+    #'private'
+    
+    _chgable_=('pagerows',)
+    
+    def _get_url2doc(self):
+        return {}
+    
+    def getdoc(self, url):
+        if url in self.url2doc:
+            return self.url2doc[url]
+        doc = Document(self, url)
+        self.url2doc[url] = doc
+        return doc

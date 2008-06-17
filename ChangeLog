@@ -1,3 +1,8 @@
+2008-06-17  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/doc/__init__.py (Document): Added class Document, various
+	restructurings in progress
+
 2008-05-22  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* README (License): Added modify and redistribute wording to

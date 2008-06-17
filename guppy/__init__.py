@@ -21,7 +21,7 @@ import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
 
 from guppy import doc
-help = doc.Help(
+help = doc.StaticHelp(
     web='http://guppy-pe.sourceforge.net/guppy.html',
     filename='guppy.html')
 
