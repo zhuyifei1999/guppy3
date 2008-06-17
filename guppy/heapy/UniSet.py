@@ -2,6 +2,7 @@
 
 class UniSet(object):
     __slots__ = '_hiding_tag_', 'fam',  '_origin_'
+    _help_url_ = 'heapy_UniSet.html#heapykinds.UniSet'
 
     def __and__(self, other):
 	"""
@@ -208,6 +209,11 @@ brief representation is typically much shorter than the non-brief one.)
 	return self.fam.c_get_brief(self)
     brief = property(_get_brief)
 
+    def _get_help(self):
+        return self.fam.mod._root.guppy.doc.help_instance(self)
+
+    help = property(_get_help)
+
     def get_ckc(self):
 	# Get low-level classification information, where available.
 	# Returns a tuple (classifier, kind, comparator)
@@ -298,7 +304,7 @@ class Kind(UniSet):
 
 class IdentitySet(UniSet):
     __slots__ = '_er', '_partition'
-
+    _help_url_ = 'heapy_UniSet.html#heapykinds.IdentitySet'
 
     def __getitem__(self, idx):	return self.fam.c_getitem(self, idx)
     def __len__(self):		return self.fam.c_len(self)
@@ -408,12 +414,6 @@ is the total size of memory that will become deallocated, directly or
 indirectly, when the objects in X are deallocated.
 See also: dominos, size."""
 	return self.fam.View.domisize(self)
-
-    def _get_help(self):
-	return """
-You are looking at an IdentitySet object.
-
-	"""
 
     def _get_imdom(self):
 	"""
@@ -624,7 +624,6 @@ contain exactly one object, the exception ValueError will be raised.
     count = property(_get_count)
     dominos = property(_get_dominos)
     domisize = property(_get_domisize)
-    help = property(_get_help)
     imdom = property(_get_imdom)
     indisize = size = property(_get_indisize) # Synonyms
     kind = property(_get_kind)
@@ -643,9 +642,9 @@ contain exactly one object, the exception ValueError will be raised.
     stat = property(_get_stat)
     theone = property(_get_theone)
 			 
-
 class IdentitySetMulti(IdentitySet):
     __slots__ = 'nodes',
+
     def __init__(self, fam, nodes):
 	self.fam = fam
 	self._hiding_tag_ = fam._hiding_tag_
@@ -654,6 +653,8 @@ class IdentitySetMulti(IdentitySet):
 
 class IdentitySetSingleton(IdentitySet):
     __slots__ = '_node',
+    _help_url_ = 'heapy_UniSet.html#heapykinds.IdentitySetSingleton'
+
     def __init__(self, fam, node):
 	self.fam = fam
 	self._hiding_tag_ = fam._hiding_tag_
@@ -674,6 +675,8 @@ class IdentitySetSingleton(IdentitySet):
 
 class EquivalenceRelation(UniSet):
     __slots__ = 'classifier', 'erargs'
+    _help_url_ = 'heapy_UniSet.html#heapykinds.EquivalenceRelation'
+
     def __init__(self, fam, classifier, erargs=()):
 	self.fam = fam
 	self._hiding_tag_ = fam._hiding_tag_

@@ -15,7 +15,6 @@ import htmllib
 import urllib2 as urllib
 
 from htmllib import HTMLParser
-from urlparse import urldefrag
 
 THISDIR = os.path.dirname(__file__)
 
@@ -82,6 +81,7 @@ class HelpTextHTMLParser(HTMLParser):
         self.index2href = []
         self.href2index = {}
         self.data2hrefs = {}
+        self.name2textpos = {}
 
     def handle_charref(self, name):
         "Override builtin version to return unicode instead of binary strings for 8-bit chars."
@@ -111,6 +111,10 @@ class HelpTextHTMLParser(HTMLParser):
 
         """
         self.anchor = (href, name, type)
+
+        if name:
+            self.name2textpos[name] = self.formatter.writer.file.tell()
+
         if href:
             self.save_bgn()
 
@@ -135,6 +139,7 @@ class HelpTextHTMLParser(HTMLParser):
             self.handle_data("[%d]" % index)
             
             self.data2hrefs.setdefault(data,{})[index]=href
+
         self.anchor = None
 
     # --- Headings
@@ -181,8 +186,6 @@ class Document:
     def __init__(self, mod, url):
         self.mod = mod
         self.url = url
-        filename = url
-        self.filename = os.path.join(THISDIR,filename)
         self.reset()
 
     def getdoc(self, hrefdata=None, url=None, idx=None):
@@ -200,12 +203,24 @@ class Document:
     def hrefbyindex(self, idx):
         return self.parser.index2href[idx]
 
+    def urlbyindex(self, idx):
+        return self.urlbyhref(self.hrefbyindex(idx))
+
+    def urlsbydata(self, data):
+        return dict([(key, self.urlbyhref(href)) for (key, href) in
+                     self.hrefsbydata(data).items()])
+
+    def urlbyhref(self, href):
+        if href.startswith('#'):
+            href = self.url+href
+        return href
+        
     def reset(self):
         html = self.readhtml()
         self.text = self.prettyPrintHTML(html)
 
     def readhtml(self):
-        return open(self.filename).read()
+        return urllib.urlopen(self.url).read()
 
     def prettyPrintHTML(self, html):
         " Strip HTML formatting to produce plain text suitable for printing. "
@@ -221,6 +236,20 @@ class Document:
         result = utf8io.read()
         utf8io.close()
         return result #.lstrip()
+
+class Subject:
+    def __init__(self, mod, doc, fragment):
+        self.mod = mod
+        self.doc = doc
+        self.fragment = fragment
+        text = doc.text
+        if fragment:
+            text = text[doc.parser.name2textpos[fragment]:]
+            fragment = '#'+fragment
+        text = '--- url = %s%s\n'%(os.path.basename(doc.url),fragment)+text
+
+        self.text = text
+                        
 
 class HelpHandler:
     ''' Handles a particular help strategy
@@ -251,13 +280,7 @@ class HelpHandler:
         self.nextindex = nextindex
     
     def get_text(self):
-        text = ''
-        if self.top.webarg:
-            text += "Web doc page: %s\n"%self.top.webarg
-        if self.top.textarg:
-            text += self.top.textarg
-        if self.top.doc:
-            text +=  self.top.doc.text
+        text = self.top.subject.text
         return text
 
 class Help:
@@ -269,14 +292,11 @@ Help class
 
 """
 
-    def __init__(self, mod=None, web=None,text=None, filename=None, doc=None):
+    def __init__(self, mod, url):
 
         self.mod = mod
-        self.webarg = web
-        self.textarg = text
-        if doc is None:
-            doc = mod.getdoc(filename)
-        self.doc = doc
+        self.url = url		# Universal Subject Locator
+        self.subject = mod.getsubject(url)
         self.handler = HelpHandler(self.mod, self)
 
     def __getattr__(self, attr):
@@ -288,8 +308,7 @@ Help class
                 raise AttributeError, attr
 
     def __getitem__(self, idx):
-        href = self.hrefbyindex(idx)
-        return self.gohref(href)
+        return self.go(str(idx))
 
     def __repr__(self):
         hh = self.handler
@@ -308,33 +327,37 @@ Help class
             self, self.handler, self.nextindex)
         return mp
     
-    def hrefbydata(self, name):
+    def urlbydata(self, name):
         while 1:
             try:
-                hrefs = self.doc.hrefsbydata(name)
+                urls = self.subject.doc.urlsbydata(name)
             except KeyError:
                 print "Help text has no link %r"%name
                 self.print_available_links()
             else:
-                if len(hrefs) == 1:
-                    return hrefs.values()[0]
-                print "Ambiguos name: ", hrefs
+                if len(urls) == 1:
+                    return urls.values()[0]
+                print "Ambiguos name: ", urls
 
-    def hrefbyindex(self, index):
+    def urlbyindex(self, index):
         try:
-            href = self.doc.hrefbyindex(index)
+            url = self.subject.doc.urlbyindex(index)
         except KeyError:
             print "Help text has no link %r"%index
-        return href
+        return url
 
-    def go(self, name=None):
-        href = self.hrefbydata(name)
-        return self.gohref(href)
+    def urlby(self, name):
+        if name.isdigit():
+            url = self.urlbyindex(int(name))
+        else:
+            url = self.urlbydata(name)
+        return url
 
-    def gohref(self, href):
-        return self.mod.Help(filename=href)
-        
-        return href
+    def go(self, name):
+        return self.gourl(self.urlby(name))
+
+    def gourl(self, url):
+        return self.mod.Help(url)
     
         
         
@@ -365,7 +388,7 @@ class X:
 class _GLUECLAMP_:
     #'public'
 
-    pagerows=20		# Default number of rows to show at a time
+    pagerows=14		# Default number of rows to show at a time
 
     def Help(self, *args, **kwds):
         return Help(self, *args, **kwds)
@@ -373,13 +396,33 @@ class _GLUECLAMP_:
     #'private'
     
     _chgable_=('pagerows',)
+    _imports_ = (
+        '_root.urlparse:urldefrag',
+        )
     
     def _get_url2doc(self):
         return {}
     
+    def fixurl(self, url):
+        if '://' not in url:
+            if not os.path.isabs(url):
+                url = os.path.join(THISDIR,url)
+            url = 'file://'+url
+        return url
+
     def getdoc(self, url):
         if url in self.url2doc:
             return self.url2doc[url]
         doc = Document(self, url)
         self.url2doc[url] = doc
         return doc
+
+    def getsubject(self, url):
+        url = self.fixurl(url)
+        url, frag = self.urldefrag(url)
+        doc = self.getdoc(url)
+        return self.Subject(self, doc, frag)
+
+    def help_instance(self, inst):
+        url = inst._help_url_
+        return self.Help(url)

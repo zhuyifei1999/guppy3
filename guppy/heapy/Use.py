@@ -12,7 +12,7 @@ class _GLUECLAMP_:
 	return self.Nothing
 
     def _get_help(self):
-        return self.Help(filename='heapy_Use.html')
+        return self.Help('heapy_Use.html')
 
     def _get_relheap(self):
 	return self.Nothing

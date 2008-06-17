@@ -1,5 +1,13 @@
 2008-06-17  Sverker Nilsson  <sverker@sverker-laptop>
 
+	* guppy/doc/__init__.py (_GLUECLAMP_.help_instance): Added
+	method. Also added Subject class.
+
+	* guppy/heapy/UniSet.py (UniSet and subclasses): Added _help_url_
+	attributes and _get_help which uses this via help_instance, but I
+	began to think they should perhaps refer to the gsl kindnames
+	instead. 
+
 	* guppy/doc/__init__.py (Document): Added class Document, various
 	restructurings in progress
 
