@@ -6,6 +6,7 @@
 
 import guppy
 import os
+import new
 
 import codecs
 import cStringIO
@@ -246,19 +247,13 @@ class Subject:
         if fragment:
             text = text[doc.parser.name2textpos[fragment]:]
             fragment = '#'+fragment
-        text = '--- url = %s%s\n'%(os.path.basename(doc.url),fragment)+text
-
         self.text = text
+        self.header = '%s%s'%(os.path.basename(doc.url),fragment)
                         
 
 class HelpHandler:
     ''' Handles a particular help strategy
     '''
-
-    def __init__(self, mod, top):
-        self.mod = mod
-        self.top = top
-        self.output_buffer = self.mod._parent.etc.OutputHandling.output_buffer()
 
     def get_more_index(self, firstindex):
         return firstindex+self.mod.pagerows
@@ -280,10 +275,10 @@ class HelpHandler:
         self.nextindex = nextindex
     
     def get_text(self):
-        text = self.top.subject.text
+        text = self.subject.text
         return text
 
-class Help:
+class Help(HelpHandler):
     """\
 Help class
 """
@@ -291,42 +286,109 @@ Help class
 
 
 """
+    _all_ = ('back', 'down', 'forw', 'more', 'og', 'pop',
+             'ret', 'up', 'top')
 
-    def __init__(self, mod, url):
-
+    def __init__(self, tab, url, startindex=0):
+        self.tab = tab
+        mod = tab.mod
         self.mod = mod
-        self.url = url		# Universal Subject Locator
+        self.url = url
+        self.startindex = startindex
         self.subject = mod.getsubject(url)
-        self.handler = HelpHandler(self.mod, self)
+        self.append_to_history()
+        self.notification = None
 
     def __getattr__(self, attr):
         while 1:
             if attr.startswith('go'):
                 return self.go(attr[2:])
+            elif attr.startswith('tab'):
+                return self.seltab(attr[3:])
             else:
-                print 'attr', attr
-                raise AttributeError, attr
+                possibs = []
+                for a in self._all_:
+                    if a.startswith(attr):
+                        possibs.append(a)
+                print 'possibs', possibs
+                if len(possibs) == 1:
+                    return getattr(self,possibs[0])
+                if len(possibs) > 1:
+                    return self.notify('Which did you mean: %s'%possibs)
+                return self.notify('No such attribute: %r'%attr)
 
     def __getitem__(self, idx):
         return self.go(str(idx))
 
     def __repr__(self):
-        hh = self.handler
-        mp = self.mod._root.guppy.etc.OutputHandling.basic_more_printer(
-            self, hh, 0)
-        r = repr(mp)
-        self.nextindex = hh.nextindex
+        if self.notification is not None:
+            r = '*** %s ***' % self.notification
+            self.notification = None
+            return r
+	ob = self.mod.output_buffer()
+        print >>ob, '--- %s ---'%self.header
+        
+	self.ppob(ob, self.startindex)
+	r = ob.getvalue().rstrip()
         return r
+
+    def _get_back(self):
+        if (self.history_index == 0):
+            return self.notify('At first help subject in session. (Try .less if you did .more)')
+        else:
+            return self.tab.history[self.history_index-1]
+
+    def _get_forw(self):
+        if (self.history_index >= len(self.tab.history)-1):
+            #return self.notify('No forward subject. (Try also .more .)')
+            return self.more
+        else:
+            return self.tab.history[self.history_index+1]
+
+    def _get_header(self):
+        return 'tab%s: %s [+%d]'%(
+            self.tab.name, self.subject.header,self.startindex)
 
     def _get_help(self):
         return Help(text=self.__doc__)
 
+    def _get_less(self):
+        if self.startindex == 0:
+            return self.notify('No previous rows in subject.')
+
     def _get_more(self):
+        del self.tab.history[self.history_index+1:]
         repr(self)	# Just to calculate nextindex ...
-        mp = self.mod._root.guppy.etc.OutputHandling.basic_more_printer(
-            self, self.handler, self.nextindex)
-        return mp
-    
+        h = self.copy(startindex = self.nextindex)
+        h.append_to_history()
+        return h
+
+    def _get_ret(self):
+        try:
+            return self._ret
+        except AttributeError:
+            return self.notify("No subject to return to.")
+
+    def _get_tabs(self):
+        return self.notify(str(self.mod.tabs))
+
+    def _get_top(self):
+        return self
+
+    def append_to_history(self):
+        self.history_index = len(self.tab.history)
+        self.tab.history.append(self)
+
+    def copy(self, **kwds):
+        n = new.instance(self.__class__)
+        n.__dict__.update(self.__dict__)
+        n.__dict__.update(kwds)
+        return n
+
+    def notify(self, message):
+        self.notification = message
+        return self
+
     def urlbydata(self, name):
         while 1:
             try:
@@ -354,17 +416,44 @@ Help class
         return url
 
     def go(self, name):
-        return self.gourl(self.urlby(name))
+        url = self.urlby(name)
+        del self.tab.history[self.history_index+1:]
+        h = self.copy(url=url, subject = self.mod.getsubject(url),
+                      _ret=self,
+                      startindex=0)
+        h.append_to_history()
+        return h
 
-    def gourl(self, url):
-        return self.mod.Help(url)
-    
-        
+    def seltab(self, name):
+        if name in self.mod.tabs:
+            h = self.mod.tabs[name].history[-1]
+        else:
+            h = self.copy()
+            h.tab = Tab(self.mod, name)
+            h.append_to_history()
+        h.notify(h.header)
+        return h
         
 
+    back = up = property(fget=_get_back)
+    forw = down = property(fget=_get_forw)
+    header = property(fget=_get_header)
     help = property(fget=_get_help)
+    less = property(fget=_get_less)
     more = property(fget=_get_more)
+    ret = pop = og = property(fget=_get_ret)
+    tabs = property(fget=_get_tabs)
+    top = property(fget=_get_top)
 
+class Tab:
+    def __init__(self, mod, name):
+        self.mod = mod
+        self.mod.tabs[name] = self
+        self.name = name
+        self.history = []
+
+    def __repr__(self):
+        return '\n'.join([x.header for x in self.history])
 
 class StaticHelp:
     ''' For use in modules and classes to minimize memory impact.
@@ -378,12 +467,9 @@ class StaticHelp:
 
     def __getattr__(self, attr):
         mod = guppy.Root().guppy.doc
-        dynhelp = Help(mod, *self._args, **self._kwds)
-        return getattr(dynhelp, attr)
 
-class X:
-    def __repr__(self):
-        return 'å'
+        dynhelp = mod.Help(*self._args, **self._kwds)
+        return getattr(dynhelp, attr)
 
 class _GLUECLAMP_:
     #'public'
@@ -391,14 +477,19 @@ class _GLUECLAMP_:
     pagerows=14		# Default number of rows to show at a time
 
     def Help(self, *args, **kwds):
-        return Help(self, *args, **kwds)
+        tab = Tab(self, str(len(self.tabs)))
+        return Help(tab, *args, **kwds)
     
     #'private'
     
     _chgable_=('pagerows',)
     _imports_ = (
         '_root.urlparse:urldefrag',
+        '_root.guppy.etc.OutputHandling:output_buffer',
         )
+    
+    def _get_tabs(self):
+        return {}
     
     def _get_url2doc(self):
         return {}
