@@ -567,8 +567,9 @@ which I haven't had a chance to sort out yet.
 computer and to make it dual-boot with Microsoft XP. (But we don't have
 any C compiler for Windows XP (yet).)
 
-...li: Chad Austin has supplied a patch for (especially) Microsoft
-       C compilers.
+...li: Chad Austin has supplied a patch for compiling on Windows w/
+Visual Studio 2003 and Python 2.5 C compilers. I think this may fix
+similar problems with other MS compilers, Cygwin & Mingw as well.
 
 ..a
 ...name=Contact
