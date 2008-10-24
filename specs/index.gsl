@@ -438,10 +438,10 @@ started. More tips are very welcome!
 ..p
 
 The latest version is in the svn trunk directory. As of this writing,
-I have tested it successfully in 64 as well as 32 bits mode with
-Ubuntu 7.10 on an AMD64, with Python 2.3, 2.4, 2.5 and 2.6 . No major
-changes other than compatibility fixes have been made from Guppy 0.1.6
-version below.
+08-04-08, I have tested it (rev. 23) successfully in 64 as well as 32
+bits mode with Ubuntu 7.10 on an AMD64, with Python 2.3, 2.4, 2.5 and
+2.6 . No major changes other than compatibility fixes have been made
+from Guppy 0.1.6 version below.
 
 ..p
 In the nearest future, I plan to add some interactive help and some
@@ -566,6 +566,9 @@ which I haven't had a chance to sort out yet.
 ...li: Patrik Andersson has helped me installing Ubuntu Linux on my new
 computer and to make it dual-boot with Microsoft XP. (But we don't have
 any C compiler for Windows XP (yet).)
+
+...li: Chad Austin has supplied a patch for (especially) Microsoft
+       C compilers.
 
 ..a
 ...name=Contact
