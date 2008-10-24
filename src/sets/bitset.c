@@ -4,6 +4,7 @@
 #include "structmember.h"
 #include "longintrepr.h"
 
+#include "../include/guppy.h"
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -4739,12 +4740,12 @@ int fsb_dx_nybitset_init(PyObject *m)
     _NyImmBitSet_EmptyStruct.ob_type = &NyImmBitSet_Type;
     _NyImmBitSet_OmegaStruct.ob_type = &NyCplBitSet_Type;
 
-    FILL(NyBitSet_Type);
-    FILL(NyImmBitSet_Type);
-    FILL(NyCplBitSet_Type);
-    FILL(NyMutBitSet_Type);
-    FILL(NyImmBitSetIter_Type);
-    FILL(NyUnion_Type);
+    NYFILL(NyBitSet_Type);
+    NYFILL(NyImmBitSet_Type);
+    NYFILL(NyCplBitSet_Type);
+    NYFILL(NyMutBitSet_Type);
+    NYFILL(NyImmBitSetIter_Type);
+    NYFILL(NyUnion_Type);
 
     d = PyModule_GetDict(m);
     PyDict_SetItemString(d, "BitSet", (PyObject *)&NyBitSet_Type);

@@ -28,6 +28,7 @@ char heapyc_doc[] =
 #include "structmember.h"
 #include "compile.h"
 #include "frameobject.h"
+#include "../include/guppy.h"
 #include "../sets/nodeset.h"
 #include "hpinit.h"
 #include "heapdef.h"
@@ -35,7 +36,6 @@ char heapyc_doc[] =
 #include "classifier.h"
 #include "nodegraph.h"
 #include "relation.h"
-#include "../sets/sets_internal.h"
 
 #define INITFUNC initheapyc
 #define MODNAME "heapyc"
@@ -203,7 +203,7 @@ NyHeapDef NyHvTypes_HeapDef[] = {
 };
 
 
-DL_EXPORT (void)
+DL_EXPORT (int)
 INITFUNC (void)
 {
     PyObject *m;
@@ -212,14 +212,14 @@ INITFUNC (void)
     _Ny_RootStateStruct.ob_type = &NyRootState_Type;
 
     NyNodeTuple_Type.tp_base = &PyTuple_Type;
-    FILL(NyNodeTuple_Type);
-    FILL(NyRelation_Type);
-    FILL(NyHeapView_Type);
-    FILL(NyObjectClassifier_Type);
-    FILL(NyHorizon_Type);
-    FILL(NyNodeGraph_Type);
-    FILL(NyNodeGraphIter_Type);
-    FILL(NyRootState_Type);
+    NYFILL(NyNodeTuple_Type);
+    NYFILL(NyRelation_Type);
+    NYFILL(NyHeapView_Type);
+    NYFILL(NyObjectClassifier_Type);
+    NYFILL(NyHorizon_Type);
+    NYFILL(NyNodeGraph_Type);
+    NYFILL(NyNodeGraphIter_Type);
+    NYFILL(NyRootState_Type);
 
     m = Py_InitModule(MODNAME, module_methods);
     if (!m)
@@ -248,7 +248,8 @@ INITFUNC (void)
 #ifdef WITH_MALLOC_HOOKS
     sethooks();
 #endif
-    return ;
+    return 0;
   error:
     fprintf(stderr, "Error at initialization of module heapyc");
+    return -1;
 }

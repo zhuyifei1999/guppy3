@@ -33,13 +33,6 @@ NyAnyBitSet_iterate(PyObject *v,
 extern DL_IMPORT(int)
 NyAnyBitSet_length(PyObject *v);
 
-#define FILL(t) {                                           \
-    if (!t.tp_new) {                                        \
-        t.tp_new = PyType_GenericNew;                       \
-    }                                                       \
-    if (PyType_Ready(&t) < 0) return;                       \
-}
-
 /* The predefined empty set */
 
 extern DL_IMPORT(NyImmBitSetObject) _NyImmBitSet_EmptyStruct;

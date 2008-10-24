@@ -3,6 +3,7 @@
 #include "Python.h"
 #include "structmember.h"
 
+#include "../include/guppy.h"
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -1322,11 +1323,11 @@ int fsb_dx_nynodeset_init(PyObject *m)
 {
     PyObject *d;
 
-    FILL(NyMutNodeSetIter_Type);
-    FILL(NyNodeSet_Type);
-    FILL(NyImmNodeSetIter_Type);
-    FILL(NyImmNodeSet_Type);
-    FILL(NyMutNodeSet_Type);
+    NYFILL(NyMutNodeSetIter_Type);
+    NYFILL(NyNodeSet_Type);
+    NYFILL(NyImmNodeSetIter_Type);
+    NYFILL(NyImmNodeSet_Type);
+    NYFILL(NyMutNodeSet_Type);
 
     d = PyModule_GetDict(m);
 

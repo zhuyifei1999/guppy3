@@ -1,3 +1,13 @@
+2008-10-24  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* Added Chad Austin's patch for MSWINDOWS
+	  Made a temp os-determination. Have to check this out.
+	  Changed macro FILL to return -1 to get rid of warning in a set init.
+	  Made the initfunc in heapyc return an int to get rid of new warning.
+	  Moved & renamed macro to NYFILL in new file src/include/guppy.h
+	  which is intended to host general public guppy related includes.
+	  Made corresponding changes FILL->NYFILL where used.
+	
 2008-06-18  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/doc/__init__.py (Tab): Added tabs for different help

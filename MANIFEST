@@ -142,6 +142,7 @@ src/heapy/roundupsize.c
 src/heapy/stdtypes.c
 src/heapy/stdtypes.h
 src/heapy/xmemstats.c
+src/include/guppy.h
 src/sets/bitset.c
 src/sets/bitset.h
 src/sets/immnodeset.c
