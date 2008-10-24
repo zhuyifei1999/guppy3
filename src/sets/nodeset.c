@@ -239,7 +239,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
 }
 
 PyTypeObject NyMutNodeSetIter_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"nodeset-iterator",			/* tp_name */
 	sizeof(NyMutNodeSetIterObject),		/* tp_basicsize */
@@ -1204,7 +1204,7 @@ static  PyGetSetDef mutnodeset_getset[] = {
 };
 
 PyTypeObject NyNodeSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.NodeSet",		/* tp_name */
 	sizeof(NyNodeSetObject),		/* tp_basicsize */
@@ -1253,7 +1253,7 @@ PyTypeObject NyNodeSet_Type = {
 #include "immnodeset.c"
 
 PyTypeObject NyMutNodeSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.MutNodeSet",		/* tp_name */
 	sizeof(NyNodeSetObject),		/* tp_basicsize */
@@ -1321,6 +1321,13 @@ static NyNodeSet_Exports nynodeset_exports = {
 int fsb_dx_nynodeset_init(PyObject *m)
 {
     PyObject *d;
+
+    FILL(NyMutNodeSetIter_Type);
+    FILL(NyNodeSet_Type);
+    FILL(NyImmNodeSetIter_Type);
+    FILL(NyImmNodeSet_Type);
+    FILL(NyMutNodeSet_Type);
+
     d = PyModule_GetDict(m);
 
     if (PyDict_SetItemString(d,

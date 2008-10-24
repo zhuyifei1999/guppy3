@@ -69,7 +69,7 @@ immnsiter_iternext(NyImmNodeSetIterObject *it)
 }
 
 PyTypeObject NyImmNodeSetIter_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"immnodeset-iterator",			/* tp_name */
 	sizeof(NyImmNodeSetIterObject),		/* tp_basicsize */
@@ -317,7 +317,7 @@ immnodeset_iter(NyNodeSetObject *ns)
     it->i = 0;
     it->nodeset = ns;
     Py_INCREF(ns);
-    _PyObject_GC_TRACK(it);
+    PyObject_GC_Track(it);
     return (PyObject *)it;
 }
 
@@ -406,6 +406,9 @@ PyDoc_STRVAR(immnodeset_obj_at_doc,
 static PyObject *
 immnodeset_obj_at(NyNodeSetObject *v, PyObject *obj)
 {
+    PyObject **lo;
+    PyObject **hi;
+
     Py_uintptr_t addr =
 #if SIZEOF_VOID_P <= SIZEOF_LONG
 	PyInt_AsUnsignedLongMask(obj);
@@ -415,8 +418,8 @@ immnodeset_obj_at(NyNodeSetObject *v, PyObject *obj)
     if (addr == (Py_uintptr_t) -1 && PyErr_Occurred())
 	return 0;
     
-    PyObject **lo = &v->u.nodes[0];
-    PyObject **hi = &v->u.nodes[v->ob_size];
+    lo = &v->u.nodes[0];
+    hi = &v->u.nodes[v->ob_size];
     while (lo < hi) {
 	PyObject **cur = lo + (hi - lo) / 2;
 	if ((Py_uintptr_t)(*cur) == addr) {
@@ -441,7 +444,7 @@ static PyMethodDef immnodeset_methods[] = {
   
 
 PyTypeObject NyImmNodeSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.ImmNodeSet",		/* tp_name */
 	sizeof(NyNodeSetObject)-sizeof(PyObject *),/* tp_basicsize */

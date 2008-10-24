@@ -485,97 +485,97 @@ unicode_size(PyObject *obj) {
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
 	0,			/* flags */
-	&PyDict_Type,		/* type */
+	0,		/* type */
 	dict_size,		/* size */
 	0,			/* traverse */
 	dict_relate		/* relate */
     },	  {
 	0,			/* flags */
-	&PyList_Type,		/* type */
+	0,		/* type */
 	list_size,		/* size */
 	0,			/* traverse */
 	list_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyTuple_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	0,			/* traverse */
 	tuple_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyInstance_Type,	/* type */
+	0,	/* type */
 	0,			/* size */
 	instance_traverse,	/* traverse */
 	instance_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyClass_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	0,			/* traverse */
 	class_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyFunction_Type,	/* type */
+	0,	/* type */
 	0,			/* size */
 	0,			/* traverse */
 	function_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyModule_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	0,			/* traverse */
 	module_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyFrame_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	frame_traverse,		/* traverse */
 	frame_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyTraceBack_Type,	/* type */
+	0,	/* type */
 	0,			/* size */
 	0,			/* traverse */
 	traceback_relate	/* relate */
     }, {
 	0,			/* flags */
-	&PyCell_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	0,			/* traverse */
 	cell_relate		/* relate */
     }, {
 	0,			/* flags */
-	(void *)1,		/* type */ /* To be patched-in from an array ! */
+        0,		/* type */ /* To be patched-in from an array ! */
 	array_size_23,		/* size */
 	0,			/* traverse */
 	0			/* relate */
     }, {
 	0,			/* flags */
-	&PyCFunction_Type,	/* type */
+	0,	/* type */
 	0,			/* size */
 	0,			/* traverse */
 	meth_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyCode_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	code_traverse,		/* traverse */
 	0			/* relate */
     }, {
 	0,			/* flags */
-	&PyType_Type,		/* type */
+	0,		/* type */
 	0,			/* size */
 	type_traverse,		/* traverse */
 	type_relate		/* relate */
     }, {
 	0,			/* flags */
-	&PyUnicode_Type,	/* type */
+	0,	/* type */
 	unicode_size,		/* size */
 	0,			/* traverse */
 	0,			/* relate */
     }, {
 	0,			/* flags */
-	(void *)1,		/* type */ /* To be patched-in from a dictproxy ! */
+	0,		/* type */ /* To be patched-in from a dictproxy ! */
 	0,			/* size */
 	0,			/* traverse */
 	dictproxy_relate	/* relate */
@@ -598,6 +598,25 @@ NyStdTypes_init(void)
     /* Patch up the table for some types that were not directly accessible */
     PyObject *m, *c;
     NyHeapDef *hd = NyStdTypes_HeapDef;
+    int x = 0;
+
+    NyStdTypes_HeapDef[x++].type = &PyDict_Type;
+    NyStdTypes_HeapDef[x++].type = &PyList_Type;
+    NyStdTypes_HeapDef[x++].type = &PyTuple_Type;
+    NyStdTypes_HeapDef[x++].type = &PyInstance_Type;
+    NyStdTypes_HeapDef[x++].type = &PyClass_Type;
+    NyStdTypes_HeapDef[x++].type = &PyFunction_Type;
+    NyStdTypes_HeapDef[x++].type = &PyModule_Type;
+    NyStdTypes_HeapDef[x++].type = &PyFrame_Type;
+    NyStdTypes_HeapDef[x++].type = &PyTraceBack_Type;
+    NyStdTypes_HeapDef[x++].type = &PyCell_Type;
+    NyStdTypes_HeapDef[x++].type = (void *)1;
+    NyStdTypes_HeapDef[x++].type = &PyCFunction_Type;
+    NyStdTypes_HeapDef[x++].type = &PyCode_Type;
+    NyStdTypes_HeapDef[x++].type = &PyType_Type;
+    NyStdTypes_HeapDef[x++].type = &PyUnicode_Type;
+    NyStdTypes_HeapDef[x++].type = (void *)1;
+
     for (;hd->type;hd++) {
 	if (hd->size == array_size_23) {
 	    /* Patch up array type - it is not statically accessible, may be optional */

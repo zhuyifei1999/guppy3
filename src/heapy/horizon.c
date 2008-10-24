@@ -213,7 +213,7 @@ static PyMethodDef horizon_methods[] = {
 };
 
 PyTypeObject NyHorizon_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(0)
 	0,					/* ob_size */
 	"guppy.heapy.heapyc.Horizon",		/* tp_name */
 	sizeof(NyHorizonObject),		/* tp_basicsize */

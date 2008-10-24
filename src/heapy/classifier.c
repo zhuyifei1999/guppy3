@@ -319,7 +319,7 @@ static PyMemberDef cli_members[] = {
 #undef OFF
 
 PyTypeObject NyObjectClassifier_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(0)
 	0,
 	"guppy.heapy.heapyc.ObjectClassifier",	/* tp_name */
 	sizeof(NyObjectClassifierObject),		/* tp_basicsize */
@@ -372,6 +372,6 @@ NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def)
     Py_INCREF(self);
     op->self = self;
     op->def = def;
-    _PyObject_GC_TRACK(op);
+    PyObject_GC_Track(op);
     return (PyObject *)op;
 }

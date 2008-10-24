@@ -1756,7 +1756,7 @@ static  PyGetSetDef hv_getset[] = {
 
 
 PyTypeObject NyHeapView_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.heapy.heapyc.HeapView",		/* tp_name */
 	sizeof(NyHeapViewObject),		/* tp_basicsize */

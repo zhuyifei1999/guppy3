@@ -65,9 +65,9 @@ int fsb_dx_addmethods(PyObject *m, PyMethodDef *methods, PyObject *passthrough) 
 }
 
 static NyHeapDef nysets_heapdefs[] = {
-    {0, &NyMutBitSet_Type, (NyHeapDef_SizeGetter) mutbitset_indisize},
-    {0, &NyCplBitSet_Type, 0, cplbitset_traverse},
-    {0, &NyNodeSet_Type, nodeset_indisize,  nodeset_traverse, nodeset_relate},
+    {0, 0, (NyHeapDef_SizeGetter) mutbitset_indisize},
+    {0, 0, 0, cplbitset_traverse},
+    {0, 0, nodeset_indisize,  nodeset_traverse, nodeset_relate},
     {0}
 };
 
@@ -78,6 +78,11 @@ INITFUNC (void)
 {
     PyObject *m;
     PyObject *d;
+
+    nysets_heapdefs[0].type = &NyMutBitSet_Type;
+    nysets_heapdefs[1].type = &NyCplBitSet_Type;
+    nysets_heapdefs[2].type = &NyNodeSet_Type;
+
     m = Py_InitModule(MODNAME, module_methods);
     if (!m)
       goto Error;

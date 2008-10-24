@@ -35,6 +35,7 @@ char heapyc_doc[] =
 #include "classifier.h"
 #include "nodegraph.h"
 #include "relation.h"
+#include "../sets/sets_internal.h"
 
 #define INITFUNC initheapyc
 #define MODNAME "heapyc"
@@ -207,6 +208,19 @@ INITFUNC (void)
 {
     PyObject *m;
     PyObject *d;
+
+    _Ny_RootStateStruct.ob_type = &NyRootState_Type;
+
+    NyNodeTuple_Type.tp_base = &PyTuple_Type;
+    FILL(NyNodeTuple_Type);
+    FILL(NyRelation_Type);
+    FILL(NyHeapView_Type);
+    FILL(NyObjectClassifier_Type);
+    FILL(NyHorizon_Type);
+    FILL(NyNodeGraph_Type);
+    FILL(NyNodeGraphIter_Type);
+    FILL(NyRootState_Type);
+
     m = Py_InitModule(MODNAME, module_methods);
     if (!m)
       goto error;

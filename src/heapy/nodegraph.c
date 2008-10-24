@@ -68,7 +68,7 @@ ngiter_iternext(NyNodeGraphIterObject *ngi)
 /* NodeGraphIter type */
 
 PyTypeObject NyNodeGraphIter_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"nodegraph-iterator",			/* tp_name */
 	sizeof(NyNodeGraphIterObject),		/* tp_basicsize */
@@ -600,7 +600,7 @@ ng_iter(NyNodeGraphObject *v)
     iter->i = 0;
     ng_maybesortetc(v);
     iter->oldsize = v->used_size;
-    _PyObject_GC_TRACK(iter);
+    PyObject_GC_Track(iter);
     return (PyObject *)iter;
 }
 
@@ -992,7 +992,7 @@ ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 
 PyTypeObject NyNodeGraph_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.heapy.heapyc.NodeGraph",		/* tp_name */
 	sizeof(NyNodeGraphObject),		/* tp_basicsize */

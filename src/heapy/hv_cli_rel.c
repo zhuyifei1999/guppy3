@@ -151,7 +151,7 @@ static PyMemberDef rel_members[] = {
 #undef OFF
 
 PyTypeObject NyRelation_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"guppy.heapy.heapyc.Relation",		/* tp_name */
 	sizeof(NyRelationObject),		/* tp_basicsize */

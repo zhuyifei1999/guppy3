@@ -1,3 +1,6 @@
+import os
+MSWINDOWS=os.name=='nt'
+
 from distutils.command.install import INSTALL_SCHEMES
 
 for scheme in INSTALL_SCHEMES.values():
@@ -5,19 +8,31 @@ for scheme in INSTALL_SCHEMES.values():
 
 from distutils.core import setup, Extension
 
+extra_compile_args=[]
+extra_link_args=[]
+
+if MSWINDOWS:
+    extra_compile_args+=['/Z7']
+    extra_link_args+=['/DEBUG']
+    
+
 setsc = Extension("guppy.sets.setsc",
                   [
                       "src/sets/sets.c",
                       "src/sets/bitset.c",
                       "src/sets/nodeset.c"
-                      ]
+                      ],
+                  extra_compile_args=extra_compile_args,
+                  extra_link_args=extra_link_args
                   )
 
 heapyc = Extension("guppy.heapy.heapyc",
                    [
                        'src/heapy/heapyc.c',
                        'src/heapy/stdtypes.c'
-                       ]
+                       ],
+                  extra_compile_args=extra_compile_args,
+                  extra_link_args=extra_link_args
                    )
 
 def doit():

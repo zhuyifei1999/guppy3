@@ -395,7 +395,7 @@ NyImmBitSetObject *sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ih
 /* NyBitSet_Type -- Base type with no operations, just a doc string */
 
 PyTypeObject NyBitSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+        PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.BitSet",		/* tp_name */
 	0,
@@ -435,12 +435,12 @@ PyTypeObject NyBitSet_Type = {
 /* Predefined no-bits and all-bits sets */
 
 NyImmBitSetObject _NyImmBitSet_EmptyStruct = {
-    PyObject_HEAD_INIT(&NyImmBitSet_Type)
+    PyObject_HEAD_INIT(NULL)
     0	/* ob_size */
 };
 
 NyCplBitSetObject _NyImmBitSet_OmegaStruct = {
-    PyObject_HEAD_INIT(&NyCplBitSet_Type)
+    PyObject_HEAD_INIT(NULL)
     &_NyImmBitSet_EmptyStruct	/* ob_val */
 };
 
@@ -3966,7 +3966,7 @@ static PyGetSetDef immbitset_getsets[] = {
 };
 
 PyTypeObject NyImmBitSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.ImmBitSet",		/* tp_name */
 	sizeof(NyImmBitSetObject) - sizeof(NyBitField),
@@ -4099,7 +4099,7 @@ static PyGetSetDef cplbitset_getsets[] = {
 
 
 PyTypeObject NyCplBitSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.CplBitSet",		/* tp_name */
 	sizeof(NyCplBitSetObject),
@@ -4329,7 +4329,7 @@ static PyMappingMethods mutbitset_as_mapping = {
 };
 
 PyTypeObject NyMutBitSet_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.MutBitSet",		/* tp_name */
 	sizeof(NyMutBitSetObject),		/* tp_basicsize */
@@ -4374,7 +4374,7 @@ PyTypeObject NyMutBitSet_Type = {
 
 
 PyTypeObject NyImmBitSetIter_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"immbitset-iterator",			/* tp_name */
 	sizeof(NyImmBitSetIterObject),		/* tp_basicsize */
@@ -4413,7 +4413,7 @@ PyTypeObject NyImmBitSetIter_Type = {
 };
 
 PyTypeObject NyUnion_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.sets.setsc.Union",		/* tp_name */
 	sizeof(NyUnionObject) - NyUnion_MINSIZE*sizeof(NySetField),
@@ -4735,6 +4735,17 @@ static NyBitSet_Exports nybitset_exports = {
 int fsb_dx_nybitset_init(PyObject *m)
 {
     PyObject *d;
+
+    _NyImmBitSet_EmptyStruct.ob_type = &NyImmBitSet_Type;
+    _NyImmBitSet_OmegaStruct.ob_type = &NyCplBitSet_Type;
+
+    FILL(NyBitSet_Type);
+    FILL(NyImmBitSet_Type);
+    FILL(NyCplBitSet_Type);
+    FILL(NyMutBitSet_Type);
+    FILL(NyImmBitSetIter_Type);
+    FILL(NyUnion_Type);
+
     d = PyModule_GetDict(m);
     PyDict_SetItemString(d, "BitSet", (PyObject *)&NyBitSet_Type);
     PyDict_SetItemString(d, "CplBitSet", (PyObject *)&NyCplBitSet_Type);

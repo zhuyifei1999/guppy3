@@ -387,7 +387,7 @@ rootstate_gc_traverse(PyObject *self, visitproc visit, void *arg)
 
 
 PyTypeObject NyRootState_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size */
 	"guppy.heapy.heapyc.RootStateType",	/* tp_name */
 	sizeof(PyObject),			/* tp_basicsize */
@@ -431,7 +431,7 @@ PyTypeObject NyRootState_Type = {
 };
 
 PyObject _Ny_RootStateStruct = {
-    PyObject_HEAD_INIT(&NyRootState_Type)
+    PyObject_HEAD_INIT(NULL)
 };
 
 

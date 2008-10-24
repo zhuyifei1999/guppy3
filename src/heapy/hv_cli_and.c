@@ -31,7 +31,7 @@ NyNodeTuple_New(int size)
     if (op == NULL)
       return NULL;
     memset(op->ob_item, 0, sizeof(*op->ob_item) * size);
-    _PyObject_GC_TRACK(op);
+    PyObject_GC_Track(op);
     return (PyObject *) op;
 }
 
@@ -268,7 +268,7 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
 
 
 PyTypeObject NyNodeTuple_Type = {
-	PyObject_HEAD_INIT(&PyType_Type)
+	PyObject_HEAD_INIT(NULL)
 	0,
 	"guppy.heapy.heapyc.NodeTuple",
 	sizeof(PyTupleObject) - sizeof(PyObject *),
@@ -300,7 +300,7 @@ PyTypeObject NyNodeTuple_Type = {
 	0,					/* tp_methods */
 	0,					/* tp_members */
 	0,					/* tp_getset */
-	&PyTuple_Type,				/* tp_base */
+	0,				/* tp_base */
 	0,					/* tp_dict */
 	0,					/* tp_descr_get */
 	0,					/* tp_descr_set */
