@@ -49,8 +49,8 @@ class FirstCase(support.TestCase):
 
 
 
-def test_main():
-    support.run_unittest(FirstCase)
+def test_main(debug=False):
+    support.run_unittest(FirstCase,debug)
 
 if __name__ == "__main__":
     test_main()

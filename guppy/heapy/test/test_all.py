@@ -19,7 +19,7 @@ others = (
     'sf',
     )
 
-def test_main():
+def test_main(debug=False):
     for name in autotests:
 	testname = 'guppy.heapy.test.test_'+name
 	try:
@@ -29,7 +29,7 @@ def test_main():
 	exec 'import %s as x'%testname
 	print 'imported:', testname
 	f = x.test_main
-	f()
+	f(debug=debug)
 	del sys.modules[testname]
 
 if __name__=='__main__':

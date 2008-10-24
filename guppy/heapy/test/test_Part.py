@@ -135,8 +135,7 @@ class StatCase(support.TestCase):
 	#print d
 
 
-def test_main():
-    debug = 0
+def test_main(debug = 0):
     support.run_unittest(StatCase, debug)
     support.run_unittest(IdentityCase, debug)
     support.run_unittest(MixedCase, debug)

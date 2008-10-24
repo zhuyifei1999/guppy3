@@ -529,16 +529,9 @@ Paths from source 'a3' to target '_'.
 	self.aseq( str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
 
 
-def run_test(case,debug=0):
-
-    if debug:
-	support.debug_unittest(case)
-    else:
-	support.run_unittest(case)
-
 def test_main(debug=0):
-    run_test(RefPatCase,debug)
-    run_test(NewCase,debug)
+    support.run_unittest(RefPatCase,debug)
+    support.run_unittest(NewCase,debug)
 
 def test_leak():
     # Runs the tests in a loop and prints memory statistics,

@@ -1,5 +1,9 @@
 2008-10-24  Sverker Nilsson  <sverker@sverker-laptop>
 
+	* Added debug parameter to hpy().test() and made all test_main
+	  functions take that parameter. When true, it will be possible
+	  to look into the failure stack with pdb.pm() .
+
 	* Added Chad Austin's patch for MSWINDOWS
 	  Made a temp os-determination. Have to check this out.
 	  Changed macro FILL to return -1 to get rid of warning in a set init.

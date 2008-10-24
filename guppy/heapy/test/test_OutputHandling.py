@@ -39,8 +39,7 @@ class FirstCase(support.TestCase):
 	self.aseq(str(t), '0\n1\n2\n3\n<3 more rows>')
 
 
-def test_main():
-    debug = 0
+def test_main(debug = 0):
     support.run_unittest(FirstCase, debug)
 
 if __name__ == "__main__":

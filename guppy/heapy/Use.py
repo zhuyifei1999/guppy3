@@ -195,8 +195,8 @@ Look at '%shelp' for more info."""%self.reprefix
             reference = reference.stat
         self.relheapu = reference
 
-    def test(self):
-        self._parent.test.test_all.test_main()
+    def test(self, debug=False):
+        self._parent.test.test_all.test_main(debug)
 
     _imports_ = (
 	'_parent.Classifiers:Class',

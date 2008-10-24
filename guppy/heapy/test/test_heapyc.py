@@ -599,8 +599,7 @@ class TestClassifiers(TestCase):
 	#print str_inrel(c)
 
 
-def test_main():
-    debug = 0
+def test_main(debug = False):
     support.run_unittest(TestClassifiers, debug)
     support.run_unittest(TestNodeGraph, debug)
     support.run_unittest(TestLeak, debug)
