@@ -1,3 +1,8 @@
+2008-10-25  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* setup.py: Removed the extra compile args for MSWindows -
+	  they were only there for debugging.
+
 2008-10-24  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* Added debug parameter to hpy().test() and made all test_main
