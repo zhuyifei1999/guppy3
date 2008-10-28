@@ -2013,7 +2013,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     else
       num_bits = 0;
 	
-    num_poses = num_bits / NyBits_N + 1;
+    num_poses = (long)(num_bits / NyBits_N + 1);
     /* fprintf(stderr, "x %f e %d num_bits %f num_poses %ld\n", x, e, num_bits, num_poses); */
     num_bytes = num_poses * sizeof(NyBits);
     buf = PyMem_New(NyBits, num_poses);

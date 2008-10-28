@@ -1,3 +1,15 @@
+2008-10-28  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* src/sets/bitset.c (mutbitset_iop_PyLongObject): Made explit long
+	cast to long for num_poses, to get rid of warning from MSVC.
+
+	* setup.py: Removed extra_compile_args and extra_link_args vars.
+
+	* src/heapy/heapy.h: Removed DL_IMPORT macro usage.
+
+	* src/sets/sets_internal.h: Removed all DL_IMPORT macros.
+	  to get rid of warning from MSVC about inconsistent linkage.
+
 2008-10-25  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* setup.py: Removed the extra compile args for MSWindows -

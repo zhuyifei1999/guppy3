@@ -49,7 +49,7 @@ typedef struct NyHeapClassifier{
     void *extra0, *extra1, *extra2, *extra3;
 } NyHeapClassifier;
 
-extern DL_IMPORT(PyObject) _Ny_RootStateStruct; /* Don't use this directly */
+extern PyObject _Ny_RootStateStruct; /* Don't use this directly */
 
 #define Ny_RootState (&_Ny_RootStateStruct)
 

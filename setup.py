@@ -7,9 +7,6 @@ for scheme in INSTALL_SCHEMES.values():
 
 from distutils.core import setup, Extension
 
-extra_compile_args=[]
-extra_link_args=[]
-
 setsc = Extension("guppy.sets.setsc",
                   [
                       "src/sets/sets.c",
