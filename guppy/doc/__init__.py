@@ -18,6 +18,9 @@ import urllib2 as urllib
 from htmllib import HTMLParser
 
 THISDIR = os.path.dirname(__file__)
+print 'THISDIR',THISDIR
+
+
 
 def utf8StringIO():
     sio = cStringIO.StringIO()
@@ -349,6 +352,9 @@ Help class
         return 'tab%s: %s [+%d]'%(
             self.tab.name, self.subject.header,self.startindex)
 
+    def _get_dir(self):
+        return guppy.getdir(self)
+
     def _get_help(self):
         return Help(text=self.__doc__)
 
@@ -471,6 +477,27 @@ class StaticHelp:
         dynhelp = mod.Help(*self._args, **self._kwds)
         return getattr(dynhelp, attr)
 
+class GuppyDoc:
+    def __init__(self, str):
+        self.str = str
+
+    def __repr__(self):
+        return self.str
+        
+    def __str__(self):
+        return self.str
+        
+class GuppyDir(object):
+    def __init__(self, li, obj, mod):
+        self.li = li
+        self.obj = obj
+        self.mod = mod
+    def __getattr__(self, attr):
+        return self.mod.getdoc2(self.obj, attr)
+
+    def __repr__(self):
+        return repr(self.li)
+
 class _GLUECLAMP_:
     #'public'
 
@@ -485,7 +512,7 @@ class _GLUECLAMP_:
     _chgable_=('pagerows',)
     _imports_ = (
         '_root.urlparse:urldefrag',
-        '_root.guppy.etc.OutputHandling:output_buffer',
+        '_root.guppy.heapy.OutputHandling:output_buffer',
         )
     
     def _get_tabs(self):
@@ -515,5 +542,103 @@ class _GLUECLAMP_:
         return self.Subject(self, doc, frag)
 
     def help_instance(self, inst):
-        url = inst._help_url_
+        url = self.lrl2url(inst._help_lrl_)
         return self.Help(url)
+
+    def getdir(self, obj, name=None):
+        dl = []
+        clamp = obj._share.Clamp
+        try:
+            imports = clamp._imports_
+        except AttributeError:
+            pass
+        for imp in imports:
+            ix = imp.find(':')
+            if ix == -1: continue
+            dl.append(imp[ix+1:])
+        for gm in dir(clamp):
+            if gm.startswith('_get_'):
+                dl.append(gm[5:])
+            else:
+                if not gm.startswith('_'):
+                    dl.append(gm)
+        dl.sort()
+        return GuppyDir(dl,obj,self)
+
+    def getdoc2(self, obj, name):
+        clamp = obj._share.Clamp
+        try:
+            imports = clamp._imports_
+        except AttributeError:
+            pass
+        else:
+            for imp in imports:
+                ix = imp.find(':')
+                if ix == -1: 
+                    pass
+                else:
+                    if imp[ix+1:]==name:
+                        return self.getdoc_import(obj, clamp, name, imp, ix)
+        for gm in dir(clamp):
+            if gm.startswith('_get_') and gm[5:]==name:
+                return self.getdoc__get_(clamp, gm)
+            else:
+                if name==gm:
+                    return self.getdoc_other(clamp, name)
+
+        return GuppyDoc('???')
+
+    def getdoc_import(self, obj, clamp, name, imp, ix):
+        doc = ''
+        if hasattr(clamp, '_doc_'+name):
+            doc = getattr(obj, '_doc_'+name)
+        else:
+            impobj = getattr(obj, imp[ix+1:])
+            doc = getattr(obj, '__doc__')
+        return GuppyDoc(doc)
+
+    def getdoc_other(self, obj, name):
+        attr = getattr(obj, name)
+        try:
+            doc = getattr(attr,'__doc__')
+        except AttributeError:
+            pass
+        else:
+            if doc:
+                return GuppyDoc(doc)
+        try:
+            doc = getattr(obj, '_doc_'+name)
+        except AttributeError:
+            doc = ''
+        if doc is None:
+            doc = '?'
+        print 'doc', doc
+        return GuppyDoc(doc)
+
+
+    def getman(self, obj,*args,**kwds):
+        # return 'Man page for obj'
+        print 'getman',args,kwds
+        if 'spec' in kwds:
+            return self.getman_byspec(obj, *args, **kwds)
+        self.resolve_magic_doc_strings(obj)
+        return self.what_object(obj)
+
+    def getman_byspec(self, obj,*args,**kwds):
+        spec = self.getspecpath(kwds['spec'])
+        print 'full spec', spec
+
+    def getspecpath(self, spec):
+        spec
+        return spec
+
+    def resolve_magic_doc_strings(self, obj):
+        pass
+
+    def what_object(self, obj):
+        """Figure out what kind of object it is,
+         based only on automagic python info.
+         Return pkg.pkg..class
+         """
+        return self._parent.heapy.Use.iso(obj).kind
+        

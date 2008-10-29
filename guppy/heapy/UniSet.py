@@ -1,8 +1,11 @@
 #._cv_part guppy.heapy.UniSet
 
+import guppy
+
 class UniSet(object):
     __slots__ = '_hiding_tag_', 'fam',  '_origin_'
     _help_url_ = 'heapy_UniSet.html#heapykinds.UniSet'
+    _instahelp_ = ''
 
     def __and__(self, other):
 	"""
@@ -212,7 +215,7 @@ brief representation is typically much shorter than the non-brief one.)
     def _get_help(self):
         return self.fam.mod._root.guppy.doc.help_instance(self)
 
-    help = property(_get_help)
+    man = property(guppy.getman)
 
     def get_ckc(self):
 	# Get low-level classification information, where available.
@@ -674,6 +677,24 @@ class IdentitySetSingleton(IdentitySet):
 
 
 class EquivalenceRelation(UniSet):
+    """\
+An equivalence relation is a binary relation between two elements of a
+set which groups them together as being "equivalent" in some way.
+
+An equivalence relation is reflexive, symmetric, and transitive. In
+other words, the following must hold for "~" to be an equivalence
+relation on X:
+
+    * Reflexivity: a ~ a
+    * Symmetry: if a ~ b then b ~ a
+    * Transitivity: if a ~ b and b ~ c then a ~ c.
+
+An equivalence relation partitions a set into several disjoint
+subsets, called equivalence classes. All the elements in a given
+equivalence class are equivalent among themselves, and no element is
+equivalent with any element from a different class.
+"""
+
     __slots__ = 'classifier', 'erargs'
     _help_url_ = 'heapy_UniSet.html#heapykinds.EquivalenceRelation'
 

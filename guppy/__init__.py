@@ -15,7 +15,7 @@ Root()	Create an object that provides a top level entry point.
 
 """
 
-__all__ = ('help', 'hpy', 'Root')
+__all__ = ('getdir','getdoc','hpy', 'Root')
 
 import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
@@ -42,3 +42,12 @@ The optional argument, useful for debugging heapy itself, is:
 	r.guppy.heapy.View._hiding_tag_ = ht
     return r.guppy.heapy.Use
 
+def getdir(obj,*args,**kwds):
+    return Root().guppy.doc.getdir(obj,*args,**kwds)
+
+def getdoc(obj,*args,**kwds):
+    return Root().guppy.doc.getdoc(obj,*args,**kwds)
+
+def getman(obj,*args,**kwds):
+    return Root().guppy.doc.getman(obj,*args,**kwds)
+    

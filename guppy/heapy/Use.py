@@ -1,18 +1,26 @@
 #._cv_part guppy.heapy.Use
 
+import guppy
+
 class _GLUECLAMP_:
     _preload_ = '_hiding_tag_',
     _chgable_ = ('reprefix', 'default_reprefix', 'gcobjs',
                  'relheap', 'relheapg', 'relheapu')
 
-
     default_reprefix = 'hpy().'
+
+    def _get_dir(self):
+        return guppy.getdir(self)
 
     def _get_gcobjs(self):
 	return self.Nothing
 
     def _get_help(self):
         return self.Help('heapy_Use.html')
+
+    def _get_man(self):
+        return guppy.getman(self,kind='tgt.heapykinds.Use',spec="guppy/specs/heapy_Use.gsl"
+                            )
 
     def _get_relheap(self):
 	return self.Nothing
@@ -46,6 +54,7 @@ Look at '%shelp' for more info."""%self.reprefix
     __str__=__repr__
 
     def heapg(self, rma=1):
+        """ DEPRECATED """
         self.warnings.warn(
 "Method Use.heapg is depreciated, it doesn't work well. Use heapu instead.")
 	h = self.View.heapg(rma)
@@ -53,6 +62,20 @@ Look at '%shelp' for more info."""%self.reprefix
 	return h
 	
     def heapu(self, rma=1, abs=0, stat=1):
+        """x.heapu() -> Stat 
+
+Finds the objects in the heap that remain after garbage collection but
+are _not_ reachable from the root.  This can be used to find objects
+in extension modules that remain in memory even though they are
+gc-collectable and not reachable.
+
+Returns an object containing a statistical summary of the objects
+found - not the objects themselves. This is to avoid making the
+objects reachable.
+
+See also: setref"""
+
+
 	h = self.View.heapu(rma)
         rel = 0
         if not abs and self.relheapu and isinstance(self.relheapu, type(h)):
@@ -75,6 +98,14 @@ Look at '%shelp' for more info."""%self.reprefix
 	return h
 	
     def heap(self):
+        """x.heap() -> IdentitySet
+
+Traverse the heap from a root to find all reachable and visible
+objects. The objects that belong to a heapy instance are normally not
+included. Return an IdentitySet with the objects found, which is
+presented as a table partitioned according to a default equivalence
+relation (Clodo).  """
+
 	h = self.View.heap()
 	h |= self.gcobjs
 	h -= self.relheap
@@ -230,4 +261,86 @@ Look at '%shelp' for more info."""%self.reprefix
         '_root.time:ctime',
         '_root:warnings',
 	)
+
+    _doc_Class ="""x.Class:EquivalenceRelation
+x.Class(tc:typeorclass+) -> Kind
+
+Equivalence relation by class. It defines objects to be equivalent
+when their builtin __class__ attributes are identical. When called it
+returns the equivalenc class defined by the argument:
+
+    tc: A type or class that the returned kind should represent."""
+
+    _doc_Clodo ="""x.Clodo:EquivalenceRelation
+x.Clodo(alt:[tc: typeorclassexceptdict+ or dictof =
+        typeorclassoremptytuple+]) -> Kind
+
+Equivalence relation by class or dict owner. It distinguishes between
+objects based on their class just like the Class relation, and in
+addition distinguishes between dicts depending on what class they are
+'owned' by, i.e. occur in __dict__ attribute of.
+
+When called it returns the equivalence class defined by the argument,
+
+EITHER:
+    tc: A positional argument, a type or class but not a dict, to
+        create the corresponding equivalence class.
+OR:
+    dictof: A named argument, to create an equivalence class
+        consisting of all dicts that are owned by objects of the type
+        or class specified in the argument; or dicts with no owner if
+        an empty tuple is given. XXX express this simpler&better..."""
+
+    _doc_Id="""x.Id:EquivalenceRelation
+x.Id(address: objectaddress+) -> Kind)
+
+This equivalence relation defines objects to be equivalent only if
+they are identical, i.e. have the same address. When called it returns
+the equivalence class defined by the argument:
+
+    address: The memory address of an object."""
+
+    _doc_Idset = """x.Idset:EquivalenceRelation
+XXX missing doc, deprecated?"""
+
+
+    _doc_Module = """x.Module:EquivalenceRelation
+x.Module( draw:[name = modulename+ , at = moduleaddress+]) -> Kind
+
+This equivalence relation defines objects to be equivalent if they are
+the same module, or if none of them is a module.  Partitioning a set
+of objects using this equivalence relation will therefore result in
+one singleton set for each module and one set containing all other
+objects.
+
+Calling the Module equivalence relation creates a Kind containing the
+module given in the keyword argument(s). Either the name, address or
+both may be specified. If no argument is specified the equivalence
+class is that of non-module objects."""
+
+    _doc_Nothing = """Nothing: IdentitySet
+
+The empty set."""
+
+    _doc_Rcs = """Rcs: EquivalenceRelation
+callable: ( 0..*: alt:[kind: Kind+ or sok: SetOfKind+]) ->
+    KindOfRetClaSetFamily
+
+(Referrer classification set.)
+
+In this equivalence relation, objects are classified by classifying
+their referrers. The classification of the referrers is done using the
+classifier of the Clodo equivalence relation. The classifications of
+the referrers are collected in a set. This set represents the
+classification of the object.
+
+Calling Rcs creates an equivalence class from user-specified
+classification arguments. The arguments specify a set of Kind objects,
+each of which representing an equivalence class of Clodo.
+
+    kind: Kind+
+        This adds a single Kind to the set of Kinds of referrers.
+    sok: SetOfKind+
+        This adds each Kind in the sok argument to the total set of
+        Kinds of referrers."""
 
