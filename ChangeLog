@@ -1,3 +1,16 @@
+2008-10-31  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/heapy/Prof.py (_GLUECLAMP.pb_): Added docstring
+
+	* guppy/heapy/Monitor.py (monitor): Added docstring
+
+	* guppy/heapy/UniSet.py (UniSet etc): Made the docstrings of _get_ 
+	wording in terms of attributes rather than methods.
+
+	* guppy/heapy/Use.py (_GLUECLAMP_): Added more dir/help
+
+	* guppy/doc/__init__.py : Added more dir support
+
 2008-10-28  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* src/sets/bitset.c (mutbitset_iop_PyLongObject): Made explit long

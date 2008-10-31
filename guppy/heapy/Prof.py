@@ -3135,6 +3135,21 @@ class _GLUECLAMP_:
     
 
     def pb(self, filename=None):
+        """pb( [filename: profilefilename+]) [1]
+
+Create a Profile Browser window.
+
+Argument
+    filename: profilefilename+
+        The name of a file containing profile data.
+See also
+    Heapy Profile Browser[2]
+    Screenshot[3]
+References
+    [1] hpy().man.gopb
+    [2] ProfileBrowser.html
+    [3] pbscreen.jpg"""    
+
 	pa = ProfileApp(self)
 	pa.new_profile_browser(filename)
 	pa.mainloop()

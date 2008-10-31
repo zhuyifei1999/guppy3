@@ -457,6 +457,16 @@ class Monitor:
 	self.prompt = connection.prompt
 
 def monitor():
+    """monitor() [1]
+
+Start an interactive remote monitor.
+
+This can be used to get information about the state, in
+particular the memory usage, of separately running Python
+processes. 
+
+References
+    [1] hpy().man.gomonitor"""
     from guppy.heapy import Remote
     Remote.off()
     m = Monitor()

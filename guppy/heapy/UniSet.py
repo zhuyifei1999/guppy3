@@ -7,6 +7,13 @@ class UniSet(object):
     _help_url_ = 'heapy_UniSet.html#heapykinds.UniSet'
     _instahelp_ = ''
 
+    _doc_nodes = """nodes: ImmNodeSet
+
+The actual objects contained in x. These are called nodes because
+they are treated with equality based on address, and not on the
+generalized equality that is used by ordinary builtin sets or dicts."""
+
+
     def __and__(self, other):
 	"""
 Return the intersection of self and other.
@@ -204,10 +211,10 @@ that are in one of self or other, but not in both.
 
     def _get_brief(self):
 	"""
-Return a string representation of self, which is brief relative to the
+A string representation of self, which is brief relative to the
 representation returned by __str__ and __repr__. (In many cases it is
-the same - both are then brief - but for IdentitySet objects the
-brief representation is typically much shorter than the non-brief one.)
+the same - both are then brief - but for IdentitySet objects the brief
+representation is typically much shorter than the non-brief one.)
 """
 	return self.fam.c_get_brief(self)
     brief = property(_get_brief)
@@ -215,6 +222,7 @@ brief representation is typically much shorter than the non-brief one.)
     def _get_help(self):
         return self.fam.mod._root.guppy.doc.help_instance(self)
 
+    dir = property(guppy.getdir)
     man = property(guppy.getman)
 
     def get_ckc(self):
@@ -327,51 +335,51 @@ attribute in that it is a tabular representation.
 
     def _get_byclass(self):
 	"""
-Return a copy of self, but with 'Class' as the equivalence relation."""
+A copy of self, but with 'Class' as the equivalence relation."""
 	return self.by('Class')
 
     def _get_byclodo(self):
 	"""
-Return a copy of self, but with 'Clodo' as the equivalence relation."""
+A copy of self, but with 'Clodo' as the equivalence relation."""
 
 	return self.by('Clodo')
 
     def _get_byid(self):
 	"""
-Return a copy of self, but with 'Id' as the equivalence relation."""
+A copy of self, but with 'Id' as the equivalence relation."""
 	return self.by('Id')
 
     def _get_byidset(self):
 	"""
-Return a copy of self, but with 'Idset' as the equivalence relation."""
+A copy of self, but with 'Idset' as the equivalence relation."""
 	return self.by('Idset')
 
     def _get_bymodule(self):
 	"""
-Return a copy of self, but with 'Module' as the equivalence relation."""
+A copy of self, but with 'Module' as the equivalence relation."""
 	return self.by('Module')
 
     def _get_byunity(self):
 	"""
-Return a copy of self, but with 'Unity' as the equivalence relation."""
+A copy of self, but with 'Unity' as the equivalence relation."""
 
 	return self.by('Unity')
 
     def _get_byrcs(self):
 	"""
-Return a copy of self, but with 'Rcs' as the equivalence relation."""
+A copy of self, but with 'Rcs' as the equivalence relation."""
 
 	return self.by('Rcs')
 
     def _get_bysize(self):
 	"""
-Return a copy of self, but with 'Size' as the equivalence relation."""
+A copy of self, but with 'Size' as the equivalence relation."""
 
 	return self.by('Size')
 
     def _get_bytype(self):
 	"""
-Return a copy of self, but with 'Type' as the equivalence relation."""
+A copy of self, but with 'Type' as the equivalence relation."""
 
 	return self.by('Type')
 
@@ -383,7 +391,8 @@ Return a copy of self, but with 'Via' as the equivalence relation."""
 
     def _get_er(self):
 	"""
-Return the equivalence relation used for partitioning when representing / printing this set.
+The equivalence relation used for partitioning when representing /
+printing this set.
 
 """
 	try:
@@ -398,13 +407,13 @@ Return the equivalence relation used for partitioning when representing / printi
 
     def _get_count(self):
 	"""
-Return the number of individual objects in the set.
+The number of individual objects in the set.
 """
 	return len(self.nodes)
 
     def _get_dominos(self):
 	"""
-Return the set 'dominated' by the set of objects in self. This is the
+The set 'dominated' by the set of objects in self. This is the
 objects that will become deallocated, directly or indirectly, when the
 objects in self are deallocated.
 See also: domisize."""
@@ -412,7 +421,7 @@ See also: domisize."""
 
     def _get_domisize(self):
 	"""
-Return the dominated size of the set. The dominated size of a set X
+The dominated size of the set. The dominated size of a set X
 is the total size of memory that will become deallocated, directly or
 indirectly, when the objects in X are deallocated.
 See also: dominos, size."""
@@ -427,27 +436,27 @@ reachable directly, avoiding any other referrer."""
 
     def _get_indisize(self):
 	"""
-Return the total 'individual' size of the set of objects.  The
-individual size of an object is the size of memory that is allocated
-directly in the object, not including any externally visible
-subobjects. See also: domisize."""
+The total 'individual' size of the set of objects.  The individual
+size of an object is the size of memory that is allocated directly in
+the object, not including any externally visible subobjects. See also:
+domisize."""
 
 	return self.fam.View.indisize(self)
 
     def _get_kind(self):
 	"""
-Return the kind of objects in the set. The kind is the union of the
-element-wise classifications as determined by the equivalence relation in use by
-the set.
+The kind of objects in the set. The kind is the union of the
+element-wise classifications as determined by the equivalence relation
+in use by the set.
 """
 	return self.er[self]
 
     def _get_maprox(self):
 
 	"""
-Return an object that can be used to map operations to the objects in
-self, forming a new set of the result. The returned object is an
-instance of MappingProxy.
+An object that can be used to map operations to the objects in self,
+forming a new set of the result. The returned object is an instance of
+MappingProxy.
 
 This works currently as follows:
 
@@ -475,30 +484,30 @@ mystically-sounding, and is a shorthand for 'mapping proxy'.>
 
     def _get_more(self):
 	"""
-Return an object that can be used to show more lines of the string
+An object that can be used to show more lines of the string
 representation of self. The object returned, a MorePrinter instance,
-has a string representation that continues after the end of
-the representation of self.
+has a string representation that continues after the end of the
+representation of self.
 """
 	return self.fam.get_more(self)
 
     def _get_owners(self):
 	"""
-Return the set of objects that 'own'  objects in self. The owner
-is defined for an object of type dict, as the object (if any) that
-refers to the object via its special __dict__ attribute.  """
+The set of objects that 'own' objects in self. The owner is defined
+for an object of type dict, as the object (if any) that refers to the
+object via its special __dict__ attribute.  """
 	return self.fam.get_owners(self)
 
     def _get_partition(self):
 	"""
-Return a partition of the set of objects in self. The set is
-partitioned into subsets by equal kind, as given by a equivalence relation.
-Unless otherwise specified, the equivalence relation used is 'byclodo', which
+A partition of the set of objects in self. The set is partitioned into
+subsets by equal kind, as given by a equivalence relation.  Unless
+otherwise specified, the equivalence relation used is 'byclodo', which
 means it classifies 'by type or class or dict owner'. Different
-equivalence relations are specified for sets created by the 'by_...' attributes of
-any IdentitySet object.
+equivalence relations are specified for sets created by the 'by_...'
+attributes of any IdentitySet object.
 
-The returned value is an instance of guppy.heapy.Part.Partition.
+The value is an instance of guppy.heapy.Part.Partition.
 """
 
 	try:
@@ -512,26 +521,26 @@ The returned value is an instance of guppy.heapy.Part.Partition.
 
     def _get_pathsin(self):
 	"""
-Return the paths from the direct referrers of the objects in self.
+The paths from the direct referrers of the objects in self.
 	"""
 	return self.get_shpaths(self.referrers)
 
     def _get_pathsout(self):
 	"""
-Return the paths to the referents of the objects in self.
+The paths to the referents of the objects in self.
 	"""
 	return self.referents.get_shpaths(self)
 
     def _get_referents(self):
 	"""
-Return the set of objects that are directly referred to by
-any of the objects in self."""
+The set of objects that are directly referred to by any of the objects
+in self."""
 	return self.fam.View.referents(self)
 	
     def _get_referrers(self):
 	"""
-Return the set of objects that directly refer to
-any of the objects in self."""
+The set of objects that directly refer to any of the objects in
+self."""
 	return self.fam.View.referrers(self)
 
     def get_rp(self, depth=None, er=None, imdom=0, bf=0, src=None,
@@ -567,15 +576,17 @@ Arguments
 
     def _get_parts(self):
 	"""
-Return an iterable object, that can be used to iterate over the
-'parts' of self. The iteration order is determined by the
-sorting order the set has, in the table printed when partitioned."""
+An iterable object, that can be used to iterate over the 'parts' of
+self. The iteration order is determined by the sorting order the set
+has, in the table printed when partitioned."""
 
 	return self.fam.get_parts(self)
 
+
     def get_shpaths(self, src=None, avoid_nodes=None, avoid_edges=()):
-	"""
-Return an object containing the shortest paths to objects in self.
+	"""x.get_shpaths(draw:[src, avoid_nodes, avoid_edges]) -> Paths
+
+Return an object containing the shortest paths to objects in x.
 The optional arguments are:
 
     src:IdentitySet		An alternative source set of objects
@@ -589,9 +600,10 @@ The optional arguments are:
 	return self.partition.get_stat()
 
     def _get_theone(self):
-	"""
-Return the one object in a singleton set. In case the set does not
-contain exactly one object, the exception ValueError will be raised.
+	"""theone: Anything
+
+The one object in a singleton set. In case the set does not contain
+exactly one object, the exception ValueError will be raised.
 """
 	return self.fam.get_theone(self)
 
@@ -640,7 +652,14 @@ contain exactly one object, the exception ValueError will be raised.
     referents = property(_get_referents)
     referrers = property(_get_referrers)
     rp = property(get_rp)
-    shpaths = property(get_shpaths)
+    shpaths = property(get_shpaths, doc="""x.shpaths: Paths
+
+An object containing the shortest paths to objects in x.
+
+See also
+    get_shpaths"""
+
+                       )
     sp = property(get_shpaths)
     stat = property(_get_stat)
     theone = property(_get_theone)

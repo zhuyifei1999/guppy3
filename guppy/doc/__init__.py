@@ -7,10 +7,10 @@
 import guppy
 import os
 import new
-
 import codecs
 import cStringIO
 import formatter
+import inspect
 import htmlentitydefs
 import htmllib
 import urllib2 as urllib
@@ -479,7 +479,19 @@ class StaticHelp:
 
 class GuppyDoc:
     def __init__(self, str):
+        #assert str is not None
+        if str is None:
+            str = '???'
         self.str = str
+
+    def getheader(self):
+        lines = self.str.split('\n')
+        header = []
+        for line in lines:
+            if not line:
+                break
+            header.append(line)
+        return '\n'.join(header)
 
     def __repr__(self):
         return self.str
@@ -487,16 +499,67 @@ class GuppyDoc:
     def __str__(self):
         return self.str
         
+class Lister:
+    def __init__(self):
+        self.output = cStringIO.StringIO()
+
+    def list(self, items, columns=4, width=80):
+        items = items[:]
+        colw = width / columns
+        rows = (len(items) + columns - 1) / columns
+        for row in range(rows):
+            for col in range(columns):
+                if 1:
+                    i = col * rows + row
+                else:
+                    i = row * columns + col
+                if i < len(items):
+                    self.output.write(items[i])
+                    if col < columns - 1:
+                        self.output.write(' ' + ' ' * (colw-1 - len(items[i])))
+            self.output.write('\n')
+        return self
+
+    def getvalue(self):
+        return self.output.getvalue()
+
+
 class GuppyDir(object):
-    def __init__(self, li, obj, mod):
+    def __init__(self, li, obj, mod, opts=''):
         self.li = li
         self.obj = obj
         self.mod = mod
+        self.opts = opts
+    def __call__(self, opts=None):
+        li = self.li
+        obj = self.obj
+        mod = self.mod
+        if opts is None:
+            opts = self.opts
+        return self.__class__(li, obj, mod, opts)
+
     def __getattr__(self, attr):
         return self.mod.getdoc2(self.obj, attr)
 
+    def __getitem__(self, idx):
+        return self.li[idx]
+
     def __repr__(self):
-        return repr(self.li)
+        opts = self.opts
+        if 'L' in opts:
+            r = ''
+            for d in self.li:
+                r += '*** ' + d + ' ***\n' + repr(getattr(self, d))+'\n\n'
+        elif 'l' in opts:
+            r = ''
+            for d in self.li:
+                t = getattr(self, d).getheader()
+                if not (t.startswith(d) or t.startswith('x.'+d)):
+                    t = d
+                r += t + '\n\n'
+        else:
+            r = Lister().list(self.li).getvalue().rstrip()
+        return r
 
 class _GLUECLAMP_:
     #'public'
@@ -507,8 +570,9 @@ class _GLUECLAMP_:
         tab = Tab(self, str(len(self.tabs)))
         return Help(tab, *args, **kwds)
     
-    #'private'
     
+    #'private'
+
     _chgable_=('pagerows',)
     _imports_ = (
         '_root.urlparse:urldefrag',
@@ -545,27 +609,47 @@ class _GLUECLAMP_:
         url = self.lrl2url(inst._help_lrl_)
         return self.Help(url)
 
-    def getdir(self, obj, name=None):
-        dl = []
-        clamp = obj._share.Clamp
+    def getdir(self, obj):
         try:
-            imports = clamp._imports_
+            share = obj._share
         except AttributeError:
-            pass
-        for imp in imports:
-            ix = imp.find(':')
-            if ix == -1: continue
-            dl.append(imp[ix+1:])
-        for gm in dir(clamp):
-            if gm.startswith('_get_'):
-                dl.append(gm[5:])
-            else:
-                if not gm.startswith('_'):
-                    dl.append(gm)
+            return self.getdir_no_share(obj)
+        clamp = share.Clamp
+        dl = getattr(clamp, '_dir_',None)
+        if dl is not None:
+            dl = list(dl)
+        else:
+            dl = []
+            private = getattr(clamp,'_private_',())
+            try:
+                imports = clamp._imports_
+            except AttributeError:
+                pass
+            for imp in imports:
+                ix = imp.find(':')
+                if ix == -1: continue
+                dl.append(imp[ix+1:])
+            for gm in dir(clamp):
+                if gm.startswith('_get_'):
+                    dl.append(gm[5:])
+                else:
+                    if not gm.startswith('_'):
+                        dl.append(gm)
+            dl = [d for d in dl if not d in private]
         dl.sort()
         return GuppyDir(dl,obj,self)
 
+    def getdir_no_share(self, obj):
+        dl = dir(obj)
+        dl = [d for d in dl if not d.startswith('_')]
+        return GuppyDir(dl,obj,self)
+        
+
     def getdoc2(self, obj, name):
+        try:
+            share = obj._share
+        except AttributeError:
+            return self.getdoc_no_share(obj, name)
         clamp = obj._share.Clamp
         try:
             imports = clamp._imports_
@@ -588,24 +672,49 @@ class _GLUECLAMP_:
 
         return GuppyDoc('???')
 
+    def getdoc_no_share(self, obj, name):
+        try:
+            doc = getattr(obj,'_doc_'+name)
+        except AttributeError:
+            pass
+        else:
+            return GuppyDoc(doc)
+
+        cl = obj.__class__
+        p = getattr(cl, name)
+        if isinstance(p, property):
+            docobj = p
+        else:
+            docobj = getattr(obj, name)
+
+        return self.getdoc_obj(docobj)
+
+    def getdoc__get_(self, clamp, gm):
+        func = getattr(clamp, gm)
+        doc = func.__doc__
+        return GuppyDoc(doc)
+
     def getdoc_import(self, obj, clamp, name, imp, ix):
         doc = ''
         if hasattr(clamp, '_doc_'+name):
             doc = getattr(obj, '_doc_'+name)
         else:
             impobj = getattr(obj, imp[ix+1:])
-            doc = getattr(obj, '__doc__')
+            doc = getattr(impobj, '__doc__')
+        return GuppyDoc(doc)
+
+    def getdoc_obj(self, obj):
+        doc = inspect.getdoc(obj)
+        if doc is None:
+            doc = '???'
         return GuppyDoc(doc)
 
     def getdoc_other(self, obj, name):
         attr = getattr(obj, name)
-        try:
-            doc = getattr(attr,'__doc__')
-        except AttributeError:
-            pass
-        else:
-            if doc:
-                return GuppyDoc(doc)
+        doc = inspect.getdoc(attr)
+        if doc:
+            return GuppyDoc(doc)
+
         try:
             doc = getattr(obj, '_doc_'+name)
         except AttributeError:
