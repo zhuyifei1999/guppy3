@@ -236,8 +236,8 @@ class ByIdentity(Classifier):
     def get_tabheader(self, ctx=''):
 	return 'Object Identity'
 
-    def get_userkind(self, addr):
-	return self.get_kind(self.mod.View.obj_at(addr))
+    def get_userkind(self, address):
+	return self.get_kind(self.mod.View.obj_at(address))
 
     def get_userkindarg(self, kind):
 	return id(kind.arg)

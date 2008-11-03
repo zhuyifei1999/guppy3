@@ -6,7 +6,7 @@ class _GLUECLAMP_:
     _preload_ = '_hiding_tag_',
     _chgable_ = ('reprefix', 'default_reprefix', 'gcobjs',
                  'relheap', 'relheapg', 'relheapu')
-    _dir_ = ('Anything', 'Class', 'Clodo', 'Id', 'Module',
+    _dir_ = ('Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
             'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
             'Via', 'dir', 'findex', 'heap', 'heapu', 'help',
             'idset','iso', 'load', 'man', 'monitor', 'pb',
@@ -21,11 +21,7 @@ class _GLUECLAMP_:
 
     default_reprefix = 'hpy().'
 
-    def _get_dir(self):
-        """dir: 
-        XXX
-"""
-        return guppy.getdir(self)
+    _get_dir = guppy._get_dir
 
     def _get_gcobjs(self):
 	return self.Nothing
@@ -312,6 +308,7 @@ Argument
 	'_parent.Classifiers:Class',
 	'_parent.Classifiers:Clodo',
 	'_parent.Classifiers:Id',
+	'_parent.Classifiers:Idset',
 	'_parent.Classifiers:Module',
 	'_parent.Classifiers:Rcs',
 	'_parent.Classifiers:Size',
@@ -381,6 +378,21 @@ they are identical, i.e. have the same address. When called it returns
 the equivalence class defined by the argument:
 
     address: The memory address of an object."""
+
+    _doc_Idset="""Id:EquivalenceRelation
+Idset(node: Anything+) -> IdentitySet
+
+This equivalence relation defines objects to be equivalent only if
+they are identical, i.e. have the same address. When called it returns
+the equivalence class defined by the argument:
+
+    node: Anything+
+        Any object is a valid argument.
+
+Note
+    This is mainly for special purpose internal use. The Id
+equivalence relation is more efficient when partitioning large
+sets."""
 
     _doc_Module = """Module:EquivalenceRelation
 x.Module( draw:[name = modulename+ , at = moduleaddress+]) -> Kind

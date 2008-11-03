@@ -156,8 +156,8 @@ brief representation is typically much shorter than the non-brief one.)
 ...kind of: UniSet
 ...d: If x represents a kind of objects with a builtin __dict__ attribute,
 x.dictof is the kind representing the set of all those dict objects.
-In effect, .dictof maps lambda x:getattr(x, '__dict__') on the
-objects in x. But it is symbolically evaluated to generate a new
+In effect, x.dictof maps lambda e:getattr(e, '__dict__') for
+all objects e in x. But it is symbolically evaluated to generate a new
 symbolic set (a Kind).
 ....c: XXX [Even if x was an IdentitySet should this change?]
 

@@ -15,7 +15,7 @@ Root()	Create an object that provides a top level entry point.
 
 """
 
-__all__ = ('getdir','getdoc','hpy', 'Root')
+__all__ = ('getdoc','hpy', 'Root')
 
 import guppy.etc.Compat		# Do one-time compatibility adjustments
 from guppy.etc.Glue import Root	# Get main Guppy entry point
@@ -42,7 +42,22 @@ The optional argument, useful for debugging heapy itself, is:
 	r.guppy.heapy.View._hiding_tag_ = ht
     return r.guppy.heapy.Use
 
-def getdir(obj,*args,**kwds):
+def _get_dir(obj,*args,**kwds):
+    """dir: GuppyDir
+dir(options: str+)
+
+A replacement for the builtin function dir(), providing a listing of
+public attributes. It also has an attribute for each item in the
+listing, for example:
+
+>>> hpy().dir.heap
+
+provides documentation for the heap method. The dir object is also
+callable with an argument string specifying what to do. Currently the
+following options are provided:
+
+        'l'	Generate a listing of the synopsis lines.
+	'L'	Generate a listing of the entire doc strings."""
     return Root().guppy.doc.getdir(obj,*args,**kwds)
 
 def getdoc(obj,*args,**kwds):
