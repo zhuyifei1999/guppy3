@@ -6,6 +6,7 @@
 
 import guppy
 import os
+import sys
 import new
 import codecs
 import cStringIO
@@ -740,6 +741,21 @@ class _GLUECLAMP_:
     def getspecpath(self, spec):
         spec
         return spec
+
+    def open_browser(self, url):
+        try:
+            import webbrowser
+            webbrowser.open(url)
+        except ImportError: # pre-webbrowser.py compatibility
+            if sys.platform == 'win32':
+                os.system('start "%s"' % url)
+            elif sys.platform == 'mac':
+                try: import ic
+                except ImportError: pass
+                else: ic.launchurl(url)
+            else:
+                rc = os.system('netscape -remote "openURL(%s)" &' % url)
+                if rc: os.system('netscape "%s" &' % url)
 
     def resolve_magic_doc_strings(self, obj):
         pass
