@@ -8,8 +8,8 @@ class _GLUECLAMP_:
                  'relheap', 'relheapg', 'relheapu')
     _dir_ = ('Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
             'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
-            'Via', 'dir', 'findex', 'heap', 'heapu', 'help',
-            'idset','iso', 'load', 'man', 'monitor', 'pb',
+            'Via', 'dir', 'findex', 'heap', 'heapu',
+            'idset','iso', 'load', 'monitor', 'pb',
             'setref','test')
 
     _private_ = ('View','_hiding_tag_','_load_stat','ctime','default_reprefix',
@@ -21,20 +21,8 @@ class _GLUECLAMP_:
 
     default_reprefix = 'hpy().'
 
-    _get_dir = guppy._get_dir
-
     def _get_gcobjs(self):
 	return self.Nothing
-
-    def _get_help(self):
-        """ help XXX
-"""
-        return self.Help('heapy_Use.html')
-
-    def _get_man(self):
-        """man???"""
-        #return guppy.getman(self,kind='tgt.heapykinds.Use',spec="guppy/specs/heapy_Use.gsl"
-        return self.Help('heapy_Use.html')
 
     def _get_relheap(self):
 	return self.Nothing
@@ -70,8 +58,11 @@ References
         return self.View.heapyc.RootState
 
     def __repr__(self):
-        return """Top level interface to Heapy.
-Look at '%shelp' for more info."""%self.reprefix
+        return """Top level interface to Heapy. Available attributes:
+
+"""+str(guppy.gpdir(self))+"""
+
+Use eg %sdir.<attribute name> for info on a specific attribute.""" %self.reprefix
         
 
     __str__=__repr__
@@ -332,9 +323,9 @@ Argument
 	'_parent.UniSet:uniset_from_setcastable',
 	'_parent:View',
 	'_parent.View:_hiding_tag_',
-	'_root.guppy.doc:Help',
         '_root.time:ctime',
         '_root:warnings',
+        '_root.guppy.doc:dir'
 	)
 
     _doc_Anything = """Anything: Kind

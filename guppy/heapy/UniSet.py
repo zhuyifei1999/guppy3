@@ -220,8 +220,13 @@ representation is typically much shorter than the non-brief one.)"""
     def _get_help(self):
         return self.fam.mod._root.guppy.doc.help_instance(self)
 
-    dir = property(guppy._get_dir)
-    man = property(guppy.getman)
+    #dir = property(lambda self:self.fam.mod._root.guppy.doc.get_dir(self))
+    #dir = property(lambda self:self.fam.mod._root.guppy.doc.get_dir(self))
+    #man = guppy.man_property
+    dir = guppy.gpdir_property
+
+    #man = property(lambda self:self.fam.mod._root.guppy.doc.get_man(self))
+    #man = property(guppy.getman)
 
     def get_ckc(self):
 	# Get low-level classification information, where available.
@@ -345,7 +350,7 @@ attribute in that it is a tabular representation.
     def get_rp(self, depth=None, er=None, imdom=0, bf=0, src=None,
                stopkind=None, nocyc=False, ref=None):
 	"""
-X.get_rp(depth=None, er=None, imdom=0, bf=0, src=None, stopkind=None,
+x.get_rp(depth=None, er=None, imdom=0, bf=0, src=None, stopkind=None,
 	nocyc=False, ref=None)
 
 Return an object representing the pattern of references to the objects in X.
@@ -356,18 +361,25 @@ Arguments
 		default is taken from depth of this module.
 	er	The equivalence relation to partition the referrers.
         	The default is Clodo.
-	imdom	If true, the immediate dominators will be used instead
-		of the referrers. This will take longer time to calculate,
-		but may be useful to reduce the complexity of the reference
-		pattern.
+
+	imdom   If true, the immediate dominators will be used instead
+		of the referrers. This will take longer time to
+		calculate, but may be useful to reduce the complexity
+		of the reference pattern.
+
 	bf	If true, the pattern will be printed in breadth-first
 		order instead of depth-first. (Experimental.)
 	src	If specified, an alternative reference source instead
 		of the default root.
         stopkind
-		The referrers of objects of kind stopkind will not be followed.
+                The referrers of objects of kind stopkind will not be
+		followed.
 	nocyc	When True, certain cycles will not be followed.
         ref
+
+See also
+        rp (a shorthand for common cases)
+
 """
 	return self.fam.RefPat.rp(self, depth, er, imdom, bf, src, stopkind,
                                   nocyc, ref)
@@ -481,12 +493,14 @@ MappingProxy.
 
 This works currently as follows:
 
-o Getting an attribute of the MappingProxy object will get the attribute from
-  each of the objects in the set and form a set of the results. If there
-  was an exception when getting some attribute, it would be ignored.
+o Getting an attribute of the MappingProxy object will get the
+  attribute from each of the objects in the set and form a set of the
+  results. If there was an exception when getting some attribute, it
+  would be ignored.
 
-o Indexing the MappingProxy object will index into each of the objects in the
-  set and return a set of the results. Exceptions will be ignored.
+o Indexing the MappingProxy object will index into each of the objects
+  in the set and return a set of the results. Exceptions will be
+  ignored.
 
 Example:
 
