@@ -1,0 +1,332 @@
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517359.474866
+.count: 53392
+.size: 3817472
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 128
+.r: 27683 1768704 str
+.r: 12048 466340 tuple
+.r: 175 234616 dict of module
+.r: 3398 231064 types.CodeType
+.r: 416 212864 dict (no owner)
+.r: 3240 181440 function
+.r: 308 139232 dict of type
+.r: 310 134852 type
+.r: 226 126352 dict of class
+.r: 368 47360 list
+.r: 1024 36864 __builtin__.wrapper_descriptor
+.r: 122 36176 dict of guppy.etc.Glue.Interface
+.r: 710 22720 types.BuiltinFunctionType
+.r: 412 16480 __builtin__.weakref
+.r: 42 15908 _sre.SRE_Pattern
+.r: 19 14872 dict of email.LazyImporter
+.r: 26 13520 dict of guppy.etc.Glue.Share
+.r: 2 12624 guppy.heapy.heapyc.NodeGraph
+.r: 354 11328 __builtin__.method_descriptor
+.r: 838 10056 int
+.r: 226 9944 class
+.r: 72 9792 dict of guppy.etc.Glue.Owner
+.r: 228 7296 types.MemberDescriptorType
+.r: 174 5568 types.GetSetDescriptorType
+.r: 175 4200 module
+.r: 107 3852 __builtin__.property
+.r: 7 3640 dict of guppy.heapy.Use._GLUECLAMP_
+.r: 122 3416 guppy.etc.Glue.Interface
+.r: 88 3168 types.MethodType
+.r: 1 2528 random.Random
+.r: 72 2304 guppy.etc.Glue.Owner
+.r: 15 2040 dict of function
+.r: 3 1632 guppy.sets.setsc.MutNodeSet
+.r: 93 1488 float
+.r: 5 1412 unicode
+.r: 2 1040 dict of codecs.CodecInfo
+.r: 2 1040 dict of email.charset.Charset
+.r: 2 1040 dict of guppy.heapy.Classifiers.ByDictOwner
+.r: 2 1040 dict of repr.Repr
+.r: 55 928 long
+.r: 2 848 dict of gettext.GNUTranslations
+.r: 26 832 guppy.etc.Glue.Share
+.r: 5 680 dict of __future__._Feature
+.r: 2 680 types.FrameType
+.r: 19 532 email.LazyImporter
+.r: 1 520 dict of guppy.heapy.Classifiers.AndClassifier
+.r: 1 520 dict of guppy.heapy.Classifiers.ByClass
+.r: 1 520 dict of guppy.heapy.Classifiers.ByClassOrDictOwner
+.r: 1 520 dict of guppy.heapy.Classifiers.ByIdentity
+.r: 1 520 dict of guppy.heapy.Classifiers.ByInRel
+.r: 1 520 dict of guppy.heapy.Classifiers.ByIndiSize
+.r: 1 520 dict of guppy.heapy.Classifiers.ByRetClaSet
+.r: 1 520 dict of guppy.heapy.Classifiers.ByType
+.r: 1 520 dict of guppy.heapy.Classifiers.ByUnity
+.r: 1 520 dict of pydoc.HTMLRepr
+.r: 1 520 dict of pydoc.TextRepr
+.r: 1 520 dict of string._TemplateMetaclass
+.r: 16 444 guppy.sets.setsc.ImmNodeSet
+.r: 11 440 guppy.heapy.UniSet.EquivalenceRelation
+.r: 1 436 string._TemplateMetaclass
+.r: 17 408 __builtin__.cell
+.r: 3 408 dict of site._Printer
+.r: 2 272 dict of site.Quitter
+.r: 2 272 dict of xml.dom.html.HTMLDOMImplementation.HTMLDOMImplementation
+.r: 3 204 file
+.r: 7 196 guppy.heapy.Use._GLUECLAMP_
+.r: 5 160 __future__._Feature
+.r: 3 156 _sre.SRE_Match
+.r: 1 136 dict of apport.packaging_impl.__AptDpkgPackageInfo
+.r: 1 136 dict of guppy.doc.test_heapy.Tester
+.r: 1 136 dict of guppy.heapy.Path.R_NORELATION
+.r: 1 136 dict of guppy.heapy.Target.Target
+.r: 1 136 dict of guppy.heapy.UniSet.Summary_str
+.r: 1 136 dict of os._Environ
+.r: 1 136 dict of pydoc.HTMLDoc
+.r: 1 136 dict of pydoc.Helper
+.r: 1 136 dict of pydoc.TextDoc
+.r: 1 136 dict of random.Random
+.r: 1 136 dict of xml.dom.minidom.DOMImplementation
+.r: 4 112 guppy.heapy.heapyc.ObjectClassifier
+.r: 5 100 __builtin__.PyCObject
+.r: 3 96 __builtin__.classmethod_descriptor
+.r: 4 96 __builtin__.staticmethod
+.r: 2 88 codecs.CodecInfo
+.r: 3 84 __builtin__.Struct
+.r: 3 84 site._Printer
+.r: 2 64 email.charset.Charset
+.r: 2 64 gettext.GNUTranslations
+.r: 2 64 guppy.heapy.Classifiers.ByDictOwner
+.r: 2 64 repr.Repr
+.r: 2 64 xml.dom.html.HTMLDOMImplementation.HTMLDOMImplementation
+.r: 1 56 guppy.heapy.heapyc.HeapView
+.r: 2 56 site.Quitter
+.r: 1 44 exceptions.IOError
+.r: 1 32 apport.packaging_impl.__AptDpkgPackageInfo
+.r: 1 32 guppy.doc.test_heapy.Tester
+.r: 1 32 guppy.heapy.Classifiers.AndClassifier
+.r: 1 32 guppy.heapy.Classifiers.ByClass
+.r: 1 32 guppy.heapy.Classifiers.ByClassOrDictOwner
+.r: 1 32 guppy.heapy.Classifiers.ByIdentity
+.r: 1 32 guppy.heapy.Classifiers.ByInRel
+.r: 1 32 guppy.heapy.Classifiers.ByIndiSize
+.r: 1 32 guppy.heapy.Classifiers.ByRetClaSet
+.r: 1 32 guppy.heapy.Classifiers.ByType
+.r: 1 32 guppy.heapy.Classifiers.ByUnity
+.r: 1 32 guppy.heapy.Path.R_NORELATION
+.r: 1 32 guppy.heapy.Target.Target
+.r: 1 32 guppy.heapy.UniSet.Summary_str
+.r: 1 32 os._Environ
+.r: 1 32 pydoc.HTMLDoc
+.r: 1 32 pydoc.HTMLRepr
+.r: 1 32 pydoc.Helper
+.r: 1 32 pydoc.TextDoc
+.r: 1 32 pydoc.TextRepr
+.r: 1 32 xml.dom.minidom.DOMImplementation
+.r: 1 28 site._Helper
+.r: 1 28 unittest.TestLoader
+.r: 1 28 xml.dom.minidom.TypeInfo
+.r: 1 24 __builtin__.classmethod
+.r: 2 24 bool
+.r: 1 24 xml.dom.minicompat.EmptyNodeList
+.r: 1 12 __builtin__.ConfigurationPtr
+.r: 1 12 thread.lock
+.r: 1 8 imp.NullImporter
+.r: 1 8 object
+.r: 1 8 types.EllipsisType
+.r: 1 8 types.NoneType
+.r: 1 8 types.NotImplementedType
+.end: .loader: _load_stat
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517362.007415
+.count: 53392
+.size: 3817484
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 128
+.r: 27683 1768704 str
+.r: 12048 466340 tuple
+.r: 175 234616 dict of module
+.r: 3398 231064 types.CodeType
+.r: 416 212864 dict (no owner)
+.r: 3240 181440 function
+.r: 308 139232 dict of type
+.r: 310 134852 type
+.r: 226 126352 dict of class
+.r: 368 47360 list
+.r: 1024 36864 __builtin__.wrapper_descriptor
+.r: 122 36176 dict of guppy.etc.Glue.Interface
+.r: 710 22720 types.BuiltinFunctionType
+.r: 412 16480 __builtin__.weakref
+.r: 42 15908 _sre.SRE_Pattern
+.r: 19 14872 dict of email.LazyImporter
+.r: 26 13520 dict of guppy.etc.Glue.Share
+.r: 2 12624 guppy.heapy.heapyc.NodeGraph
+.r: 354 11328 __builtin__.method_descriptor
+.r: 838 10056 int
+.r: 226 9944 class
+.r: 72 9792 dict of guppy.etc.Glue.Owner
+.r: 228 7296 types.MemberDescriptorType
+.r: 174 5568 types.GetSetDescriptorType
+.r: 175 4200 module
+.r: 107 3852 __builtin__.property
+.r: 7 3640 dict of guppy.heapy.Use._GLUECLAMP_
+.r: 122 3416 guppy.etc.Glue.Interface
+.r: 88 3168 types.MethodType
+.r: 1 2528 random.Random
+.r: 72 2304 guppy.etc.Glue.Owner
+.r: 15 2040 dict of function
+.r: 3 1632 guppy.sets.setsc.MutNodeSet
+.r: 93 1488 float
+.r: 5 1412 unicode
+.r: 2 1040 dict of codecs.CodecInfo
+.r: 2 1040 dict of email.charset.Charset
+.r: 2 1040 dict of guppy.heapy.Classifiers.ByDictOwner
+.r: 2 1040 dict of repr.Repr
+.r: 55 928 long
+.r: 2 848 dict of gettext.GNUTranslations
+.r: 26 832 guppy.etc.Glue.Share
+.r: 2 692 types.FrameType
+.r: 5 680 dict of __future__._Feature
+.r: 19 532 email.LazyImporter
+.r: 1 520 dict of guppy.heapy.Classifiers.AndClassifier
+.r: 1 520 dict of guppy.heapy.Classifiers.ByClass
+.r: 1 520 dict of guppy.heapy.Classifiers.ByClassOrDictOwner
+.r: 1 520 dict of guppy.heapy.Classifiers.ByIdentity
+.r: 1 520 dict of guppy.heapy.Classifiers.ByInRel
+.r: 1 520 dict of guppy.heapy.Classifiers.ByIndiSize
+.r: 1 520 dict of guppy.heapy.Classifiers.ByRetClaSet
+.r: 1 520 dict of guppy.heapy.Classifiers.ByType
+.r: 1 520 dict of guppy.heapy.Classifiers.ByUnity
+.r: 1 520 dict of pydoc.HTMLRepr
+.r: 1 520 dict of pydoc.TextRepr
+.r: 1 520 dict of string._TemplateMetaclass
+.r: 16 444 guppy.sets.setsc.ImmNodeSet
+.r: 11 440 guppy.heapy.UniSet.EquivalenceRelation
+.r: 1 436 string._TemplateMetaclass
+.r: 17 408 __builtin__.cell
+.r: 3 408 dict of site._Printer
+.r: 2 272 dict of site.Quitter
+.r: 2 272 dict of xml.dom.html.HTMLDOMImplementation.HTMLDOMImplementation
+.r: 3 204 file
+.r: 7 196 guppy.heapy.Use._GLUECLAMP_
+.r: 5 160 __future__._Feature
+.r: 3 156 _sre.SRE_Match
+.r: 1 136 dict of apport.packaging_impl.__AptDpkgPackageInfo
+.r: 1 136 dict of guppy.doc.test_heapy.Tester
+.r: 1 136 dict of guppy.heapy.Path.R_NORELATION
+.r: 1 136 dict of guppy.heapy.Target.Target
+.r: 1 136 dict of guppy.heapy.UniSet.Summary_str
+.r: 1 136 dict of os._Environ
+.r: 1 136 dict of pydoc.HTMLDoc
+.r: 1 136 dict of pydoc.Helper
+.r: 1 136 dict of pydoc.TextDoc
+.r: 1 136 dict of random.Random
+.r: 1 136 dict of xml.dom.minidom.DOMImplementation
+.r: 4 112 guppy.heapy.heapyc.ObjectClassifier
+.r: 5 100 __builtin__.PyCObject
+.r: 3 96 __builtin__.classmethod_descriptor
+.r: 4 96 __builtin__.staticmethod
+.r: 2 88 codecs.CodecInfo
+.r: 3 84 __builtin__.Struct
+.r: 3 84 site._Printer
+.r: 2 64 email.charset.Charset
+.r: 2 64 gettext.GNUTranslations
+.r: 2 64 guppy.heapy.Classifiers.ByDictOwner
+.r: 2 64 repr.Repr
+.r: 2 64 xml.dom.html.HTMLDOMImplementation.HTMLDOMImplementation
+.r: 1 56 guppy.heapy.heapyc.HeapView
+.r: 2 56 site.Quitter
+.r: 1 44 exceptions.IOError
+.r: 1 32 apport.packaging_impl.__AptDpkgPackageInfo
+.r: 1 32 guppy.doc.test_heapy.Tester
+.r: 1 32 guppy.heapy.Classifiers.AndClassifier
+.r: 1 32 guppy.heapy.Classifiers.ByClass
+.r: 1 32 guppy.heapy.Classifiers.ByClassOrDictOwner
+.r: 1 32 guppy.heapy.Classifiers.ByIdentity
+.r: 1 32 guppy.heapy.Classifiers.ByInRel
+.r: 1 32 guppy.heapy.Classifiers.ByIndiSize
+.r: 1 32 guppy.heapy.Classifiers.ByRetClaSet
+.r: 1 32 guppy.heapy.Classifiers.ByType
+.r: 1 32 guppy.heapy.Classifiers.ByUnity
+.r: 1 32 guppy.heapy.Path.R_NORELATION
+.r: 1 32 guppy.heapy.Target.Target
+.r: 1 32 guppy.heapy.UniSet.Summary_str
+.r: 1 32 os._Environ
+.r: 1 32 pydoc.HTMLDoc
+.r: 1 32 pydoc.HTMLRepr
+.r: 1 32 pydoc.Helper
+.r: 1 32 pydoc.TextDoc
+.r: 1 32 pydoc.TextRepr
+.r: 1 32 xml.dom.minidom.DOMImplementation
+.r: 1 28 site._Helper
+.r: 1 28 unittest.TestLoader
+.r: 1 28 xml.dom.minidom.TypeInfo
+.r: 1 24 __builtin__.classmethod
+.r: 2 24 bool
+.r: 1 24 xml.dom.minicompat.EmptyNodeList
+.r: 1 12 __builtin__.ConfigurationPtr
+.r: 1 12 thread.lock
+.r: 1 8 imp.NullImporter
+.r: 1 8 object
+.r: 1 8 types.EllipsisType
+.r: 1 8 types.NoneType
+.r: 1 8 types.NotImplementedType
+.end: .loader: _load_stat
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517368.299457
+.count: 13
+.size: 1208
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 7
+.r: 2 692 types.FrameType
+.r: 5 176 str
+.r: 1 136 dict of guppy.etc.Glue.Interface
+.r: 2 68 tuple
+.r: 1 68 types.CodeType
+.r: 1 40 __builtin__.weakref
+.r: 1 28 guppy.etc.Glue.Interface
+.end: .loader: _load_stat
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517370.156465
+.count: 13
+.size: 1224
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 7
+.r: 2 708 types.FrameType
+.r: 5 176 str
+.r: 1 136 dict of guppy.etc.Glue.Interface
+.r: 2 68 tuple
+.r: 1 68 types.CodeType
+.r: 1 40 __builtin__.weakref
+.r: 1 28 guppy.etc.Glue.Interface
+.end: .loader: _load_stat
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517378.772868
+.count: 9
+.size: 1056
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 4
+.r: 2 772 types.FrameType
+.r: 4 148 str
+.r: 2 68 tuple
+.r: 1 68 types.CodeType
+.end: .loader: _load_stat
+.loader: _load_stat
+.format: SetFormat
+.timemade: 1231517380.116437
+.count: 9
+.size: 1000
+.kindname: 
+.kindheader: Kind (class / dict of class)
+.numrows: 4
+.r: 2 716 types.FrameType
+.r: 4 148 str
+.r: 2 68 tuple
+.r: 1 68 types.CodeType
+.end: .loader: _load_stat
