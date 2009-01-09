@@ -243,7 +243,7 @@ class Node2XHTML:
 	oldout = self.chg_out([])
 	self._visit_children(node)
 
-	self.gen_generated_from_gsl()
+	# self.gen_generated_from_gsl()
 
 	newout = self.chg_out(oldout)
 	mknode = self.mod.node_of_taci
@@ -278,6 +278,9 @@ class Node2XHTML:
 	    syms = [x.strip() for x in ch.arg.split(',')]
 	    for sym in syms:
 		self.symplace[sym] = ch.tag
+
+    def visit_generated_from_gsl(self, node):
+        self.gen_generated_from_gsl()
 
     def visit_header(self, node):
         self.header_nodes.extend(node.children)

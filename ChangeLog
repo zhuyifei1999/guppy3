@@ -1,3 +1,16 @@
+2009-01-09  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/gsl/Tester.py (TestOf.make_cat.get_example_expr): Made the
+	example values be regenerated each time. (Unless 0 is true.)
+	Affects speed sometimes (an extra function call per arg) but may
+	also be faster.
+
+	* guppy/heapy/Use.py (_GLUECLAMP_.load): changed usereadline to
+	use_readline to correspond to doc .
+
+	* guppy/heapy/Prof.py (Menu.delete): Removed commented-out lines
+	to delete commands.
+
 2008-11-03  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/UniSet.py (UniSet & IdentitySet): Removed several

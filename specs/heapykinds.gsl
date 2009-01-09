@@ -24,10 +24,7 @@
 .kind:: Use
 
 .superkind:: IdentitySet+
-..eg: hp.iso(1)
-...in context:
-from guppy import hpy
-hp=hpy()
+..eg: self.hp.iso(1)
 
 .superkind:: AltOperator+
 ..eg: '=='
@@ -35,20 +32,43 @@ hp=hpy()
 .superkind:: EquivalenceRelation+
 
 .superkind:: Kind+
+..eg: self.hp.Anything
+
+.superkind:: ClodoKind+
+..eg: self.hp.Clodo(dictof=C)
+...in context:
+class C:
+ pass
+
 
 .superkind:: SetOfKind+
+..eg: self.hp.Size.sokind(24)
+
+.superkind:: SetOfClodoKind+
+..eg: self.hp.Clodo.sokind(int)(dictof=())
 
 .superkind:: UniSet+
+..eg: self.hp.Nothing
 
 .superkind:: loadablefilenamestring+
+..eg: os.path.join(os.path.dirname(__file__),'exampleprofile.hpy')
+...in context:
+import os
 
 .superkind:: loadableiterableofstrings+
+..eg: open(os.path.join(os.path.dirname(__file__),'exampleprofile.hpy'))
+...in context:
+import os
+
 
 
 .superkind:: objectaddress+
 ..eg: id(None)
 
 .superkind:: profilefilename+
+..eg: os.path.join(os.path.dirname(__file__),'exampleprofile.hpy')
+...in context:
+import os
 
 .superkind:: relationname+
 ..eg: '[0]'

@@ -36,9 +36,9 @@
      <dd><big><a href='#heapykinds.Use.monitor'>monitor</a></big>()</dd>
      <dd><big><a href='#heapykinds.Use.pb'>pb</a></big>( [<var>filename</var><code>:</code>&nbsp;<em>profilefilename+</em>])</dd>
      <dd><big><a href='#heapykinds.Use.setref'>setref</a></big>()</dd>
-     <dd><big><a href='#heapykinds.Use.setrelheap'>setrelheap</a></big>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])</dd>
-     <dd><big><a href='#heapykinds.Use.setrelheapg'>setrelheapg</a></big>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])</dd>
-     <dd><big><a href='#heapykinds.Use.setrelheapu'>setrelheapu</a></big>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])</dd>
+     <dd><big><a href='#heapykinds.Use.setrelheap'>setrelheap</a></big>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])</dd>
+     <dd><big><a href='#heapykinds.Use.setrelheapg'>setrelheapg</a></big>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])</dd>
+     <dd><big><a href='#heapykinds.Use.setrelheapu'>setrelheapu</a></big>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])</dd>
      <dt><strong><big>Attributes</big></strong></dt>
      <dd><big><a href='#heapykinds.Use.Anything'>Anything</a></big><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a></dd>
      <dd><big><a href='#heapykinds.Use.Nothing'>Nothing</a></big><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.IdentitySet'>IdentitySet</a></dd>
@@ -65,7 +65,7 @@
      <dd><big><a href='#heapykinds.Use.Rcs'>Rcs</a></big><code>:</code>&nbsp; (
       <dl>
        <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
-       <dd><a href='#heapy_Use.Use.Rcs.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>0..*:</strong></sup> <sup><strong>alt:</strong></sup>[<var>kind</var><code>:</code>&nbsp;<em>Kind+</em><sup><strong> or </strong></sup><var>sok</var><code>:</code>&nbsp;<em>SetOfKind+</em>]) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfRetClaSetFamily'>KindOfRetClaSetFamily</a></dd>
+       <dd><a href='#heapy_Use.Use.Rcs.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>0..*:</strong></sup> <sup><strong>alt:</strong></sup>[<var>kind</var><code>:</code>&nbsp;<em>ClodoKind+</em><sup><strong> or </strong></sup><var>sok</var><code>:</code>&nbsp;<em>SetOfClodoKind+</em>]) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfRetClaSetFamily'>KindOfRetClaSetFamily</a></dd>
        <dd> )</dd></dl></dd>
      <dd><big><a href='#heapykinds.Use.Root'>Root</a></big><code>:</code>&nbsp;<a href='heapy_RootState.html#heapykinds.RootStateType'>RootStateType</a></dd>
      <dd><big><a href='#heapykinds.Use.Size'>Size</a></big><code>:</code>&nbsp; (
@@ -87,7 +87,8 @@
       <dl>
        <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
        <dd><a href='#heapy_Use.Use.Via.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>0..*:</strong></sup><var>rel</var><code>:</code>&nbsp;<em>relationname+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfInViaFamily'>KindOfInViaFamily</a></dd>
-       <dd> )</dd></dl></dd></dl></dd>
+       <dd> )</dd></dl></dd>
+     <dd><big><a href='#heapykinds.Use.doc'>doc</a></big><code>:</code>&nbsp;<strong> anything</strong></dd></dl></dd>
    <dt>
     <h2>Methods</h2></dt>
    <dd><a name='heapykinds.Use.findex'><strong><big>findex</big></strong></a>( <sup><strong>0..*:</strong></sup><var>kind</var><code>:</code>&nbsp;<em>Kind+</em>) <strong>-></strong>  (
@@ -413,7 +414,7 @@ after the time setref was called. The heapu() method, since it deals
 with summary data and not actual objects, will show the difference of
 sizes and counts compared to when setref was called.
 </dd></dl></dd>
-   <dd><a name='heapykinds.Use.setrelheap'><strong><big>setrelheap</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])
+   <dd><a name='heapykinds.Use.setrelheap'><strong><big>setrelheap</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])
     <dl>
      <dd>
       <dl>
@@ -433,13 +434,13 @@ newly allocated objects are included.
        <dt><strong>Argument</strong></dt>
        <dd>
         <dl>
-         <dt><var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a></dt>
+         <dt><var>reference</var><code>:</code>&nbsp;<em>UniSet+</em></dt>
          <dd>
  Pass an alternative set here to set the relative heap reference
 to that value instead of the current heap. For example, pass <a href='#heapykinds.Use.Nothing'>Nothing</a>
  to make the heap view show all visible objects again.
 </dd></dl></dd></dl></dd></dl></dd>
-   <dd><a name='heapykinds.Use.setrelheapg'><strong><big>setrelheapg</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])
+   <dd><a name='heapykinds.Use.setrelheapg'><strong><big>setrelheapg</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])
     <dl>
      <dd>
       <dl>
@@ -453,7 +454,7 @@ methods to one.
 </dd>
      <dd>
       <dl></dl></dd></dl></dd>
-   <dd><a name='heapykinds.Use.setrelheapu'><strong><big>setrelheapu</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.UniSet'>UniSet</a>])
+   <dd><a name='heapykinds.Use.setrelheapu'><strong><big>setrelheapu</big></strong></a>( [<var>reference</var><code>:</code>&nbsp;<em>UniSet+</em>])
     <dl>
      <dd>
       <dl>
@@ -629,7 +630,7 @@ of the object.
    <dd><strong><big>Rcs</big></strong><code>:</code>&nbsp; (
     <dl>
      <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
-     <dd><a name='heapy_Use.Use.Rcs.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>0..*:</strong></sup> <sup><strong>alt:</strong></sup>[<var>kind</var><code>:</code>&nbsp;<em>Kind+</em><sup><strong> or </strong></sup><var>sok</var><code>:</code>&nbsp;<em>SetOfKind+</em>]) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfRetClaSetFamily'>KindOfRetClaSetFamily</a>
+     <dd><a name='heapy_Use.Use.Rcs.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>0..*:</strong></sup> <sup><strong>alt:</strong></sup>[<var>kind</var><code>:</code>&nbsp;<em>ClodoKind+</em><sup><strong> or </strong></sup><var>sok</var><code>:</code>&nbsp;<em>SetOfClodoKind+</em>]) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfRetClaSetFamily'>KindOfRetClaSetFamily</a>
       <dl>
        <dd>
  Create an equivalence class from user-specified classification arguments.
@@ -640,9 +641,9 @@ which must represent an equivalence class of <a href='#heapykinds.Use.Clodo'>Clo
          <dt><strong>Arguments</strong></dt>
          <dd>
           <dl>
-           <dt><var>kind</var><code>:</code>&nbsp;<em>Kind+</em></dt>
+           <dt><var>kind</var><code>:</code>&nbsp;<em>ClodoKind+</em></dt>
            <dd> This adds a single Kind to the set of Kinds of referrers.</dd>
-           <dt><var>sok</var><code>:</code>&nbsp;<em>SetOfKind+</em></dt>
+           <dt><var>sok</var><code>:</code>&nbsp;<em>SetOfClodoKind+</em></dt>
            <dd> This adds each Kind in the sok argument to the total set of Kinds of referrers.</dd></dl></dd></dl></dd></dl></dd>
      <dd> )</dd></dl></dd>
    <dd><a name='heapykinds.Use.Root'><strong><big>Root</big></strong></a><code>:</code>&nbsp;<a href='heapy_RootState.html#heapykinds.RootStateType'>RootStateType</a></dd>
@@ -764,5 +765,30 @@ use a syntax that could be used to access those variables directly from Python.<
              <tr>
               <th><code> .keys()[integer]</code></th>
               <td> A key in a dictionary, at the indicated place in its keys().</td></tr></table></dd></dl></dd></dl></dd></dl></dd>
-     <dd> )</dd></dl></dd></dl>
-  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Wed May 21 13:34:19 2008</div></body></html>
+     <dd> )</dd></dl></dd>
+   <dd><a name='heapykinds.Use.doc'><strong><big>doc</big></strong></a><code>:</code>&nbsp;<strong> anything</strong></dd>
+   <dd>
+    <dl>
+     <dd>
+
+Overview documentation for top level Heapy object.
+Provides a listing of the available attributes.
+Accessing the attribute name on the doc objects gives further info, eg:
+
+      <pre>&gt;&gt;&gt; hp.doc.heap</pre>
+
+gives doc for the heap method when hp is the top level Heapy object.
+
+References may be embedded in the documentations. To access a
+reference, opening up a web browser with the doc for it one can do eg:
+
+      <pre>&gt;&gt;&gt; hp.doc.heap[1]</pre>
+
+The reference number 0 is special. If it is provided, it is the
+reference to the html doc for the described object itself. So to see
+in the web browser the doc for the heap method one can do:
+
+      <pre>
+&gt;&gt;&gt; hp.doc.heap[0]
+</pre></dd></dl></dd></dl>
+  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Fri Jan  9 16:24:02 2009</div></body></html>

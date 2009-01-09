@@ -7,16 +7,15 @@ object and heap memory sizing, profiling and debugging.
 
 What is exported is the following:
 
-gpdir   Create an attribute listing for esp. Guppy objects.
 hpy()	Create an object that provides a Heapy entry point.
 Root()	Create an object that provides a top level entry point.
 
 """
 
-__all__ = ('gpdir','hpy', 'Root')
+__all__ = ('hpy', 'Root')
 
-import guppy.etc.Compat		# Do one-time compatibility adjustments
-from guppy.etc.Glue import Root	# Get main Guppy entry point
+import guppy.etc.Compat			# Do one-time compatibility adjustments
+from guppy.etc.Glue import Root		# Get main Guppy entry point
 
 def hpy(ht = None):
     """\
@@ -37,20 +36,3 @@ The optional argument, useful for debugging heapy itself, is:
 	r.guppy.heapy.View._hiding_tag_ = ht
     return r.guppy.heapy.Use
 
-def gpdir(obj,*args,**kwds):
-    """gpdir(obj-> GuppyDir
-gpdir(obj)(options: str+) -> GuppyDoc
-
-A replacement for the builtin function dir(), providing a listing of
-public attributes. It also has an attribute for each item in the
-listing, for example:
-
->>> gpdir(hpy()).heap
-
-returns a GuppyDoc object providing documentation for the heap
-method. The GuppyDir object is also callable with a string argument
-specifying further options. Currently the following are provided:
-
-        'l'	Generate a listing of the synopsis lines.
-	'L'	Generate a listing of the entire doc strings."""
-    return Root().guppy.doc.gpdir(obj,*args,**kwds)

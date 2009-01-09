@@ -1,16 +1,17 @@
 #._cv_part guppy.heapy.Use
 
-import guppy
+import guppy.etc.Glue
 
-class _GLUECLAMP_:
+class _GLUECLAMP_(guppy.etc.Glue.Interface):
     _preload_ = '_hiding_tag_',
     _chgable_ = ('reprefix', 'default_reprefix', 'gcobjs',
-                 'relheap', 'relheapg', 'relheapu')
-    _dir_ = ('Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
+                 'relheap', 'relheapg', 'relheapu', '__doc__')
+    _dir_ = (
+            'Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
             'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
-            'Via', 'dir', 'findex', 'heap', 'heapu',
+            'Via', 'doc', 'findex', 'heap', 'heapu',
             'idset','iso', 'load', 'monitor', 'pb',
-            'setref','test')
+            'setref', 'test')
 
     _private_ = ('View','_hiding_tag_','_load_stat','ctime','default_reprefix',
                  'dumph','gcobjs','heapg','loadc','relheap','relheapg',
@@ -53,19 +54,71 @@ reachable objects in the heap can be reached. It is the only value (a
 singleton) of its kind; see [1] for a description of its attributes.
 
 References
-[1] heapy_RootState.html#heapykinds.RootStateType"""
+	[0] heapy_Use.html#heapykinds.Use.Root
+	[1] heapy_RootState.html#heapykinds.RootStateType"""
 
         return self.View.heapyc.RootState
 
     def __repr__(self):
-        return """Top level interface to Heapy. Available attributes:
-
-"""+str(guppy.gpdir(self))+"""
-
-Use eg %sdir.<attribute name> for info on a specific attribute.""" %self.reprefix
+        return """\
+Top level interface to Heapy.
+Use eg: %sdoc for more info on %s.""" %(
+            self.reprefix,self.reprefix[:-1])
         
 
     __str__=__repr__
+
+    def Ddir(self, opts=''):
+        """\
+        #OBSOLETE
+$HP.dir(opts: str+])-> GuppyDir
+$HP.dir(opts: str+]).<attribute> -> GuppyDoc
+
+A replacement for the builtin function dir(), providing a listing of
+public attributes for Heapy objects. It also has an attribute for each
+item in the listing, for example:
+
+>>> $HP.dir().heap
+
+returns a GuppyDoc object providing documentation for the heap
+method. The method also takes a string argument specifying further
+options. Currently the following are provided:
+
+        'l'	Generate a listing of the synopsis lines.
+	'L'	Generate a listing of the entire doc strings."""
+
+        obj = self
+        return self._root.guppy.etc.Help.dir(obj, opts)
+
+    def _get_doc(self):
+        """Overview documentation for top level Heapy object.
+Provides a listing of the available attributes.
+Accessing the attribute name on the doc objects gives further info, eg:
+
+>>> hp.doc.heap
+
+gives doc for the heap method when hp is the top level Heapy object.
+
+References may be embedded in the documentations. To access a
+reference, opening up a web browser with the doc for it one can do eg:
+
+>>> hp.doc.heap[1]
+
+The reference number 0 is special. If it is provided, it is the
+reference to the html doc for the described object itself. So to see
+in the web browser the doc for the heap method one can do:
+
+>>> hp.doc.heap[0]
+
+References
+    [0] heapy_Use.html#heapykinds.Use.doc"""
+
+        return self._root.guppy.etc.Help.dir(self,
+                                             header="""\
+Top level interface to Heapy. Available attributes:""",
+                                             footer="""\
+Use eg: %sdoc.<attribute> for info on <attribute>."""%self.reprefix)
+        
 
     def heapg(self, rma=1):
         """ DEPRECATED """
@@ -87,7 +140,11 @@ Returns an object containing a statistical summary of the objects
 found - not the objects themselves. This is to avoid making the
 objects reachable.
 
-See also: setref"""
+See also: setref[1]
+
+References
+    [0] heapy_Use.html#heapykinds.Use.heapu
+    [1] heapy_Use.html#heapykinds.Use.setref"""
 
 
 	h = self.View.heapu(rma)
@@ -118,17 +175,22 @@ Traverse the heap from a root to find all reachable and visible
 objects. The objects that belong to a heapy instance are normally not
 included. Return an IdentitySet with the objects found, which is
 presented as a table partitioned according to a default equivalence
-relation (Clodo).
+relation (Clodo [3]).
+
+See also: setref[2]
 
 References
-    [1] heapy_UniSet.html#heapykinds.IdentitySet"""
+    [0] heapy_Use.html#heapykinds.Use.heap
+    [1] heapy_UniSet.html#heapykinds.IdentitySet
+    [2] heapy_Use.html#heapykinds.Use.setref
+    [3] heapy_Use.html#heapykinds.Use.Clodo"""
 
 	h = self.View.heap()
 	h |= self.gcobjs
 	h -= self.relheap
 	return h
 
-    def load(self, fn, usereadline=0):
+    def load(self, fn, use_readline=0):
         """\
 load(alt:[fn: loadablefilenamestring+ or
           fn: loadableiterableofstrings+]
@@ -151,9 +213,10 @@ Arguments
         would try to read ahead a big block before returning the
         first package of data.
 Returns
-    one package of statistical data."""
+    one package of statistical data.
 
-
+References
+    [0] heapy_Use.html#heapykinds.Use.load"""
 
 	if isinstance(fn, basestring):
 	    # We got a filename.
@@ -187,8 +250,8 @@ Returns
 	    # We can't use .next always - (eg not on pipes)
 	    # it makes a big readahead (regardless of buffering setting).
 	    # But since .next() (typically) is much faster, we use it
-	    # per default unless usereadline is set.
-	    if usereadline:
+	    # per default unless use_readline is set.
+	    if use_readline:
 		get_line = fn.readline
 	    else:
 		get_line = fn.next
@@ -227,7 +290,7 @@ Returns
     def loadc(self, fn):
 	f = open(fn, 'r', 1)
 	while 1:
-	    print self.load(f, usereadline=1)
+	    print self.load(f, use_readline=1)
 	    
     def dumph(self, fn):
 	f = open(fn, 'w')
@@ -239,19 +302,19 @@ Returns
 	    print len(gc.get_objects())
 
     def setref(self, reachable=None, unreachable=None):
-        """setref() [1]
+        """setref()
 
 Set a reference point for heap usage measurement.  This applies to
-both the heap[2] and heapu[3] methods. The heap() method will only
+both the heap[1] and heapu[2] methods. The heap() method will only
 show the objects allocated after the time setref was called. The
 heapu() method, since it deals with summary data and not actual
 objects, will show the difference of sizes and counts compared to when
 setref was called.
 
 References
-    [1] hpy().man.gosetref
-    [2] hpy().man.goheap
-    [3] hpy().man.goheapu"""
+    [0] heapy_Use.html#heapykinds.Use.setref
+    [1] heapy_Use.html#heapykinds.Use.heap
+    [2] heapy_Use.html#heapykinds.Use.heapu"""
 
         if reachable is None and unreachable is None:
             self.setrelheap()
@@ -307,7 +370,6 @@ Argument
 	'_parent.Classifiers:Unity',
 	'_parent.Classifiers:Via',
 	'_parent.Classifiers:findex',
-	'_parent.Classifiers:sokind',
 	'_parent.Classifiers:sonokind',
 	'_parent.Classifiers:tc_adapt',
 	'_parent.Classifiers:tc_repr',
@@ -325,12 +387,14 @@ Argument
 	'_parent.View:_hiding_tag_',
         '_root.time:ctime',
         '_root:warnings',
-        '_root.guppy.doc:dir'
 	)
 
     _doc_Anything = """Anything: Kind
 
-A symbolic set that represents all possible Python objects."""
+A symbolic set that represents all possible Python objects.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Anything"""
 
     _doc_Class ="""Class:EquivalenceRelation
 Class(tc:typeorclass+) -> Kind
@@ -339,7 +403,10 @@ Equivalence relation by class. It defines objects to be equivalent
 when their builtin __class__ attributes are identical. When called it
 returns the equivalenc class defined by the argument:
 
-    tc: A type or class that the returned kind should represent."""
+    tc: A type or class that the returned kind should represent.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Class"""
 
     _doc_Clodo ="""Clodo:EquivalenceRelation
 Clodo(alt:[tc: typeorclassexceptdict+ or dictof =
@@ -359,7 +426,11 @@ OR:
     dictof: A named argument, to create an equivalence class
         consisting of all dicts that are owned by objects of the type
         or class specified in the argument; or dicts with no owner if
-        an empty tuple is given. XXX express this simpler&better..."""
+        an empty tuple is given. XXX express this simpler&better...
+
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Clodo"""
 
     _doc_Id="""Id:EquivalenceRelation
 Id(address: objectaddress+) -> Kind)
@@ -368,7 +439,10 @@ This equivalence relation defines objects to be equivalent only if
 they are identical, i.e. have the same address. When called it returns
 the equivalence class defined by the argument:
 
-    address: The memory address of an object."""
+    address: The memory address of an object.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Id"""
 
     _doc_Idset="""Id:EquivalenceRelation
 Idset(node: Anything+) -> IdentitySet
@@ -397,11 +471,17 @@ objects.
 Calling the Module equivalence relation creates a Kind containing the
 module given in the keyword argument(s). Either the name, address or
 both may be specified. If no argument is specified the equivalence
-class is that of non-module objects."""
+class is that of non-module objects.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Module"""
 
     _doc_Nothing = """Nothing: IdentitySet
 
-The empty set."""
+The empty set.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Nothing"""
 
     _doc_Rcs = """Rcs: EquivalenceRelation
 Rcs ( 0..*: alt:[kind: Kind+ or sok: SetOfKind+]) -> KindOfRetClaSetFamily
@@ -421,7 +501,9 @@ each of which representing an equivalence class of Clodo.
         This adds a single Kind to the set of Kinds of referrers.
     sok: SetOfKind+
         This adds each Kind in the sok argument to the total set of
-        Kinds of referrers."""
+        Kinds of referrers.
+References
+    [0] heapy_Use.html#heapykinds.Use.Rcs"""
 
 
     _doc_Size = """\
@@ -432,7 +514,8 @@ In this equivalence relation, objects are classified by memory size,
 so each equivalence class represents a particular size of object.
 
 References
-[1] heapy_UniSet.html#heapykinds.KindOfSizeFamily"""
+    [0] heapy_Use.html#heapykinds.Use.Size
+    [1] heapy_UniSet.html#heapykinds.KindOfSizeFamily"""
 
     _doc_Type = """Type: EquivalenceRelation
 Type(type: type+) -> KindOfTypeFamily[1]
@@ -445,7 +528,8 @@ creates a Kind representing the type specified in the argument:
         A Python type object or a representation of it.
 
 References
-[1] heapy_UniSet.html#heapykinds.KindOfTypeFamily"""
+    [0] heapy_Use.html#heapykinds.Use.Type
+    [1] heapy_UniSet.html#heapykinds.KindOfTypeFamily"""
 
     _doc_Unity = """Unity: EquivalenceRelation
 Unity() -> Kind[1]
@@ -454,8 +538,9 @@ In this equivalence relation, all objects are considered equivalent.
 There is only one equivalence class, that is, Anything[2].
 
 References
-[1] heapy_UniSet.html#heapykinds.Kind
-[2] heapy_Use.html#heapykinds.Use.Anything"""
+    [0] heapy_Use.html#heapykinds.Use.Unity
+    [1] heapy_UniSet.html#heapykinds.Kind
+    [2] heapy_Use.html#heapykinds.Use.Anything"""
 
     _doc_Via = """Via: EquivalenceRelation
 Via( 0..*:rel: relationname+) -> KindOfInViaFamily[1]
@@ -493,7 +578,8 @@ by the argument:
     A key in a dictionary, at the indicated place in its keys().
     
 References
-[1] heapy_UniSet.html#heapykinds.KindOfInViaFamily"""
+    [0] heapy_Use.html#heapykinds.Use.Via
+    [1] heapy_UniSet.html#heapykinds.KindOfInViaFamily"""
 
     _doc_findex = """
 findex( 0..*:kind: Kind+) -> (
@@ -529,6 +615,7 @@ Bugs
     tests such as subset and equality do not generally give the
     expected result.
 References
+    [0] heapy_Use.html#heapykinds.Use.findex
     [1] heapy_UniSet.html#heapykinds.EquivalenceRelation"""
 
     _doc_idset = """idset(nodes: iterable+) -> IdentitySet[1]
@@ -542,6 +629,7 @@ Argument
 Note
     This method is the same as iso except for the argument.
 References
+    [0] heapy_Use.html#heapykinds.Use.idset
     [1] heapy_UniSet.html#heapykinds.IdentitySet"""
 
     _doc_iso = """iso( 0..*:node: Any+) -> IdentitySet[1]
@@ -554,7 +642,10 @@ Argument
 Note
     This method is the same as idset[2] except for the argument.
 References
+    [0] heapy_Use.html#heapykinds.Use.iso
     [1] heapy_UniSet.html#heapykinds.IdentitySet
     [2] heapy_Use.html#heapykinds.Use.idset"""
 
 
+    _doc_sokind = """
+"""

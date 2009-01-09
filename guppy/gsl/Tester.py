@@ -373,9 +373,11 @@ class TestOf(Doc2Tester):
 	    if a in ex_map:
 		return ex_map[a]
 	    x = self.parent.get_example_expr(a)
-	    name = 'ex_%d'%len(ex_map)
-	    ex_setup.append('%s = %s'%(name, x))
-	    usage = a.get_use_text(name)
+            if 0:
+                name = 'ex_%d'%len(ex_map)
+                ex_setup.append('%s = %s'%(name, x))
+                x = name
+            usage = a.get_use_text(x)
 	    ex_map[a] = usage
 	    return usage
 

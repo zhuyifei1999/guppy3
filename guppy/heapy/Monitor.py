@@ -457,7 +457,7 @@ class Monitor:
 	self.prompt = connection.prompt
 
 def monitor():
-    """monitor() [1]
+    """monitor() [0]
 
 Start an interactive remote monitor.
 
@@ -466,7 +466,7 @@ particular the memory usage, of separately running Python
 processes. 
 
 References
-    [1] hpy().man.gomonitor"""
+    [0] heapy_Use.html#heapykinds.Use.monitor"""
     from guppy.heapy import Remote
     Remote.off()
     m = Monitor()

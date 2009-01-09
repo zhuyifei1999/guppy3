@@ -10,11 +10,13 @@ KindOfInViaFamily, RootStateType, SetOfKind, Stat
 
 ..from: heapykinds
 
-.import:: Kind+, loadableiterableofstrings+, loadablefilenamestring+, 
+.import:: Kind+, ClodoKind+,
+loadableiterableofstrings+, loadablefilenamestring+, 
 moduleaddress+, modulename+, objectaddress+,
 profilefilename+,
 relationname+,
-SetOfKind+,
+SetOfKind+,SetOfClodoKind+,
+UniSet+,
 typeorclass+, typeorclassexceptdict+, typeorclassoremptytuple+
 
 ..from: heapykinds
@@ -160,9 +162,9 @@ which must represent an equivalence class of
 .....t:.
 ....repeat: 0..*
 .....alt
-......arg: kind: Kind+
+......arg: kind: ClodoKind+
 .......d: This adds a single Kind to the set of Kinds of referrers.
-......arg: sok: SetOfKind+
+......arg: sok: SetOfClodoKind+
 .......d: This adds each Kind in the sok argument to the total set of Kinds of referrers.
 ....returns: KindOfRetClaSetFamily
 ...c
@@ -268,6 +270,33 @@ use a syntax that could be used to access those variables directly from Python.
 .........c: XXX __dict__.keys() - not used - should think about this
 
 ....returns: KindOfInViaFamily
+
+..attr:: doc
+...d
+
+Overview documentation for top level Heapy object.
+Provides a listing of the available attributes.
+Accessing the attribute name on the doc objects gives further info, eg:
+
+....pre
+>>> hp.doc.heap
+....t
+
+gives doc for the heap method when hp is the top level Heapy object.
+
+References may be embedded in the documentations. To access a
+reference, opening up a web browser with the doc for it one can do eg:
+
+....pre
+>>> hp.doc.heap[1]
+....t
+
+The reference number 0 is special. If it is provided, it is the
+reference to the html doc for the described object itself. So to see
+in the web browser the doc for the heap method one can do:
+
+....pre
+>>> hp.doc.heap[0]
 
 ..method:: findex
 
@@ -565,7 +594,7 @@ to its contents when setrelheap was called, so that only
 newly allocated objects are included.
 
 ...optionals
-....arg: reference: UniSet
+....arg: reference: UniSet+
 .....d: Pass an alternative set here to set the relative heap reference
 to that value instead of the current heap. For example, pass
 ......ref: .mykind.Nothing
@@ -587,7 +616,7 @@ This method is depreciated. Use
 methods to one.
 
 ...optionals
-....arg: reference: UniSet
+....arg: reference: UniSet+
 
 ..method:: setrelheapu
 ...dwh: Note
@@ -603,7 +632,7 @@ This method may become depreciated or reserved for internal use; the
 ....t: method.
 
 ...optionals
-....arg: reference: UniSet
+....arg: reference: UniSet+
 
 .kind:: ExtraUse
 ..subkind of: Use

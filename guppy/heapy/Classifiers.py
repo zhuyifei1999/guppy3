@@ -1459,6 +1459,8 @@ the object.
 	return self.sonokind.refdby
 
     def sokind(self, *kinds):
+        """sokind(0..*:Kind+) -> SetOfKind
+"""
 	cla = None
 	clikinds = []
 	if not kinds:

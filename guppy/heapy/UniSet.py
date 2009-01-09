@@ -223,10 +223,12 @@ representation is typically much shorter than the non-brief one.)"""
     #dir = property(lambda self:self.fam.mod._root.guppy.doc.get_dir(self))
     #dir = property(lambda self:self.fam.mod._root.guppy.doc.get_dir(self))
     #man = guppy.man_property
-    dir = guppy.gpdir_property
+    #dir = guppy.gpdir_property
 
     #man = property(lambda self:self.fam.mod._root.guppy.doc.get_man(self))
     #man = property(guppy.getman)
+
+    doc = property(lambda self:self.fam.mod._root.guppy.etc.Help.dir(self))
 
     def get_ckc(self):
 	# Get low-level classification information, where available.
@@ -296,8 +298,7 @@ be returned; though typically env.failed() would raise an exception.
 	return self.fam.c_test_contains(self, element, env)
 
     biper = property(lambda self:self.fam.c_get_biper(self),
-                     doc = """brief: string
-
+                     doc = """\
 A bipartitioning equivalence relation based on x. This may be used to
 partition or classify sets into two equivalence classes:
 
@@ -575,12 +576,18 @@ See also
 An object containing the shortest paths to objects in x.
 
 Synonym
+    sp
+See also
+    get_shpaths""")
+
+    sp = property(get_shpaths, doc="""x.sp: Paths
+
+An object containing the shortest paths to objects in x.
+
+Synonym
     shpaths
 See also
-    get_shpaths"""
-
-                       )
-    sp = property(get_shpaths)
+    get_shpaths""")
 
 
 
@@ -786,19 +793,10 @@ class Family:
 	d = self.export_dict
 	if b in d:
 	    return d[b](a, *args, **kwds)
-	if b == 'doc':
-	    d = self.c_getdoc(a)
-	    return d
 	return self.c_getattr2(a, b)
 
     def c_getattr2(self, a, b):
 	raise AttributeError, b
-
-    def c_getdoc(self, a):
-	d = getattr(a, '_origin_', ())
-	if d is ():
-	    d = self.mod._parent.Doc.callfunc(self, a.arg)
-	return d
 
     def c_get_render(self, a):
 	return self.mod.summary_str.str_address
