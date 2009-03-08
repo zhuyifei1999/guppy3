@@ -51,12 +51,12 @@ class C:
 ..eg: self.hp.Nothing
 
 .superkind:: loadablefilenamestring+
-..eg: os.path.join(os.path.dirname(__file__),'exampleprofile.hpy')
+..eg: os.path.join(os.path.dirname(__file__),'profileexample.hpy')
 ...in context:
 import os
 
 .superkind:: loadableiterableofstrings+
-..eg: open(os.path.join(os.path.dirname(__file__),'exampleprofile.hpy'))
+..eg: open(os.path.join(os.path.dirname(__file__),'profileexample.hpy'))
 ...in context:
 import os
 
@@ -66,7 +66,7 @@ import os
 ..eg: id(None)
 
 .superkind:: profilefilename+
-..eg: os.path.join(os.path.dirname(__file__),'exampleprofile.hpy')
+..eg: os.path.join(os.path.dirname(__file__),'profileexample.hpy')
 ...in context:
 import os
 

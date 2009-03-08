@@ -8,8 +8,10 @@ Specification Language (GSL), which can be used to formally specify
 aspects of Python programs and generate tests and documentation from a
 common source.
 
-...
-
+The main news in this release is the inclusion of a patch by Chad
+Austin to compile with Visual Studio 2003 and Python 2.5 C
+compilers. I think this may fix similar problems with other Microsoft
+compilers.
 
 License: MIT
 
