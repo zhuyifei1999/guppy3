@@ -2,7 +2,11 @@
 import os, pprint, signal, socket, SocketServer, sys, threading, time, traceback
 import cPickle as pickle
 
-import readline # Imported to _enable_ command line editing
+try:
+    import readline # Imported to _enable_ command line editing
+except ImportError:
+    pass
+
 import select, Queue
 
 from guppy.heapy.RemoteConstants import *
