@@ -1,3 +1,7 @@
+2009-04-07  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* setup.py (doit): package_data uses *.html & *.jpg
+
 2009-03-08  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* ANNOUNCE: news for 0.1.9
