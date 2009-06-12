@@ -1,3 +1,10 @@
+2009-06-12  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* ANNOUNCE: Tells about interactive help with example.
+
+	* specs/index.gsl: Download section updated for 0.1.9. Credits
+	added Yaroslav Halchenko.
+
 2009-04-07  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/Monitor.py: made import readline optional

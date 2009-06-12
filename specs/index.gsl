@@ -438,16 +438,21 @@ started. More tips are very welcome!
 ...h2: Download
 ..p
 
-The latest version is in the svn trunk directory. As of this writing,
-08-04-08, I have tested it (rev. 23) successfully in 64 as well as 32
+The latest version is in the svn trunk directory. 
+..p
+In Version 0.1.9 I have introduced interactive help and compatibility
+for MS compilers (see ANNOUNCE).
+..p
+As of 08-04-08, I had tested rev. 23 successfully in 64 as well as 32
 bits mode with Ubuntu 7.10 on an AMD64, with Python 2.3, 2.4, 2.5 and
-2.6 . No major changes other than compatibility fixes have been made
-from Guppy 0.1.6 version below.
+2.6 . No major changes other than compatibility fixes had been made
+from Guppy 0.1.6.
+..p
+As of 09-06-12, the latest version is 0.1.9 and is believed to be as
+compatible as previous versions and is due to be tested automatically
+as a package in the Debian framework.
 
 ..p
-In the nearest future, I plan to add some interactive help and some
-more examples to the documentation, perhaps a tutorial. Look out for
-this in the svn HEAD if you want the latest. 
 
 ..p: To check out the latest (HEAD) revision, you can do:
 
@@ -455,10 +460,10 @@ this in the svn HEAD if you want the latest.
 svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 ..p: To check out the latest release as of this writing
-(2008-04-08, guppy-0.1.8), you can do:
+(2009-06-12, guppy-0.1.9), you can do:
 
 ..pre
-svn co -r23 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r71 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..h3: Source code releases in tarball format
@@ -467,6 +472,12 @@ svn co -r23 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy gu
 ...style=margin-bottom: 10px;
 ...tr
 ....class=odd
+....td
+.....a: guppy-0.1.9
+......href=http://pypi.python.org/pypi/guppy/0.1.9
+....td: Updated 2009-06-12. Added interactive help and improved 
+MS compatibility.
+...tr
 ....td
 .....a: guppy-0.1.8
 ......href=http://pypi.python.org/pypi/guppy/0.1.8
@@ -571,6 +582,9 @@ any C compiler for Windows XP (yet).)
 ...li: Chad Austin has supplied a patch for compiling on Windows w/
 Visual Studio 2003 and Python 2.5. I think this may fix similar
 problems with other MS compilers, Cygwin & Mingw as well.
+
+...li: Yaroslav Halchenko is packaging and uploading Guppy into the
+Debian distribution.
 
 ..a
 ...name=Contact
