@@ -463,7 +463,7 @@ svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 (2009-06-12, guppy-0.1.9), you can do:
 
 ..pre
-svn co -r71 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r73 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..h3: Source code releases in tarball format
@@ -471,13 +471,14 @@ svn co -r71 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy gu
 ...class=list
 ...style=margin-bottom: 10px;
 ...tr
-....class=odd
+....class=even
 ....td
 .....a: guppy-0.1.9
 ......href=http://pypi.python.org/pypi/guppy/0.1.9
 ....td: Updated 2009-06-12. Added interactive help and improved 
 MS compatibility.
 ...tr
+....class=odd
 ....td
 .....a: guppy-0.1.8
 ......href=http://pypi.python.org/pypi/guppy/0.1.8
