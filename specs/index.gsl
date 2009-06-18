@@ -413,8 +413,9 @@ In Version 0.1.9 I have introduced interactive help and compatibility
 for MS compilers (see ANNOUNCE and ChangeLog).
 
 ..p: As of 09-06-18, I have tested the latest revision successfully on
-an AMD64 in 64 bits mode with Ubuntu 7.10 and in 32 bits mode with
-Ubuntu 9.04, with Python 2.3, 2.4, 2.5 and 2.6 .
+an AMD64 in 64 bits mode with Ubuntu 7.10 with Python 2.3, 2.4, 2.5
+and 2.6, and in 32 bits mode with Ubuntu 9.04 with Python 2.4, 2.5 and
+2.6 .
 
 ..p: To check out the latest (HEAD) revision, you can do:
 
@@ -425,7 +426,7 @@ svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 (2009-06-18, guppy-0.1.9), you can do:
 
 ..pre
-svn co -r77 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r78 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..h3: Source code releases in tarball format

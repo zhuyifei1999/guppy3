@@ -16,9 +16,20 @@ typedef int Py_ssize_t;
 typedef unsigned long NyBits;
 
 
-/* Number of bits in a NyBits field */
+/* Number of bits in a NyBits field
+   We don't use sizeof since it can't be used in preprocessor #if directive
 
-#define NyBits_N	((long)(sizeof(NyBits) * 8))
+   Not: #define NyBits_N	((long)(sizeof(NyBits) * 8))
+*/
+
+
+#if ULONG_MAX==4294967295UL
+#define NyBits_N 32
+#elif ULONG_MAX==18446744073709551615UL
+#define NyBits_N 64
+#else
+#error "Unsupported size of unsigned long"
+#endif
 
 
 typedef Py_intptr_t NyBit;
@@ -32,9 +43,6 @@ typedef Py_intptr_t NyBit;
 #define NyPos_MAX	(NyBit_MAX/NyBits_N)
 #define NyPos_MIN	(NyBit_MIN/NyBits_N)
 
-#ifdef __LPR64__	/* Can't use above types or defs */
-#define NyBits_64 1
-#endif
 
 typedef struct {
     NyBit pos;		/* The position of the first bit / NyBits_N */

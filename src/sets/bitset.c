@@ -515,18 +515,16 @@ bits_first(NyBits bits)
     int i = 0;
     assert(bits);
 
-    if (NyBits_N==64) {
-	if (!(bits & 0xffffffff)) {
-	    i += 32;
-	    bits = bits >> 32;
-	}
+#if (NyBits_N==64)
+    if (!(bits & 0xffffffff)) {
+	i += 32;
+	bits = bits >> 32;
     }
-    else if (NyBits_N==32) {
-	;
-    }
-    else {
-	assert(0);
-    }
+#elif (NyBits_N==32)
+/* Nothing */
+#else
+#error "Unsupported NyBits_N"
+#endif
     if (!(bits & 0xffff)) {
 	i += 16;
 	bits = bits >> 16;
@@ -556,53 +554,53 @@ bits_last(NyBits bits)
 {
     int i = NyBits_N-1;
     assert(bits);
-    if (NyBits_N==64) {
-	if (!(bits & 0xffffffff00000000)) {
-	    i -= 32;
-	    bits = bits << 32;
-	}
-	if (!(bits & 0xffff000000000000)) {
-	    i -= 16;
-	    bits = bits << 16;
-	}
-	if (!(bits & 0xff00000000000000)) {
-	    i -= 8;
-	    bits = bits << 8;
-	}
-	if (!(bits & 0xf000000000000000)) {
-	    i -= 4;
-	    bits = bits << 4;
-	}
-	if (!(bits & 0xc000000000000000)) {
-	    i -= 2;
-	    bits = bits << 2;
-	}
-	if (!(bits & 0x8000000000000000)) {
-	    i -= 1;
-	}
-    } else if (NyBits_N==32) {
-	if (!(bits & 0xffff0000)) {
-	    i -= 16;
-	    bits = bits << 16;
-	}
-	if (!(bits & 0xff000000)) {
-	    i -= 8;
-	    bits = bits << 8;
-	}
-	if (!(bits & 0xf0000000)) {
-	    i -= 4;
-	    bits = bits << 4;
-	}
-	if (!(bits & 0xc0000000)) {
-	    i -= 2;
-	    bits = bits << 2;
-	}
-	if (!(bits & 0x80000000)) {
-	    i -= 1;
-	}
-    } else {
-	assert(0);
+#if (NyBits_N==64)
+    if (!(bits & 0xffffffff00000000)) {
+	i -= 32;
+	bits = bits << 32;
     }
+    if (!(bits & 0xffff000000000000)) {
+	i -= 16;
+	bits = bits << 16;
+    }
+    if (!(bits & 0xff00000000000000)) {
+	i -= 8;
+	bits = bits << 8;
+    }
+    if (!(bits & 0xf000000000000000)) {
+	i -= 4;
+	bits = bits << 4;
+    }
+    if (!(bits & 0xc000000000000000)) {
+	i -= 2;
+	bits = bits << 2;
+    }
+    if (!(bits & 0x8000000000000000)) {
+	i -= 1;
+    }
+#elif (NyBits_N==32)
+    if (!(bits & 0xffff0000)) {
+	i -= 16;
+	bits = bits << 16;
+    }
+    if (!(bits & 0xff000000)) {
+	i -= 8;
+	bits = bits << 8;
+    }
+    if (!(bits & 0xf0000000)) {
+	i -= 4;
+	bits = bits << 4;
+    }
+    if (!(bits & 0xc0000000)) {
+	i -= 2;
+	bits = bits << 2;
+    }
+    if (!(bits & 0x80000000)) {
+	i -= 1;
+    }
+#else
+#error "Unsupported NyBits_N"
+#endif
     return i;
 }
 

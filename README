@@ -107,9 +107,10 @@ To test if the heapy build and installation was ok, you can do:
 
 >>> from guppy import hpy
 >>> hpy().test()
-imported: guppy.heapy.test.test_Classifiers
-test_base_classes (guppy.heapy.test.test_Classifiers.BaseCase) ... ok
-test_fancy_list_args (guppy.heapy.test.test_Classifiers.BaseCase) ... ok
+Testing sets
+Test #0
+Test #1
+Test #2
 ...
 
 There will be several more tests. Some tests may take a while.
