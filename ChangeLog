@@ -1,5 +1,8 @@
 2009-06-18  Sverker Nilsson  <sverker@sverker-laptop>
 
+	* setup.py (doit): long_description now starts with newline to
+	look better in PKG-INFO
+
 	* ANNOUNCE: added wordings about heapy_tutorial, pop bug and test.
 
 	* guppy/heapy/test/test_all.py: added dependencies test
