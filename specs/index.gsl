@@ -425,7 +425,7 @@ svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 (2009-06-18, guppy-0.1.9), you can do:
 
 ..pre
-svn co -r75 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r76 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..h3: Source code releases in tarball format
