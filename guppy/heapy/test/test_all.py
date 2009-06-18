@@ -1,6 +1,7 @@
 import sys
 
 autotests = (
+        'dependencies',
         'Classifiers',
 	'heapyc',
 	'ER',

@@ -1,3 +1,30 @@
+2009-06-18  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* ANNOUNCE: added wordings about heapy_tutorial, pop bug and test.
+
+	* guppy/heapy/test/test_all.py: added dependencies test
+
+	* specs/index.gsl: Added heapy_tutorial link
+
+	* specs/genguppydoc.py (GenGuppyDoc.gengsl): generate heapy_tutorial
+
+	* specs/heapy_tutorial.gsl: new file
+
+	* guppy/heapy/test/test_dependencies.py : new file
+
+2009-06-16  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* specs/index.gsl: Added interactive help to example which was
+	moved to documentation section.
+
+	* src/sets/bitset.c (mutbitset_pop): changed type of i from NyBit to
+	int to work in 64 bits with test7 in sets/test.py .
+	(bits_last): made it work with 64 bits by testing the upper 32-bit half
+	(bits_first): made it use NyBits_N instead of NyBits_64 
+	(bits_last):  made it use NyBits_N instead of NyBits_64 , NyBits_32
+	(NyMutBitSet_pop): changed 1<<i to 1l<<i to work with 64 bits with
+	test12 of test.py.
+
 2009-06-12  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* ANNOUNCE: Tells about interactive help with example.

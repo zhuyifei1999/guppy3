@@ -95,20 +95,20 @@ options. Currently the following are provided:
 Provides a listing of the available attributes.
 Accessing the attribute name on the doc objects gives further info, eg:
 
->>> hp.doc.heap
+    >>> hp.doc.heap
 
 gives doc for the heap method when hp is the top level Heapy object.
 
 References may be embedded in the documentations. To access a
 reference, opening up a web browser with the doc for it one can do eg:
 
->>> hp.doc.heap[1]
+    >>> hp.doc.heap[1]
 
 The reference number 0 is special. If it is provided, it is the
 reference to the html doc for the described object itself. So to see
 in the web browser the doc for the heap method one can do:
 
->>> hp.doc.heap[0]
+    >>> hp.doc.heap[0]
 
 References
     [0] heapy_Use.html#heapykinds.Use.doc"""

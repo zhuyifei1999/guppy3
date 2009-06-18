@@ -55,6 +55,7 @@ class GenGuppyDoc:
 
     def gengsl(self):
 	self.gen('index.gsl')
+	self.gen('heapy_tutorial.gsl')
 
 	self.gen('gsl.gsl')
 	self.gen('docexample.gsl')
