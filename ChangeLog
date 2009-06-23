@@ -1,7 +1,19 @@
+2009-06-23  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* specs/index.gsl: download mentions today's date
+
+	* guppy/sets/test.py: Made it try numpy.random instead of
+	RandomArray; revert to random if no numpy.random could be
+	installed so more tests can get done albeit slower.
+
+	* MANIFEST.in: added specs/*.py
+
+	* ANNOUNCE : Added advertisement for http://sncs.se
+
 2009-06-18  Sverker Nilsson  <sverker@sverker-laptop>
 
-	* specs/index.gsl: Changed wording of tested pythons to not having
-	tested with python2.3 in 32 bit mode.
+	* specs/index.gsl: Changed wording of tested pythons to exclude
+	having tested with python2.3 in 32 bit mode.
 
 	* src/sets/bitset.c (bits_first,bits_last): Changed to use #if
 	directive to get rid of warnings in 32-bit mode.

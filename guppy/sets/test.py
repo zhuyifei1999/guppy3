@@ -5,11 +5,18 @@
 
 import gc, random, sys
 try:
-    import RandomArray
+    import numpy.random
 except ImportError:
-    has_RandomArray = 0
+    has_numpy = 0
 else:
-    has_RandomArray = 1
+    has_numpy = 1
+
+if has_numpy:
+    def random_integers_list(low, high, length):
+        return map(int, numpy.random.random_integers(low, high, [length]))
+else:
+    def random_integers_list(low, high, length):
+        return [random.randint(low, high) for i in range(length)]
 
 from time import clock
 import cPickle
@@ -725,18 +732,13 @@ MutBitSet([])
 		print eltime(t_append_id, (s, rng))
 
     def test9(self):
-	if not has_RandomArray:
-	    print 'No RandomArray module found, skipping test9'
-	    return
-
 	# Making bigger bitsmuts - testing the split
 	for i in (1000, 10000, 100000):
 	    r = range(i)
 	    m = bitsmut(r)
 	    assert list(m) == r
 
-	    a=RandomArray.random_integers(i,-i,[i])
-	    la=list(a)
+	    la=random_integers_list(-i,i,i)
 	    m = bitsmut(la)
 	    las=dslist(la)
 	    bs=bitset(m)
@@ -744,13 +746,8 @@ MutBitSet([])
 
 
     def test10(self):
-	if not has_RandomArray:
-	    print 'No RandomArray module found, skipping test10'
-	    return
-
 
 	# Performance test 
-
 
 	def tests(la):
 	    for i in (1000, 10000, 100000, 400000):
@@ -762,17 +759,13 @@ MutBitSet([])
 	la.reverse()
 	print  'la.reverse()'
 	tests(la)
-	la=list(RandomArray.random_integers(400000,-400000,[400000]))
-	print 'la=list(RandomArray.random_integers(400000,-400000,[400000]))'
+	la=random_integers_list(-400000,400000,400000)
+	print 'la=random_integers_list(-400000,400000,400000))'
 	tests(la)
 
     def test11(self, n=1):
-	if not has_RandomArray:
-	    print 'No RandomArray module found, skipping test11'
-	    return
-
 	# A specific bug showed when setting splitting_size
-	la=list(RandomArray.random_integers(400000,-400000,[400000]))
+	la=random_integers_list(-400000,400000,400000)
 	while n > 0:
 	    ms=bitsmut([])
 	    ms._splitting_size=100

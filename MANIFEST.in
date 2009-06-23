@@ -9,5 +9,6 @@ include src/include/*.[ch]
 include src/sets/*.[ch]
 include src/heapy/*.[ch]
 include specs/*.gsl
+include specs/*.py
 include guppy/doc/*html
 include guppy/doc/*jpg

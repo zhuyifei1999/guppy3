@@ -1,7 +1,6 @@
 ANNOUNCE
 ANNOUNCE-0.1.5
 ChangeLog
-MANIFEST
 MANIFEST.in
 README
 gsl-mode-0.1.el
@@ -105,6 +104,7 @@ specs/docexample.gsl
 specs/gen.gsl
 specs/genext.gsl
 specs/genguppy.gsl
+specs/genguppydoc.py
 specs/gsl.gsl
 specs/guppy.gsl
 specs/heapy_ER.gsl

@@ -412,7 +412,7 @@ The latest version is in the svn trunk directory.
 In Version 0.1.9 I have introduced interactive help and compatibility
 for MS compilers (see ANNOUNCE and ChangeLog).
 
-..p: As of 09-06-18, I have tested the latest revision successfully on
+..p: As of 2009-06-23, I have tested the latest revision successfully on
 an AMD64 in 64 bits mode with Ubuntu 7.10 with Python 2.3, 2.4, 2.5
 and 2.6, and in 32 bits mode with Ubuntu 9.04 with Python 2.4, 2.5 and
 2.6 .
@@ -423,10 +423,10 @@ and 2.6, and in 32 bits mode with Ubuntu 9.04 with Python 2.4, 2.5 and
 svn co https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 ..p: To check out the latest release as of this writing
-(2009-06-18, guppy-0.1.9), you can do:
+(2009-06-23, guppy-0.1.9), you can do:
 
 ..pre
-svn co -r78 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
+svn co -r79 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy guppy
 
 
 ..h3: Source code releases in tarball format
@@ -438,7 +438,7 @@ svn co -r78 https://guppy-pe.svn.sourceforge.net/svnroot/guppy-pe/trunk/guppy gu
 ....td
 .....a: guppy-0.1.9
 ......href=http://pypi.python.org/pypi/guppy/0.1.9
-....td: Updated 2009-06-18. Added interactive help and improved 
+....td: Updated 2009-06-23. Added interactive help and improved 
 MS compatibility.
 ...tr
 ....class=odd
