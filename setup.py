@@ -24,7 +24,7 @@ heapyc = Extension("guppy.heapy.heapyc",
 
 def doit():
     setup(name="guppy",
-          version="0.1.9",
+          version="0.2.0",
           description="Guppy-PE -- A Python Programming Environment",
           long_description="""
 Guppy-PE is a library and programming environment for Python,

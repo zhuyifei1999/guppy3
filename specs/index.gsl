@@ -570,8 +570,7 @@ are available at:
 ....a: http://lists.sourceforge.net/mailman/listinfo/guppy-pe-list
 .....href=http://lists.sourceforge.net/mailman/listinfo/guppy-pe-list
 
-...dt: Please let me know of problems, either by mailing me directly, or
-via the mailing list mentioned above or the SourceForge bug tracking
+...dt: Please report bugs preferably via the SourceForge bug tracking
 system:
 
 ...dd

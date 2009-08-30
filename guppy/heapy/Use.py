@@ -287,6 +287,13 @@ References
 	    raise ValueError, 'Format error in %r: no such loader: %r.'%(fn, loader)
 	return loader(get_trows)
 	
+    def loadall(self,f):
+        ''' Loads all objects from an open file f or a file named f'''
+        if isinstance(f,basestring):
+            f=open(f)
+        while True:
+            yield self.load(f)
+
     def loadc(self, fn):
 	f = open(fn, 'r', 1)
 	while 1:

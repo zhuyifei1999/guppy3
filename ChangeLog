@@ -1,3 +1,9 @@
+2009-08-30  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/heapy/Use.py (_GLUECLAMP_): Added loadall method
+
+	Version 0.1.9
+	
 2009-06-23  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* specs/index.gsl: download mentions today's date
