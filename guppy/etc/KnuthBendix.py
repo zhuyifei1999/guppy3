@@ -165,7 +165,7 @@ class KnuthBendix:
 	    raise ValueError, """\
 KnuthBendix.make_confluent did not terminate in %d iterations.
 Check your equations or specify an higher max_iterations value.'
-"""		    
+"""%max_iterations
 	#print len(reds_tested)
 	
 	

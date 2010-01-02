@@ -1,3 +1,9 @@
+2010-01-02  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/etc/KnuthBendix.py
+	(KnuthBendix.make_confluent.add_reduction): Added missing argument
+	to % in error message
+
 2009-08-30  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/Use.py (_GLUECLAMP_): Added loadall method
