@@ -288,7 +288,7 @@ References
 	return loader(get_trows)
 	
     def loadall(self,f):
-        ''' Loads all objects from an open file f or a file named f'''
+        ''' Generates all objects from an open file f or a file named f'''
         if isinstance(f,basestring):
             f=open(f)
         while True:
