@@ -32,6 +32,32 @@ typedef unsigned long NyBits;
 #endif
 
 
+/* Assume __BYTE_ORDER is defined on all big-endian archs and that they
+   have byteswap.h. Little-endian archs don't include byteswap.h, so
+   it should still work with eg MSC.
+*/
+
+#ifdef __BYTE_ORDER
+#if __BYTE_ORDER==__BIG_ENDIAN
+
+#define NyBits_IS_BIG_ENDIAN 1
+
+#include "byteswap.h"
+
+#if (NyBits_N==64)
+#define NyBits_BSWAP(x) bswap_64(x)
+#elif (NyBits_N==32)
+#define NyBits_BSWAP(x) bswap_32(x)
+#else
+#error "Unsupported NyBits_N"
+#endif
+
+#endif
+#endif
+
+
+
+
 typedef Py_intptr_t NyBit;
 
 /* Largest positive value of type NyBit. */

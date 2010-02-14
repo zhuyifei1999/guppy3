@@ -2050,6 +2050,15 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
 			1, /* little_endian */
 			0  /* is_signed */);
     if (r == -1) goto Err1;
+#if NyBits_IS_BIG_ENDIAN
+    {
+	int pos;
+	for (pos = 0; pos < num_poses; pos++) {
+	    buf[pos] = NyBits_BSWAP(buf[pos]);
+	}
+    }
+#endif
+
     r = mutbitset_iop_bits(ms, op, 0, buf, num_poses);
     if (!r && cpl)
       r = mutbitset_iop_complement(ms);
@@ -3126,7 +3135,10 @@ immbitset_long(NyImmBitSetObject *v)
     }
     for (pos = 0; pos < num_poses; pos++) {
 	if (pos == f->pos) {
-	    bits = f->bits;		/* xxx may want to byte-swap here */
+	    bits = f->bits;
+#if NyBits_IS_BIG_ENDIAN
+	    bits = NyBits_BSWAP(bits);
+#endif
 	    f++;
 	} else {
 	    bits = NyBits_EMPTY;
@@ -3135,7 +3147,7 @@ immbitset_long(NyImmBitSetObject *v)
     }
     r = _PyLong_FromByteArray((unsigned char *)buf,		/* bytes */
 			      num_poses * sizeof(NyBits),	/* n = number of bytes*/
-			      1,	/* Always little endian here (xxx?) */
+			      1,	/* Always little endian here */
 			      0);	/* not is_signed, never here */
     PyMem_Del(buf);
     return r;

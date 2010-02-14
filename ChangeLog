@@ -1,3 +1,11 @@
+2010-02-14  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* src/sets/bitset.h: Checks endianness and defines macros to
+	handle it.
+	* src/sets/bitset.c (immbitset_long): 
+	* src/sets/bitset.c (mutbitset_iop_PyLongObject): 
+	Changes to work with big endian.
+	
 2010-01-02  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/etc/KnuthBendix.py
