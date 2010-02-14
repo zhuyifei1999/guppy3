@@ -1,5 +1,8 @@
 2010-02-14  Sverker Nilsson  <sverker@sverker-laptop>
-
+	* src/sets/bitset.c (mutbitset_iop_PyLongObject): 
+	In the latest change where a loop over pos was added, changed type
+	from int to NyBit.
+	
 	* src/sets/bitset.h: Checks endianness and defines macros to
 	handle it.
 	* src/sets/bitset.c (immbitset_long): 

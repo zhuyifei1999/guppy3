@@ -2052,7 +2052,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     if (r == -1) goto Err1;
 #if NyBits_IS_BIG_ENDIAN
     {
-	int pos;
+	NyBit pos;
 	for (pos = 0; pos < num_poses; pos++) {
 	    buf[pos] = NyBits_BSWAP(buf[pos]);
 	}
