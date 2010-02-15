@@ -806,19 +806,19 @@ class NewTestCase(TestCase):
 	    # and that the time to calculate this doesn't need to involve
 	    # an entire heap traversal to find all such objects
 
-	    time = self.python.time.time
+	    clock = self.python.time.clock
 	    import gc
 	    gc.collect()
-	    t = time()
+	    t = clock()
 
 	    x = str(iso(x, y).get_shpaths(iso(z)))
 
-	    fast = time() - t
+	    fast = clock() - t
 
 	    gc.collect()
-	    t = time()
+	    t = clock()
 	    x = str((iso() | list).get_shpaths(iso(z)))
-	    slow = time() - t
+	    slow = clock() - t
 
 	    # Originally, it was 16 times slower to use an abstract set
 	    # Now, it's about 2.5;

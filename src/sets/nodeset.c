@@ -854,7 +854,6 @@ nodeset_op_set(NyBit bitno, NSOPARG *arg)
     Py_INCREF(obj);
     arg->i += 1;
     return 0;
-    return 0;
 }
 
 

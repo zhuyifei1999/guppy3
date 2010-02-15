@@ -1,4 +1,17 @@
+2010-02-15  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/heapy/test/test_Classifiers.py
+	(SpecialCases.test_dictowner, SpecialCases.test_alt_retclaset):
+	* guppy/heapy/test/test_Path.py (NewTestCase.test_1): 
+	Changed to use clock() instead of time() for cpu time measurements
+	so it should be more repeatable if there are other processes active.
+	
+	
 2010-02-14  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* src/sets/nodeset.c (nodeset_op_set): Just an inconsequential
+	change, it had two returns after each other.
+
 	* src/sets/bitset.c (mutbitset_iop_PyLongObject): 
 	In the latest change where a loop over pos was added, changed type
 	from int to NyBit.

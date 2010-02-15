@@ -237,20 +237,20 @@ class SpecialCases(TestCase):
 	rcc1 = grc(c1)
 	rcdc1 = grc(c1.__dict__)
 
-	time = self.python.time.time
+	clock = self.python.time.time
 
 	N = 5
 
 	# This was the fast case, when only reachable dicts are classified
 	gc.collect()
-	t = time()
+	t = clock()
 	for i in range(N):
 	    print >>o, iso(d3).kind
 	    print >>o, iso(c1.__dict__).kind
-	fast = time()-t
+	fast = clock()-t
 
 	gc.collect()
-	t = time()
+	t = clock()
 
 	# This was a slow case; involving repeated classification of a unreachable dict
 	# It was originally 4.97 times slower when N was 5
@@ -260,19 +260,19 @@ class SpecialCases(TestCase):
 	    print >>o, iso(*d1).kind
 	    print >>o, iso(c1.__dict__).kind
 	
-	slow = time()-t
+	slow = clock()-t
 	self.assert_( slow/fast < 1.5 )
 
 	# This is another slow case according to notes Nov 18 2004.
 	# A succession of different unreachable dicts.
 
 	gc.collect()
-	t = time()
+	t = clock()
 	dn = self.View.immnodeset([{} for i in range(N)])
 	for i in range(N):
 	    print >>o, iso(list(dn)[i]).kind
 
-	slow = time()-t
+	slow = clock()-t
 	self.assert_( slow/fast < 1.5 )
 
 	
@@ -280,9 +280,9 @@ class SpecialCases(TestCase):
 	# Partition was likewise slow for unreachable dicts
 	dn = self.View.immnodeset([{} for i in range(N)])
 	gc.collect()
-	t = time()
+	t = clock()
 	print >>o, [x[0] for x in Use.Clodo.classifier.partition(dn)]
-	slow = time()-t
+	slow = clock()-t
 	self.assert_( slow/fast < 1.5 )
 	
 	# Check that ref counts for target objects are the same as initially
@@ -406,23 +406,23 @@ dict (no owner)
 	self.assert_( a in self.View.rg.get_domain() )
 	self.assert_( list(b)[0] in self.View.rg.get_domain())
 
-	time = self.python.time.time
+	clock = self.python.time.clock
         s = iso(a)
-	t = time()
+	t = clock()
 	for i in range(100):
 	    s.referrers
 
-	fast = time()-t
-	t = time()
+	fast = clock()-t
+	t = clock()
 	for i in range(100):
 	    self.View.rg.domain_covers([a])
 	    self.View.rg[a]
-	faster = time()-t
+	faster = clock()-t
         s = iso(*b)
-	t = time()
+	t = clock()
 	for i in range(100):
 	    s.referrers
-	slow = time() - t
+	slow = clock() - t
 	# print slow, fast, faster
 	self.assert_(not slow > fast * 4)
 	    
