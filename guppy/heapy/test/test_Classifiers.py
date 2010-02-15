@@ -240,50 +240,83 @@ class SpecialCases(TestCase):
 	clock = self.python.time.time
 
 	N = 5
+        M = 50
 
 	# This was the fast case, when only reachable dicts are classified
-	gc.collect()
-	t = clock()
 	for i in range(N):
 	    print >>o, iso(d3).kind
 	    print >>o, iso(c1.__dict__).kind
-	fast = clock()-t
 
-	gc.collect()
-	t = clock()
+        # Now measure it
+
+        while 1:
+            gc.collect()
+            t = clock()
+            for i in range(M):
+                iso(d3).kind
+                iso(c1.__dict__).kind
+            fast = clock()-t
+            if fast >= 0.5: # Enough resolution?
+                break
+            else:
+                M *= 2 # No, try more loops
+
 
 	# This was a slow case; involving repeated classification of a unreachable dict
 	# It was originally 4.97 times slower when N was 5
 	# The problem occurs for successive classifications of different dicts,
 	# when at least one of them is unreachable.
+	
+	gc.collect()
 	for i in range(N):
 	    print >>o, iso(*d1).kind
 	    print >>o, iso(c1.__dict__).kind
-	
+
+	gc.collect()
+        # Now measure it
+
+	t = clock()
+	for i in range(M):
+	    iso(*d1).kind
+	    iso(c1.__dict__).kind
 	slow = clock()-t
-	self.assert_( slow/fast < 1.5 )
+
+        #print 'slow,fast',slow,fast
+	self.assert_( slow <= 1.5*fast )
 
 	# This is another slow case according to notes Nov 18 2004.
 	# A succession of different unreachable dicts.
 
 	gc.collect()
-	t = clock()
 	dn = self.View.immnodeset([{} for i in range(N)])
 	for i in range(N):
 	    print >>o, iso(list(dn)[i]).kind
 
-	slow = clock()-t
-	self.assert_( slow/fast < 1.5 )
+        # Now measure it
+	gc.collect()
+	dn = self.View.immnodeset([{} for i in range(M)])
 
-	
-	N = 5
+	t = clock()
+        for i in range(M):
+	    iso(list(dn)[i]).kind
+	slow = clock()-t
+
+        #print 'slow,fast',slow,fast
+	self.assert_( slow <= 1.5*fast )
+
 	# Partition was likewise slow for unreachable dicts
 	dn = self.View.immnodeset([{} for i in range(N)])
 	gc.collect()
-	t = clock()
 	print >>o, [x[0] for x in Use.Clodo.classifier.partition(dn)]
+
+        # Now measure it
+	dn = self.View.immnodeset([{} for i in range(M)])
+	gc.collect()
+	t = clock()
+	[x[0] for x in Use.Clodo.classifier.partition(dn)]
 	slow = clock()-t
-	self.assert_( slow/fast < 1.5 )
+        #print 'slow,fast',slow,fast
+	self.assert_( slow <= 1.5*fast )
 	
 	# Check that ref counts for target objects are the same as initially
 
@@ -408,22 +441,27 @@ dict (no owner)
 
 	clock = self.python.time.clock
         s = iso(a)
-	t = clock()
-	for i in range(100):
-	    s.referrers
+        N = 1000
+        while 1:
+            t = clock()
+            for i in range(N):
+                s.referrers
+            fast = clock()-t
+            if fast >= 0.5:
+                break
+            N *= 2	# CPU is too fast to get good resolution, try more loops
 
-	fast = clock()-t
 	t = clock()
-	for i in range(100):
+	for i in range(N):
 	    self.View.rg.domain_covers([a])
 	    self.View.rg[a]
 	faster = clock()-t
         s = iso(*b)
 	t = clock()
-	for i in range(100):
+	for i in range(N):
 	    s.referrers
 	slow = clock() - t
-	# print slow, fast, faster
+	#print 'slow,fast,faster',slow, fast, faster
 	self.assert_(not slow > fast * 4)
 	    
 

@@ -2,9 +2,14 @@
 
 	* guppy/heapy/test/test_Classifiers.py
 	(SpecialCases.test_dictowner, SpecialCases.test_alt_retclaset):
+	Changed to use clock() instead of time() for cpu time
+	measurements. Added adaptive loop count as the time in some cases
+	were down to 0.01 s - which may be the resolution of clock(). Now
+	makes the time be about 0.5-1 s regardless of CPU speed.
+
 	* guppy/heapy/test/test_Path.py (NewTestCase.test_1): 
 	Changed to use clock() instead of time() for cpu time measurements
-	so it should be more repeatable if there are other processes active.
+	in a test that is not currently used, just in case we begin to use it.
 	
 	
 2010-02-14  Sverker Nilsson  <sverker@sverker-laptop>
