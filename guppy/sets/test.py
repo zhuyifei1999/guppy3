@@ -892,7 +892,7 @@ MutBitSet([])
 	    except OverflowError:
 		pass
 	    else:
-		raise 'expected ValueError'
+		raise 'expected OverflowError'
 
 	tsv(bitset([maxint]), 1)
 	tsv(bitset([minint]), -1)

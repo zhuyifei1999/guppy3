@@ -2017,7 +2017,11 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     int cpl = 0;
     PyObject *w = 0;
     
-    x = _PyLong_AsScaledDouble(v, &e);
+#if PY_VERSION_HEX >= 0x02070000
+	x = _PyLong_Frexp(v, &e);
+#else
+	x = _PyLong_AsScaledDouble(v, &e);
+#endif
     if (x == -1 && PyErr_Occurred())
       return -1;
     if (x < 0) {
@@ -2026,7 +2030,11 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
 	w = PyNumber_Invert(v);
 	if (!w) return -1;
 	v = w;
+#if PY_VERSION_HEX >= 0x02070000
+	x = _PyLong_Frexp(v, &e);
+#else
 	x = _PyLong_AsScaledDouble(v, &e);
+#endif
 	if (x == -1 && PyErr_Occurred())
 	  return -1;
 	assert(x >= 0);

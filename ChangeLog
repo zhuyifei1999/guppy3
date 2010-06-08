@@ -1,3 +1,21 @@
+2010-06-08  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/heapy/test/test_Part.py (MixedCase.test_1): Changed the
+	test result if sys.version >= 2.7; because the size of strings
+	was optimized 8 bytes. (How ? )
+
+	* src/sets/bitset.c (mutbitset_iop_PyLongObject): Used
+	_PyLong_Frexp instead of _PyLong_AsScaledDouble if
+	PY_VERSION_HEX >= 0x02070000 . (_PyLong_AsScaledDouble disappeared
+	but I think I should complain, couldn't figure out how to add an
+	issue with the tracker.)
+
+2010-02-16  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* guppy/sets/test.py (Test.test16.tsv): Expected OverflowError
+	instead of ValueError, an inconsequential change to do with
+	possiboe test error reporting.
+
 2010-02-15  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/test/test_Classifiers.py

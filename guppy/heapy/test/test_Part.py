@@ -88,16 +88,24 @@ Set of 100 <float> objects. Total size = 1600 bytes.
 
 class MixedCase(support.TestCase):
     def test_1(self):
+        import sys
 	x = self.iso(1, 2, 1.0, 2.0, '1', '2')
 	if self.allocation_behaves_as_originally:
-	    self.aseq(str(x), """\
+            if sys.version < '2.7':
+                self.aseq(str(x), """\
 Partition of a set of 6 objects. Total size = 112 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
      0      2  33       56  50        56  50 str
      1      2  33       32  29        88  79 float
      2      2  33       24  21       112 100 int""")
-
-
+            else:
+                self.aseq(str(x), """\
+Partition of a set of 6 objects. Total size = 104 bytes.
+ Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
+     0      2  33       48  46        48  46 str
+     1      2  33       32  31        80  77 float
+     2      2  33       24  23       104 100 int""")
+                
 	for row in x.partition.get_rows():
 	    self.assert_(row.set <= row.kind)
 	 
