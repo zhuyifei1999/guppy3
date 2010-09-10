@@ -2039,10 +2039,15 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
 	  return -1;
 	assert(x >= 0);
     }
-    if (x != 0)
-      num_bits = 1.0 * e * SHIFT + log(x)/log(2) + 1;
+    if (x != 0) {
+	num_bits = e;
+#if PY_VERSION_HEX < 0x02070000
+	num_bits *= SHIFT;
+#endif
+	num_bits += log(x)/log(2) + 1;
+    }
     else
-      num_bits = 0;
+	num_bits = 0;
 	
     num_poses = (long)(num_bits / NyBits_N + 1);
     /* fprintf(stderr, "x %f e %d num_bits %f num_poses %ld\n", x, e, num_bits, num_poses); */
