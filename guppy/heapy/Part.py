@@ -702,7 +702,7 @@ class SetPartition(Partition):
 	for (minusize, name, kind, part) in tosort:
 	    size = -minusize
 	    cumulsize += size
-	    assert size == part.size
+	    # assert size == part.size
 	    rows.append(PartRow(
 		part.count, size, name,
 		len(rows), cumulsize,
