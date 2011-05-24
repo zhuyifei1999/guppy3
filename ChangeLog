@@ -1,3 +1,12 @@
+2011-05-24  Sverker Nilsson  <sverker@sverker-laptop>
+
+	* src/heapy/hv_cli_dictof.c (hv_get_objects): New function that
+	emulates gc_get_objects because of optimizations to the dict
+	implementation which made them non-gc-tracked sometimes.
+	
+	(hv_cli_dictof_update_new_method): Relies on new function
+	hv_get_objects to get at all dict objects in the heap.
+
 2011-02-24  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* guppy/heapy/Part.py : Removed a failing assert in lack of a

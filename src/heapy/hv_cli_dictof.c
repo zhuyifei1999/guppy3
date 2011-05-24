@@ -73,6 +73,19 @@ hv_cli_dictof_get_static_types_list(NyHeapViewObject *hv) {
     return PySequence_List(hv->static_types);
 }
 
+static PyObject *
+hv_get_objects(NyHeapViewObject *hv) {
+    PyObject *p = hv_heap(hv, Py_None, Py_None);
+    PyObject *r;
+    if (!p)
+	goto err;
+    r = PySequence_List(p);
+    Py_DECREF(p);
+    return r;
+    err:
+    return 0;
+}
+
 static int
 hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
@@ -88,7 +101,7 @@ hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 
     if (!(dictsowned = NyMutNodeSet_New())) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
-    if (!(lists[1] = gc_get_objects())) goto err;
+    if (!(lists[1] = hv_get_objects(hv))) goto err;
     for (k = 0; k < 2; k++) {
 	PyObject *objects = lists[k];
 	len = PyList_Size(objects);

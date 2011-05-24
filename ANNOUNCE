@@ -1,4 +1,4 @@
-I am happy to announce Guppy-PE 0.1.9
+I am happy to announce Guppy-PE 0.1.10
 
 Guppy-PE is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -10,31 +10,16 @@ common source.
 
 The main news in this release:
 
-o A patch by Chad Austin to compile with Visual Studio 2003 and Python
-  2.5 C compilers. I think this may fix similar problems with other
-  Microsoft compilers.
+o Supports Python 2.7
 
-o Interactive help system, providing a .doc attribute that can be used
-  to get info on available attributes in text form and also by
-  invoking a browser.
-
-o New documentation file, heapy_tutorial.html.  It contains for now an
-  example of how to get started and use the interactive help.
-
-o Bug fix wrt pop for mutable bitset. (Not used in heapy, only in
-  sets/test.py)
-
-o guppy.hpy().test() now includes the set-specific tests.
-
-o Remote monitor does not longer require readline library being installed.
-
+o Minor bug fixes
 
 License: MIT
 
-Guppy-PE 0.1.9 is available in source tarball format on the Python
+Guppy-PE 0.1.10 is available in source tarball format on the Python
 Package Index (a.k.a. Cheeseshop):
 
-        http://pypi.python.org/pypi/guppy/0.1.9
+        http://pypi.python.org/pypi/guppy/0.1.10
 
 The project homepage is on Sourceforge:
 
@@ -44,5 +29,6 @@ Enjoy,
 
 Sverker Nilsson
 
+--
 Expertise in Linux, embedded systems, image processing, C, Python...
         http://sncs.se
