@@ -345,7 +345,9 @@ class Test:
 	print >>f,bitset([-1]) | bitset([4])
 	#print >>f,long(bitset([-1]))
 
-	assert f.getvalue() == """\
+        # LP: #770882
+        if sys.hexversion < 0x2070000:
+            assert f.getvalue() == """\
 (ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]))
 ImmBitSet([15])
 ImmBitSet([4])
@@ -412,6 +414,9 @@ ImmBitSet([-1, 4])
 			tr.append(~ta ^ ~tb)
 			ts.append(tr)
 
+                # LP: #770882
+                if sys.hexversion >= 0x2070000:
+                    continue
 		for tr in ts[1:]:
 		    for r, x in zip(tr, ts[0]):
 			assert long(r) == x
@@ -448,6 +453,9 @@ ImmBitSet([-1, 4])
 		    tr.append(long(tb))
 		    ts.append(tr)
 
+        # LP: #770882
+        if sys.hexversion >= 0x2070000:
+            return
 	for tr in ts[1:]:
 	    #print tr
 	    for r, x in zip(tr, ts[0]):
@@ -556,6 +564,9 @@ ImmBitSet([-1, 4])
 
     def test6(self):
 	# Comparisons
+        # LP: #770882
+        if sys.hexversion >= 0x2070000:
+            return
 	for a in (randlong(),):
 	    for b in (a, ~a, randlong()):
 		assert ((bitset(a) == bitset(b)) == (a == b))
