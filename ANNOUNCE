@@ -10,9 +10,11 @@ common source.
 
 The main news in this release:
 
-o Supports Python 2.7
+o Support for Python 2.7
+  However, there are still some problems with the tests
+  that I haven't been able to sort out.
 
-o Minor bug fixes
+o Some minor bug fixes
 
 License: MIT
 
@@ -29,6 +31,3 @@ Enjoy,
 
 Sverker Nilsson
 
---
-Expertise in Linux, embedded systems, image processing, C, Python...
-        http://sncs.se
