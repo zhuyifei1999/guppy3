@@ -118,7 +118,7 @@ There will be several more tests. Some tests may take a while.
 Caveat 1: Some tests may be somewhat picky, and may have to be relaxed
 to pass in different installations.
 
-Caveat 2: All tests don't currently work in Python 2.7
+Caveat 2: All tests don't currently work always in Python 2.7
 
 LICENSE
 

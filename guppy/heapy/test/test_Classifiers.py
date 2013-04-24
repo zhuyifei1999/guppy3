@@ -212,7 +212,10 @@ class SpecialCases(TestCase):
 	# This is a performance question, requires special kind of testing
 	# 
 	# Also tests that dict & dict owners are not leaked
-
+	import sys
+	if sys.hexversion >= 0x02070000:
+	    print "XXX SKIPPING test_dictowner TEST BECAUSE OF SLUGGISHNESS WITH PYTHON 2.7"	  
+	    return
 	import gc
 	from sys import getrefcount as grc
 	Use = self.Use
