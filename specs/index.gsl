@@ -386,21 +386,22 @@ rationale and some use cases for Heapy (version 0.1).
 ......id=last
 ......colspan=5
 
-..h3: External resources
+..c
+...h3: External resources
 
-..p: Thanks to all that have written about Heapy on various blogs. I
+...p: Thanks to all that have written about Heapy on various blogs. I
 think the following links may be especially useful to get
 started. More tips are very welcome!
 
-..ul
-...li
-....a:How to use guppy/heapy for tracking down memory usage
-.....href=http://www.pkgcore.org/trac/pkgcore/doc/dev-notes/heapy.rst
-....t: (pkgcore - Trac)
-...li
-....a:Debugging Django memory leak with TrackRefs and Guppy
-.....href=http://blog.redinnovation.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy
-....t: (Redi for Life)
+...ul
+....li
+.....a:How to use guppy/heapy for tracking down memory usage
+......href=http://www.pkgcore.org/trac/pkgcore/doc/dev-notes/heapy.rst
+.....t: (pkgcore - Trac)
+....li
+.....a:Debugging Django memory leak with TrackRefs and Guppy
+......href=http://blog.redinnovation.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy
+.....t: (Redi for Life)
 
 ..a
 ...name=Download
@@ -420,7 +421,7 @@ and 2.6, and in 32 bits mode with Ubuntu 9.04 with Python 2.4, 2.5 and
 2.6 .
 
 ..p: As of 2013-04-24, I have tested the latest revision with Ubuntu 12.10 32 bit
-and Python 2.6 on an Intel Core I5.
+and Python 2.7 on an Intel Core I5.
 
 ..p: To check out the latest (HEAD) revision, you can do:
 

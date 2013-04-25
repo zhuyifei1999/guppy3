@@ -1,3 +1,10 @@
+	guppy 0.1.10
+	
+	
+2013-04-25  sverker  <sverker@sverker-HP-Pavilion-g6-Notebook-PC>
+
+	* guppy/sets/test.py (Test.test1): Added checks for Python 2.7
+
 2011-05-24  Sverker Nilsson  <sverker@sverker-laptop>
 
 	* src/heapy/hv_cli_dictof.c (hv_get_objects): New function that
