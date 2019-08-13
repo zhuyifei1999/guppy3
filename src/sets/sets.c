@@ -36,31 +36,30 @@ char sets_doc[] =
 #include "../heapy/heapy.h"
 #include "sets_internal.h"
 
-#define INITFUNC initsetsc
+#define INITFUNC PyInit_setsc
 #define MODNAME "setsc"
 
 extern int fsb_dx_nybitset_init(PyObject *m);
 extern int fsb_dx_nynodeset_init(PyObject *m);
 
-static PyMethodDef module_methods[] =
-{
-	{NULL, NULL}
+static PyMethodDef module_methods[] = {
+    {NULL, NULL}
 };
 
 int fsb_dx_addmethods(PyObject *m, PyMethodDef *methods, PyObject *passthrough) {
     PyObject *d, *v;
-	PyMethodDef *ml;
-	d = PyModule_GetDict(m);
-	for (ml = methods; ml->ml_name != NULL; ml++) {
-		v = PyCFunction_New(ml, passthrough);
-		if (v == NULL)
-			return -1;
-		if (PyDict_SetItemString(d, ml->ml_name, v) != 0) {
-			Py_DECREF(v);
-			return -1;
-		}
-		Py_DECREF(v);
-	}
+    PyMethodDef *ml;
+    d = PyModule_GetDict(m);
+    for (ml = methods; ml->ml_name != NULL; ml++) {
+        v = PyCFunction_New(ml, passthrough);
+        if (v == NULL)
+            return -1;
+        if (PyDict_SetItemString(d, ml->ml_name, v) != 0) {
+            Py_DECREF(v);
+            return -1;
+        }
+        Py_DECREF(v);
+    }
     return 0;
 }
 
@@ -71,9 +70,19 @@ static NyHeapDef nysets_heapdefs[] = {
     {0}
 };
 
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    MODNAME,
+    NULL,
+    0,
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-
-DL_EXPORT (void)
+PyMODINIT_FUNC
 INITFUNC (void)
 {
     PyObject *m;
@@ -83,26 +92,28 @@ INITFUNC (void)
     nysets_heapdefs[1].type = &NyCplBitSet_Type;
     nysets_heapdefs[2].type = &NyNodeSet_Type;
 
-    m = Py_InitModule(MODNAME, module_methods);
+    m = PyModule_Create(&moduledef);
     if (!m)
-      goto Error;
+        return NULL;
     d = PyModule_GetDict(m);
     if (fsb_dx_nybitset_init(m) == -1)
-      goto Error;
+        goto Error;
     if (fsb_dx_nynodeset_init(m) == -1)
-      goto Error;
-    if (PyDict_SetItemString(d, "__doc__", PyString_FromString(sets_doc)) == -1)
-      goto Error;
+        goto Error;
+    if (PyDict_SetItemString(d, "__doc__", PyUnicode_FromString(sets_doc)) == -1)
+        goto Error;
     if (PyDict_SetItemString(d,
-			 "_NyHeapDefs_",
-			 PyCObject_FromVoidPtrAndDesc(
-						      &nysets_heapdefs,
-						      "NyHeapDef[] v1.0",
-						      0)
-			 ) == -1)
-      goto Error;
-    return;
-  Error:
+             "_NyHeapDefs_",
+             PyCapsule_New(
+                              &nysets_heapdefs,
+                              "NyHeapDef[] v1.0",
+                              0)
+             ) == -1)
+        goto Error;
+    return m;
+Error:
     if (PyErr_Occurred() == NULL)
-      PyErr_SetString(PyExc_ImportError, "module initialization failed");
+        PyErr_SetString(PyExc_ImportError, "module initialization failed");
+    Py_DECREF(m);
+    return NULL;
 }
