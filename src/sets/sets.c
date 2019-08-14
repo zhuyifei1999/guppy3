@@ -105,9 +105,9 @@ INITFUNC (void)
     if (PyDict_SetItemString(d,
              "_NyHeapDefs_",
              PyCapsule_New(
-                              &nysets_heapdefs,
-                              "NyHeapDef[] v1.0",
-                              0)
+                 &nysets_heapdefs,
+                 "NyHeapDef[] v1.0",
+                 0)
              ) == -1)
         goto Error;
     return m;
