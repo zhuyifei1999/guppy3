@@ -6,17 +6,16 @@
 def t():
     from guppy import hsp
     while 1:
-	import guppy.heapy.UniSet
-	import gc
-	reload( guppy.heapy.UniSet )
-	hp = hsp()
-	x = None
-	x = hp.heap()
-	print x
-	gc.collect()
-	print x[0]
-	print x[1]
-	print x[2]
-	gc.collect()
-	print x&dict
-
+        import guppy.heapy.UniSet
+        import gc
+        reload( guppy.heapy.UniSet )
+        hp = hsp()
+        x = None
+        x = hp.heap()
+        print x
+        gc.collect()
+        print x[0]
+        print x[1]
+        print x[2]
+        gc.collect()
+        print x&dict

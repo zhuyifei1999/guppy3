@@ -17,18 +17,18 @@ def co_code_findloadednames(co):
         op = ord(c)
         i = i+1
         if op >= HAVE_ARGUMENT:
-	    if op in hasloadname:
-		oparg = ord(code[i]) + ord(code[i+1])*256
-		name = co.co_names[oparg]
-		indexset[name] = 1
-		if len(indexset) >= len_co_names:
-		    break
+            if op in hasloadname:
+                oparg = ord(code[i]) + ord(code[i+1])*256
+                name = co.co_names[oparg]
+                indexset[name] = 1
+                if len(indexset) >= len_co_names:
+                    break
             i = i+2
     for name in co.co_varnames:
-	try:
-	    del indexset[name]
-	except KeyError:
-	    pass
+        try:
+            del indexset[name]
+        except KeyError:
+            pass
     return indexset
 
 def co_findloadednames(co):
@@ -36,8 +36,6 @@ def co_findloadednames(co):
     names = {}
     names.update(co_code_findloadednames(co))
     for c in co.co_consts:
-	if isinstance(c, type(co)):
-	    names.update(co_findloadednames(c))
+        if isinstance(c, type(co)):
+            names.update(co_findloadednames(c))
     return names
-    
-

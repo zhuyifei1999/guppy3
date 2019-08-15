@@ -3,7 +3,7 @@ import os
 from distutils.command.install import INSTALL_SCHEMES
 
 for scheme in INSTALL_SCHEMES.values():
-    scheme['data'] = scheme['purelib'] 
+    scheme['data'] = scheme['purelib']
 
 from distutils.core import setup, Extension
 
@@ -17,7 +17,7 @@ setsc = Extension("guppy.sets.setsc",
 
 heapyc = Extension("guppy.heapy.heapyc",
                    [
-        	       'src/heapy/heapyc.c',
+                       'src/heapy/heapyc.c',
                        'src/heapy/stdtypes.c'
                        ]
                    )
@@ -53,7 +53,7 @@ heapy
        about the objects in the heap and display the information
        in various ways.
 
-sets 
+sets
        Bitsets and 'nodesets' implemented in C.
 """,
           author="Sverker Nilsson",
@@ -74,4 +74,3 @@ sets
           )
 
 doit()
-

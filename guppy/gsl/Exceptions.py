@@ -32,4 +32,3 @@ class CoverageError(ReportedError):
 
 class ConditionError(GSL_Error):
     pass
-

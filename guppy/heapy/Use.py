@@ -23,28 +23,28 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
     default_reprefix = 'hpy().'
 
     def _get_gcobjs(self):
-	return self.Nothing
+        return self.Nothing
 
     def _get_relheap(self):
-	return self.Nothing
+        return self.Nothing
 
     def _get_relheapg(self):
-	return self.Nothing
+        return self.Nothing
 
     def _get_relheapu(self):
-	return self.Nothing
+        return self.Nothing
 
     def _get_reprefix(self):
-	# The name that this instance (or one with the same ._share)
-	# has in the __main__ module, if any, or self.default_reprname otherwise.
-	# Used for prefixing the result of repr() of various objects
-	# so it becomes possible to evaluate it in a typical environment.
-	import __main__
-	for k, v in __main__.__dict__.items():
-	    if (isinstance(v, self.__class__) and
-		getattr(v, '_share', None) is self._share):
-		return '%s.'%k
-	return self.default_reprefix
+        # The name that this instance (or one with the same ._share)
+        # has in the __main__ module, if any, or self.default_reprname otherwise.
+        # Used for prefixing the result of repr() of various objects
+        # so it becomes possible to evaluate it in a typical environment.
+        import __main__
+        for k, v in __main__.__dict__.items():
+            if (isinstance(v, self.__class__) and
+                getattr(v, '_share', None) is self._share):
+                return '%s.'%k
+        return self.default_reprefix
 
     def _get_Root(self):
         """Root: RootStateType
@@ -54,8 +54,8 @@ reachable objects in the heap can be reached. It is the only value (a
 singleton) of its kind; see [1] for a description of its attributes.
 
 References
-	[0] heapy_Use.html#heapykinds.Use.Root
-	[1] heapy_RootState.html#heapykinds.RootStateType"""
+        [0] heapy_Use.html#heapykinds.Use.Root
+        [1] heapy_RootState.html#heapykinds.RootStateType"""
 
         return self.View.heapyc.RootState
 
@@ -64,7 +64,7 @@ References
 Top level interface to Heapy.
 Use eg: %sdoc for more info on %s.""" %(
             self.reprefix,self.reprefix[:-1])
-        
+
 
     __str__=__repr__
 
@@ -84,8 +84,8 @@ returns a GuppyDoc object providing documentation for the heap
 method. The method also takes a string argument specifying further
 options. Currently the following are provided:
 
-        'l'	Generate a listing of the synopsis lines.
-	'L'	Generate a listing of the entire doc strings."""
+        'l'     Generate a listing of the synopsis lines.
+        'L'     Generate a listing of the entire doc strings."""
 
         obj = self
         return self._root.guppy.etc.Help.dir(obj, opts)
@@ -118,18 +118,18 @@ References
 Top level interface to Heapy. Available attributes:""",
                                              footer="""\
 Use eg: %sdoc.<attribute> for info on <attribute>."""%self.reprefix)
-        
+
 
     def heapg(self, rma=1):
         """ DEPRECATED """
         self.warnings.warn(
 "Method Use.heapg is depreciated, it doesn't work well. Use heapu instead.")
-	h = self.View.heapg(rma)
-	h -= self.relheapg
-	return h
-	
+        h = self.View.heapg(rma)
+        h -= self.relheapg
+        return h
+
     def heapu(self, rma=1, abs=0, stat=1):
-        """heapu() -> Stat 
+        """heapu() -> Stat
 
 Finds the objects in the heap that remain after garbage collection but
 are _not_ reachable from the root.  This can be used to find objects
@@ -147,7 +147,7 @@ References
     [1] heapy_Use.html#heapykinds.Use.setref"""
 
 
-	h = self.View.heapu(rma)
+        h = self.View.heapu(rma)
         rel = 0
         if not abs and self.relheapu and isinstance(self.relheapu, type(h)):
             h -= self.relheapu
@@ -164,10 +164,10 @@ References
                 h.firstheader += ' relative to: %s'%\
                                  self.ctime(self.relheapu.timemade)
             h.firstheader += '.\n'
-            
 
-	return h
-	
+
+        return h
+
     def heap(self):
         """heap() -> IdentitySet[1]
 
@@ -185,10 +185,10 @@ References
     [2] heapy_Use.html#heapykinds.Use.setref
     [3] heapy_Use.html#heapykinds.Use.Clodo"""
 
-	h = self.View.heap()
-	h |= self.gcobjs
-	h -= self.relheap
-	return h
+        h = self.View.heap()
+        h |= self.gcobjs
+        h -= self.relheap
+        return h
 
     def load(self, fn, use_readline=0):
         """\
@@ -218,75 +218,75 @@ Returns
 References
     [0] heapy_Use.html#heapykinds.Use.load"""
 
-	if isinstance(fn, basestring):
-	    # We got a filename.
-	    # I want to read only what is being requested
-	    # so I can look quickly at some lines of a long table.
-	    # (There are seemingly easier ways to do this
-	    #  but this takes care of some tricky details.
-	    #  Keeping f open avoids it to be overwritten
-	    #  (at least by Stat.dump() and if OS=Linux)
-	    #  if data are written to a new file with the same name.)
-	    f = open(fn)
-	    def get_trows():
-		pos = 0
-		while 1:
-		    f.seek(pos)
-		    line = f.readline()
-		    if not line:
-			break
-		    pos = f.tell()
-		    yield line
-	elif hasattr(fn, '__iter__') and not hasattr(fn, 'next'):
-	    # We got a sequence, that is not an iterator. Use it directly.
-	    def get_trows():
-		return fn
-	elif hasattr(fn, 'next'):
-	    # We got an iterator or file object.
-	    # We 'have' to read all lines (at once)-
-	    # to update the read position -
-	    # to mimic 'pickle' semantics if several
-	    # objects are stored in the same file.
-	    # We can't use .next always - (eg not on pipes)
-	    # it makes a big readahead (regardless of buffering setting).
-	    # But since .next() (typically) is much faster, we use it
-	    # per default unless use_readline is set.
-	    if use_readline:
-		get_line = fn.readline
-	    else:
-		get_line = fn.next
+        if isinstance(fn, basestring):
+            # We got a filename.
+            # I want to read only what is being requested
+            # so I can look quickly at some lines of a long table.
+            # (There are seemingly easier ways to do this
+            #  but this takes care of some tricky details.
+            #  Keeping f open avoids it to be overwritten
+            #  (at least by Stat.dump() and if OS=Linux)
+            #  if data are written to a new file with the same name.)
+            f = open(fn)
+            def get_trows():
+                pos = 0
+                while 1:
+                    f.seek(pos)
+                    line = f.readline()
+                    if not line:
+                        break
+                    pos = f.tell()
+                    yield line
+        elif hasattr(fn, '__iter__') and not hasattr(fn, 'next'):
+            # We got a sequence, that is not an iterator. Use it directly.
+            def get_trows():
+                return fn
+        elif hasattr(fn, 'next'):
+            # We got an iterator or file object.
+            # We 'have' to read all lines (at once)-
+            # to update the read position -
+            # to mimic 'pickle' semantics if several
+            # objects are stored in the same file.
+            # We can't use .next always - (eg not on pipes)
+            # it makes a big readahead (regardless of buffering setting).
+            # But since .next() (typically) is much faster, we use it
+            # per default unless use_readline is set.
+            if use_readline:
+                get_line = fn.readline
+            else:
+                get_line = fn.next
 
-	    trows = []
-	    line = get_line()
-	    if not line:
-		raise StopIteration
-	    endline = '.end: %s'%line
-	    try:
-		while line:
-		    trows.append(line)
-		    if line == endline:
-			break
-		    line = get_line()
-		else:
-		    raise StopIteration
-	    except StopIteration:
-		trows.append(endline)
+            trows = []
+            line = get_line()
+            if not line:
+                raise StopIteration
+            endline = '.end: %s'%line
+            try:
+                while line:
+                    trows.append(line)
+                    if line == endline:
+                        break
+                    line = get_line()
+                else:
+                    raise StopIteration
+            except StopIteration:
+                trows.append(endline)
 
-	    def get_trows():
-		return trows
-	else:
-	    raise TypeError, 'Argument should be a string, file or an iterable yielding strings.'
+            def get_trows():
+                return trows
+        else:
+            raise TypeError, 'Argument should be a string, file or an iterable yielding strings.'
 
-	a = iter(get_trows()).next()
-	if not a.startswith('.loader:'):
-	    raise ValueError, 'Format error in %r: no initial .loader directive.'%fn
-	loader = a[a.index(':')+1:].strip()
-	try:
-	    loader = getattr(self, loader)
-	except AttributeError:
-	    raise ValueError, 'Format error in %r: no such loader: %r.'%(fn, loader)
-	return loader(get_trows)
-	
+        a = iter(get_trows()).next()
+        if not a.startswith('.loader:'):
+            raise ValueError, 'Format error in %r: no initial .loader directive.'%fn
+        loader = a[a.index(':')+1:].strip()
+        try:
+            loader = getattr(self, loader)
+        except AttributeError:
+            raise ValueError, 'Format error in %r: no such loader: %r.'%(fn, loader)
+        return loader(get_trows)
+
     def loadall(self,f):
         ''' Generates all objects from an open file f or a file named f'''
         if isinstance(f,basestring):
@@ -295,18 +295,18 @@ References
             yield self.load(f)
 
     def loadc(self, fn):
-	f = open(fn, 'r', 1)
-	while 1:
-	    print self.load(f, use_readline=1)
-	    
+        f = open(fn, 'r', 1)
+        while 1:
+            print self.load(f, use_readline=1)
+
     def dumph(self, fn):
-	f = open(fn, 'w')
-	import gc
-	while 1:
-	    x = self.heap()
-	    x.stat.dump(f)
-	    f.flush()
-	    print len(gc.get_objects())
+        f = open(fn, 'w')
+        import gc
+        while 1:
+            x = self.heap()
+            x.stat.dump(f)
+            f.flush()
+            print len(gc.get_objects())
 
     def setref(self, reachable=None, unreachable=None):
         """setref()
@@ -333,22 +333,22 @@ References
                 self.setrelheapu(unreachable)
 
     def setrelheap(self, reference=None):
-	if reference is None:
-	    reference = self.View.heap()
-	self.relheap = reference
+        if reference is None:
+            reference = self.View.heap()
+        self.relheap = reference
 
     def setrelheapg(self, reference=None):
         self.warnings.warn(
 "Method Use.setrelheapg is depreciated, use setref instead.")
-	if reference is None:
+        if reference is None:
             self.relheapg = None
-	    reference = self.View.heapg()
-	self.relheapg = reference
+            reference = self.View.heapg()
+        self.relheapg = reference
 
     def setrelheapu(self, reference=None,stat=1):
-	if reference is None:
+        if reference is None:
             self.relheapu = None
-	    reference = self.heapu(abs=True, stat=stat)
+            reference = self.heapu(abs=True, stat=stat)
         if stat and not isinstance(reference, self.Stat):
             reference = reference.stat
         self.relheapu = reference
@@ -366,35 +366,35 @@ Argument
         self._parent.test.test_all.test_main(debug)
 
     _imports_ = (
-	'_parent.Classifiers:Class',
-	'_parent.Classifiers:Clodo',
-	'_parent.Classifiers:Id',
-	'_parent.Classifiers:Idset',
-	'_parent.Classifiers:Module',
-	'_parent.Classifiers:Rcs',
-	'_parent.Classifiers:Size',
-	'_parent.Classifiers:Type',
-	'_parent.Classifiers:Unity',
-	'_parent.Classifiers:Via',
-	'_parent.Classifiers:findex',
-	'_parent.Classifiers:sonokind',
-	'_parent.Classifiers:tc_adapt',
-	'_parent.Classifiers:tc_repr',
-	'_parent.Monitor:monitor',
-	'_parent.Part:_load_stat',
-	'_parent.Part:Stat',
-	'_parent.Prof:pb',
-	'_parent.UniSet:Anything',
-	'_parent.UniSet:idset',
-	'_parent.UniSet:iso',
-	'_parent.UniSet:Nothing',
-	'_parent.UniSet:union',
-	'_parent.UniSet:uniset_from_setcastable',
-	'_parent:View',
-	'_parent.View:_hiding_tag_',
+        '_parent.Classifiers:Class',
+        '_parent.Classifiers:Clodo',
+        '_parent.Classifiers:Id',
+        '_parent.Classifiers:Idset',
+        '_parent.Classifiers:Module',
+        '_parent.Classifiers:Rcs',
+        '_parent.Classifiers:Size',
+        '_parent.Classifiers:Type',
+        '_parent.Classifiers:Unity',
+        '_parent.Classifiers:Via',
+        '_parent.Classifiers:findex',
+        '_parent.Classifiers:sonokind',
+        '_parent.Classifiers:tc_adapt',
+        '_parent.Classifiers:tc_repr',
+        '_parent.Monitor:monitor',
+        '_parent.Part:_load_stat',
+        '_parent.Part:Stat',
+        '_parent.Prof:pb',
+        '_parent.UniSet:Anything',
+        '_parent.UniSet:idset',
+        '_parent.UniSet:iso',
+        '_parent.UniSet:Nothing',
+        '_parent.UniSet:union',
+        '_parent.UniSet:uniset_from_setcastable',
+        '_parent:View',
+        '_parent.View:_hiding_tag_',
         '_root.time:ctime',
         '_root:warnings',
-	)
+        )
 
     _doc_Anything = """Anything: Kind
 
@@ -583,7 +583,7 @@ by the argument:
 
 .keys()[integer]
     A key in a dictionary, at the indicated place in its keys().
-    
+
 References
     [0] heapy_Use.html#heapykinds.Use.Via
     [1] heapy_UniSet.html#heapykinds.KindOfInViaFamily"""

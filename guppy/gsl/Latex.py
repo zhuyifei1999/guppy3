@@ -3,240 +3,240 @@
 
 class Doc2Latex:
     sizes = ('tiny', 'scriptsize', 'footnotesize', 'small',
-	     'normalsize', 'large', 'Large', 'LARGE', 'huge', 'Huge')
+             'normalsize', 'large', 'Large', 'LARGE', 'huge', 'Huge')
     def __init__(self, mod, doc, node):
-	self.mod = mod
-	self.doc = doc
-	self.encoder = Encoder(mod)
-	self.encode = self.encoder.encode
-	self.node = node
-	self.out = []
-	self.ms = []
-	self.mode = None
-	self.cur_style = 'rm'
-	self.cur_size = list(self.sizes).index('normalsize')
-	self.document_lang = None
-	self.document_title = None
-	self.document_metas = []
-	self.latex_list_nesting = 0
+        self.mod = mod
+        self.doc = doc
+        self.encoder = Encoder(mod)
+        self.encode = self.encoder.encode
+        self.node = node
+        self.out = []
+        self.ms = []
+        self.mode = None
+        self.cur_style = 'rm'
+        self.cur_size = list(self.sizes).index('normalsize')
+        self.document_lang = None
+        self.document_title = None
+        self.document_metas = []
+        self.latex_list_nesting = 0
         self.latex_mode = 0
-	self.noindent = 0
-	self.authors = []
+        self.noindent = 0
+        self.authors = []
 
-	node.accept(self)
+        node.accept(self)
 
     def _visit_children(self, node):
-	E = self.mod.ReportedError
-	for ch in node.children:
-	    try:
-		ch.accept(self)
-	    except E:
-		pass
+        E = self.mod.ReportedError
+        for ch in node.children:
+            try:
+                ch.accept(self)
+            except E:
+                pass
 
     def abs_size(self, size, node):
-	osize = self.cur_size
-	si = size
-	if si < 0:
-	    si = 0
-	elif si >= len(self.sizes):
-	    si = len(self.sizes) - 1
-	self.append('{\\%s '%self.sizes[si])
-	self.cur_size = si
-	if self.cur_style != 'rm':
-	    self.style(self.cur_style, node)
-	else:
-	    node.arg_accept(self)
-	self.append('}')
-	self.cur_size = osize
-	
+        osize = self.cur_size
+        si = size
+        if si < 0:
+            si = 0
+        elif si >= len(self.sizes):
+            si = len(self.sizes) - 1
+        self.append('{\\%s '%self.sizes[si])
+        self.cur_size = si
+        if self.cur_style != 'rm':
+            self.style(self.cur_style, node)
+        else:
+            node.arg_accept(self)
+        self.append('}')
+        self.cur_size = osize
+
 
     def append(self, x):
-	self.out.append(x)
+        self.out.append(x)
 
 
     def changed_size(self, delta, node):
-	self.abs_size(self.cur_size + delta, node)
-	
+        self.abs_size(self.cur_size + delta, node)
+
     def error(self, msg, *args, **kwds):
-	msg = 'Doc2Latex: ' + msg
-	self.doc.env.error(msg, *args, **kwds)
+        msg = 'Doc2Latex: ' + msg
+        self.doc.env.error(msg, *args, **kwds)
 
     def get_latex(self):
-	return ''.join(self.out)
+        return ''.join(self.out)
 
     def no_children(self, node):
-	if node.children:
-	    self.error('No children allowed for %r.'%node.tag, node.children[0])
+        if node.children:
+            self.error('No children allowed for %r.'%node.tag, node.children[0])
 
     def style(self, style, node):
-	self.append('{\\%s '%style)
-	ostyle = self.cur_style
-	self.cur_style = style
-	node.arg_accept(self)
-	self.cur_style = ostyle
-	if style == 'em':
-	    self.append('\\/}')
-	else:
-	    self.append('\\/}')
+        self.append('{\\%s '%style)
+        ostyle = self.cur_style
+        self.cur_style = style
+        node.arg_accept(self)
+        self.cur_style = ostyle
+        if style == 'em':
+            self.append('\\/}')
+        else:
+            self.append('\\/}')
 
     def visit_a(self, node):
         pass
 
     def visit_author(self, node):
-	self.authors.append(node.arg)
-	self.no_children(node)
+        self.authors.append(node.arg)
+        self.no_children(node)
 
     def visit_big(self, node):
-	self.changed_size(1, node)
-		    
+        self.changed_size(1, node)
+
 
     def visit_block(self, node):
-	self._visit_children(node)
+        self._visit_children(node)
 
     def visit_blockquote(self, node):
-	self.append('\\begin{quote}\n')
-	self.latex_list_nesting += 1
+        self.append('\\begin{quote}\n')
+        self.latex_list_nesting += 1
 
-	node.arg_accept(self)
+        node.arg_accept(self)
 
-	self.latex_list_nesting -= 1
-	self.append('\\end{quote}\n')
+        self.latex_list_nesting -= 1
+        self.append('\\end{quote}\n')
 
     char_table = {
-	'nbsp'	: '~',
-	}
+        'nbsp'  : '~',
+        }
 
     def visit_char(self, node):
         char = node.arg.strip()
-	c = self.char_table.get(char)
-	if c is None:
-	    self.error('No such character: %r.'%char, node)
-	    c = char
-	self.append(c)
+        c = self.char_table.get(char)
+        if c is None:
+            self.error('No such character: %r.'%char, node)
+            c = char
+        self.append(c)
 
     def visit_code(self, node):
-	self.style('tt', node)
+        self.style('tt', node)
 
     def visit_comment(self, node):
-	pass
+        pass
 
     def visit_dd(self, node):
-	self.ms.append('dd')
-	step = 24
-	ls = (self.ms.count('dd') + self.latex_list_nesting) * step
-	self.append('{\\par \\noindent  \\leftskip = %d pt '%ls)
-	for i, v in enumerate(('i', 'ii', 'iii', 'iv', 'v', 'vi')[self.latex_list_nesting:]):
-	    self.append(' \\leftmargin%s = %d pt '%(v, ls + (i + 1) * step))
-	node.arg_accept(self)
-	self.append('\\par}\n')
-	self.ms.pop()
+        self.ms.append('dd')
+        step = 24
+        ls = (self.ms.count('dd') + self.latex_list_nesting) * step
+        self.append('{\\par \\noindent  \\leftskip = %d pt '%ls)
+        for i, v in enumerate(('i', 'ii', 'iii', 'iv', 'v', 'vi')[self.latex_list_nesting:]):
+            self.append(' \\leftmargin%s = %d pt '%(v, ls + (i + 1) * step))
+        node.arg_accept(self)
+        self.append('\\par}\n')
+        self.ms.pop()
 
     def visit_default(self, node):
-	self.error('I don\'t know what to generate for the tag %r.'%node.tag, node)
-	
+        self.error('I don\'t know what to generate for the tag %r.'%node.tag, node)
+
 
     def visit_define(self, node):
-	# xxx
-	self._visit_children(node)
+        # xxx
+        self._visit_children(node)
 
     def visit_dl(self, node):
-	if self.ms and self.ms[-1] == 'dt':
-	    self.visit_dd(node)
-	else:
-	    self.append('{\\par \\noindent\n')
-	    self._visit_children(node)
-	    self.append('\\par}\n')
+        if self.ms and self.ms[-1] == 'dt':
+            self.visit_dd(node)
+        else:
+            self.append('{\\par \\noindent\n')
+            self._visit_children(node)
+            self.append('\\par}\n')
 
     def visit_dt(self, node):
-	self.ms.append('dt')
-	self.append('{\\par \\pagebreak[%f] \\noindent \\hangindent = 12 pt \\hangafter = 1 \n'%(
-		    3.4-0.1*len(self.ms),
-		    ))
-	node.arg_accept(self)
-	self.append('\\par}\n')
-	self.ms.pop()
+        self.ms.append('dt')
+        self.append('{\\par \\pagebreak[%f] \\noindent \\hangindent = 12 pt \\hangafter = 1 \n'%(
+                    3.4-0.1*len(self.ms),
+                    ))
+        node.arg_accept(self)
+        self.append('\\par}\n')
+        self.ms.pop()
 
     def visit_document(self, node):
-	self._visit_children(node)
+        self._visit_children(node)
 
     def visit_document_lang(self, node):
-	if self.document_lang is not None:
-	    self.error('Duplicate document lang directive.', node)
-	self.document_lang = node
+        if self.document_lang is not None:
+            self.error('Duplicate document lang directive.', node)
+        self.document_lang = node
 
     def visit_document_title(self, node):
-	if self.document_title is not None:
-	    self.error('Duplicate document title directive.', node)
-	self.document_title = node
+        if self.document_title is not None:
+            self.error('Duplicate document title directive.', node)
+        self.document_title = node
 
     def visit_exdefs(self, node):
-	self.symplace = {}
-	for ch in node.children:
-	    syms = [x.strip() for x in ch.arg.split(',')]
-	    for sym in syms:
-		self.symplace[sym] = ch.tag
-	
-	
+        self.symplace = {}
+        for ch in node.children:
+            syms = [x.strip() for x in ch.arg.split(',')]
+            for sym in syms:
+                self.symplace[sym] = ch.tag
+
+
     def visit_em(self, node):
-	self.style('em', node)
+        self.style('em', node)
 
     def visit_enumerate(self, node):
-	self.append('\\begin{enumerate}\n')
-	for c in node.children:
-	    self.append('\\item ')
-	    c.accept(self)
-	self.append('\\end{enumerate}\n')
+        self.append('\\begin{enumerate}\n')
+        for c in node.children:
+            self.append('\\item ')
+            c.accept(self)
+        self.append('\\end{enumerate}\n')
 
     def visit_h0(self, node):
-	# Not a html header,
-	# we may treat this as 'new page' or chapter here
-	# and some larger divisor in html.
-	self.visit_hx(node)
+        # Not a html header,
+        # we may treat this as 'new page' or chapter here
+        # and some larger divisor in html.
+        self.visit_hx(node)
 
     def visit_h1(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_h2(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_h3(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_h4(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_h5(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_h6(self, node):
-	self.visit_hx(node)
+        self.visit_hx(node)
 
     def visit_hx(self, node):
-	n = int(node.tag[1:])
-	if self.mode == 'man_page':
-	    self.append('{\\par \\pagebreak[%d] \\vskip %d pt \\noindent\n' % (
-		[4,3,3,2,2,1,1][n],
-		(12 - 2 * n)))
-	    self.abs_size(len(self.sizes) - n - 2, self.mod.node_of_taci(
-		'', '',
-		[self.mod.node_of_taci('strong', node.arg, node.children)]))
-	    self.append('\\par \\vskip %d pt\n} \\noindent\n'%(12 - 2 * n))
-	    self.noindent = 1
-	    #self.append('\\end{list}\n')
-	else:
-	    self.append('\\%s{'%self.mod.section_table[n])
-	    node.arg_accept(self)
-	    self.append('}\n')
+        n = int(node.tag[1:])
+        if self.mode == 'man_page':
+            self.append('{\\par \\pagebreak[%d] \\vskip %d pt \\noindent\n' % (
+                [4,3,3,2,2,1,1][n],
+                (12 - 2 * n)))
+            self.abs_size(len(self.sizes) - n - 2, self.mod.node_of_taci(
+                '', '',
+                [self.mod.node_of_taci('strong', node.arg, node.children)]))
+            self.append('\\par \\vskip %d pt\n} \\noindent\n'%(12 - 2 * n))
+            self.noindent = 1
+            #self.append('\\end{list}\n')
+        else:
+            self.append('\\%s{'%self.mod.section_table[n])
+            node.arg_accept(self)
+            self.append('}\n')
 
     def visit_itemize(self, node):
-	self.append('\\begin{itemize}\n')
-	self.latex_list_nesting += 1
-	for c in node.children:
-	    self.append('\\item ')
-	    c.accept(self)
+        self.append('\\begin{itemize}\n')
+        self.latex_list_nesting += 1
+        for c in node.children:
+            self.append('\\item ')
+            c.accept(self)
 
-	self.latex_list_nesting -= 1
-	self.append('\\end{itemize}\n')
+        self.latex_list_nesting -= 1
+        self.append('\\end{itemize}\n')
 
     def visit_latex(self, node):
         self.latex_mode += 1
@@ -244,94 +244,94 @@ class Doc2Latex:
         self.latex_mode -= 1
 
     def visit_li(self, node):
-	self.append('\\item ')
-	node.arg_accept(self)
+        self.append('\\item ')
+        node.arg_accept(self)
 
     def visit_link_to(self, node):
-	# xxx
-	name = node.arg
-	self.append(' {\\em ')
-	if not node.children:
-	    self.append(self.encode(name))
-	else:
-	    self._visit_children(node)
-	self.append('\\/}')
+        # xxx
+        name = node.arg
+        self.append(' {\\em ')
+        if not node.children:
+            self.append(self.encode(name))
+        else:
+            self._visit_children(node)
+        self.append('\\/}')
 
     def visit_link_to_extern(self, node):
-	# xxx
-	name = node.arg
-	doc = node.children[0].arg
-	children = node.children[1:]
-	self.append(' {\\em ')
-	if not children:
-	    self.append(self.encode(name))
-	else:
-	    for ch in children:
-		ch.accept(self)
-	self.append('\\/}')
+        # xxx
+        name = node.arg
+        doc = node.children[0].arg
+        children = node.children[1:]
+        self.append(' {\\em ')
+        if not children:
+            self.append(self.encode(name))
+        else:
+            for ch in children:
+                ch.accept(self)
+        self.append('\\/}')
 
     def visit_link_to_local(self, node):
-	# xxx
-	name = node.arg
-	self.append(' {\\em ')
-	if not node.children:
-	    self.append(self.encode(name))
-	else:
-	    self._visit_children(node)
-	self.append('\\/}')
+        # xxx
+        name = node.arg
+        self.append(' {\\em ')
+        if not node.children:
+            self.append(self.encode(name))
+        else:
+            self._visit_children(node)
+        self.append('\\/}')
 
     def visit_link_to_unresolved(self, node):
-	# xxx
-	name = node.arg
-	self.append(' {\\em ')
-	if not node.children:
-	    self.append(self.encode(name))
-	else:
-	    self._visit_children(node)
-	self.append('\\/}')
+        # xxx
+        name = node.arg
+        self.append(' {\\em ')
+        if not node.children:
+            self.append(self.encode(name))
+        else:
+            self._visit_children(node)
+        self.append('\\/}')
 
     def visit_literal_block(self, node):
-	self.append('{\\ttfamily \\raggedright \\noindent')
-	self.encoder.literal_block = 1
-	self.encoder.insert_none_breaking_blanks = 1
+        self.append('{\\ttfamily \\raggedright \\noindent')
+        self.encoder.literal_block = 1
+        self.encoder.insert_none_breaking_blanks = 1
 
-	node.arg_accept(self)
-	self.encoder.literal_block = 0
-	self.encoder.insert_none_breaking_blanks = 0
-	self.append('}\n')
+        node.arg_accept(self)
+        self.encoder.literal_block = 0
+        self.encoder.insert_none_breaking_blanks = 0
+        self.append('}\n')
 
     def visit_lp(self, node):
         self.latex_mode += 1
-	self.visit_paragraph(node)
+        self.visit_paragraph(node)
         self.latex_mode -= 1
-        
+
 
     def visit_man_page_mode(self, node):
-	omode = self.mode
-	self.mode = 'man_page'
-	self._visit_children(node)
-	self.mode = omode
+        omode = self.mode
+        self.mode = 'man_page'
+        self._visit_children(node)
+        self.mode = omode
 
     def visit_meta(self, node):
-	self.document_metas.append(node)
+        self.document_metas.append(node)
 
     def visit_ol(self, node):
-	self.append('\\begin{enumerate}\n')
+        self.append('\\begin{enumerate}\n')
         self._visit_children(node)
-	self.append('\\end{enumerate}\n')
-        
+        self.append('\\end{enumerate}\n')
+
 
     def visit_p(self, node):
-	self.visit_paragraph(node)
+        self.visit_paragraph(node)
 
     def visit_paragraph(self, node):
-	self.append('{\\par ')
-	if self.noindent:
-	    self.append('\\parindent = 0 pt ')
-	    self.noindent = 0
-	self.append('\n')
-	node.arg_accept(self)
-	self.append(' \\par}\n')
+        self.append('{\\par ')
+        if self.noindent:
+            self.append('\\parindent = 0 pt ')
+            self.noindent = 0
+        self.append('\n')
+        node.arg_accept(self)
+        self.append(' \\par}\n')
 
     def visit_pre(self, node):
         # I couldn't use Latex verbatim environment
@@ -363,174 +363,174 @@ class Doc2Latex:
 
 
     def visit_small(self, node):
-	self.changed_size(-1, node)
-		    
+        self.changed_size(-1, node)
+
     def visit_spc_colonkind(self, node):
-	self.append('~{\\bf :} ')
-	
+        self.append('~{\\bf :} ')
+
     def visit_spc_mapsto(self, node):
-	self.append(' \\(\mapsto \\) ')
+        self.append(' \\(\mapsto \\) ')
 
     def visit_string(self, node):
-	self._visit_children(node)
+        self._visit_children(node)
 
     def visit_strong(self, node):
-	self.style('bf', node)
+        self.style('bf', node)
 
     def visit_sub(self, node):
-	self.append('\\raisebox{-.6ex}{')
-	self.changed_size(-1, node)
-	self.append('}')
+        self.append('\\raisebox{-.6ex}{')
+        self.changed_size(-1, node)
+        self.append('}')
 
     def visit_sup(self, node):
-	self.append('\\raisebox{.6ex}{')
-	self.changed_size(-1, node)
-	self.append('}')
+        self.append('\\raisebox{.6ex}{')
+        self.changed_size(-1, node)
+        self.append('}')
 
     def visit_symbol(self, node):
-	self.visit_text(node)
+        self.visit_text(node)
 
     def visit_table(self, node):
-	Table(self, node)
+        Table(self, node)
 
     def visit_text(self, node):
         if self.latex_mode:
             self.append(node.arg)
         elif 1:
-	    text = node.arg
-	    text = self.encoder.encode(text)
-	    self.append(text)
-	else:
-	    for ch in node.arg:
-		if ch == '\\':
-		    ch = '{\\textbackslash}'
-		elif ch in '{}#~':
-		    ch = '\\'+ch
-		self.append(ch)
-	    self.append('\n')
-	self._visit_children(node)
+            text = node.arg
+            text = self.encoder.encode(text)
+            self.append(text)
+        else:
+            for ch in node.arg:
+                if ch == '\\':
+                    ch = '{\\textbackslash}'
+                elif ch in '{}#~':
+                    ch = '\\'+ch
+                self.append(ch)
+            self.append('\n')
+        self._visit_children(node)
 
     def visit_to_document_only(self, node):
-	self._visit_children(node)
+        self._visit_children(node)
 
     def visit_to_html_only(self, node):
-	pass
+        pass
 
     def visit_to_tester_only(self, node):
-	pass
+        pass
 
     def visit_tt(self, node):
 
-	self.append('\\texttt{')
-	self.encoder.literal = 1
-	node.arg_accept(self)
-	self.encoder.literal = 0
-	self.append('}')
+        self.append('\\texttt{')
+        self.encoder.literal = 1
+        node.arg_accept(self)
+        self.encoder.literal = 0
+        self.append('}')
 
     def visit_ul(self, node):
-	self.append('\\begin{itemize}\n')
-	self._visit_children(node)
-	self.append('\\end{itemize}\n')
+        self.append('\\begin{itemize}\n')
+        self._visit_children(node)
+        self.append('\\end{itemize}\n')
 
     def visit_var(self, node):
-	self.style('em', node)
+        self.style('em', node)
 
 
 class Table(Doc2Latex):
     many_hlines = 1 # Use extra many hlines.. looks good, a matter of taste.
     def __init__(self, d2l, node):
-	self.d2l = d2l
+        self.d2l = d2l
         self.__dict__.update(d2l.__dict__)
-	self.node = node
-	self.out = []
-	self.rows = []
-	self.colwidth = None
+        self.node = node
+        self.out = []
+        self.rows = []
+        self.colwidth = None
 
-	self._visit_children(node)
+        self._visit_children(node)
 
-	maxcols = 0
-	for row in self.rows:
-	    if len(row.columns) > maxcols:
-		maxcols = len(row.columns)
+        maxcols = 0
+        for row in self.rows:
+            if len(row.columns) > maxcols:
+                maxcols = len(row.columns)
 
-	if not maxcols:
-	    return # Empty table
-	if self.colwidth is not None:
-	    if not len(self.colwidth) == maxcols:
-		self.error("Wrong number of column width specifications (%d) vs\n"
-			   "    max columns in table (%d)."%(len(self.colwidth), maxcols),
-			   node)
-	else:
-	    self.colwidth = [1.0/maxcols]*maxcols
-	ap = self.d2l.append
-	ap('\n\\begin{longtable}[c]{|%s|}\n'%('|'.join(['p{%.2g\\linewidth}'%cw
-						     for cw in self.colwidth])))
-	if self.many_hlines:
-	    ap('\\hline\n')
-	for row in self.rows:
-	    for col in row.columns:
-		ap(''.join(col.data))
-		if col is row.columns[-1]:
-		    if self.many_hlines:
-			ap('\\\\\n')
-			ap('\\hline\n')
-		    else:
-			if row is not self.rows[-1]:
-			    ap('\\\\\n')
-		else:
-		    ap('&\n')
-	    if row.is_head:
-		ap('\\hline\n')
-		ap('\\endhead\n')
-	ap('\n\\end{longtable}\n')
+        if not maxcols:
+            return # Empty table
+        if self.colwidth is not None:
+            if not len(self.colwidth) == maxcols:
+                self.error("Wrong number of column width specifications (%d) vs\n"
+                           "    max columns in table (%d)."%(len(self.colwidth), maxcols),
+                           node)
+        else:
+            self.colwidth = [1.0/maxcols]*maxcols
+        ap = self.d2l.append
+        ap('\n\\begin{longtable}[c]{|%s|}\n'%('|'.join(['p{%.2g\\linewidth}'%cw
+                                                     for cw in self.colwidth])))
+        if self.many_hlines:
+            ap('\\hline\n')
+        for row in self.rows:
+            for col in row.columns:
+                ap(''.join(col.data))
+                if col is row.columns[-1]:
+                    if self.many_hlines:
+                        ap('\\\\\n')
+                        ap('\\hline\n')
+                    else:
+                        if row is not self.rows[-1]:
+                            ap('\\\\\n')
+                else:
+                    ap('&\n')
+            if row.is_head:
+                ap('\\hline\n')
+                ap('\\endhead\n')
+        ap('\n\\end{longtable}\n')
 
 
     def visit_colgroup(self, node):
-	colwidth = []
-	
-	for c in node.children:
-	    if c.tag != "col_width":
-		self.error('Unrecognized colgroup option: %r'%c.tag, c)
-	    cg = c.arg
-	    if cg.endswith('%'):
-		cg = cg[:-1]
-		cg = float(cg)/100.0
-	    else:
-		cg = float(cg)
-	    colwidth.append(cg)
-	self.colwidth = colwidth
+        colwidth = []
+
+        for c in node.children:
+            if c.tag != "col_width":
+                self.error('Unrecognized colgroup option: %r'%c.tag, c)
+            cg = c.arg
+            if cg.endswith('%'):
+                cg = cg[:-1]
+                cg = float(cg)/100.0
+            else:
+                cg = float(cg)
+            colwidth.append(cg)
+        self.colwidth = colwidth
 
     def visit_options(self, node):
-	pass
+        pass
 
     def visit_thead(self, node):
-	self._visit_children(node)
-	self.rows[-1].is_head = 1
+        self._visit_children(node)
+        self.rows[-1].is_head = 1
 
     def visit_tr(self, node):
-	self.rows.append(Row(self, node))
-	
+        self.rows.append(Row(self, node))
+
 class Row(Doc2Latex):
     is_head = 0
     def __init__(self, table, node):
         self.__dict__.update(table.__dict__)
-	self.columns = []
-	self._visit_children(node)
+        self.columns = []
+        self._visit_children(node)
 
     def visit_td(self, node):
-	self.columns.append(Column(self, node))
+        self.columns.append(Column(self, node))
 
     def visit_th(self, node):
-	self.columns.append(Column(self, node))
+        self.columns.append(Column(self, node))
 
 class Column(Doc2Latex):
     def __init__(self, row, node):
         self.__dict__.update(row.__dict__)
-	self.data = []
-	self.append = self.data.append
-	node.arg_accept(self)
+        self.data = []
+        self.append = self.data.append
+        node.arg_accept(self)
 
-    
+
 
 class Babel:
     """Language specifics for LaTeX."""
@@ -583,7 +583,7 @@ class Babel:
 
     def __init__(self, mod):
         self.language = mod.language_code
-	self.re = mod.re
+        self.re = mod.re
 
         # pdflatex does not produce double quotes for ngerman in tt.
         self.double_quote_replacment = None
@@ -654,10 +654,10 @@ class Encoder:
     }
 
     def __init__(self, mod):
-	self.mod = mod
-	self.re = mod.re
+        self.mod = mod
+        self.re = mod.re
         self.babel = Babel(mod)
-	self.font_encoding = mod.font_encoding
+        self.font_encoding = mod.font_encoding
         self.latex_encoding = self.to_latex_encoding(mod.output_encoding)
 
     def to_latex_encoding(self,docutils_encoding):
@@ -804,12 +804,12 @@ class Encoder:
 
 class _GLUECLAMP_:
     _imports_ = (
-	'_parent:SpecNodes',
-	'_parent.SpecNodes:node_of_taci',
-	'_parent.Main:ReportedError',
-	'_root:re',
-	'_root:string',
-	)
+        '_parent:SpecNodes',
+        '_parent.SpecNodes:node_of_taci',
+        '_parent.Main:ReportedError',
+        '_root:re',
+        '_root:string',
+        )
 
     font_encoding = ''
     double_quote_replacment = ''
@@ -817,24 +817,21 @@ class _GLUECLAMP_:
     output_encoding = ''
 
     section_table = {
-	0:'part',
-	1:'chapter',
-	2:'section',
-	3:'subsection',
-	4:'subsubsection',
-	5:'paragraph',
-	6:'subparagraph'
-	}
+        0:'part',
+        1:'chapter',
+        2:'section',
+        3:'subsection',
+        4:'subsubsection',
+        5:'paragraph',
+        6:'subparagraph'
+        }
 
     def doc2text(self, doc, node):
-	d2l = Doc2Latex(self, doc, node)
-	return d2l.get_latex()
+        d2l = Doc2Latex(self, doc, node)
+        return d2l.get_latex()
 
     def doc2filer(self, doc, node, name, dir, opts, IO):
-	text = self.doc2text(doc, node)
-	path = IO.path.join(dir, '%s.tex'%name)
-	node = self.node_of_taci('write_file', path, [self.node_of_taci('text', text)])
-	return node
-
-
-
+        text = self.doc2text(doc, node)
+        path = IO.path.join(dir, '%s.tex'%name)
+        node = self.node_of_taci('write_file', path, [self.node_of_taci('text', text)])
+        return node

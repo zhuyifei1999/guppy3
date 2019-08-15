@@ -13,7 +13,7 @@ class GuppyDoc:
         self.mod = mod
         if str is None:
             str = '???'
-        
+
         str = self._substitute(str)
 
         self.str = str
@@ -53,10 +53,10 @@ class GuppyDoc:
 
     def __repr__(self):
         return self.str
-        
+
     def __str__(self):
         return self.str
-        
+
 class Lister:
     def __init__(self):
         self.output = cStringIO.StringIO()
@@ -160,7 +160,7 @@ class _GLUECLAMP_:
         dl = dir(obj)
         dl = [d for d in dl if not d.startswith('_')]
         return GuppyDir(dl,obj,self, opts, **kwds)
-        
+
     def getdoc2(self, obj, name):
         try:
             share = obj._share
@@ -174,7 +174,7 @@ class _GLUECLAMP_:
         else:
             for imp in imports:
                 ix = imp.find(':')
-                if ix == -1: 
+                if ix == -1:
                     pass
                 else:
                     if imp[ix+1:]==name:
@@ -260,4 +260,3 @@ class _GLUECLAMP_:
             else:
                 rc = os.system('netscape -remote "openURL(%s)" &' % url)
                 if rc: os.system('netscape "%s" &' % url)
-
