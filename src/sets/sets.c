@@ -106,7 +106,7 @@ INITFUNC (void)
              "_NyHeapDefs_",
              PyCapsule_New(
                  &nysets_heapdefs,
-                 "NyHeapDef[] v1.0",
+                 "guppy.sets.setsc._NyHeapDefs_",
                  0)
              ) == -1)
         goto Error;

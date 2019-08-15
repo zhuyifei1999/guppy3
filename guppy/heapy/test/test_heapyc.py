@@ -183,7 +183,7 @@ class TestHeapView(TestCase):
         # Test some timing aspects of heap traversal
 
         # print 'timing..'
-        from time import clock
+        from time import process_time as clock
         hv = self.hv
 
         d = []
@@ -223,30 +223,6 @@ class TestHeapView(TestCase):
         # This has failed a couple of times so I remove it now, (apr 5 2008)
         # xxx should look into this later ...
         #self.assert_(elapsed1 < 3.0 * elapsed0)
-
-    def test_unregistered_hiding(self):
-        # Automatic hiding of instances of old-style classes
-        hv = self.hv
-
-        class Set:
-            pass
-
-        s = Set()
-        s._hiding_tag_ = hv._hiding_tag_
-        t = Set()
-        some = []
-        other = []
-        s.some = some
-        s.other = other
-        self.root.append([s, t])
-        self.root.append(s)
-        self.root.append(t)
-        x = hv.heap()
-        assert some not in x
-        assert other not in x
-
-        assert s not in x
-        assert t in x
 
 
 class TestLeak(support.TestCase):
@@ -298,17 +274,14 @@ class TestLeak(support.TestCase):
         v.c = c
 
         a = [x for x in [list]]
-        del x
 
         li = [he, a, b, c, t, u, v, T, U, V, ns, nodeset, list]
         rcli0 = [grc(x) for x in li]
-        del x
 
         ns |= li + list(range(10000, 10010))
         root.extend(li)
 
         rcli = [grc(x) for x in li]
-        del x
 
         rec = nodeset([x for x in li])
         x = None
@@ -335,14 +308,12 @@ class TestLeak(support.TestCase):
         gc.collect()
 
         nrcli = [grc(x) for x in li]
-        del x
         self.aseq(rcli, nrcli)
 
         root[:] = []
         ns.clear()
 
         nrcli0 = [grc(x) for x in li]
-        del x
 
         self.aseq(rcli0, nrcli0)
 

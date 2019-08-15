@@ -532,19 +532,19 @@ class _GLUECLAMP_:
         return self.relpropred(
             lambda env, R: env.forall(
                 R,
-                lambda env, (x, y):
-                env.test_contains(R, (y, x), 'symmetric')),
+                lambda env, v:
+                env.test_contains(R, (v[1], v[0]), 'symmetric')),
             'symmetric')
 
     def _get_transitive(self):
         return self.relpropred(
             lambda env, R: env.forall(
                 R,
-                lambda env, (x, y):
+                lambda env, v:
                 env.forall(R.range,
                            lambda env, z:
-                           (not env.contains(R, (y, z)) or
-                            env.test_contains(R, (x, z), 'transitive')))),
+                           (not env.contains(R, (v[1], z)) or
+                            env.test_contains(R, (v[0], z), 'transitive')))),
             'transitive')
 
     def relprop(self, s):
@@ -824,4 +824,5 @@ class FirstCase(TestCase):
         TestEnv.test(self.guppy.heapy.AbstractAlgebra)
 
 
-support.run_unittest(FirstCase, 1)
+if __name__ == '__main__':
+    support.run_unittest(FirstCase, 1)

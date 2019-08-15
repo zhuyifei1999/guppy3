@@ -288,7 +288,7 @@ class _GLUECLAMP_:
             pdb.set_trace()
         w = getattr(obj, '_derive_origin_', None)
         if w is not None:
-            if getattr(w, 'im_self', None) is obj or isinstance(w, self._root.types.FunctionType):
+            if getattr(w, 'im_self', None) is obj or isinstance(w, self._root.types.MethodType):
                 obj = w(doc)
             elif w == 'ADD':
                 # pdb.set_trace()
@@ -322,4 +322,4 @@ class _GLUECLAMP_:
             r = im_func(self, *args, **kwds)
             r = mod.wrap(r, mod.callfunc(doc, *args, **kwds))
             return r
-        return mod._root.new.instancemethod(f, obj.__self__, obj.__self__.__class__)
+        return mod._root.types.MethodType(f, obj.__self__)

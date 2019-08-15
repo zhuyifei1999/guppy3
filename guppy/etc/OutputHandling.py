@@ -10,7 +10,7 @@ class OutputHandler:
 class OutputBuffer:
     def __init__(self, mod, opts=None):
         self.mod = mod
-        self.strio = mod._root.cStringIO.StringIO()
+        self.strio = mod._root.io.StringIO()
 
         if opts == None:
             opts = {}

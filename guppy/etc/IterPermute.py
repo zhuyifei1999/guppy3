@@ -14,21 +14,21 @@ def iterpermute(*args):
         anynew = 0
         for i in range(la):
             if stopped[i]:
-                next = bufs[i][n % lens[i]]
+                nextval = bufs[i][n % lens[i]]
             else:
                 try:
-                    next = next(args[i])
+                    nextval = next(args[i])
                 except StopIteration:
                     if lens[i] == 0:
                         # raise ValueError, 'The iterator passed in arg %d did not return any item'%i
                         return
                     stopped[i] = 1
-                    next = bufs[i][n % lens[i]]
+                    nextval = bufs[i][n % lens[i]]
                 else:
                     anynew = 1
-                    bufs[i].append(next)
+                    bufs[i].append(nextval)
                     lens[i] += 1
-            nexts[i] = next
+            nexts[i] = nextval
         if anynew:
             n += 1
             yield tuple(nexts)
@@ -40,7 +40,7 @@ def iterpermute(*args):
         assert n == wanted
         return
     ixs = list(enumerate(lens))
-    ixs.sort(lambda a, b: a[1] - b[1])
+    ixs.sort(key=lambda x: x[1])
     ixs = [ix for (ix, ln) in ixs]
     jxs = [0] * la
     seen = dict([(tuple([j % lens[i] for i in ixs]), 1)

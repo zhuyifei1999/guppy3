@@ -565,10 +565,8 @@ class _GLUECLAMP_:
         hp = self.Use
         return (
             hp.Type.Module |
-            hp.Type.Class |
             hp.Type.Type |
             hp.Type.Module.dictof |
-            hp.Type.Class.dictof |
             hp.Type.Type.dictof |
             hp.Type.Code |
             hp.Type.Frame
