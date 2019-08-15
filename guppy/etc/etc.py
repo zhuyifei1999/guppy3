@@ -1,6 +1,6 @@
 #._cv_part guppy.etc.etc
 
-from StringIO import StringIO
+from io import StringIO
 
 def reptable(tb):
     if not tb:
@@ -50,7 +50,7 @@ def ptable(tb, f=None):
     _, lines = reptable(tb)
     for line in lines:
         line = line.rstrip()
-        print >>f, line
+        print(line, file=f)
 
 
 def strtable(tb):
@@ -66,7 +66,7 @@ def str2int(s, msg = 'Hexadecimal literal in the form [-]0x... expected'):
     else:
         sign = 1
     if not s.startswith('0x'):
-        raise ValueError, msg
+        raise ValueError(msg)
     s = s[2:]
     if s.endswith('l') or s.endswith('L'):
         s = s[:-1]

@@ -1,8 +1,8 @@
 #._cv_part guppy.heapy.Prof
 
-from Tkinter import *
-import tkFileDialog
-import tkMessageBox
+from tkinter import *
+import tkinter.filedialog
+import tkinter.messagebox
 
 class MyVar(StringVar):
     _default = 0.0
@@ -45,7 +45,7 @@ def stringsize(s):
     if s.isdigit():
         return int(s)
     suf = s[-1:].upper()
-    mult = 1000l
+    mult = 1000
     for su in suffixes[1:]:
         if su == suf:
             break
@@ -294,9 +294,9 @@ class ProfileRow:
 
 
 class AxisControl:
-    scale_table = [1l, 2l, 5l]
+    scale_table = [1, 2, 5]
     while scale_table[-1] < 1e12:
-        scale_table.append(scale_table[-3] * 10l)
+        scale_table.append(scale_table[-3] * 10)
 
     def __init__(self, master,
                  name,
@@ -483,7 +483,7 @@ Maximum range is 1T.""")
         pass
 
     def errorbox(self, msg):
-        tkMessageBox.showerror(master=self.frame, message=msg)
+        tkinter.messagebox.showerror(master=self.frame, message=msg)
 
     def fit(self, range):
         range = self.scale_by_table(range)
@@ -1015,7 +1015,7 @@ class Display:
         return function
 
     def event_motion(self, event):
-        for f in self.bound_motions.keys():
+        for f in list(self.bound_motions.keys()):
             f(event)
 
     def unbind_motion(self, funcid):
@@ -1296,8 +1296,8 @@ class Display:
 
 
         divisuf = (
-            (1000000000000l, '%dT'),
-            (1000000000l, '%dG'),
+            (1000000000000, '%dT'),
+            (1000000000, '%dG'),
             (1000000,  '%dM'),
             (1000,  '%dK'),
             (1, '%d')
@@ -1355,8 +1355,8 @@ class Display:
         step = self.scale_table[i]
 
         divisuf = (
-            (1000000000000l, '%4dT'),
-            (1000000000l, '%4dG'),
+            (1000000000000, '%4dT'),
+            (1000000000, '%4dG'),
             (1000000,  '%4dM'),
             (1000,  '%4dK'),
             (1, '%5d')
@@ -1696,7 +1696,7 @@ class WindowMenu:
             # This can happen if the menu was destroyed before its contents.
             # Simply ignore it.
             pass
-        for wid in self.wmap.keys():
+        for wid in list(self.wmap.keys()):
             if self.wmap[wid] > idx:
                 self.wmap[wid] -= 1
 
@@ -1712,15 +1712,15 @@ class ProfileApp:
         self.var_window = IntVar(root)
 
     def add_window(self, window):
-        window.wid = max([0]+self.windows.keys())+1
+        window.wid = max([0]+list(self.windows.keys()))+1
         self.windows[window.wid] = window
         wm = getattr(window, 'windowmenu', None)
         if wm:
             self.windowmenus[window.wid] = wm
-            for w in self.windows.values():
+            for w in list(self.windows.values()):
                 if w is not window:
                     wm.add_window(w)
-        for wm in self.windowmenus.values():
+        for wm in list(self.windowmenus.values()):
             wm.add_window(window)
         self.var_window.set(window.wid)
         window.frame.bind('<FocusIn>',
@@ -1734,7 +1734,7 @@ class ProfileApp:
         return w
 
     def chg_window(self, window):
-        for wm in self.windowmenus.values():
+        for wm in list(self.windowmenus.values()):
             wm.chg_window(window)
 
     def del_window(self, window):
@@ -1742,7 +1742,7 @@ class ProfileApp:
         if getattr(window, 'windowmenu', None):
             del self.windowmenus[wid]
         del self.windows[wid]
-        for wm in self.windowmenus.values():
+        for wm in list(self.windowmenus.values()):
             wm.del_window(window)
         if not self.windows:
             self.exit()
@@ -2768,7 +2768,7 @@ class ProfileBrowser:
         self.app.new_profile_browser(self.filename)
 
     def cmd_open(self):
-        op = tkFileDialog.Open(self.frame,
+        op = tkinter.filedialog.Open(self.frame,
                                # ? Should we have default extension or not??
                                # defaultextension='.hpy',
                                initialdir = self.initialdir,
@@ -3053,7 +3053,7 @@ class ProfileBrowser:
                 self.stats.open(filename)
             except:
                 etype, value, tb = self.mod._root.sys.exc_info()
-                tkMessageBox.showerror(
+                tkinter.messagebox.showerror(
                     master=self.frame,
                     message = (
                         "Error when loading\n%r:\n"%filename+

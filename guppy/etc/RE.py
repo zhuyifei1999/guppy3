@@ -72,7 +72,7 @@ class RE(REBASE):
                 return PositiveClosure(a)
             elif args == ('?',):
                 return EpsilonOrOne(a)
-        raise ValueError, "Argument to regular expression must be '*' or '+' or '?'"
+        raise ValueError("Argument to regular expression must be '*' or '+' or '?'")
 
     def __eq__(a, b):
         return (a._name == b._name and
@@ -634,7 +634,7 @@ class KleeneClosure(Closure):
     _name = '*'
 
     def apseq(self, ap):
-        raise InfiniteError, 'apseq: Regular expression is infinite: contains a Kleene Closure'
+        raise InfiniteError('apseq: Regular expression is infinite: contains a Kleene Closure')
 
     def limited(self, N):
         if N == 0:
@@ -660,7 +660,7 @@ class PositiveClosure(Closure):
     _name = '+'
 
     def apseq(self, ap):
-        raise InfiniteError, 'apseq: Regular expression is infinite: contains a Positive Closure'
+        raise InfiniteError('apseq: Regular expression is infinite: contains a Positive Closure')
 
     def apseqatoms(self, ap):
         self[0].apseqatoms(ap)
@@ -745,27 +745,27 @@ class RegularSystem:
         for Xk in xs:
             if Xk not in X:
                 continue
-            print '%3s = '%(statename(Xk),),
+            print('%3s = '%(statename(Xk),), end=' ')
             Tk = X[Xk]
             es = []
             for Xj in xs:
                 if Xj in Tk:
                     es.append('%s %s'%(transname(Tk[Xj]), statename(Xj)))
             if es:
-                print ' | '.join(es)
+                print(' | '.join(es))
             else:
-                print
+                print()
 
     def setup_equations(self):
         table = self.table
         final_states = self.final_states
         Final = self.Final
         self.X = X = {Final:{}}
-        for Xi, transitions in table.items():
+        for Xi, transitions in list(table.items()):
             X[Xi] = Ti = {}
-            for (symbol, Xj) in transitions.items():
+            for (symbol, Xj) in list(transitions.items()):
                 Ti.setdefault(Xj, []).append(Single(symbol))
-            for Xj, Aij in Ti.items():
+            for Xj, Aij in list(Ti.items()):
                 if len(Aij) > 1:
                     Aij.sort()
                     Aij = Union(*Aij)
@@ -890,7 +890,7 @@ class RegularSystem:
                 del Tk[Xk]
 
                 AkkStar = Akk('*')
-                for Xi, Aki in Tk.items():
+                for Xi, Aki in list(Tk.items()):
                     Bki = AkkStar + Aki
                     Tk[Xi] = Bki
 
@@ -900,12 +900,12 @@ class RegularSystem:
 
             del X[Xk]
 
-            for Xj, Tj in X.items():
+            for Xj, Tj in list(X.items()):
                 Bjk = Tj.get(Xk)
                 if Bjk is None:
                     continue
                 del Tj[Xk]
-                for Xji, Tk_Xji in Tk.items():
+                for Xji, Tk_Xji in list(Tk.items()):
                     Cji = (Bjk + Tk_Xji)
                     Bji = Tj.get(Xji)
                     if Bji is not None:

@@ -18,7 +18,7 @@ class Filer:
     def visit_write_file(self, node):
         name = node.arg
         if name in self.writefile_names:
-            raise SyntaxError, 'Duplicate file name: %r'%name
+            raise SyntaxError('Duplicate file name: %r'%name)
         self.writefile_names[name] = node
         self.writefile_envs.append(WriteFile(self, node))
 
@@ -64,7 +64,7 @@ class WriteFile:
 
     def set_single(self, name, node):
         if getattr(self, name, None) is not None:
-            raise SyntaxError, 'Duplicate %r at index %r'%(name, node.index)
+            raise SyntaxError('Duplicate %r at index %r'%(name, node.index))
         setattr(self, name, node)
         node.children_accept(self, 'no_node_expected')
 

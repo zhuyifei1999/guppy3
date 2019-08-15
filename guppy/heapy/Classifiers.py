@@ -62,7 +62,7 @@ class Classifier:
         # Inverse of get_kind
         cla, ka, cmp = kind.get_ckc()
         if cla is not self:
-            raise ValueError, 'get_kindarg: argument with classifier %r expected'%self
+            raise ValueError('get_kindarg: argument with classifier %r expected'%self)
         return ka
 
     def get_reprname(self):
@@ -392,7 +392,7 @@ class TypeFamily:
 
     def __call__(self, a):
         if not isinstance(a, self.TypeType):
-            raise TypeError, "Argument should be a type."
+            raise TypeError("Argument should be a type.")
         return self.Set(self, a)
 
     def c_alt(self, a, alt):
@@ -465,7 +465,7 @@ class ClassFamily:
 
     def __call__(self, a):
         if not isinstance(a, self.ClassType):
-            raise TypeError, "Argument should be a class (of type types.ClassType)."
+            raise TypeError("Argument should be a class (of type types.ClassType).")
         return self.mod.AtomFamily.__call__(self, a)
 
     def c_alt(self, a, alt):
@@ -532,7 +532,7 @@ doesn't change if some type redefines the __class__ attribute.
         try:
             return self.get_kind(kind)
         except TypeError:
-            raise TypeError, 'Argument should be a class or type.'
+            raise TypeError('Argument should be a class or type.')
 
     def get_userkindarg(self, kind):
         return self.mod.Use.tc_repr(kind.arg)
@@ -738,7 +738,8 @@ The classification is performed as follows:
     def get_cli(self):
         return self.ad.cli
 
-    def get_kind(self, (ka, kd)):
+    def get_kind(self, xxx_todo_changeme):
+        (ka, kd) = xxx_todo_changeme
         if kd is self.d.notdicttag:
             return self.a.get_kind(ka)
         else:
@@ -767,16 +768,16 @@ The classification is performed as follows:
             elif kind is not None and dictof is None:
                 kind = self.mod.tc_adapt(kind)
                 if kind is dict:
-                    raise TypeError, 'dict is not an equivalence class of Clodo, use dictof=() etc'
+                    raise TypeError('dict is not an equivalence class of Clodo, use dictof=() etc')
                 return self.sup.get_kind(kind)
             else:
                 raise TypeError
         except TypeError:
-            raise TypeError, """\
+            raise TypeError("""\
 Argument should be either
     <type or class except dict>
     dictof=<type or class>
-    dictof=()"""
+    dictof=()""")
 
 
     def get_userkindargrepr(self, kind):
@@ -842,7 +843,7 @@ class RetClaSetFamily:
 
     def sokind(self, sok):
         if not isinstance(sok, SoKind):
-            raise TypeError, 'SoKind expected'
+            raise TypeError('SoKind expected')
 
         er = sok.classifier.er.refdby
         kinds = (self(sok),)
@@ -905,9 +906,9 @@ class ByRetClaSet(Classifier):
         for arg in args:
             if isinstance(arg, SoKind):
                 if not arg.classifier is self.referrer_classifier:
-                    raise ValueError, 'Expected a SoKind with the %r classifier, argument had %r.'%(
+                    raise ValueError('Expected a SoKind with the %r classifier, argument had %r.'%(
                         self.referrer_classifier.name,
-                        arg.classifier.name)
+                        arg.classifier.name))
                 clikinds.extend(arg.clikinds)
                 if firstsok is None:
                     firstsok = arg
@@ -1014,7 +1015,7 @@ class ByInRel(Classifier):
                 r = int(s)
                 rel = mkrel(P.R_HASATTR, r)
             else:
-                raise SyntaxError, 'Cant make a relation of %r.'%orgs
+                raise SyntaxError('Cant make a relation of %r.'%orgs)
         elif s.startswith('->'):
             s = s[2:]
             if s.startswith('f_valuestack['):
@@ -1024,7 +1025,7 @@ class ByInRel(Classifier):
             else:
                 rel = mkrel(P.R_INTERATTR, s)
         else:
-            raise SyntaxError, 'Cant make a relation of %r.'%orgs
+            raise SyntaxError('Cant make a relation of %r.'%orgs)
         return rel
 
 
@@ -1166,13 +1167,13 @@ class ByModule(Classifier):
             try:
                 m = self.mod.View.target.sys.modules[name]
             except KeyError:
-                raise ValueError, 'No module %r in View.target.sys.modules.'%name
+                raise ValueError('No module %r in View.target.sys.modules.'%name)
         else:
             m = self.mod.View.obj_at(at)
         if not isinstance(m, self.ModuleType):
-            raise TypeError, 'The specified object is not of module type, but %r.'%type(m)
+            raise TypeError('The specified object is not of module type, but %r.'%type(m))
         if name is not None and m.__name__ != name:
-            raise ValueError, 'The specified module has not name %r but %r.'%(name, m.__name__)
+            raise ValueError('The specified module has not name %r but %r.'%(name, m.__name__))
         return self.family(m)
 
     def get_userkindargrepr(self, kind):
@@ -1191,7 +1192,7 @@ class ByModule(Classifier):
 class AltFamily:
     def __init__(self, mod, altcode):
         if altcode not in ('<', '<=', '==', '!=', '>', '>='):
-            raise ValueError, 'No such comparison symbol: %r'%altcode
+            raise ValueError('No such comparison symbol: %r'%altcode)
         self.altcode = altcode
 
     def c_get_brief(self, a):
@@ -1202,7 +1203,7 @@ class AltFamily:
         if ckc[-1] == '==':
             ckc[-1] = self.altcode
         else:
-            raise ValueError, 'Can not make alternative kind, non-equality comparison on underlying kind.'
+            raise ValueError('Can not make alternative kind, non-equality comparison on underlying kind.')
         return tuple(ckc)
 
     def c_repr(self, a):
@@ -1352,8 +1353,8 @@ the object.
         if (isinstance(k, self.types.TypeType) or
             isinstance(k, self.types.ClassType)):
             return k
-        if not isinstance(k, basestring):
-            raise TypeError, 'type, class or basestring expected'
+        if not isinstance(k, str):
+            raise TypeError('type, class or basestring expected')
 
         err = ("String argument to tc_adapt should be of form\n"
                "'<class MODULE.NAME at 0xADDR>' or\n"
@@ -1363,37 +1364,37 @@ the object.
 
         s = k
         if not (s.startswith('<') and s.endswith('>')):
-            raise ValueError, err
+            raise ValueError(err)
         s = s.lstrip('<').rstrip('>')
         s = s.split(' ')
         if len(s) < 2:
-            raise ValueError, err
+            raise ValueError(err)
         t = s[0]
         addr = self.str2int(s[-1])
         kind = self.View.obj_at(addr)
         if t == 'at':
             if len(s) != 2:
-                raise ValueError, err
+                raise ValueError(err)
             ty = None
         else:
             if len(s) != 4:
-                raise ValueError, err
+                raise ValueError(err)
             if t not in ('type', 'class'):
-                raise ValueError, err
+                raise ValueError(err)
             ty = getattr(self.types, t.capitalize()+'Type')
             if not isinstance(kind, ty):
-                raise TypeError, '%s object expected'%t
+                raise TypeError('%s object expected'%t)
             if not s[2] == 'at':
-                raise ValueError, err
+                raise ValueError(err)
             names = s[1].split('.')
             if len(names) < 2:
-                raise ValueError, err
+                raise ValueError(err)
             modulename = '.'.join(names[:-1])
             tcname = names[-1]
             if kind.__module__ != modulename:
-                raise ValueError, 'The %s %r has wrong __module__, expected %r.'%(t, kind, modulename)
+                raise ValueError('The %s %r has wrong __module__, expected %r.'%(t, kind, modulename))
             if kind.__name__ != tcname:
-                raise ValueError, 'The %s %r has wrong __name__, expected %r.'%(t, kind, tcname)
+                raise ValueError('The %s %r has wrong __name__, expected %r.'%(t, kind, tcname))
 
         return kind
 
@@ -1410,7 +1411,7 @@ the object.
         elif isinstance(k, self.types.ClassType):
             t = 'class'
         else:
-            raise TypeError, 'type or class expected'
+            raise TypeError('type or class expected')
         return '<%s %s.%s at %s>'%(t, k.__module__, k.__name__, hex(id(k)))
 
     # Convenience interfaces
@@ -1439,7 +1440,7 @@ the object.
 
     def _get_invtypemod(self):
         invtypemod = {}
-        for k, v in self.types._module.__dict__.items():
+        for k, v in list(self.types._module.__dict__.items()):
             if k.endswith('Type'):
                 invtypemod[v] = k[:-4]
         return invtypemod
@@ -1464,16 +1465,16 @@ the object.
         cla = None
         clikinds = []
         if not kinds:
-            raise ValueError, 'At least one argument must be given.'
+            raise ValueError('At least one argument must be given.')
         for kind in kinds:
             ckc = kind.get_ckc()
             if cla is None:
                 cla = ckc[0]
             else:
                 if ckc[0] is not cla:
-                    raise ValueError, 'Kind at index %d has wrong classifier.'%len(clikinds)
+                    raise ValueError('Kind at index %d has wrong classifier.'%len(clikinds))
             if ckc[-1] != '==':
-                raise ValueError, 'Kind at index %d has wrong comparision.'%len(clikinds)
+                raise ValueError('Kind at index %d has wrong comparision.'%len(clikinds))
             clikinds.append(ckc[1])
         return QuickSoKind(cla, self.ImpSet.immnodeset(clikinds))
 

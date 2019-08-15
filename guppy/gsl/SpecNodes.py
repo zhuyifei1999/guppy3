@@ -55,11 +55,11 @@ class SpecEnv:
         self.files = []
 
     def visit_default(self, node):
-        print 'add_unknown', node.tag
+        print('add_unknown', node.tag)
         self.unknown_nodes.append(node)
 
     def visit_file(self, node):
-        print 'visit_file'
+        print('visit_file')
         file = FileEnv(self, node)
         self.files.append(file)
 
@@ -97,13 +97,13 @@ class FileEnv:
         index = node.index
         lineno = index + 1
         if 0:
-            print '%s:%d: %s,'%(self.filename, lineno, msg)
-            print 'in line %r.'%self.get_line(index)
+            print('%s:%d: %s,'%(self.filename, lineno, msg))
+            print('in line %r.'%self.get_line(index))
         else:
-            print '%s:%s:'% (self.filename, lineno)
-            print '    %r'%self.get_line(index)
-            print '    %s'%msg
-            print
+            print('%s:%s:'% (self.filename, lineno))
+            print('    %r'%self.get_line(index))
+            print('    %s'%msg)
+            print()
 
     def find_subject(self, node, name):
         subject = self.subjects.get(name)
@@ -251,8 +251,8 @@ class SpecNode(object):
             m = getattr(visitor, (prefix+'default'), None)
             if m is None:
                 msg = 'accept: unknown: %r, %r  in %r'%(prefix, self.tag, visitor)
-                print msg
-                raise ValueError, msg
+                print(msg)
+                raise ValueError(msg)
                 return
         m(self)
 
@@ -307,7 +307,7 @@ class SpecNode(object):
             but make sure there are no more children.
             '''
         if self.children:
-            raise SyntaxError, 'No children nodes expected in node: %s'%self
+            raise SyntaxError('No children nodes expected in node: %s'%self)
         return self.arg.strip()
 
     def get_namearg(self):
@@ -317,7 +317,7 @@ class SpecNode(object):
         '''
         name = self.arg.strip()
         if '\n' in name or ':' in name or ',' in name:
-            raise SyntaxError, 'Invalid name: %r'%name
+            raise SyntaxError('Invalid name: %r'%name)
         return name
 
     def split_attrs(self, tag=None, attrdict=False):
@@ -383,9 +383,9 @@ class Source:
             if src is not None:
                 filename = src.filename
                 linetext = src.get_line(index=index)
-            print '%s:%s:'% (filename, index+1)
+            print('%s:%s:'% (filename, index+1))
             if linetext:
-                print '    %s'%linetext
+                print('    %s'%linetext)
 
 
     def error(self, message, context=None, exception=None, more=(), harmless = 0):
@@ -398,21 +398,21 @@ class Source:
 
         self.errmsg_context(context)
         if harmless:
-            print '*   %s'%message
+            print('*   %s'%message)
         else:
-            print '*** %s'%message
-        print
+            print('*** %s'%message)
+        print()
 
         for msg, ctx in more:
             self.errmsg_context(ctx)
-            print '    %s'%msg
-            print
+            print('    %s'%msg)
+            print()
 
         if self.debug:
             set_trace()
         else:
             if self.num_errors >= self.max_errors:
-                raise TooManyErrors, 'Too many errors, giving up'
+                raise TooManyErrors('Too many errors, giving up')
             if exception is not None:
                 raise exception
 
@@ -518,7 +518,7 @@ class _GLUECLAMP_:
                 if not ' ' in tag[:textpos] or textpos >= len(tag.rstrip()):
                     colonpos = textpos
                 else:
-                    raise SyntaxError, 'No colon in spaced tag in node %s'%dtree
+                    raise SyntaxError('No colon in spaced tag in node %s'%dtree)
             tag, arg = (tag[:colonpos].strip(),
                         tag[colonpos+1:]
                         )
@@ -598,7 +598,7 @@ class _GLUECLAMP_:
 
         specs = package.specs
         specdir = root.os.path.dirname(specs._module.__file__)
-        print specdir
+        print(specdir)
         main_dt_name = root.os.path.join(specdir, "main.gsl")
 
 

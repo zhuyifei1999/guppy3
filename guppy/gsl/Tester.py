@@ -473,9 +473,9 @@ class TestOf(Doc2Tester):
 
         object_tester = tester.get_object_tester(self.kind.get_id_name())
         if 0:
-            print 'kind: ', self.kind.get_id_name()
-            print 'objects', objects
-            print 'arrows', arrows
+            print('kind: ', self.kind.get_id_name())
+            print('objects', objects)
+            print('arrows', arrows)
 
         # print 'test code:'
 
@@ -542,7 +542,7 @@ class TestOf(Doc2Tester):
                         ce = self.parent.get_condition_expr(pre, args, op, src, None)
                         if ce is None:
                             # This 'cant happen' anymore, checked here 'just in case'...
-                            raise SyntaxError, 'Undefined condition: %r'%pre
+                            raise SyntaxError('Undefined condition: %r'%pre)
                         prename = 'pre_%d'%len(eqs)
                         eqs.append((prename, posts))
                         append('%s = %s'%(prename, ce))
@@ -594,7 +594,7 @@ class TestOf(Doc2Tester):
                         ce = self.parent.get_condition_expr(post, args, op, src, tgt)
                         if ce is None:
                             # This 'cant happen' anymore, checked here 'just in case'...
-                            raise SyntaxError, 'Undefined condition: %r'%post
+                            raise SyntaxError('Undefined condition: %r'%post)
                         message = 'Failed postcondition equality: %r'%post
                         append('assert %s == %s, %r'%(
                             prename, ce, message))

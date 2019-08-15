@@ -4,7 +4,7 @@ class FirstCase(support.TestCase):
         support.TestCase.setUp(self)
 
     def test_1(self):
-        asrt = self.assert_
+        asrt = self.assertTrue
         a = []
         b = []
         c = self.iso(a, b)
@@ -42,7 +42,7 @@ class FirstCase(support.TestCase):
 
         x = iso(b)
 
-        self.assert_( x.referrers == iso(c))
+        self.assertTrue( x.referrers == iso(c))
         self.aseq( x.referents,  iso(a))
         self.aseq( x.referents.referrers,  x)
         self.aseq( x.dominos, iso(a, b))

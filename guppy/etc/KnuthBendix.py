@@ -162,10 +162,10 @@ class KnuthBendix:
 
 
         else:
-            raise ValueError, """\
+            raise ValueError("""\
 KnuthBendix.make_confluent did not terminate in %d iterations.
 Check your equations or specify an higher max_iterations value.'
-"""%max_iterations
+"""%max_iterations)
         #print len(reds_tested)
 
 
@@ -199,7 +199,9 @@ Check your equations or specify an higher max_iterations value.'
     def sort(self, reds = None):
         if reds is None:
             reds = self.reductions
-        def cmp((x, _), (y, __)):
+        def cmp(xxx_todo_changeme, xxx_todo_changeme1):
+            (x, _) = xxx_todo_changeme
+            (y, __) = xxx_todo_changeme1
             if self.gt(x, y):
                 return 1
             if x == y:
@@ -219,11 +221,11 @@ Check your equations or specify an higher max_iterations value.'
 
 def printreds(reds):
     for i, uv in enumerate(reds):
-        print '%s\t'%(uv,),
+        print('%s\t'%(uv,), end=' ')
         if (i + 1) % 4 == 0:
-            print
+            print()
     if (i + 1) % 4 != 0:
-        print
+        print()
 
 
 def kb(E, *a, **k):
@@ -328,6 +330,6 @@ def test3():
     if 0:
         for uv in canon:
             if not uv in a.reductions:
-                print uv
+                print(uv)
 
     return a

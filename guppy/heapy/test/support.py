@@ -77,7 +77,7 @@ def fcmp(x, y): # fuzzy comparison function
     return cmp(x, y)
 
 try:
-    unicode
+    str
     have_unicode = 1
 except NameError:
     have_unicode = 0
@@ -91,7 +91,7 @@ elif os.name != 'riscos':
     TESTFN = '@test'
     # Unicode name only used if TEST_FN_ENCODING exists for the platform.
     if have_unicode:
-        TESTFN_UNICODE=unicode("@test-\xe0\xf2", "latin-1") # 2 latin characters.
+        TESTFN_UNICODE=str("@test-\xe0\xf2", "latin-1") # 2 latin characters.
         if os.name=="nt":
             TESTFN_ENCODING="mbcs"
 else:
@@ -133,11 +133,11 @@ def vereq(a, b):
     """
 
     if not (a == b):
-        raise TestFailed, "%r == %r" % (a, b)
+        raise TestFailed("%r == %r" % (a, b))
 
 def sortdict(dict):
     "Like repr(dict), but in sorted order."
-    items = dict.items()
+    items = list(dict.items())
     items.sort()
     reprpairs = ["%r: %r" % pair for pair in items]
     withcommas = ", ".join(reprpairs)
@@ -149,7 +149,7 @@ def check_syntax(statement):
     except SyntaxError:
         pass
     else:
-        print 'Missing SyntaxError: "%s"' % statement
+        print('Missing SyntaxError: "%s"' % statement)
 
 
 
@@ -251,23 +251,23 @@ class TestCase(unittest.TestCase):
 
     def aseq(self, a, b, cont=0):
         if a != b:
-            print "aseq: Expected: b = ", b
-            print "Got actually  : a = ", a
+            print("aseq: Expected: b = ", b)
+            print("Got actually  : a = ", a)
             if cont <= 0:
                 if cont < 0:
                     pdb.set_trace()
                 else:
-                    self.assert_(0)
+                    self.assertTrue(0)
 
     def asis(self, a, b, cont=0):
         if a is not b:
-            print "asis: Expected: b = ", b
-            print "Got actually  : a = ", a
+            print("asis: Expected: b = ", b)
+            print("Got actually  : a = ", a)
             if cont <= 0:
                 if cont < 0:
                     pdb.set_trace()
                 else:
-                    self.assert_(0)
+                    self.assertTrue(0)
 
     def tearDown(self):
         pass

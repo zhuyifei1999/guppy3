@@ -158,7 +158,7 @@ class Node2Inter:
     def tag_config(self, tag, **kwds):
         okwds = {}
         fontspecs = []
-        for k, v in kwds.items():
+        for k, v in list(kwds.items()):
             if not k.startswith('font_'):
                 okwds[k] = v
                 continue
@@ -602,7 +602,7 @@ class TableCell:
             # XXX I don't know how this works
             self.tabstop = (pos + 0.5*width, 'center')
         else:
-            raise ValueError, 'Invalid align: %s'%align
+            raise ValueError('Invalid align: %s'%align)
 
     def get_edges(self, width):
         align = self.attrs['align']
@@ -622,7 +622,7 @@ class TableCell:
             # XXX I don't know how this works
             l, r = 0, width
         else:
-            raise ValueError, 'Invalid align: %s'%align
+            raise ValueError('Invalid align: %s'%align)
         return l, r
 
 
@@ -721,7 +721,7 @@ class Table:
             gw = [Width / len(self.widths)]*len(self.widths)
             if 1:
                 extra = 0
-                others = range(len(self.widths))
+                others = list(range(len(self.widths)))
                 for i, w in enumerate(self.widths):
                     if w < gw[i]:
                         extra += gw[i] - w
@@ -887,7 +887,7 @@ class RecordingInter:
         else:
             for tag, text in self.appends:
                 out.insert('end', text, (tag,))
-        for (tag, kwdlist) in self.tag_configs.items():
+        for (tag, kwdlist) in list(self.tag_configs.items()):
 
             if self.FLATKWDS:
                 kwds = {}
@@ -906,13 +906,13 @@ class RecordingInter:
     def prepare_for_pickle(self):
         # Call this before pickling to reduce space usage.
         self.flush()
-        for k in self.__dict__.keys():
+        for k in list(self.__dict__.keys()):
             if k not in ('appends', 'tag_configs') and not k.startswith('_gsl_'):
                 delattr(self, k)
 
     def tag_config(self, tag, **kwds):
         kwdlist = []
-        for k, v in kwds.items():
+        for k, v in list(kwds.items()):
             k = self.memo.setdefault(k, k)
             v = self.memo.setdefault(v, v)
             if self.FLATKWDS:
@@ -1113,7 +1113,7 @@ def test_string(s=None, name=None):
     me.node2inter(node, t)
 
 
-    import cPickle as pickle
+    import pickle as pickle
     t.prepare_for_pickle()
 
     root = T.Tk()

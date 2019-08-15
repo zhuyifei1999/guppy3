@@ -189,13 +189,13 @@ class Document:
 
     def get_filers(self, output_dir):
         if not self.output_directives:
-            print 'Document %r: No output directives'%self.name
+            print('Document %r: No output directives'%self.name)
         filers = []
         r = self.get_result()
         name = self.get_doc_name()
         #print 'directives', self.output_directives
         for (handler, opts) in self.output_directives:
-            print 'processing', handler, opts, name
+            print('processing', handler, opts, name)
             filers.append(handler.doc2filer(self, r, name, output_dir, opts, self.mod.IO))
         return filers
 
@@ -390,7 +390,7 @@ class Document:
                 handler_name = self.mod.output_handlers[mode.lower()]
             except KeyError:
                 self.error('Unknown output mode: %r. Expected one of %r.'%(
-                    mode, self.mod.output_handlers.keys()),
+                    mode, list(self.mod.output_handlers.keys())),
                            node,
                            exception=None)
             else:
@@ -1980,9 +1980,9 @@ class _GLUECLAMP_:
         node = self._parent.SpecNodes.node_of_string(x)
         y = self.document(node, env)
         r = y.get_result()
-        print r
+        print(r)
         h = self._parent.Html.doc2html(r)
-        print h
+        print(h)
         open('/tmp/d.html','w').write(h)
 
 

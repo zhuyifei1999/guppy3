@@ -1,6 +1,7 @@
 #._cv_part guppy.heapy.UniSet
 
 import guppy
+from functools import reduce
 
 class UniSet(object):
     __slots__ = '_hiding_tag_', 'fam',  '_origin_'
@@ -147,7 +148,7 @@ False otherwise. See also: __eq__.
 """
         return not self == other
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
 Return True if self contains some element,
 False otherwise.
@@ -735,11 +736,11 @@ class Family:
         if self.export_dict is self.mod.export_dict:
             self.export_dict = self.mod.export_dict.copy()
         if name in self.export_dict and self.export_dict[name] is not value:
-            raise ValueError, 'Duplicate: %s'%name
+            raise ValueError('Duplicate: %s'%name)
         self.export_dict[name] = value
 
     def c_alt(self, a, cmp):
-        raise ValueError, 'No alternative set for family %s.'%self
+        raise ValueError('No alternative set for family %s.'%self)
 
 
     def c_binop(self, op, a, b):
@@ -758,7 +759,7 @@ class Family:
         return self.Doc.add_origin(a, b)
 
     def c_call(self, a, args, kwds):
-        raise ValueError, 'Not callable set'
+        raise ValueError('Not callable set')
 
     def c_contains(self, a, b):
         mod = self.mod
@@ -796,7 +797,7 @@ class Family:
         return self.c_getattr2(a, b)
 
     def c_getattr2(self, a, b):
-        raise AttributeError, b
+        raise AttributeError(b)
 
     def c_get_render(self, a):
         return self.mod.summary_str.str_address
@@ -833,10 +834,10 @@ class Family:
         return hash(a.arg)
 
     def c_iter(self, a):
-        raise TypeError, 'iteration over non-sequence'
+        raise TypeError('iteration over non-sequence')
 
     def c_len(self, a):
-        raise TypeError, 'len() of unsized object'
+        raise TypeError('len() of unsized object')
 
     def c_nonzero(self, a):
         return True
@@ -1212,7 +1213,7 @@ class OrFamily(Family):
             for i, e in enumerate(exa):
                 if e is not None:
                     try:
-                        yield e.next()
+                        yield next(e)
                     except StopIteration:
                         exa[i] = None
                     else:
@@ -1573,7 +1574,7 @@ class IdentitySetFamily(AtomFamily):
         # It's not well-defined to iterate and is considered error-prone
         # and may be SO much slower than expected
         # they need to be explicit to iterate over elements or partition subset
-        raise TypeError, 'iteration over non-sequence'
+        raise TypeError('iteration over non-sequence')
 
 
     def c_len(self, a):
@@ -1660,7 +1661,7 @@ class IdentitySetFamily(AtomFamily):
             try:
                 ss = er.split('&')
             except:
-                raise TypeError, 'by(): Equivalence relation or string expected.'
+                raise TypeError('by(): Equivalence relation or string expected.')
             if ss == ['']:
                 ss = []
             for s in ss:
@@ -1669,7 +1670,7 @@ class IdentitySetFamily(AtomFamily):
                         s = 'er_'+s
                     er = getattr(self.Use, s)
                 except AttributeError:
-                    raise ValueError, 'by(): No such equivalence relation defined in heapy.Use: %r'%s
+                    raise ValueError('by(): No such equivalence relation defined in heapy.Use: %r'%s)
                 ers.append(er)
 
         if not ers:
@@ -1781,7 +1782,7 @@ class IdentitySetFamily(AtomFamily):
     def get_theone(self, set):
         if len(set.nodes) == 1:
             return list(set.nodes)[0]
-        raise ValueError, 'theone requires a singleton set'
+        raise ValueError('theone requires a singleton set')
 
 class EmptyFamily(IdentitySetFamily):
     # Inherits from IdentitySetFamily because the special exported methods
@@ -1875,7 +1876,7 @@ class EquivalenceRelationFamily(AtomFamily):
         try:
             g = getattr(classifier, 'get_attr_for_er')
         except AttributeError:
-            raise AttributeError, name
+            raise AttributeError(name)
         return g(name)
 
 
@@ -1923,11 +1924,11 @@ class Summary_str:
         self.mod = mod
         types = mod.types._module
         self.invtypes = {}
-        for k, v in types.__dict__.items():
-            if isinstance(v, types.TypeType):
+        for k, v in list(types.__dict__.items()):
+            if isinstance(v, type):
                 self.invtypes[v] = 'types.%s'%k
-        for k, v in types.__builtins__.items():
-            if isinstance(v, types.TypeType) and v in self.invtypes:
+        for k, v in list(types.__builtins__.items()):
+            if isinstance(v, type) and v in self.invtypes:
                 self.invtypes[v] = k
 
         # This is to make common printouts prettier / shorter (: and clearer ? :)
@@ -1942,33 +1943,33 @@ class Summary_str:
 
         self.table = {
                 mod.NodeSet: self.str_address_len,
-                types.BooleanType: self.str_repr,
+                bool: self.str_repr,
                 types.BuiltinFunctionType: self.str_builtin_function,
-                types.ClassType: self.str_class,
+                type: self.str_class,
                 types.CodeType: self.str_code,
-                types.ComplexType: self.str_repr,
-                types.DictType: self.str_address_len,
-                types.FloatType: self.str_repr,
+                complex: self.str_repr,
+                dict: self.str_address_len,
+                float: self.str_repr,
                 types.FrameType: self.str_frame,
                 types.FunctionType: self.str_function,
                 types.InstanceType: self.str_instance,
-                types.IntType: self.str_repr,
-                types.ListType: self.str_address_len,
-                types.LongType: self.str_repr,
-                types.NoneType: self.str_repr,
+                int: self.str_repr,
+                list: self.str_address_len,
+                int: self.str_repr,
+                type(None): self.str_repr,
                 types.MethodType: self.str_method,
                 types.ModuleType: self.str_module,
                 types.TracebackType: self.str_traceback,
-                types.StringType: self.str_limrepr,
-                types.UnicodeType: self.str_limrepr,
-                types.TupleType: self.str_address_len,
-                types.TypeType: self.str_type,
+                bytes: self.str_limrepr,
+                str: self.str_limrepr,
+                tuple: self.str_address_len,
+                type: self.str_type,
                 }
     def __call__(self, key, longer=False):
         x = self.table.get(key)
         if x is None:
             x = self.str_address
-        if longer and 'longer' in x.im_func.func_code.co_varnames:
+        if longer and 'longer' in x.__func__.__code__.co_varnames:
             return lambda k:x(k, longer=longer)
         else:
             return x
@@ -2003,7 +2004,7 @@ class Summary_str:
         return '<%s at %s>'%(x.f_code.co_name, self.str_address(x))
     str_frame._idpart_header = 'Name at Address'
     def str_function(self, x):
-        return '%s.%s'%(x.__module__, x.func_name)
+        return '%s.%s'%(x.__module__, x.__name__)
     str_function._idpart_header = 'Name'
     def str_instance(self, x):
         return '<%s at %s>' %(self.str_class(x.__class__), self.str_address(x))
@@ -2012,12 +2013,12 @@ class Summary_str:
         return '*%d'%len(x)
     str_len._idpart_header = 'Length'
     def str_method(self, x):
-        cn = self.str_type(x.im_class)
-        if x.im_self is not None:
-            cn = '<%s at %s>'%(cn, self.str_address(x.im_self))
-        func = x.im_func
+        cn = self.str_type(x.__self__.__class__)
+        if x.__self__ is not None:
+            cn = '<%s at %s>'%(cn, self.str_address(x.__self__))
+        func = x.__func__
         try:
-            func_name = func.im_func
+            func_name = func.__func__
         except AttributeError:
             func_name = func.__name__
         return '%s.%s'%(cn, func_name)
@@ -2118,12 +2119,12 @@ class _GLUECLAMP_:
 
     def _get_export_dict(self):
         d = {}
-        for k, v in self.out_reach_dict.items():
+        for k, v in list(self.out_reach_dict.items()):
             sc = getattr(v, '_uniset_exports', ())
             for sc in sc:
                 x = getattr(v, sc)
                 if sc in d and d[sc] is not x:
-                    raise RuntimeError, 'Duplicate export: %r defined in: %r'%(sc, k)
+                    raise RuntimeError('Duplicate export: %r defined in: %r'%(sc, k))
                 d[sc] = x
         return d
 
@@ -2164,10 +2165,9 @@ class _GLUECLAMP_:
         elif isinstance(X, self.NodeSet):
             ids = self.idset(X)
         else:
-            raise TypeError, 'IdentitySet or NodeSet expected, got %r.'%type(X)
+            raise TypeError('IdentitySet or NodeSet expected, got %r.'%type(X))
         if X._hiding_tag_ is not self._hiding_tag_:
-            raise ValueError,   \
-                  "The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso."
+            raise ValueError("The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
         return ids
 
     def idset(self, iterable, er=None):
@@ -2186,10 +2186,9 @@ class _GLUECLAMP_:
         elif isinstance(X, self.IdentitySet):
             ns = X.nodes
         else:
-            raise TypeError, 'IdentitySet or NodeSet expected, got %r.'%type(X)
+            raise TypeError('IdentitySet or NodeSet expected, got %r.'%type(X))
         if X._hiding_tag_ is not self._hiding_tag_:
-            raise ValueError,   \
-                  "The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso."
+            raise ValueError("The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
         return ns
 
     def retset(self, X):
@@ -2217,9 +2216,9 @@ class _GLUECLAMP_:
             return X
 
         types = self.types
-        if isinstance(X, types.TypeType) and self.auto_convert_type:
+        if isinstance(X, type) and self.auto_convert_type:
             return self.Use.Type(X)
-        elif isinstance(X, types.ClassType) and self.auto_convert_class:
+        elif isinstance(X, type) and self.auto_convert_class:
             return self.Use.Class(X)
         elif isinstance(X, self.NodeSet) and X._hiding_tag_ is self._hiding_tag_:
             return self.idset(X)
@@ -2230,5 +2229,4 @@ class _GLUECLAMP_:
                 pass # Will raise a 'more informative' exception below
             else:
                 return self.idset(it)
-        raise TypeError, \
-          "Argument is not automatically convertible to a UniSet with correct _hiding_tag_."
+        raise TypeError("Argument is not automatically convertible to a UniSet with correct _hiding_tag_.")

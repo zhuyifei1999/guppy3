@@ -17,10 +17,10 @@ class FirstCase(TestCase):
         bs = iso(b)
         ab = as_ | bs
         # Make sure hiding is carried on with set operations
-        self.assert_(ab.referrers.kind == self.types.FrameType)
-        self.assert_((as_ | bs).referrers.kind == self.types.FrameType)
-        self.assert_(V.referrers(iso(a)).kind == self.types.FrameType)
-        self.assert_(V.referrers(iso(b)).kind == self.types.FrameType)
+        self.assertTrue(ab.referrers.kind == self.types.FrameType)
+        self.assertTrue((as_ | bs).referrers.kind == self.types.FrameType)
+        self.assertTrue(V.referrers(iso(a)).kind == self.types.FrameType)
+        self.assertTrue(V.referrers(iso(b)).kind == self.types.FrameType)
 
         # Test that we can still see nodesets created with other hiding_tag
 
@@ -32,7 +32,7 @@ class FirstCase(TestCase):
         cs = iso(c)
         del c
 
-        self.assert_(cs.referrers.kind == type(self.guppy.sets.immnodeset()))
+        self.assertTrue(cs.referrers.kind == type(self.guppy.sets.immnodeset()))
 
     def test_dominos(self):
         # Test dominos and domisize
@@ -160,7 +160,7 @@ class GCCase(TestCase):
         hv.update_dictowners(drg)
         gc.collect()
         lendrg = len(drg)
-        self.assert_(lendrg > 0)    # Before any use, it will not be cleared
+        self.assertTrue(lendrg > 0)    # Before any use, it will not be cleared
         # Now it is used by taking its length
         gc.collect()
         self.aseq(len(drg), 0)
@@ -172,9 +172,9 @@ class GCCase(TestCase):
         c=C()
 
         byclodo.partition([c.__dict__])
-        self.assert_(len(drg) > 0)
+        self.assertTrue(len(drg) > 0)
         gc.collect()
-        self.assert_(len(drg) == 0)
+        self.assertTrue(len(drg) == 0)
 
     def test_gc_rg(self):
         # Test automatic reclamation issues for referrer nodegraph
@@ -188,7 +188,7 @@ class GCCase(TestCase):
         dst = []
 
         gc.collect()
-        self.assert_( len(self.View.rg) == 0)
+        self.assertTrue( len(self.View.rg) == 0)
 
         # Test that rg is automatically updated with the set target(s)
 
@@ -206,25 +206,25 @@ class GCCase(TestCase):
         self.View.referrers_add_target(tb)
 
         self.View.referrers(iso(c))
-        self.assert_(c in immnodeset(self.View.rg[a]))
-        self.assert_(c in immnodeset(self.View.rg[b]))
+        self.assertTrue(c in immnodeset(self.View.rg[a]))
+        self.assertTrue(c in immnodeset(self.View.rg[b]))
 
         # Test that a referrers target is automatically collected when not referenced
 
         tb = None
         gc.collect()
         self.View.referrers(iso(c))
-        self.assert_(c in immnodeset(self.View.rg[a]))
-        self.assert_(c not in immnodeset(self.View.rg[b]))
+        self.assertTrue(c in immnodeset(self.View.rg[a]))
+        self.assertTrue(c not in immnodeset(self.View.rg[b]))
 
         # Test that adding a source automatically updates rg
         # even though domain of rg already includes its target
         # This requires gc collection
 
         d = [c]
-        self.assert_(d not in self.View.referrers(iso(c)))
+        self.assertTrue(d not in self.View.referrers(iso(c)))
         gc.collect()
-        self.assert_(d in self.View.referrers(iso(c)))
+        self.assertTrue(d in self.View.referrers(iso(c)))
 
 
 class AltHeapCase(TestCase):
@@ -252,8 +252,8 @@ class AltHeapCase(TestCase):
         oc = idset(self.View.observation_containers())
         # print oc
 
-        self.assert_( iso(a.nodes, b, c) <= oc )
-        self.assert_( not (iso(excla, exclb) & oc) )
+        self.assertTrue( iso(a.nodes, b, c) <= oc )
+        self.assertTrue( not (iso(excla, exclb) & oc) )
 
 
 class SpecialTypesCase(TestCase):

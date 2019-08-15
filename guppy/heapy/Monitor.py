@@ -1,13 +1,13 @@
 #._cv_part guppy.heapy.Monitor
-import os, pprint, signal, socket, SocketServer, sys, threading, time, traceback
-import cPickle as pickle
+import os, pprint, signal, socket, socketserver, sys, threading, time, traceback
+import pickle as pickle
 
 try:
     import readline # Imported to _enable_ command line editing
 except ImportError:
     pass
 
-import select, Queue
+import select, queue
 
 from guppy.heapy.RemoteConstants import *
 from guppy.heapy.Console import Console
@@ -15,7 +15,7 @@ from guppy.sets import mutnodeset
 from guppy.etc.etc import ptable
 from guppy.etc import cmd
 
-class Server(SocketServer.ThreadingTCPServer):
+class Server(socketserver.ThreadingTCPServer):
     pass
 
 
@@ -27,7 +27,7 @@ def queue_get_interruptible(q, noblock=0):
     while 1:
         try:
             return q.get(timeout=0.2)
-        except Queue.Empty:
+        except queue.Empty:
             if noblock:
                 break
 
@@ -35,7 +35,7 @@ def queue_get_interruptible(q, noblock=0):
 
 CONN_CLOSED = ('CLOSED',)
 
-class Handler(SocketServer.StreamRequestHandler):
+class Handler(socketserver.StreamRequestHandler):
     allow_reuse_address = 1
 
     def close(self):
@@ -108,7 +108,7 @@ class Handler(SocketServer.StreamRequestHandler):
         self.prompt = None
         self.promptstate = False
         self.isclosed = mutnodeset()
-        self.dataq = Queue.Queue()
+        self.dataq = queue.Queue()
 
         self.server.monitor.add_connection(self)
 
@@ -116,9 +116,9 @@ class Handler(SocketServer.StreamRequestHandler):
             try:
                 data = self.rfile.readline()
                 if not data:
-                    raise EOFError,'End of file'
+                    raise EOFError('End of file')
                 if data.endswith(DONE):
-                    raise EOFError,'DONE'
+                    raise EOFError('DONE')
             except (EOFError, socket.error):
                 break
             if data.endswith(READLINE):
@@ -187,12 +187,12 @@ class MonitorConnection(cmd.Cmd):
         The default is to print a traceback and continue.
 
         """
-        print >>sys.stderr,'-'*40
-        print >>sys.stderr,'Exception happened during processing the command',
-        print >>sys.stderr,repr(cmdline)
+        print('-'*40, file=sys.stderr)
+        print('Exception happened during processing the command', end=' ', file=sys.stderr)
+        print(repr(cmdline), file=sys.stderr)
         import traceback
         traceback.print_exc()
-        print >>sys.stderr, '-'*40
+        print('-'*40, file=sys.stderr)
 
     # Alias handling etc copied from pdb.py in Python dist
 
@@ -202,7 +202,7 @@ class MonitorConnection(cmd.Cmd):
         if not line:
             return line
         args = line.split()
-        while self.aliases.has_key(args[0]):
+        while args[0] in self.aliases:
             line = self.aliases[args[0]]
             if '%' in line:
                 ii = 1
@@ -233,19 +233,19 @@ class MonitorConnection(cmd.Cmd):
         return 1
 
     def help_exit(self):
-        print """exit
+        print("""exit
 -----
 Exit from the monitor and from the Python process that started it.
 This makes sure to exit without waiting for the server thread to terminate.
-See also the q command."""
+See also the q command.""")
 
     do_h = cmd.Cmd.do_help
 
     def help_h(self):
-        print """h(elp)
+        print("""h(elp)
 -----
 Without argument, print the list of available commands.
-With a command name as argument, print help about that command."""
+With a command name as argument, print help about that command.""")
 
     def help_help(self):
         self.help_h()
@@ -262,11 +262,11 @@ With a command name as argument, print help about that command."""
             pass
 
     def help_int(self):
-        print """int
+        print("""int
 -----
 Local interactive console.
 This will bring up a Python console locally in
-the same interpreter process that the Monitor itself."""
+the same interpreter process that the Monitor itself.""")
 
 
     def do_ki(self, arg):
@@ -275,14 +275,14 @@ the same interpreter process that the Monitor itself."""
         arg = int(arg)
         c = self.monitor.connections[arg]
         if c.get_ps('noninterruptible'):
-            print '''\
-Error: Can not interrupt this remote connection (uses Python < 2.4)'''
+            print('''\
+Error: Can not interrupt this remote connection (uses Python < 2.4)''')
         else:
-            print 'Sending KeyboardInterrupt to connection %s.'%arg
+            print('Sending KeyboardInterrupt to connection %s.'%arg)
             c.send_cmd(KEYBOARDINTERRUPT)
 
     def help_ki(self):
-        print """ki <connection ID>
+        print("""ki <connection ID>
 -----
 Keyboard Interrupt
 
@@ -293,11 +293,11 @@ Notes:
 
 It currently only works with Python >= 2.4.  The remote thread will
 not always be awakened, for example if it is waiting in
-time.sleep(). Sometimes using several ki commands helps."""
+time.sleep(). Sometimes using several ki commands helps.""")
 
     def do_lc(self, arg):
         table = [['CID', 'PID', 'ARGV']]
-        for cid, con in self.monitor.connections.items():
+        for cid, con in list(self.monitor.connections.items()):
             table.append([cid,
                           con.get_ps('target.pid'),
                           con.get_ps('target.sys.argv')])
@@ -305,7 +305,7 @@ time.sleep(). Sometimes using several ki commands helps."""
         ptable(table, self.stdout)
 
     def help_lc(self):
-        print """lc
+        print("""lc
 -----
 List Connections.
 List the currently open connections.
@@ -321,17 +321,17 @@ PID is the process ID of the target interpreter process.  In Linux,
 this is the parent of the remote control interpreter thread that runs
 the Annex that the connection is talking to.
 
-ARGV is the argument vector in the target Python interpereter."""
+ARGV is the argument vector in the target Python interpereter.""")
 
 
     def do_sc(self, arg):
         if arg:
             self.conid = int(arg)
-        print 'Remote connection %d. To return to Monitor, type <Ctrl-C> or .<RETURN>'%self.conid
+        print('Remote connection %d. To return to Monitor, type <Ctrl-C> or .<RETURN>'%self.conid)
         self.monitor.set_connection(self.monitor.connections[self.conid])
 
     def help_sc(self):
-        print """sc <connection ID>
+        print("""sc <connection ID>
 -----
 Set connection to communicate with a remote thread.
 
@@ -342,17 +342,17 @@ Monitor at any time by <Ctrl-C>. You may also use the '.' command
 (followed by <Return>), if the remote process is waiting for input.
 The '.' character may be followed by a monitor command, to execute it
 directly instead of returning to the monitor. For example, when
-talking to a connection, '.sc 1' will directly change to connection 1."""
+talking to a connection, '.sc 1' will directly change to connection 1.""")
 
     def do_q(self, arg):
         return 1
 
     def help_q(self):
-        print """q
+        print("""q
 -----
 Quit from the monitor.
 This will not exit from Python itself if called from an interactive
-interpreter. To make sure to exit from Python, use the exit command."""
+interpreter. To make sure to exit from Python, use the exit command.""")
 
 class Monitor:
     use_raw_input = 1
@@ -368,7 +368,7 @@ class Monitor:
             self.ids = 1
             self.monitor_connection.conid = self.ids
         else:
-            self.ids = max([1]+[c for c in self.connections.keys()])+1
+            self.ids = max([1]+[c for c in list(self.connections.keys())])+1
         return self.ids
 
     def add_connection(self, connection):
@@ -382,7 +382,7 @@ class Monitor:
         """ Print text only if we are waiting for input,
         and then restore the prompt. """
         if self.prompt is not None:
-            print '\n'+text
+            print('\n'+text)
             sys.stdout.write(self.prompt)
             sys.stdout.flush()
 
@@ -402,7 +402,7 @@ class Monitor:
                         self.prompt = conn.prompt
                         if conn is not self.monitor_connection:
                             conn.exec_cmd(cmd=None,noblock=1)
-                        cmd = raw_input(conn.prompt)
+                        cmd = input(conn.prompt)
                         self.prompt = None
                         conn = None
                         if cmd.startswith('.'):
@@ -427,12 +427,12 @@ class Monitor:
                     'We better exit in case the input is from a file'
                     #print 'EOFError'
                     #print 'Use the monitor q command to quit.'
-                    print '*** End Of File - Exiting Monitor ***'
+                    print('*** End Of File - Exiting Monitor ***')
                     self.connection = self.monitor_connection
                     stop = 1
                 except KeyboardInterrupt:
-                    print 'KeyboardInterrupt'
-                    print 'Use the ki command to interrupt a remote process.'
+                    print('KeyboardInterrupt')
+                    print('Use the ki command to interrupt a remote process.')
                     self.connection = self.monitor_connection
                     continue
 
@@ -442,7 +442,7 @@ class Monitor:
             self.close()
 
     def close(self):
-        for c in self.connections.values():
+        for c in list(self.connections.values()):
             try:
                 #print 'to close:', c
                 c.close()

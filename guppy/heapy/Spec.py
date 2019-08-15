@@ -95,15 +95,15 @@ class ArgNamesFamily(SpecFamily):
 
     def func_argnames(self, f, args):
         try:
-            code = f.func_code
+            code = f.__code__
             return self.getargnames(code) == args
         except AttributeError:
             return False
 
     def meth_argnames(self, m, args):
         try:
-            f = m.im_func
-            code = f.func_code
+            f = m.__func__
+            code = f.__code__
             return self.getargnames(code)[1:] == args
         except AttributeError:
             return False
@@ -117,10 +117,10 @@ class ArgNamesFamily(SpecFamily):
                 (isinstance(x, types.InstanceType) and
                  hasattr(x, '__call__') and
                  meth_argnames(x.__call__)) or
-                (isinstance(x, types.ClassType) and
+                (isinstance(x, type) and
                  (hasattr(x, '__init__') and
                   meth_argnames(x.__init__))) or
-                (isinstance(x, types.TypeType) and
+                (isinstance(x, type) and
                  (hasattr(x, '__init__') and
                   meth_argnames(x.__init__))) or
                  (hasattr(x, '__call__') and
@@ -179,7 +179,7 @@ class CartesianProductFamily(SpecFamily):
         types = a.arg
         if len(types) == 2:
             return types[0]
-        raise TypeError, 'Domain is defined on binary relations only'
+        raise TypeError('Domain is defined on binary relations only')
 
     def c_get_examples(self, a, env):
         # We have to check length before calling iterpermute -
@@ -250,8 +250,7 @@ class MappingFamily(SpecFamily):
                 if ai == '->':
                     i += 1
                     if not i == len(args)-1:
-                        raise SyntaxError, \
-                              "The '->' specifier must be next to last in the argument list"
+                        raise SyntaxError("The '->' specifier must be next to last in the argument list")
                     ret = setcast(args[i])
                 elif ai.endswith('='):
                     i += 1
@@ -264,8 +263,7 @@ class MappingFamily(SpecFamily):
                     as_.append('*args[%d]'%len(ts))
                     ts.append(self.specmod.sequence(t))
                 else:
-                    raise SyntaxError, \
-                          "Invalid argument specifier: %r"%ai
+                    raise SyntaxError("Invalid argument specifier: %r"%ai)
 
             else:
                 as_.append('args[%d]'%len(ts))
@@ -375,7 +373,7 @@ class RelOpFamily(SpecFamily):
                 func.name = op
             else:
                 func = op
-                func.name = func.func_name
+                func.name = func.__name__
             x = self.Set(self, (domain, func, range))
             self.memo[(domain, op, range)] = x
         return x
@@ -653,7 +651,7 @@ class RepresentationObjectFamily(SpecFamily):
                     r = getattr(self, '_get_%s'%name)(self._fam.specmod)
                     self.__dict__[name] = r
                     return r
-                raise AttributeError, name
+                raise AttributeError(name)
 
         self.spec = RepresentationCategorySpec(self)
 
@@ -679,7 +677,7 @@ class RepresentationObjectFamily(SpecFamily):
         self.objects[normname] = self.objects[name] = o
         return o
 
-        raise SpecError, 'No such object: %r'%name
+        raise SpecError('No such object: %r'%name)
 
     def getspec(self, obj):
         name = obj.arg
@@ -692,7 +690,7 @@ class RepresentationObjectFamily(SpecFamily):
             self.specs[name] = sp
             return sp
 
-        raise SpecError, 'getspec: No spec of %r'%name
+        raise SpecError('getspec: No spec of %r'%name)
 
     def fromuniversal(self, target):
         # Find a most general arrow into 'target'
@@ -753,7 +751,8 @@ class RepresentationObjectFamily(SpecFamily):
             def __getitem__(self, x):   # Don't know what to call this unique arrow
                 return self._S[self.source.fam.normoname(x)]
 
-            def __call__(self, (O, E)):
+            def __call__(self, xxx_todo_changeme):
+                (O, E) = xxx_todo_changeme
                 return self[O.arg](E)
 
 
@@ -772,7 +771,7 @@ class RepresentationObjectFamily(SpecFamily):
                     if n == on:
                         if nn is not None:
                             return nn
-                        raise SpecError, 'No numeric object name corresponding to %r'%on
+                        raise SpecError('No numeric object name corresponding to %r'%on)
         return on
 
     def __call__(self, name):
@@ -898,13 +897,13 @@ class LocalEnv:
     def __getattr__(self, attribute_name):
         mod = self._mod
         f = getattr(self._spec, attribute_name)
-        d = self._mod._load_names(mod._root.guppy.etc.Code.co_findloadednames(f.func_code))
+        d = self._mod._load_names(mod._root.guppy.etc.Code.co_findloadednames(f.__code__))
         nf = mod._root.new.function(
-            f.func_code,
+            f.__code__,
             d,
-            f.func_name,
-            f.func_defaults,
-            f.func_closure)
+            f.__name__,
+            f.__defaults__,
+            f.__closure__)
         r = nf(())
         self.__dict__[attribute_name] = r
         return r
@@ -935,7 +934,7 @@ class TestEnv:
     def eval(self, expr):
         mod = self.mod
         types = mod._root.types
-        if isinstance(expr, types.StringTypes):
+        if isinstance(expr, (str,)):
             func = self.mod.eval('lambda LE:(\n%s\n)'%expr)
             return func(self.LE)
 
@@ -943,13 +942,13 @@ class TestEnv:
         selfset = None
         #print 1
 
-        names = expr.__dict__.keys()
+        names = list(expr.__dict__.keys())
         names.sort()
 
         for name in names:
             f = getattr(expr, name)
             try:
-                co = f.func_code
+                co = f.__code__
             except AttributeError:
                 continue
             if co.co_varnames[:co.co_argcount] == ('IN',):
@@ -957,18 +956,18 @@ class TestEnv:
                 #d = mod._load_names()
 
                 nf = mod._root.new.function(
-                    f.func_code,
+                    f.__code__,
                     d,
-                    f.func_name,
-                    f.func_defaults,
-                    f.func_closure)
+                    f.__name__,
+                    f.__defaults__,
+                    f.__closure__)
                 s = nf(())
                 if name == '_SELF_':
                     selfset = s
                 else:
                     ls.append(mod.attr(name, s))
             else:
-                raise SpecError, 'TestEnv.eval: invalid argument mode'
+                raise SpecError('TestEnv.eval: invalid argument mode')
         # Constructing an AND in one sweep = faster
         # We assume they are not disjoint - which
         # would be determined by testing that we are going to do
@@ -1029,7 +1028,7 @@ class TestEnv:
             else:
                 return tuple([self.gengetattr(obj, nt) for nt in name_or_tuple])
         else:
-            raise TypeError, 'gengetattr: I am picky, required string or tuple'
+            raise TypeError('gengetattr: I am picky, required string or tuple')
 
     def log(self, message):
         self.messages.append(message)
@@ -1063,20 +1062,21 @@ class TestEnv:
 
 
 
-    def dump_failure(self, (type, value, traceback), noraise=0):
+    def dump_failure(self, xxx_todo_changeme3, noraise=0):
+        (type, value, traceback) = xxx_todo_changeme3
         list = []
         tb = traceback
         while tb is not None:
             f = tb.tb_frame
-            if f.f_code is self.test_contains.im_func.func_code:
+            if f.f_code is self.test_contains.__func__.__code__:
                 list.append(f)
             tb = tb.tb_next
         for f in list:
             lo = f.f_locals
-            print 'a = %r' % (lo['a'],)
-            print 'b = %r' % (lo['b'],)
-            print 'message = ', lo['message']
-            print '-----'
+            print('a = %r' % (lo['a'],))
+            print('b = %r' % (lo['b'],))
+            print('message = ', lo['message'])
+            print('-----')
         if noraise:
             self.mod._root.traceback.print_exception(type, value, traceback)
         else:
@@ -1115,20 +1115,20 @@ class TestEnv:
     def failed(self, message=''):
         if not self.issilent:
             self.log( 'Failed:' + message)
-            raise TestError, message
+            raise TestError(message)
         return False
 
     def failed_coverage(self, forwhat, collection, func, message):
         if collection is self.mod.Nothing:
             return True
-        raise CoverageError, '%s: no examples for collection = %s, message: %s'%(forwhat, collection, message)
+        raise CoverageError('%s: no examples for collection = %s, message: %s'%(forwhat, collection, message))
 
     def failed_exc_info(self, message):
         exc_info = self.mod._root.sys.exc_info()
         type, value, traceback = exc_info
         if not self.issilent:
             self.log( 'Failed:' + message)
-            raise type, value
+            raise type(value)
         return False
 
     def forall(self, collection, func, message=''):
@@ -1188,7 +1188,7 @@ class TestEnv:
             if b:
                 return True
         for (i, tvt) in failures:
-            print 'forsome: exception at collection[%d]:'%i
+            print('forsome: exception at collection[%d]:'%i)
             self.dump_failure(tvt, noraise=1)
         self.failed(message)
 
@@ -1227,7 +1227,7 @@ class _GLUECLAMP_:
         try:
             obj = Doc.wrap(obj, Doc.attribute(self._origin_, name))
         except Doc.DocError:
-            print 'no wrap:', name
+            print('no wrap:', name)
         return obj
 
     def _get_AA(self):
@@ -1282,16 +1282,16 @@ class _GLUECLAMP_:
         mapchildren_dispatch = dict([(value, mapchildren_id) for value in range(token.N_TOKENS)])
 
         mapchildren_dispatch.update(dict([(value, mapchildren_default)
-                                     for value, name in symbol.sym_name.items()]))
+                                     for value, name in list(symbol.sym_name.items())]))
 
         def mapchildren(node, f):
             return mapchildren_dispatch[node[0]](node, f)
 
         def visitor(C):
             d = mapchildren_dispatch.copy()
-            for value, name in symbol.sym_name.items():
+            for value, name in list(symbol.sym_name.items()):
                 if hasattr(C, name):
-                    d[value] = getattr(C, name).im_func
+                    d[value] = getattr(C, name).__func__
             _visit = lambda node: d[node[0]](node, _visit)
             return _visit
 
@@ -1320,7 +1320,7 @@ class _GLUECLAMP_:
 
 
         recover_source_dispatch = dict([(value, recover_source_node)
-                                     for value, name in symbol.sym_name.items()])
+                                     for value, name in list(symbol.sym_name.items())])
         recover_source_dispatch.update(
             dict([(value, recover_source_token) for value in range(token.N_TOKENS)]))
 
@@ -1384,7 +1384,7 @@ class _GLUECLAMP_:
     def docof(self, set):
         doc = (set.doc % self._origin_).shortest()
         do = str(doc)
-        print do
+        print(do)
         return do
 
     def eval(self, expr, init=None, nodoc=0):
@@ -1398,7 +1398,7 @@ class _GLUECLAMP_:
         d = self._load_names(self._root.guppy.etc.Code.co_findloadednames(co))
         if init is not None:
             d = d.copy()
-            exec init in d
+            exec(init, d)
 
 
         return eval(co, d)
@@ -1425,7 +1425,7 @@ class _GLUECLAMP_:
                 if name in all:
                     getattr(self, name)
         d = self.__dict__
-        d['__builtins__'] = self._load_names.func_globals['__builtins__']
+        d['__builtins__'] = self._load_names.__globals__['__builtins__']
         return d
 
 
@@ -1441,13 +1441,13 @@ class _GLUECLAMP_:
             r = self.eval(expr)
             return r, self.Doc.anon(expr)
         elif (expr in self.Type.Function and
-              expr.func_code.co_name == '<lambda>' and
-              expr.func_code.co_filename.startswith('<!SPECEVAL!>')):
-            fn = expr.func_code.co_filename
+              expr.__code__.co_name == '<lambda>' and
+              expr.__code__.co_filename.startswith('<!SPECEVAL!>')):
+            fn = expr.__code__.co_filename
             lines = fn.split('\n')
-            lnum = expr.func_code.co_firstlineno
+            lnum = expr.__code__.co_firstlineno
             inspect = self._root.inspect
-            print lines[lnum:]
+            print(lines[lnum:])
             block = inspect.getblock(lines[lnum:])
             source = '\n'.join(block)
             return expr, self.Doc.getdoc(source)
@@ -1572,8 +1572,8 @@ class _GLUECLAMP_:
             map_2_to_1 = id
             def map_3_to_4(self, e, fuop):      return (e.Anything, fuop)
             def map_3_to_2(self, e, fuop):      return self._relop(e.Anything, fuop) # redundant
-            def map_4_to_2(self, e, (A, fuop)): return self._relop(A, fuop)
-            def map_5_to_1(self, e, (A,fuop,B)):return self._relop(A, fuop, B)
+            def map_4_to_2(self, e, xxx_todo_changeme1): (A, fuop) = xxx_todo_changeme1; return self._relop(A, fuop)
+            def map_5_to_1(self, e, xxx_todo_changeme2): (A,fuop,B) = xxx_todo_changeme2; return self._relop(A, fuop, B)
 
         return self.repcat(RelationSpec)
 

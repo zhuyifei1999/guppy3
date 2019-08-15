@@ -11,15 +11,15 @@ class TestCase(support.TestCase):
     def chkrel(self, src, dst, relstr=None, clas=None):
         rel = self.relation(src, dst)
         if clas is not None:
-            self.assert_(isinstance(rel, clas))
+            self.assertTrue(isinstance(rel, clas))
         if relstr is None:
-            print rel
+            print(rel)
         else:
             sr = str(rel)
             if sr.startswith('<') and not relstr.startswith('<'):
-                self.assert_( sr.endswith('>') )
+                self.assertTrue( sr.endswith('>') )
                 sr = sr[1:-1].split(',')
-                self.assert_(relstr in sr)
+                self.assertTrue(relstr in sr)
             else:
                 self.aseq(sr, relstr)
 
@@ -30,7 +30,7 @@ class TestCase(support.TestCase):
     def chkpath(self, src, dst, expect=None):
         rel = self.shpaths(dst, src)
         if expect is None:
-            print rel
+            print(rel)
         else:
             li = rel.aslist()
             if len(li) == 1: li = li[0]
@@ -53,7 +53,7 @@ class RelationTestCase(TestCase):
     def test_list_relation(self):
         v1 = 'v1'
         v2 = 'v2'
-        v3 = range(100, 200)
+        v3 = list(range(100, 200))
         x = [v1, v2, v3]
         # xxx Why are these commented out?
         # It works when I remove the first comment...
@@ -66,7 +66,7 @@ class RelationTestCase(TestCase):
         cellvalue = []
         def f():
             return cellvalue
-        self.chkrel(f.func_closure[0], cellvalue, '%s->ob_ref')
+        self.chkrel(f.__closure__[0], cellvalue, '%s->ob_ref')
 
     def test_class_relation(self):
         # Test old-style classes
@@ -89,7 +89,7 @@ class RelationTestCase(TestCase):
         def f():
             a = 3
             return self, a
-        co = f.func_code
+        co = f.__code__
         self.chkpath(co, 3, '%s.co_consts[1]')  # xxx brittle test but catches a bug
                                                 # commented in notes Sep 27 2004
         self.chkrelattr(co, 'co_code', 'co_consts', 'co_names', 'co_varnames',
@@ -214,7 +214,7 @@ class RelationTestCase(TestCase):
     def test_list_relation(self):
         v1 = 'v1'
         v2 = 'v2'
-        v3 = range(100, 200)
+        v3 = list(range(100, 200))
         x = [v1, v2, v3]
         self.chkrel(x, v1, '%s[0]')
         self.chkrel(x, v2, '%s[1]')
@@ -267,7 +267,7 @@ class RelationTestCase(TestCase):
         self.chkrel(t, T, '%s->ob_type')
         self.chkrelattr(t, 'a', 'b')
         # We shouldn't have a __dict__ here - just make sure this is the case
-        self.failUnlessRaises(AttributeError, lambda:t.__dict__)
+        self.assertRaises(AttributeError, lambda:t.__dict__)
 
         class U(T):
             pass
@@ -338,7 +338,7 @@ class RelationTestCase(TestCase):
     def test_tuple_relation(self):
         v1 = 'v1'
         v2 = 'v2'
-        v3 = range(100, 200)
+        v3 = list(range(100, 200))
         x = (v1, v2, v3)
         self.chkrel(x, v1, '%s[0]')
         self.chkrel(x, v2, '%s[1]')
@@ -369,21 +369,21 @@ class RelationTestCase(TestCase):
 class RootTestCase(TestCase):
 
     def test_1(self):
-        import sys, __builtin__
+        import sys, builtins
         root = self.View.root
         # Interpreter attributes
 
         rel = str(self.relation(root, sys.modules))
 
-        self.assert_(eval(rel % 'root') is sys.modules)
+        self.assertTrue(eval(rel % 'root') is sys.modules)
         self.aseq(rel, '%s.i0_modules')
 
         rel = str(self.relation(root, sys.__dict__))
-        self.assert_(eval(rel % 'root') is sys.__dict__)
+        self.assertTrue(eval(rel % 'root') is sys.__dict__)
         self.aseq(rel, '%s.i0_sysdict')
 
-        rel = str(self.relation(root, __builtin__.__dict__))
-        self.assert_(eval(rel % 'root') is __builtin__.__dict__)
+        rel = str(self.relation(root, builtins.__dict__))
+        self.assertTrue(eval(rel % 'root') is builtins.__dict__)
         self.aseq(rel, '%s.i0_builtins')
 
         if sys.version >= "2.3.3": # The version I saw them; they may have come earlier
@@ -417,18 +417,18 @@ class RootTestCase(TestCase):
                 frame = frame.f_back
                 level += 1
             rel = str(self.relation(root, frame))
-            self.assert_(rel.endswith('_f0'))
+            self.assertTrue(rel.endswith('_f0'))
             rel = str(self.relation(root, exc_traceback.tb_frame))
             import re
             self.asis( eval(rel%'root'), exc_traceback.tb_frame)
-            self.assert_(rel.endswith('_f%d'%level))
+            self.assertTrue(rel.endswith('_f%d'%level))
 
 
     def test_thread(self):
         try:
-            import thread
+            import _thread
         except ImportError:
-            print 'threading not enabled - skipping test'
+            print('threading not enabled - skipping test')
             return
 
         root = self.View.root
@@ -445,7 +445,7 @@ class RootTestCase(TestCase):
             self.sync = 1
 
         self.sync = 0
-        thread.start_new_thread(task, (self,))
+        _thread.start_new_thread(task, (self,))
         while not self.sync:
             pass
         exc_traceback = self.exc_traceback
@@ -459,15 +459,15 @@ class RootTestCase(TestCase):
             self.test_1()
             self.sync = 1
         self.sync = 0
-        thread.start_new_thread(task, (self,))
+        _thread.start_new_thread(task, (self,))
         while not self.sync:
             pass
 
     def _test_secondary_interpreter(self):
         try:
-            import thread
+            import _thread
         except ImportError:
-            print 'threading not enabled - skipping test'
+            print('threading not enabled - skipping test')
             return
 
         import_remote = """\
@@ -586,7 +586,7 @@ class PathTestCase(TestCase):
         p = self.shpaths(dst, src)
         it = iter(p)
         for i in range(numpaths):
-            path =  it.next()
+            path =  next(it)
             sp = str(path)
             div, mod = divmod(i, width)
             self.aseq(sp, '%s'+'[0]'*(length-2)+'[%d][%d]'%(div, mod))
@@ -603,7 +603,7 @@ class PathTestCase(TestCase):
         p = self.shpaths(dst, src)
         it = iter(p)
         for i in range(numpaths):
-            path =  it.next()
+            path =  next(it)
             sp = str(path)
             div, mod = divmod(i, width)
             self.aseq(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]'%(div, mod))
@@ -644,7 +644,7 @@ class PathTestCase(TestCase):
 
     def test_printing(self):
         # Test the pretty-printing and moreing methods
-        from StringIO import StringIO
+        from io import StringIO
         output = StringIO()
         self.Path.output = output
         width = 11
@@ -679,8 +679,8 @@ class PathTestCase(TestCase):
         self.aseq(str(p[width+1]), '%s'+'[0]'*(length-2) + '[1][1]')
         self.aseq(str(p[np-1]), '%s'+('[%d]'%(width-1))*length)
         self.aseq(str(p[-1]), '%s'+('[%d]'%(width-1))*length)
-        self.failUnlessRaises(IndexError, lambda:p[np])
-        self.failUnlessRaises(IndexError, lambda:p[-np-1])
+        self.assertRaises(IndexError, lambda:p[np])
+        self.assertRaises(IndexError, lambda:p[-np-1])
 
 
 class MultiTestCase(TestCase):
@@ -764,16 +764,16 @@ class NewTestCase(TestCase):
         o = self.python.StringIO.StringIO()
         iso = self.iso
         x = iso(sys.__dict__)
-        print >>o, x.shpaths
+        print(x.shpaths, file=o)
         # This used to include a path via parameter avoid_edges
         # which was confusing
-        print >>o, x.shpaths.avoided(0)
+        print(x.shpaths.avoided(0), file=o)
 
         # repr() used to be quite useless. I have it now defined as .pp(),
         # but without trailin newline.
 
-        print >>o, repr(x.shpaths)
-        print >>o, repr(x.shpaths)
+        print(repr(x.shpaths), file=o)
+        print(repr(x.shpaths), file=o)
 
 
         # The shpaths object could sometimes disturb a shpath calculation
@@ -783,10 +783,10 @@ class NewTestCase(TestCase):
         y = [[[x]]]
 
         sp = iso(x).get_shpaths(iso(y))
-        print >>o, sp
+        print(sp, file=o)
 
         y.append(sp)
-        print >>o, iso(x).get_shpaths(iso(y))
+        print(iso(x).get_shpaths(iso(y)), file=o)
 
 
         # Test that the shortest paths to a set of objects, is the shortest
@@ -797,7 +797,7 @@ class NewTestCase(TestCase):
         y = [x]
         z = [y]
 
-        print >>o, iso(x, y).get_shpaths(iso(z))
+        print(iso(x, y).get_shpaths(iso(z)), file=o)
 
         if 0:       # feature is dropped, for now at least. Nov 4 2005
 
@@ -824,7 +824,7 @@ class NewTestCase(TestCase):
             # Now, it's about 2.5;
             # print slow/fast # has been seen printing 2.17 to 3.25
             # we test with some margin
-            self.assert_(slow < 5 * fast)
+            self.assertTrue(slow < 5 * fast)
 
         # Test that we can relate objects that inherits from a class and object
         # (Used to segfault)
@@ -838,7 +838,7 @@ class NewTestCase(TestCase):
         ob = O()
         ob.x = x
 
-        print >>o, iso(x).get_shpaths(iso(ob))
+        print(iso(x).get_shpaths(iso(ob)), file=o)
 
         # Test that generalization to a set of sources makes some sense
         # The shortest paths are from the closest sources
@@ -854,15 +854,15 @@ class NewTestCase(TestCase):
 
         S = iso()
         shp = iso(x).get_shpaths(iso(y, z))
-        print >>o, shp
-        print >>o, repr(shp)
+        print(shp, file=o)
+        print(repr(shp), file=o)
         for p in shp:
             S = S ^ p.src
         self.aseq(S, iso(y))
 
         shp = iso(x).get_shpaths(iso(ob, y, z))
-        print >>o, str(shp)
-        print >>o, repr(shp)
+        print(str(shp), file=o)
+        print(repr(shp), file=o)
         S = iso()
         for i, p in enumerate(shp):
             S = S ^ p.src
@@ -905,10 +905,10 @@ class NewTestCase(TestCase):
         iso = self.iso
         dst = []
         src = [dst]*20
-        print >>o, repr(iso(dst).get_shpaths(iso(src)))
-        print >>o, repr(iso(dst).get_shpaths(iso(src)).more)
+        print(repr(iso(dst).get_shpaths(iso(src))), file=o)
+        print(repr(iso(dst).get_shpaths(iso(src)).more), file=o)
         p = iso(dst).get_shpaths(iso(src))
-        print >>o, repr(p.more)
+        print(repr(p.more), file=o)
 
         self.aseq(o.getvalue(),"""\
  0: Src[0]
@@ -948,7 +948,7 @@ class NewTestCase(TestCase):
         # Test empty paths
         iso = self.iso
         dst = []
-        self.assert_( len(list(iso(dst).get_shpaths(iso()))) == 0)
+        self.assertTrue( len(list(iso(dst).get_shpaths(iso()))) == 0)
 
 
 
@@ -959,7 +959,7 @@ class NewTestCase(TestCase):
         dst = []
         shp = iso(dst).shpaths
         del dst
-        self.assert_('Edges' not in str( shp.avoided(0) ))
+        self.assertTrue('Edges' not in str( shp.avoided(0) ))
         #print shp.avoided(0)
 
         dst = []
@@ -973,7 +973,7 @@ class NewTestCase(TestCase):
         dst = iso(dst)
         src = iso(src)
 
-        self.assert_( dst.get_shpaths(src).numpaths == 0)
+        self.assertTrue( dst.get_shpaths(src).numpaths == 0)
 
         # Test the sets attribute
 

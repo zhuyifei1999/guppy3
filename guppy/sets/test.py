@@ -13,13 +13,13 @@ else:
 
 if has_numpy:
     def random_integers_list(low, high, length):
-        return map(int, numpy.random.random_integers(low, high, [length]))
+        return list(map(int, numpy.random.random_integers(low, high, [length])))
 else:
     def random_integers_list(low, high, length):
         return [random.randint(low, high) for i in range(length)]
 
 from time import clock
-import cPickle
+import pickle
 import pickle
 
 from guppy.sets import *
@@ -120,7 +120,7 @@ def test_set_convert(as_, bs):
 
 
 def eltime(f, args=(), N=1, retx=0):
-    r = range(N)
+    r = list(range(N))
     starttime = clock()
     for i in r:
         x = f(*args)
@@ -150,20 +150,20 @@ def add(a, b):
     c = b
     while c:
         a, c = a ^ c, (a & c) << 1
-        print a,c
+        print(a,c)
     return a
 
 
-def randint(lim=1l<<30):
+def randint(lim=1<<30):
     # Return a random signed int
-    return long(random.randrange(-lim, lim))
+    return int(random.randrange(-lim, lim))
 def randlong():
     a = randint()
     b = randint()
-    ash = randint() & 255l
+    ash = randint() & 255
     c = randint()
     d = randint()
-    bsh = randint() & 255l
+    bsh = randint() & 255
     r = (a * b << ash) +  (c * d << bsh)
     return r
 
@@ -177,7 +177,7 @@ def dictset(l):
 
 def dslist(l):
     ds = dictset(l)
-    ks = ds.keys()
+    ks = list(ds.keys())
     ks.sort()
     return ks
 
@@ -218,131 +218,131 @@ class Test:
         pass
 
     def test1(self):
-        import StringIO
-        f = StringIO.StringIO()
+        import io
+        f = io.StringIO()
 
         bitset([1,3,4]) | []
         bitset([1,3,4]) & []
         #bitset([1,3,4]) | {}
         # bitset([1,3,4]) & {}
         bitset([1,3,4]) | [5]
-        bitset([1,3,4]) | range(100)
-        bitset([1,3,4]) | range(100,-1,-1)
+        bitset([1,3,4]) | list(range(100))
+        bitset([1,3,4]) | list(range(100,-1,-1))
 
         empties = (
             bitset(),
             bitset([]),
             bitset(()),
             bitset(0),
-            bitset(0l),
+            bitset(0),
             bitset(bitset())
             )
-        print >>f, empties
+        print(empties, file=f)
         for e in empties:
             assert e is Empty
 
-        bitset(0x1l<<30)
-        bitset(0x1l<<32)
+        bitset(0x1<<30)
+        bitset(0x1<<32)
 
-        print >>f,bitset(0x8000)
-        print >>f,bitset((4,))
-        print >>f,~bitset(0x8000)
-        print >>f,bitset([1]) | bitset(3)
-        print >>f,long(bitset([1]))
-        print >>f,int(bitset([1]))
+        print(bitset(0x8000), file=f)
+        print(bitset((4,)), file=f)
+        print(~bitset(0x8000), file=f)
+        print(bitset([1]) | bitset(3), file=f)
+        print(int(bitset([1])), file=f)
+        print(int(bitset([1])), file=f)
 
         ms = bitset(0).mutcopy()
         msa = ms
         ms |= 1
-        print >>f,list(ms)
-        ms |= 0x4000l
-        print >>f,list(ms)
+        print(list(ms), file=f)
+        ms |= 0x4000
+        print(list(ms), file=f)
         ms |= [3, 4]
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms |= (6, 8)
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms |= bitset([7])
-        print >>f,list(ms), ms
+        print(list(ms), ms, file=f)
         ms |= bitset([37])
         ts = bitset(ms)
-        print >>f,ts
+        print(ts, file=f)
         ms &= ts
-        print >>f,ms
+        print(ms, file=f)
 
         ms &= 1
-        print >>f,ms
+        print(ms, file=f)
         ms |= ts
-        ms &= 0x4000l
-        print >>f,list(ms)
+        ms &= 0x4000
+        print(list(ms), file=f)
         ms |= ts
         ms &= [3, 4]
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms |= ts
         ms &= (6, 8)
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms |= ts
         ms &= bitset([7])
-        print >>f,ms
+        print(ms, file=f)
 
         ms |= ts
         ms &= ~bitset([6])
-        print >>f,ms, 'ts&.', ts &~bitset([6])
+        print(ms, 'ts&.', ts &~bitset([6]), file=f)
 
         ms ^= 1
-        print >>f,ms
-        ms ^= 0x4000l
-        print >>f,list(ms)
+        print(ms, file=f)
+        ms ^= 0x4000
+        print(list(ms), file=f)
         ms ^= [3, 4]
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms ^= (6, 8)
-        print >>f,list(ms)
+        print(list(ms), file=f)
         ms ^= bitset([7])
 
-        print >>f,ms
+        print(ms, file=f)
 
         ms &= 0
         ms |= ts
 
         ms |= ~ts
-        print >>f,ms, 'mt',ms |~ ts, ts |~ts, ~bitset([]) |~ts
+        print(ms, 'mt',ms |~ ts, ts |~ts, ~bitset([]) |~ts, file=f)
 
         xs = bitset(ms)
 
         ms |= 1
-        print >>f,ms, xs | 1, long(xs), int(xs)
+        print(ms, xs | 1, int(xs), int(xs), file=f)
 
         ms ^= ms
-        print >>f,ms
+        print(ms, file=f)
 
         ms &= ~ms
-        print >>f,ms, long(ms), int(ms)
+        print(ms, int(ms), int(ms), file=f)
 
         ms |= -1
-        print >>f,ms, long(ms)
+        print(ms, int(ms), file=f)
         ms &= -2
-        print >>f,ms, long(ms)
+        print(ms, int(ms), file=f)
         ms ^= -4
-        print >>f,ms, long(ms)
+        print(ms, int(ms), file=f)
 
-        ms |= -1l
-        print >>f,ms, long(ms)
-        ms &= -2l
-        print >>f,ms, long(ms)
-        ms ^= -4l
-        print >>f,ms, long(ms)
+        ms |= -1
+        print(ms, int(ms), file=f)
+        ms &= -2
+        print(ms, int(ms), file=f)
+        ms ^= -4
+        print(ms, int(ms), file=f)
 
         ms |= bitset(-1)
-        print >>f,ms, long(ms)
+        print(ms, int(ms), file=f)
         ms &= bitset(-2)
-        print >>f,ms, long(ms)
+        print(ms, int(ms), file=f)
 
 
         assert ms is msa
 
 
-        print >>f,bitset(-1)
-        print >>f,bitset([-1])
-        print >>f,bitset([-1]) | bitset([4])
+        print(bitset(-1), file=f)
+        print(bitset([-1]), file=f)
+        print(bitset([-1]) | bitset([4]), file=f)
         #print >>f,long(bitset([-1]))
 
         # LP: #770882
@@ -419,7 +419,7 @@ ImmBitSet([-1, 4])
                     continue
                 for tr in ts[1:]:
                     for r, x in zip(tr, ts[0]):
-                        assert long(r) == x
+                        assert int(r) == x
 
     def test3(self):
         # Test in-place operators
@@ -439,18 +439,18 @@ ImmBitSet([-1, 4])
                 for tb in (b, bitset(b), bitsmut(b)):
                     tr = []
                     tb |= ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
                     tb &= ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
                     tb ^= ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
 
                     tb |= ~ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
                     tb &= ~ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
                     tb ^= ~ta
-                    tr.append(long(tb))
+                    tr.append(int(tb))
                     ts.append(tr)
 
         # LP: #770882
@@ -459,7 +459,7 @@ ImmBitSet([-1, 4])
         for tr in ts[1:]:
             #print tr
             for r, x in zip(tr, ts[0]):
-                assert long(r) == x
+                assert int(r) == x
 
     def test4(self):
         # Some performance test
@@ -472,15 +472,15 @@ ImmBitSet([-1, 4])
                 x |= y
                 n -= 1
 
-        x = 0l
+        x = 0
         for exp in range(0,1024*32,16*32*(1+self.faster*31)):
-            y = 1l<<exp
-            print exp, eltime(f1, (1000, x, y)), \
+            y = 1<<exp
+            print(exp, eltime(f1, (1000, x, y)), \
                   eltime(f1, (1000, bitset(x), y)), \
                   eltime(f1, (1000, bitset(x), bitset(y))), \
                   eltime(f1, (1000, bitsmut(x), y)), \
                   eltime(f1, (1000, bitsmut(x), bitsmut(y))), \
-                  eltime(f1, (1000, bitsmut(x), bitset(y)))
+                  eltime(f1, (1000, bitsmut(x), bitset(y))))
 
 
     def test5(self):
@@ -591,24 +591,24 @@ ImmBitSet([-1, 4])
 
     def test7(self):
         # Bitsmut gymnastics
-        import StringIO
-        f = StringIO.StringIO()
+        import io
+        f = io.StringIO()
 
         a=bitsmut(0)
-        print >>f,a
+        print(a, file=f)
         a.append(1)
-        print >>f,a, a.pop(), a
+        print(a, a.pop(), a, file=f)
         a.append(1)
-        print >>f,a, a.pop(-1), a
+        print(a, a.pop(-1), a, file=f)
         a.append(1)
-        print >>f,a, a.pop(0), a
+        print(a, a.pop(0), a, file=f)
         a.append(1)
         a.append(2)
         a.append(3)
-        print >>f,a, a.pop(), a
-        print >>f,a, a.pop(0), a
+        print(a, a.pop(), a, file=f)
+        print(a, a.pop(0), a, file=f)
         a.remove(2)
-        print >>f,a
+        print(a, file=f)
 
         assert f.getvalue()=="""\
 MutBitSet([])
@@ -670,10 +670,10 @@ MutBitSet([])
 
 
         def tlo(rng):
-            lo = 0l
+            lo = 0
             def f(a, b):
                 for bit in b:
-                    a |= 1l<<b
+                    a |= 1<<b
             return eltime(h, (lo, rng))
 
         def tbs(rng):
@@ -702,18 +702,18 @@ MutBitSet([])
 
         step = (1 + self.faster*5)
 
-        for rng in ( range(0, 10000, step),
-                     range(0, 100000, step),
-                     range(10000,-1,-1*step),
+        for rng in ( list(range(0, 10000, step)),
+                     list(range(0, 100000, step)),
+                     list(range(10000,-1,-1*step)),
                      randlist(10000, 50000-self.faster*40000)):
-            print tms(rng), tds(rng), tls(rng), tms(rng, h), \
+            print(tms(rng), tds(rng), tls(rng), tms(rng, h), \
                   tmslu(rng), tbslu(rng), tdslu(rng), \
-                  tmslu(rng, 100), tbslu(rng, 100), tdslu(rng, 100)
+                  tmslu(rng, 100), tbslu(rng, 100), tdslu(rng, 100))
 
 
 
-        rng = range(10000)
-        print tlo(rng), tbs(rng)
+        rng = list(range(10000))
+        print(tlo(rng), tbs(rng))
 
 
     def test8(self):
@@ -733,19 +733,19 @@ MutBitSet([])
         try:
             from snidioms import ListLikeDictSet
         except ImportError:
-            print 'can not import snidioms, skipping a performance comparison'
+            print('can not import snidioms, skipping a performance comparison')
         else:
-            rng = range(10000)
+            rng = list(range(10000))
             for s in [], BS(), ListLikeDictSet():
-                print eltime(t_append, (s, rng))
+                print(eltime(t_append, (s, rng)))
 
             for s in [], bitsmut([]),:
-                print eltime(t_append_id, (s, rng))
+                print(eltime(t_append_id, (s, rng)))
 
     def test9(self):
         # Making bigger bitsmuts - testing the split
         for i in (1000, 10000, 100000):
-            r = range(i)
+            r = list(range(i))
             m = bitsmut(r)
             assert list(m) == r
 
@@ -762,16 +762,16 @@ MutBitSet([])
 
         def tests(la):
             for i in (1000, 10000, 100000, 400000):
-                print 'eltime(bitset, (la[:%d],))'%i
-                print eltime(bitset, (la[:i],))
-        la = range(400000)
-        print  'la = range(400000)'
+                print('eltime(bitset, (la[:%d],))'%i)
+                print(eltime(bitset, (la[:i],)))
+        la = list(range(400000))
+        print('la = range(400000)')
         tests(la)
         la.reverse()
-        print  'la.reverse()'
+        print('la.reverse()')
         tests(la)
         la=random_integers_list(-400000,400000,400000)
-        print 'la=random_integers_list(-400000,400000,400000))'
+        print('la=random_integers_list(-400000,400000,400000))')
         tests(la)
 
     def test11(self, n=1):
@@ -781,7 +781,7 @@ MutBitSet([])
             ms=bitsmut([])
             ms._splitting_size=100
             ms |= la
-            print 'test11', n, ms._indisize, ms._num_seg
+            print('test11', n, ms._indisize, ms._num_seg)
             n -= 1
 
     def test12(self):
@@ -794,7 +794,7 @@ MutBitSet([])
             ms = bitsmut()
 
             # Train it
-            rng = range(N)
+            rng = list(range(N))
             ms |= rng
             for popix in (-1, 0):
                 for j in range(N):
@@ -811,7 +811,7 @@ MutBitSet([])
                     if popix == -1:
                         pops.reverse()
                     assert pops == rng
-                    rng = range(i, i+N)
+                    rng = list(range(i, i+N))
                     ms |= rng
                     assert indisize == ms._indisize
                     assert list(ms) == rng
@@ -855,11 +855,11 @@ MutBitSet([])
         # Test the bitrange() constructor
         xs = (-1000, -100, -33, -32, -31, -10, -1, 0, 1, 10, 31, 32, 33, 100, 1000)
         for lo in xs:
-            assert list(bitrange(lo)) == range(lo)
+            assert list(bitrange(lo)) == list(range(lo))
             for hi in xs:
-                assert list(bitrange(lo, hi)) == range(lo, hi)
+                assert list(bitrange(lo, hi)) == list(range(lo, hi))
                 for step in (1, 2, 3, 4, 5, 6, 7, 31, 32, 33):
-                    r = range(lo, hi, step)
+                    r = list(range(lo, hi, step))
                     assert list(bitrange(lo, hi, step)) == r
 
     def test15(self):
@@ -869,7 +869,7 @@ MutBitSet([])
 
         for a in range(-33,34):
             for b in range(a+1, a+35):
-                rng = range(a, b)
+                rng = list(range(a, b))
                 bs = bitrange(a, b)
                 assert bs[0] == a
                 assert bs[-1] == b-1
@@ -887,9 +887,9 @@ MutBitSet([])
         # Test shifting
         for sh in range(64):
             for v in range(64):
-                assert long(bitset(v) << sh) == long(v)<<sh
+                assert int(bitset(v) << sh) == int(v)<<sh
 
-        maxint = sys.maxint
+        maxint = sys.maxsize
         minint = -maxint - 1
 
         b = bitset([0])
@@ -917,19 +917,19 @@ MutBitSet([])
     def test17(self):
         # Comparisons: inclusion tests
 
-        for a in (0, 1, 2, range(31), range(32), range(33), randlong()):
-            for b in (0, 1, 2, range(31), range(32), range(33), randlong()):
+        for a in (0, 1, 2, list(range(31)), list(range(32)), list(range(33)), randlong()):
+            for b in (0, 1, 2, list(range(31)), list(range(32)), list(range(33)), randlong()):
                 for as_ in ( bitset(a), ~bitset(a), bitsmut(a), bitsmut(~bitset(a))):
                     for bs in (as_, ~as_, bitset(b), ~bitset(b), bitsmut(b), bitsmut(~bitset(b))):
                         t = as_ <= bs
                         assert t == (bs >= as_)
                         assert t == ((as_ & bs) == as_)
-                        assert t == ((long(as_) & long(bs)) == long(as_))
+                        assert t == ((int(as_) & int(bs)) == int(as_))
 
                         t = as_ < bs
                         assert t == (bs > as_)
                         assert t == ((as_ <= bs) and (as_ != bs))
-                        assert t == ((as_ <= bs) and (long(as_) != long(bs)))
+                        assert t == ((as_ <= bs) and (int(as_) != int(bs)))
 
 
     def test18(self):
@@ -1015,7 +1015,7 @@ MutBitSet([])
     def test20(self):
         # Some bitrange arguments used when debugging its optimized version.
         # Entered here, in case some wasn't covered by previous tests.
-        maxint = sys.maxint
+        maxint = sys.maxsize
         minint = -maxint - 1
         for a in (
             (32,),
@@ -1054,7 +1054,7 @@ MutBitSet([])
             ):
             br = bitrange(*a)
             #print br
-            assert list(br) == range(*a)
+            assert list(br) == list(range(*a))
 
         try:
             bitrange(minint,maxint,1)
@@ -1066,17 +1066,17 @@ MutBitSet([])
         # a more exhaustive check,
         # it tests some > 70000 combinations if not self.faster
         if not self.faster:
-            print 'bitrange testing many combinations, this may take some time...'
+            print('bitrange testing many combinations, this may take some time...')
         for a in range(0, 34, 1 + 8*self.faster):
-            print 'a', a,
+            print('a', a, end=' ')
             sys.stdout.flush()
             for l in range(1000, 1034, 1 + 8*self.faster):
                 for st in range(1, 34, 1 + 8*self.faster):
                     for arg in ((maxint - l, maxint - a, st),
                                 (minint + a, minint + l, st)):
                         br = bitrange(*arg)
-                        assert list(br) == range(*arg)
-        print 'done'
+                        assert list(br) == list(range(*arg))
+        print('done')
 
     def test21(self):
         # Test bitset as dict key - i.e. hashing, equality
@@ -1119,7 +1119,7 @@ MutBitSet([])
             def __iter__(self):
                 return iter(self.data)
 
-        l = range(10)
+        l = list(range(10))
         t = T(l)
         b = bitset(t)
         assert list(b) == l
@@ -1141,7 +1141,7 @@ MutBitSet([])
             return bitrange(n).mutcopy()[0]
 
         t, v = eltime(f1, (10000000,), retx=1)
-        print t
+        print(t)
         assert v == 0
 
         bs = bitrange(10000000)
@@ -1151,7 +1151,7 @@ MutBitSet([])
             return ms[0], bs[0]
 
         t, v = eltime(f2, (bs,), retx=1)
-        print t
+        print(t)
         assert v == (1, 0)
 
         ms = bs.mutcopy()
@@ -1163,7 +1163,7 @@ MutBitSet([])
             return ms[0], bs[0],
 
         t, v = eltime(f3, (ms,), retx=1)
-        print t
+        print(t)
         assert v == (0, 0)
 
         def f4(ms):
@@ -1182,7 +1182,7 @@ MutBitSet([])
             ms = bs.mutcopy()
 
             t, v = eltime(f, (ms,), retx=1)
-            print t
+            print(t)
             assert v == (1, 0)
 
 
@@ -1195,7 +1195,7 @@ MutBitSet([])
             return mc[0], ms[0],
 
         t, v = eltime(f5, (ms,), retx=1)
-        print t
+        print(t)
         assert v == (0, 0)
 
         # Test that a temporary mutable copy of a bitsmut can be fast
@@ -1229,7 +1229,7 @@ MutBitSet([])
 
         for f in (f6, f6a, f6b):
             t, v = eltime(f, (ms,), retx=1)
-            print t
+            print(t)
             assert v == (2, 4)
 
         # Temporary mutable copy of splitted bitsmut
@@ -1241,10 +1241,10 @@ MutBitSet([])
             ms |= bitsingle(150000)     # Force a split
 
             assert ms._num_seg > 1
-            print 'num_seg', ms._num_seg
+            print('num_seg', ms._num_seg)
 
             t, v = eltime(f, (ms,), retx=1)
-            print t
+            print(t)
             assert v == (2, 4)
 
     def test25(self):
@@ -1252,7 +1252,7 @@ MutBitSet([])
         # converting to int should fail here, not become negative.
         # (Assuming 'standard' 2-complement int representation)
 
-        bs = bitset(long(sys.maxint)+1)
+        bs = bitset(int(sys.maxsize)+1)
         try:
             a = int(bs)
         except OverflowError:
@@ -1260,11 +1260,11 @@ MutBitSet([])
         else:
             raise 'expected OverflowError'
 
-        assert long(bs) == long(sys.maxint)+1
+        assert int(bs) == int(sys.maxsize)+1
 
         # These border cases should pass
-        assert int(bitset(sys.maxint)) == sys.maxint
-        assert int(bitset(-sys.maxint - 1)) == - sys.maxint - 1
+        assert int(bitset(sys.maxsize)) == sys.maxsize
+        assert int(bitset(-sys.maxsize - 1)) == - sys.maxsize - 1
 
 
         if 0:
@@ -1302,14 +1302,14 @@ MutBitSet([])
                 bs = bitrange(*args)
                 t, v = eltime(len, (bs,), retx=1)
                 if t > 0.01:
-                    print t, v
+                    print(t, v)
                 assert v == thelen
 
                 bs = bitsmut(bs)
 
                 t, v = eltime(len, (bs,), retx=1)
                 if t > 0.01:
-                    print t, v
+                    print(t, v)
                 assert v == thelen
 
 
@@ -1462,12 +1462,12 @@ MutBitSet([])
         from sys import getrefcount as grc
 
         if 0:
-            print H.add.__doc__
-            print H.append.__doc__
-            print H.discard.__doc__
-            print H.remove.__doc__
-            print H.tas.__doc__
-            print H.tac.__doc__
+            print(H.add.__doc__)
+            print(H.append.__doc__)
+            print(H.discard.__doc__)
+            print(H.remove.__doc__)
+            print(H.tas.__doc__)
+            print(H.tac.__doc__)
 
 
         e1 = []
@@ -1597,11 +1597,11 @@ MutBitSet([])
                     'assert list(b) & a == a & b',
                     ):
                     try:
-                        exec x
+                        exec(x)
                     except TypeError:
                         pass
                     else:
-                        raise Exception, 'Expected TypeError'
+                        raise Exception('Expected TypeError')
 
 
         ss = s=s3=la=a=b=c=x=None
@@ -1698,7 +1698,7 @@ MutBitSet([])
                 assert (H.__new__(X, immbitset(1))) == '{red}'
                 assert (H.__new__(X, mutbitset(2))) == '{green}'
                 assert (H.__new__(X, 3)) == '{red, green}'
-                assert (H.__new__(X, 4l)) == '{blue}'
+                assert (H.__new__(X, 4)) == '{blue}'
 
                 if H is ImmBitSet:
                     x = X('red','blue')
@@ -1739,7 +1739,7 @@ class MemStat:
             h = self.h
 
             n = h.news(gc.get_objects())
-            print V.retset(n)
+            print(V.retset(n))
             if len(n) <= 12:
                 l = list(n)
                 for i in range(len(n)):
@@ -1753,9 +1753,9 @@ class MemStat:
             for (name, allo, free, max) in co:
                 nref = allo - free
                 if name not in nrefs or nref != nrefs[name]:
-                    print >>sys.stderr, (name, nref),
+                    print((name, nref), end=' ', file=sys.stderr)
                     nrefs[name] = nref
-            print >>sys.stderr
+            print(file=sys.stderr)
         h=self.h=n=co=name=allo=free=max=l=i=None
         #self.mark()
         #self.alset = None
@@ -1768,7 +1768,7 @@ def test_nums(numbers, dump=None):
     for n in numbers:
         enufuncs.append((n, getattr(t, 'test%d'%n)))
     for n, f in enufuncs :
-        print 'Test #%d'%n
+        print('Test #%d'%n)
         f()
         if dump is not None:
             dump()
@@ -1776,7 +1776,7 @@ def test_nums(numbers, dump=None):
 def test_leak():
     import gc
     # Test 34 is known to leak in Python 2.3.3.
-    nums = range(36)
+    nums = list(range(36))
     nums.remove(34)
     ms = MemStat()
     if 0:
@@ -1793,7 +1793,7 @@ def test_leak():
         #ms.dump()
 
 def test_main():
-    test_nums(range(36))
+    test_nums(list(range(36)))
 
 t=Test()
 

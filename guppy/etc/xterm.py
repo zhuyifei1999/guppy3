@@ -23,9 +23,9 @@ def master_open():
         pass
     else:
         try:
-            tty_name, master_fd = sgi._getpty(FCNTL.O_RDWR, 0666, 0)
-        except IOError, msg:
-            raise os.error, msg
+            tty_name, master_fd = sgi._getpty(FCNTL.O_RDWR, 0o666, 0)
+        except IOError as msg:
+            raise os.error(msg)
         return master_fd, tty_name
     for x in 'pqrstuvwxyzPQRST':
         for y in '0123456789abcdef':
@@ -35,7 +35,7 @@ def master_open():
             except os.error:
                 continue
             return (fd, '/dev/tty' + x + y)
-    raise os.error, 'out of pty devices'
+    raise os.error('out of pty devices')
 
 # Open the pty slave.  Acquire the controlling terminal.
 # Returns file descriptor.  Linux version.  (Should be universal? --Guido)
@@ -82,6 +82,6 @@ def forkxterm(prog = None, options=''):
 
 
 def hello():
-    print 'hello'
+    print('hello')
     while 1:
         pass

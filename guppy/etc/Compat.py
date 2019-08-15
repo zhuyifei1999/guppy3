@@ -14,9 +14,9 @@
 # no effect on builtins.
 
 try:
-    basestring
+    str
 except NameError:
-    basestring = str
+    str = str
 
 try:
     bool
@@ -34,11 +34,11 @@ try:
     enumerate
 except NameError:
     def enumerate(lt):
-        return map(None, xrange(len(lt)), lt)
+        return map(None, range(len(lt)), lt)
 
 def _make_system_compatible():
-    import __builtin__
-    for name, value in globals().items():
+    import builtins
+    for name, value in list(globals().items()):
         if name[:1] != '_':
             setattr(__builtin__, name, value)
 

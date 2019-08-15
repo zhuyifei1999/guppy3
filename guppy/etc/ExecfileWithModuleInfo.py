@@ -48,7 +48,7 @@ def execfile(filename, globs=None, locs=None):
         ix = text.find('\n'+_MAGIC)
         if ix == -1:
             code = compile(text, filename, 'exec')
-            exec code in globs, locs
+            exec(code, globs, locs)
             return
         ix = ix + len(_MAGIC) + 1
 
@@ -58,7 +58,7 @@ def execfile(filename, globs=None, locs=None):
     m = sys.modules.get(name)
     if m is None:
         if _VERBOSE:
-            print '%s.execfile: importing'%__name__, name
+            print('%s.execfile: importing'%__name__, name)
         __import__(name, globs, locs, [])
         m = sys.modules[name]
 
@@ -73,8 +73,8 @@ def execfile(filename, globs=None, locs=None):
 
     if _RELOAD_ALWAYS or msum != tsum:
         if _VERBOSE:
-            print '%s.execfile: reloading'%__name__, name
+            print('%s.execfile: reloading'%__name__, name)
         fname = pyname(m)
         code = compile(text, fname, 'exec')
-        exec code in m.__dict__
+        exec(code, m.__dict__)
         modsums[m.__name__] = tsum

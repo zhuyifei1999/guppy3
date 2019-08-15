@@ -3,7 +3,7 @@ from guppy.heapy.test import support
 class IdentityCase(support.TestCase):
     def test_1(self):
         import random
-        vs = range(100)
+        vs = list(range(100))
         random.shuffle(vs)
         vs = [float(i) for i in vs]
         x = self.iso(*vs).byid
@@ -76,7 +76,7 @@ Set of 100 <float> objects. Total size = 1600 bytes.
 
         hp = self.Use
 
-        x=hp.iso([],[],*range(20)).byid
+        x=hp.iso([],[],*list(range(20))).byid
 
         eq = [x[-10], x[-10:-9], x[12], x[12:13],
               x.parts[-10], x.parts[12]]
@@ -107,7 +107,7 @@ Partition of a set of 6 objects. Total size = 104 bytes.
      2      2  33       24  23       104 100 int""")
 
         for row in x.partition.get_rows():
-            self.assert_(row.set <= row.kind)
+            self.assertTrue(row.set <= row.kind)
 
 
 class StatCase(support.TestCase):

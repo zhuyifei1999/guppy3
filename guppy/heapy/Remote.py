@@ -11,7 +11,7 @@ from guppy.heapy.RemoteConstants import *
 from guppy.heapy.Console import Console
 from guppy.sets import mutbitset
 
-import os, socket, sys, time, thread, threading, traceback, Queue
+import os, socket, sys, time, _thread, threading, traceback, queue
 
 class SocketClosed(Exception):
     pass
@@ -28,7 +28,7 @@ class IsolatedCaller:
     def __call__(self, *args, **kwds):
         return self.func(*args, **kwds)
 
-class QueueWithReadline(Queue.Queue):
+class QueueWithReadline(queue.Queue):
     def readline(self, size=-1):
         # Make sure we are interruptible
         # in case we get a keyboard interrupt.
@@ -36,7 +36,7 @@ class QueueWithReadline(Queue.Queue):
         while 1:
             try:
                 return self.get(timeout=0.5)
-            except Queue.Empty:
+            except queue.Empty:
                 continue
 
 
@@ -70,7 +70,7 @@ class Annex(cmd.Cmd):
             self.asynch_close)
         self.socket = None
         self.isclosed = 0
-        self.closelock = thread.allocate_lock()
+        self.closelock = _thread.allocate_lock()
 
         self.intlocals = {
             }
@@ -187,7 +187,7 @@ class Annex(cmd.Cmd):
         return 1
 
     def help_close(self):
-        print >>self.stdout, """close
+        print("""close
 -----
 Close and disable this remote connection completely.  It can then not
 be reopened other than by some command from within the target process.
@@ -198,15 +198,15 @@ connection open.
 
 But it might be useful when you want to get rid of the remote control
 interpreter and thread, if it uses too much memory or disturbs the
-target process in some other way."""
+target process in some other way.""", file=self.stdout)
 
     do_h = cmd.Cmd.do_help
 
     def help_h(self):
-        print >>self.stdout, """h(elp)
+        print("""h(elp)
 -----
 Without argument, print the list of available commands.
-With a command name as argument, print help about that command."""
+With a command name as argument, print help about that command.""", file=self.stdout)
 
     help_help = help_h
 
@@ -240,7 +240,7 @@ With a command name as argument, print help about that command."""
             sys.stderr = ostderr
 
     def help_int(self):
-        print >>self.stdout, """int
+        print("""int
 -----
 Interactive console.
 Bring up a Python console in the Remote Control interpreter.
@@ -258,7 +258,7 @@ instance will be created - by the 'reset' command of Annex.
 It should be noted that the interpreter thread under investigation is
 executing in parallell with the remote control interpreter. So there
 may be some problems to do with that if both are executing at the same
-time. This has to be dealt with for each case specifically."""
+time. This has to be dealt with for each case specifically.""", file=self.stdout)
 
 
     _bname = 'a1e55f5dc4c9f708311e9f97b8098cd3'
@@ -281,19 +281,19 @@ time. This has to be dealt with for each case specifically."""
 
         h = hp.heap()
         if hp.iso(*testobjects) & h:
-            print >>self.stdout, 'Isolation test failed.'
+            print('Isolation test failed.', file=self.stdout)
             for i, v in enumerate(testobjects):
                 if hp.iso(v) & h:
-                    print >>self.stdout, '-- Shortest Path(s) to testobjects[%d] --'%i
-                    print >>self.stdout, hp.iso(v).shpaths
+                    print('-- Shortest Path(s) to testobjects[%d] --'%i, file=self.stdout)
+                    print(hp.iso(v).shpaths, file=self.stdout)
         else:
-            print >>self.stdout, 'Isolation test succeeded.'
+            print('Isolation test succeeded.', file=self.stdout)
 
         del self._a
         del self.intlocals[self._bname]
 
     def help_isolatest(self):
-        print >>self.stdout, """isolatest
+        print("""isolatest
 ----------
 Isolation test.
 
@@ -305,20 +305,20 @@ calling interpreter root.  However, this isolation may become broken.
 This test is intended to diagnose this problem. The test checks that
 none of a number of test objects is visible in the target heap
 view. If the test failed, it will show the shortest path(s) to each of
-the test objects that was visible."""
+the test objects that was visible.""", file=self.stdout)
 
     def do_q(self, arg):
-        print >>self.stdout, 'To return to Monitor, type <Ctrl-C> or .'
-        print >>self.stdout, "To close this connection ('permanently'), type close"
+        print('To return to Monitor, type <Ctrl-C> or .', file=self.stdout)
+        print("To close this connection ('permanently'), type close", file=self.stdout)
 
     def help_q(self):
-        print >>self.stdout, """q
+        print("""q
 -----
 Quit.
 
 This doesn't currently do anything except printing a message.  (I
 thought it would be too confusing to have a q (quit) command from the
-Annex, when there was a similarly named command in the Monitor.)"""
+Annex, when there was a similarly named command in the Monitor.)""", file=self.stdout)
 
 
     def do_reset(self, arg):
@@ -333,7 +333,7 @@ Annex, when there was a similarly named command in the Monitor.)"""
         self.intlocals['h'] = self.intlocals['hp']
 
     def help_reset(self):
-        print >>self.stdout, """reset
+        print("""reset
 -----
 Reset things to an initial state.
 
@@ -348,21 +348,21 @@ h       --- h = hp; h is a shorthand for hp
 (The hpy function is modified here from the normal one so
 it sets some options to make it be concerned with the target
 interpreter heap under investigation rather than the current one.)
-"""
+""", file=self.stdout)
 
     def do_stat(self, arg):
-        print >>self.stdout, "Target overview"
-        print >>self.stdout, "------------------------------------"
-        print >>self.stdout, "target.sys.executable   = %s"%self.target.sys.executable
-        print >>self.stdout, "target.sys.argv         = %s"%self.target.sys.argv
-        print >>self.stdout, "target.wd               = %s"%self.target.wd
-        print >>self.stdout, "target.pid              = %d"%self.target.pid
-        print >>self.stdout, "------------------------------------"
+        print("Target overview", file=self.stdout)
+        print("------------------------------------", file=self.stdout)
+        print("target.sys.executable   = %s"%self.target.sys.executable, file=self.stdout)
+        print("target.sys.argv         = %s"%self.target.sys.argv, file=self.stdout)
+        print("target.wd               = %s"%self.target.wd, file=self.stdout)
+        print("target.pid              = %d"%self.target.pid, file=self.stdout)
+        print("------------------------------------", file=self.stdout)
         if not self.interruptible:
-            print >>self.stdout, "noninterruptible interactive console"
+            print("noninterruptible interactive console", file=self.stdout)
 
     def help_stat(self):
-        print >>self.stdout, """stat
+        print("""stat
 -----
 Print an overview status table, with data from the target interpreter.
 
@@ -373,7 +373,7 @@ at the time the Remote Control interpreter was started (the actual
 working directory may have changed since that time). The row labeled
 target.pid is the process id of the target interpreter.
 
-"""
+""", file=self.stdout)
     def hpy(self, *args, **kwds):
         from guppy import hpy
         hp = hpy(*args, **kwds)
@@ -441,7 +441,7 @@ def off():
         except AttributeError:
             # It may not have been initiated yet.
             # wait and repeat
-            print 'Can not turn it off yet, waiting..'
+            print('Can not turn it off yet, waiting..')
             time.sleep(1)
         else:
             close()

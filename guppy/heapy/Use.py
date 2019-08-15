@@ -40,7 +40,7 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
         # Used for prefixing the result of repr() of various objects
         # so it becomes possible to evaluate it in a typical environment.
         import __main__
-        for k, v in __main__.__dict__.items():
+        for k, v in list(__main__.__dict__.items()):
             if (isinstance(v, self.__class__) and
                 getattr(v, '_share', None) is self._share):
                 return '%s.'%k
@@ -218,7 +218,7 @@ Returns
 References
     [0] heapy_Use.html#heapykinds.Use.load"""
 
-        if isinstance(fn, basestring):
+        if isinstance(fn, str):
             # We got a filename.
             # I want to read only what is being requested
             # so I can look quickly at some lines of a long table.
@@ -254,7 +254,7 @@ References
             if use_readline:
                 get_line = fn.readline
             else:
-                get_line = fn.next
+                get_line = fn.__next__
 
             trows = []
             line = get_line()
@@ -275,21 +275,21 @@ References
             def get_trows():
                 return trows
         else:
-            raise TypeError, 'Argument should be a string, file or an iterable yielding strings.'
+            raise TypeError('Argument should be a string, file or an iterable yielding strings.')
 
-        a = iter(get_trows()).next()
+        a = next(iter(get_trows()))
         if not a.startswith('.loader:'):
-            raise ValueError, 'Format error in %r: no initial .loader directive.'%fn
+            raise ValueError('Format error in %r: no initial .loader directive.'%fn)
         loader = a[a.index(':')+1:].strip()
         try:
             loader = getattr(self, loader)
         except AttributeError:
-            raise ValueError, 'Format error in %r: no such loader: %r.'%(fn, loader)
+            raise ValueError('Format error in %r: no such loader: %r.'%(fn, loader))
         return loader(get_trows)
 
     def loadall(self,f):
         ''' Generates all objects from an open file f or a file named f'''
-        if isinstance(f,basestring):
+        if isinstance(f,str):
             f=open(f)
         while True:
             yield self.load(f)
@@ -297,7 +297,7 @@ References
     def loadc(self, fn):
         f = open(fn, 'r', 1)
         while 1:
-            print self.load(f, use_readline=1)
+            print(self.load(f, use_readline=1))
 
     def dumph(self, fn):
         f = open(fn, 'w')
@@ -306,7 +306,7 @@ References
             x = self.heap()
             x.stat.dump(f)
             f.flush()
-            print len(gc.get_objects())
+            print(len(gc.get_objects()))
 
     def setref(self, reachable=None, unreachable=None):
         """setref()

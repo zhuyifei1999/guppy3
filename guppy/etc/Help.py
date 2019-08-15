@@ -1,7 +1,7 @@
 #._cv_part guppy.etc.Help
 # -*- coding: utf-8 -*-
 
-import cStringIO, inspect, os
+import io, inspect, os
 
 THISDIR = os.path.dirname(__file__)
 #print 'THISDIR',THISDIR
@@ -59,7 +59,7 @@ class GuppyDoc:
 
 class Lister:
     def __init__(self):
-        self.output = cStringIO.StringIO()
+        self.output = io.StringIO()
 
     def list(self, items, columns=4, width=80):
         items = items[:]
@@ -237,7 +237,7 @@ class _GLUECLAMP_:
             doc = ''
         if doc is None:
             doc = '?'
-        print 'doc', doc
+        print('doc', doc)
         return GuppyDoc(self, doc)
 
 

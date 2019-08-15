@@ -363,16 +363,16 @@ class FirstCase(TestCase):
             a = s.by(k.alt('>=').biper)
             b = s.by(k.alt('>=').biper)
             # print a
-            self.assert_( hp.iso(d.__dict__) <= a[1] )
-            self.assert_( a == b )
+            self.assertTrue( hp.iso(d.__dict__) <= a[1] )
+            self.assertTrue( a == b )
 
             gc.collect()
 
             a = s.by(k.alt('<=').biper)
             b = s.by(k.alt('<=').biper)
             # print a
-            self.assert_( hp.iso(d.__dict__) <= a[0])
-            self.assert_( a == b )
+            self.assertTrue( hp.iso(d.__dict__) <= a[0])
+            self.assertTrue( a == b )
 
     def test_8(self):
         ' Test of findex and biper '
@@ -413,18 +413,18 @@ class FirstCase(TestCase):
         ers = [(name, getattr(hp, name)) for name in ernames]
         ers.append(('Size&Type', hp.Size&hp.Type))
 
-        from StringIO import StringIO
+        from io import StringIO
         f = StringIO()
-        print >>f, ''.ljust(10),
+        print(''.ljust(10), end=' ', file=f)
         for b in ers:
-            print >>f, b[0].ljust(7),
-        print >>f
+            print(b[0].ljust(7), end=' ', file=f)
+        print(file=f)
 
         for a in ers:
-            print >>f, a[0].ljust(10),
+            print(a[0].ljust(10), end=' ', file=f)
             for b in ers:
-                print >>f, str((a[1] < b[1]))[:1].ljust(7),
-            print >>f
+                print(str((a[1] < b[1]))[:1].ljust(7), end=' ', file=f)
+            print(file=f)
         self.aseq( f.getvalue(), """\
            Class   Clodo   Id      Idset   Module  Rcs     Size    Type    Unity   Size&Type
 Class      F       F       F       F       F       F       F       T       T       F
