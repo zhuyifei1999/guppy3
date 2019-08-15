@@ -1,7 +1,9 @@
-#._cv_part genguppydoc.py
+# ._cv_part genguppydoc.py
 
-import guppy,os
+import guppy
+import os
 from os.path import join
+
 
 class GenGuppyDoc:
     extemplate = """\
@@ -32,13 +34,12 @@ class GenGuppyDoc:
 ..c: end pre
     """
 
-
     def __init__(self, input_dir=None, output_dir=None):
         if input_dir is None:
             # Default to current directory
             input_dir = os.getcwd()
         if output_dir is None:
-            output_dir = join(input_dir, '..','guppy','doc')
+            output_dir = join(input_dir, '..', 'guppy', 'doc')
         self.input_dir = input_dir
         self.output_dir = output_dir
         self.gsl = guppy.Root().guppy.gsl
@@ -60,18 +61,19 @@ class GenGuppyDoc:
         self.gen('gsl.gsl')
         self.gen('docexample.gsl')
         gslexample = self.extemplate % (
-            ('\n'+open(join(self.input_dir, 'docexample.gsl')).read()).replace('\n.','\n\\.'),
+            ('\n'+open(join(self.input_dir, 'docexample.gsl')).read()
+             ).replace('\n.', '\n\\.'),
             open(join(self.output_dir, 'docexample.py')).read())
 
-        self.gen('gslexample.gsl',input_string=gslexample)
-
+        self.gen('gslexample.gsl', input_string=gslexample)
 
 
 def main():
-    g=GenGuppyDoc()
+    g = GenGuppyDoc()
     g.genext()
     g.genguppy()
     g.gengsl()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

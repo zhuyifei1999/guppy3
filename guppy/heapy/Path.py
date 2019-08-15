@@ -1,60 +1,76 @@
-#._cv_part guppy.heapy.Path
+# ._cv_part guppy.heapy.Path
+
 
 class R_NORELATION:
     code = -1
     r = None
+
     def stra(self, a):
-        return '%s.??'%a
+        return '%s.??' % a
+
 
 class R_IDENTITY:
     code = 0
+
     def stra(self, a):
         return a
+
 
 class R_ATTRIBUTE:
     code = 1
     strpat = '%s.%s'
 
+
 class R_INDEXVAL:
     code = 2
+
     def stra(self, a):
-        return '%s[%s]'%(a, self.saferepr(self.r))
+        return '%s[%s]' % (a, self.saferepr(self.r))
+
 
 class R_INDEXKEY:
     code = 3
     strpat = '%s.keys()[%r]'
 
+
 class R_INTERATTR:
     code = 4
     strpat = '%s->%s'
+
 
 class R_HASATTR:
     code = 5
     strpat = '%s.__dict__.keys()[%r]'
 
+
 class R_LOCAL_VAR:
     code = 6
     strpat = '%s.f_locals[%r]'
+
 
 class R_CELL:
     code = 7
     strpat = '%s.f_locals [%r]'
 
+
 class R_STACK:
     code = 8
     strpat = '%s->f_valuestack[%d]'
 
+
 class R_RELSRC:
     code = 9
-    def stra(self, a):  return self.r%(a,)
+    def stra(self, a): return self.r % (a,)
+
 
 class R_LIMIT:
     code = 10
 
 
 class RelationBase(object):
-    __slots__='r', 'isinverted'
-    def __init__(self, r, isinverted = 0):
+    __slots__ = 'r', 'isinverted'
+
+    def __init__(self, r, isinverted=0):
         self.r = r
         self.isinverted = isinverted
 
@@ -66,7 +82,6 @@ class RelationBase(object):
         else:
             return cmp(type(self), type(other))
 
-
     def __str__(self):
         return self.stra('%s')
 
@@ -74,7 +89,8 @@ class RelationBase(object):
         x = self.__class__(self.r, not self.isinverted)
 
     def stra(self, a):
-        return self.strpat%(a, self.r)
+        return self.strpat % (a, self.r)
+
 
 class MultiRelation(RelationBase):
     def __init__(self, rels):
@@ -82,6 +98,7 @@ class MultiRelation(RelationBase):
 
     def stra(self, a):
         return '<'+','.join([x.stra(a) for x in self.rels])+'>'
+
 
 class Path:
     def __init__(self, mod, path, index, output, srcname):
@@ -121,11 +138,10 @@ class Path:
     def pp(self, output=None):
         if output is None:
             output = self.output
-        print('%2d:'%self.index, str(self)%self.srcname, file=output)
+        print('%2d:' % self.index, str(self) % self.srcname, file=output)
 
     def types(self):
         return [type(x) for x in self.path]
-
 
 
 class PathsIter:
@@ -138,10 +154,10 @@ class PathsIter:
     def __iter__(self):
         return self
 
-    def reset(self, idx = None):
+    def reset(self, idx=None):
         if idx is None:
             idx = 0
-        if idx != 0: # Optimization: don't calculate numpaths in common case.
+        if idx != 0:  # Optimization: don't calculate numpaths in common case.
             ln = self.paths.numpaths
             if idx < 0:
                 idx = ln + idx
@@ -172,11 +188,10 @@ class PathsIter:
         self.srs = srs
         self.isatend = not idxs
 
-
     def __next__(self):
         paths = self.paths
         if (self.isatend or
-            self.stop is not None and self.pos >= self.stop):
+                self.stop is not None and self.pos >= self.stop):
             raise StopIteration
         path = []
         for row, col in enumerate(self.idxs):
@@ -201,6 +216,7 @@ class PathsIter:
             self.isatend = 1
             self.pos = 0
         return rp
+
 
 class MorePrinter:
     def __init__(self, top, prev=None):
@@ -239,9 +255,11 @@ class MorePrinter:
     def __str__(self):
         return self.__repr__()
 
+
 class ShortestPaths:
     firstpath = 0
     maxpaths = 10
+
     def __init__(self, sg, Dst):
         self.sg = sg
         self.Dst = Dst
@@ -298,7 +316,7 @@ class ShortestPaths:
     def iter(self, start=0, stop=None):
         return PathsIter(self, start, stop)
 
-    def aslist(self, maxpaths = None, firstpath = None):
+    def aslist(self, maxpaths=None, firstpath=None):
         if maxpaths is None:
             maxpaths = self.maxpaths
         if firstpath is None:
@@ -307,14 +325,14 @@ class ShortestPaths:
         if len(li) >= maxpaths:
             more = (self.numpaths - (firstpath + len(li)))
             if more:
-                li.append('<... %d more paths ...>'%more)
+                li.append('<... %d more paths ...>' % more)
         return li
 
     def copy_but_avoid_edges_at_levels(self, *args):
         avoid = self.edges_at(*args).updated(self.sg.AvoidEdges)
         assert avoid._hiding_tag_ is self.mod._hiding_tag_
         return self.mod.shpaths(self.Dst, self.Src, avoid_edges=avoid)
-        #return self.mod.shpaths(self.dst, self.src, avoid_edges=avoid)
+        # return self.mod.shpaths(self.dst, self.src, avoid_edges=avoid)
 
     avoided = copy_but_avoid_edges_at_levels
 
@@ -338,13 +356,14 @@ class ShortestPaths:
         try:
             NP = self.NP
         except AttributeError:
-            NP = self.mod.nodegraph(is_mapping = True)
+            NP = self.mod.nodegraph(is_mapping=True)
             NP.add_edges_n1(self.IG.get_domain(), None)
             for dst in self.Dst.nodes:
                 NP.add_edge(dst, 1)
             self.NP = NP
         numedges = self.mod.hv.numedges
         IG = self.IG
+
         def np(y):
             n = NP[y]
             if n is None:
@@ -393,7 +412,8 @@ class ShortestPaths:
                 if nummore == 1:
                     it.next().pp(output=output)
                 elif nummore > 1:
-                    print('<... %d more paths ...>'%nummore, file=output)
+                    print('<... %d more paths ...>' % nummore, file=output)
+
 
 class ShortestGraph:
     def __init__(self, mod, G, DstSets, Src, AvoidEdges,
@@ -428,9 +448,8 @@ class ShortestGraph:
         if output is None:
             output = self.mod.output
         for i, p in enumerate(self):
-            print('--- %s[%d] ---'%(self.dstname, i), file=output)
+            print('--- %s[%d] ---' % (self.dstname, i), file=output)
             p.pp(output=output)
-
 
 
 class _GLUECLAMP_:
@@ -450,27 +469,27 @@ class _GLUECLAMP_:
         '_parent.UniSet:idset_adapt',
         '_parent.View:hv',
         '_parent.View:nodegraph',
-        '_parent:View', # NOT View.root, since it may change
-        )
+        '_parent:View',  # NOT View.root, since it may change
+    )
 
     def _get_rel_table(self):
         table = {}
         for name in dir(self._module):
             if name.startswith('R_'):
                 c = getattr(self, name)
+
                 class r(c, self.RelationBase):
                     saferepr = self.saferepr
-                r.__name__= 'Based_'+name
+                r.__name__ = 'Based_'+name
                 table[c.code] = r
         return table
 
-    def _get__hiding_tag_(self):return self._parent.View._hiding_tag_
-    def _get_identity(self):    return R_IDENTITY()
-    def _get_norelation(self):  return R_NORELATION()
-    def _get_output(self):      return self._parent.OutputHandling.stdout
-    def _get_saferepr(self):    return self._root.repr.repr
-    def _get_shpathstep(self):  return self.hv.shpathstep
-
+    def _get__hiding_tag_(self): return self._parent.View._hiding_tag_
+    def _get_identity(self): return R_IDENTITY()
+    def _get_norelation(self): return R_NORELATION()
+    def _get_output(self): return self._parent.OutputHandling.stdout
+    def _get_saferepr(self): return self._root.repr.repr
+    def _get_shpathstep(self): return self.hv.shpathstep
 
     def sortedrels(self, IG, Src):
         t = []
@@ -480,9 +499,8 @@ class _GLUECLAMP_:
                 Dst = iso(dst)
                 for rel in self.relations(src, dst):
                     t.append((rel, Dst))
-        t.sort(lambda (rel1, dst1), (rel2, dst2) : cmp(rel1, rel2))
+        t.sort(lambda (rel1, dst1), (rel2, dst2): cmp(rel1, rel2))
         return t
-
 
     def prunedinverted(self, G, Y):
         IG = self.nodegraph()
@@ -523,7 +541,7 @@ class _GLUECLAMP_:
         if src is None:
             Src = self.iso(self.View.root)
             if srcname is None and self.View.root is self.View.heapyc.RootState:
-                srcname = '%sRoot'%self.reprefix
+                srcname = '%sRoot' % self.reprefix
         else:
             Src = self.idset_adapt(src)
         if avoid_nodes is None:
@@ -531,7 +549,8 @@ class _GLUECLAMP_:
         else:
             AvoidNodes = self.idset_adapt(avoid_nodes)
         AvoidEdges = self.nodegraph(avoid_edges)
-        G, DstSets = self.shpgraph_algorithm(DstSets, Src, AvoidNodes, AvoidEdges)
+        G, DstSets = self.shpgraph_algorithm(
+            DstSets, Src, AvoidNodes, AvoidEdges)
 
         return self.ShortestGraph(self, G, DstSets, Src, AvoidEdges,
                                   srcname, dstname)
@@ -554,6 +573,7 @@ class _GLUECLAMP_:
                     unseen_.append((i, D))
             unseen = unseen_
         return G, [self.idset_adapt(D) for D in DstSets]
+
 
 class _Specification_:
     class GlueTypeExpr:

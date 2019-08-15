@@ -1,5 +1,6 @@
 from guppy.heapy.test import support
 
+
 class IdentityCase(support.TestCase):
     def test_1(self):
         import random
@@ -47,26 +48,26 @@ Set of 100 <float> objects. Total size = 1600 bytes.
         def ae(x):
             lines = str(x).split('\n')
             datapos = lines[1].index('Representation')
-            s = lines [2:]
+            s = lines[2:]
             if s[-1].startswith('<'):
                 s.pop()
             s = [line[datapos:] for line in s]
-            #print s
+            # print s
             return s
 
         def aeq(x, y):
             self.aseq(ae(x), ae(y))
 
-        #print x
-        #print x[100:]
-        #print x[100:].byid
+        # print x
+        # print x[100:]
+        # print x[100:].byid
         for i in range(0, 300, 60):
             b = x[i:]
             aeq(b, b.byid)
 
         # (B) in  Notes Aug 26 2005
 
-        self.aseq( x.bysize[2].kind, x.bysize[2].bysize.kind )
+        self.aseq(x.bysize[2].kind, x.bysize[2].bysize.kind)
 
     def test_3(self):
         # Some indexing cases.
@@ -76,15 +77,16 @@ Set of 100 <float> objects. Total size = 1600 bytes.
 
         hp = self.Use
 
-        x=hp.iso([],[],*list(range(20))).byid
+        x = hp.iso([], [], *list(range(20))).byid
 
         eq = [x[-10], x[-10:-9], x[12], x[12:13],
               x.parts[-10], x.parts[12]]
         k = x[-10].byid.kind
         for i in range(len(eq)):
-            self.aseq(eq[i], eq[(i + 1) %len(eq)])
-            self.aseq(eq[i].kind, eq[(i + 1)%len(eq)].kind)
+            self.aseq(eq[i], eq[(i + 1) % len(eq)])
+            self.aseq(eq[i].kind, eq[(i + 1) % len(eq)].kind)
             self.aseq(eq[i].kind, k)
+
 
 class MixedCase(support.TestCase):
     def test_1(self):
@@ -117,6 +119,7 @@ class StatCase(support.TestCase):
         class C:
             pass
         c0 = C()
+
         class C:
             pass
         c1 = C()
@@ -126,24 +129,24 @@ class StatCase(support.TestCase):
         d = x.diff(y)
         self.aseq(d.count, 1)
         self.aseq(d[0].count, 1)
-        #print d
+        # print d
         d = y.diff(x)
         self.aseq(d.count, -1)
         self.aseq(d[0].count, -1)
-        #print d
+        # print d
 
         d = x.diff(hp.iso())
         self.aseq(d.count, 2)
         self.aseq(d[0].count, 2)
-        #print d
+        # print d
 
         d = hp.iso().diff(x)
         self.aseq(d.count, -2)
         self.aseq(d[0].count, -2)
-        #print d
+        # print d
 
 
-def test_main(debug = 0):
+def test_main(debug=0):
     support.run_unittest(StatCase, debug)
     support.run_unittest(IdentityCase, debug)
     support.run_unittest(MixedCase, debug)

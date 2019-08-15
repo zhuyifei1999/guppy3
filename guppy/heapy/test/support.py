@@ -1,16 +1,22 @@
-#._cv_part guppy.heapy.test.support
+# ._cv_part guppy.heapy.test.support
 
 """Supporting definitions for the Heapy regression test.
 Addapted from Python standard module test_support.
 """
 
+import unittest
+from os import unlink
+import os
 import sys
+
 
 class Error(Exception):
     """Base class for regression test exceptions."""
 
+
 class TestFailed(Error):
     """Test failed."""
+
 
 class TestSkipped(Error):
     """Test skipped.
@@ -22,6 +28,7 @@ class TestSkipped(Error):
     TestFailed.
     """
 
+
 verbose = 1              # Flag set to 0 by regrtest.py
 use_resources = None       # Flag set to [] by regrtest.py
 
@@ -29,18 +36,23 @@ use_resources = None       # Flag set to [] by regrtest.py
 # This may be "the real" stdout, or IDLE's emulation of stdout, or whatever.
 # The point is to have some flavor of stdout the user can actually see.
 _original_stdout = None
+
+
 def record_original_stdout(stdout):
     global _original_stdout
     _original_stdout = stdout
 
+
 def get_original_stdout():
     return _original_stdout or sys.stdout
+
 
 def unload(name):
     try:
         del sys.modules[name]
     except KeyError:
         pass
+
 
 def forget(modname):
     unload(modname)
@@ -51,15 +63,18 @@ def forget(modname):
         except os.error:
             pass
 
+
 def requires(resource, msg=None):
     if use_resources is not None and resource not in use_resources:
         if msg is None:
             msg = "Use of the `%s' resource not enabled" % resource
         raise TestSkipped(msg)
 
+
 FUZZ = 1e-6
 
-def fcmp(x, y): # fuzzy comparison function
+
+def fcmp(x, y):  # fuzzy comparison function
     if type(x) == type(0.0) or type(y) == type(0.0):
         try:
             x, y = coerce(x, y)
@@ -76,13 +91,13 @@ def fcmp(x, y): # fuzzy comparison function
         return cmp(len(x), len(y))
     return cmp(x, y)
 
+
 try:
     str
     have_unicode = 1
 except NameError:
     have_unicode = 0
 
-import os
 # Filename used for testing
 if os.name == 'java':
     # Jython disallows @ in module names
@@ -91,14 +106,14 @@ elif os.name != 'riscos':
     TESTFN = '@test'
     # Unicode name only used if TEST_FN_ENCODING exists for the platform.
     if have_unicode:
-        TESTFN_UNICODE=str("@test-\xe0\xf2", "latin-1") # 2 latin characters.
-        if os.name=="nt":
-            TESTFN_ENCODING="mbcs"
+        # 2 latin characters.
+        TESTFN_UNICODE = str("@test-\xe0\xf2", "latin-1")
+        if os.name == "nt":
+            TESTFN_ENCODING = "mbcs"
 else:
     TESTFN = 'test'
 del os
 
-from os import unlink
 
 def findfile(file, here=__file__):
     import os
@@ -108,8 +123,10 @@ def findfile(file, here=__file__):
     path = [os.path.dirname(here)] + path
     for dn in path:
         fn = os.path.join(dn, file)
-        if os.path.exists(fn): return fn
+        if os.path.exists(fn):
+            return fn
     return file
+
 
 def verify(condition, reason='test failed'):
     """Verify that condition is true. If not, raise TestFailed.
@@ -120,6 +137,7 @@ def verify(condition, reason='test failed'):
 
     if not condition:
         raise TestFailed(reason)
+
 
 def vereq(a, b):
     """Raise TestFailed if a == b is false.
@@ -135,6 +153,7 @@ def vereq(a, b):
     if not (a == b):
         raise TestFailed("%r == %r" % (a, b))
 
+
 def sortdict(dict):
     "Like repr(dict), but in sorted order."
     items = list(dict.items())
@@ -142,6 +161,7 @@ def sortdict(dict):
     reprpairs = ["%r: %r" % pair for pair in items]
     withcommas = ", ".join(reprpairs)
     return "{%s}" % withcommas
+
 
 def check_syntax(statement):
     try:
@@ -152,11 +172,8 @@ def check_syntax(statement):
         print('Missing SyntaxError: "%s"' % statement)
 
 
-
-#=======================================================================
+# =======================================================================
 # Preliminary PyUNIT integration.
-
-import unittest
 
 
 class BasicTestRunner:
@@ -197,13 +214,13 @@ def run_unittest(testclass, debug=0):
     else:
         run_suite(suite, testclass)
 
+
 def debug_unittest(testclass):
     """ Debug tests from a unittest.TestCase-derived class."""
     run_unittest(testclass, debug=1)
 
 
-
-#=======================================================================
+# =======================================================================
 # doctest driver.
 
 def run_doctest(module, verbosity=None):
@@ -234,6 +251,7 @@ def run_doctest(module, verbosity=None):
         sys.stdout = save_stdout
 
 # Base test case, tailored for heapy
+
 
 class TestCase(unittest.TestCase):
     def setUp(self):

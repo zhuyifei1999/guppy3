@@ -1,5 +1,6 @@
 from guppy.heapy.test import support
 
+
 class TestCase(support.TestCase):
     def setUp(self):
         support.TestCase.setUp(self)
@@ -12,28 +13,28 @@ class TestCase(support.TestCase):
         self.mutnodeset = self.sets.mutnodeset
         self.nodegraph = self.heapyc.NodeGraph
 
+
 class TestHeapView(TestCase):
     def test_hiding_tag(self):
         hiding_tag = self.hv._hiding_tag_
 
         a = []
         ns = self.mutnodeset([a])
-        ng = self.nodegraph([(a,a)])
+        ng = self.nodegraph([(a, a)])
 
-        self.aseq( self.hv.relimg([ns]), self.nodeset([a]))
-        self.aseq( self.hv.relimg([ng]), self.nodeset([a]))
+        self.aseq(self.hv.relimg([ns]), self.nodeset([a]))
+        self.aseq(self.hv.relimg([ng]), self.nodeset([a]))
 
         ns._hiding_tag_ = hiding_tag
-        self.aseq( self.hv.relimg([ns]), self.nodeset([]))
+        self.aseq(self.hv.relimg([ns]), self.nodeset([]))
 
         ng._hiding_tag_ = hiding_tag
-        self.aseq( self.hv.relimg([ng]), self.nodeset([]))
-
+        self.aseq(self.hv.relimg([ng]), self.nodeset([]))
 
         self.hv._hiding_tag_ = []
 
-        self.aseq( self.hv.relimg([ns]), self.nodeset([a, None]))
-        self.aseq( self.hv.relimg([ng]), self.nodeset([a, None]))
+        self.aseq(self.hv.relimg([ns]), self.nodeset([a, None]))
+        self.aseq(self.hv.relimg([ng]), self.nodeset([a, None]))
 
     def test_inheritance_from_heapview(self):
         # I am not using inheritance from HeapView,
@@ -42,6 +43,7 @@ class TestHeapView(TestCase):
         HeapView = self.guppy.heapy.heapyc.HeapView
         x = 'x'
         newroot = [x]
+
         class HV(HeapView):
             def __new__(self):
                 return HeapView.__new__(HV, newroot, ())
@@ -100,7 +102,7 @@ class TestHeapView(TestCase):
 
             def rel(src, tgt):
                 r = hv.relate(src, tgt)
-                self.assertTrue( r != ((),)*len(r) )
+                self.assertTrue(r != ((),)*len(r))
                 return r
 
             self.aseq(rel(t, data[1]), rel(a, data[1]))
@@ -119,6 +121,7 @@ class TestHeapView(TestCase):
 
     def test_registered_hiding(self):
         hv = self.hv
+
         class Set(object):
             __slots__ = 'some', '_hiding_tag_', 'other'
 
@@ -146,11 +149,11 @@ class TestHeapView(TestCase):
 
         x = hv.heap()
         assert dother in x
-        assert some  in x
+        assert some in x
         assert other in x
 
-        assert s  in x
-        assert d  in x
+        assert s in x
+        assert d in x
         assert t in x
 
         s._hiding_tag_ = hv._hiding_tag_
@@ -169,11 +172,11 @@ class TestHeapView(TestCase):
 
         x = hv.heap()
         assert dother in x
-        assert some  in x
+        assert some in x
         assert other in x
 
-        assert s  in x
-        assert d  in x
+        assert s in x
+        assert d in x
         assert t in x
 
     def test_timing(self):
@@ -185,7 +188,6 @@ class TestHeapView(TestCase):
 
         d = []
         h = [d]
-
 
         self.root.extend(100000*[h])
         self.root.extend(list(range(100000)))
@@ -209,7 +211,7 @@ class TestHeapView(TestCase):
         s._hiding_tag_ = hv._hiding_tag_
         d = Der()
         d._hiding_tag_ = hv._hiding_tag_
-        self.root[0:50000]=25000*[s, d]
+        self.root[0:50000] = 25000*[s, d]
 
         start = clock()
 
@@ -221,7 +223,6 @@ class TestHeapView(TestCase):
         # This has failed a couple of times so I remove it now, (apr 5 2008)
         # xxx should look into this later ...
         #self.assert_(elapsed1 < 3.0 * elapsed0)
-
 
     def test_unregistered_hiding(self):
         # Automatic hiding of instances of old-style classes
@@ -247,6 +248,7 @@ class TestHeapView(TestCase):
         assert s not in x
         assert t in x
 
+
 class TestLeak(support.TestCase):
 
     def test_1(self):
@@ -271,7 +273,6 @@ class TestLeak(support.TestCase):
 
         class V(object):
             __slots__ = 'c',
-
 
         gc.collect()
 
@@ -329,7 +330,6 @@ class TestLeak(support.TestCase):
             del h
             del hv
 
-
         ns.discard(rec)
         rec = None
         gc.collect()
@@ -338,7 +338,7 @@ class TestLeak(support.TestCase):
         del x
         self.aseq(rcli, nrcli)
 
-        root[:]=[]
+        root[:] = []
         ns.clear()
 
         nrcli0 = [grc(x) for x in li]
@@ -374,10 +374,9 @@ class TestLeak(support.TestCase):
 
         class U(T):
             pass
-        T.U = U # Make circular dependency
+        T.U = U  # Make circular dependency
         t = T()
         u = U()
-
 
         root.append(t)
         root.append(u)
@@ -388,7 +387,6 @@ class TestLeak(support.TestCase):
             assert t in x
             x = None
 
-
         T = t = U = u = None
         root[:] = []
 
@@ -398,6 +396,7 @@ class TestLeak(support.TestCase):
 
         self.aseq(nrcprobe, rcprobe)
 
+
 class TestNodeGraph(TestCase):
     def test_constructor_and_methods(self):
 
@@ -406,70 +405,70 @@ class TestNodeGraph(TestCase):
         # Test add_edge
         ng.add_edge(1, 2)
         # Test add_edges_n1
-        ng.add_edges_n1([3,4],5)
+        ng.add_edges_n1([3, 4], 5)
         lng = list(ng)
         lng.sort()
-        assert lng == [(1,2),(3,5),(4,5)]
+        assert lng == [(1, 2), (3, 5), (4, 5)]
         # Test as_flat_list
         fl = ng.as_flat_list()
         fl.sort()
-        assert fl == [1,2,3,4,5,5]
+        assert fl == [1, 2, 3, 4, 5, 5]
         # Test copy
         cp = ng.copy()
-        cp.add_edge(5,6)
+        cp.add_edge(5, 6)
         # Test __iter__ explicitly
         lng1 = list(ng.__iter__())
         lng1.sort()
         assert lng1 == lng
         lcp = list(cp)
         lcp.sort()
-        assert lcp == [(1,2),(3,5),(4,5), (5,6)]
+        assert lcp == [(1, 2), (3, 5), (4, 5), (5, 6)]
 
         # Test domain_covers
-        assert ng.domain_covers([1,3,4])
-        assert not ng.domain_covers([1,3,4,5])
+        assert ng.domain_covers([1, 3, 4])
+        assert not ng.domain_covers([1, 3, 4, 5])
 
         # Test domain_restricted
-        rng = ng.domain_restricted([1,3])
+        rng = ng.domain_restricted([1, 3])
         # Test get_domain
-        assert rng.get_domain() == self.nodeset([1,3])
+        assert rng.get_domain() == self.nodeset([1, 3])
         lrng = list(rng)
         lrng.sort()
-        assert lrng == [(1,2),(3,5)]
+        assert lrng == [(1, 2), (3, 5)]
         # Test get_range
-        assert rng.get_range() == self.nodeset([2,5])
+        assert rng.get_range() == self.nodeset([2, 5])
         # Test invert
         rng.invert()
         lrng = list(rng)
         lrng.sort()
-        assert lrng == [(2,1),(5,3)]
+        assert lrng == [(2, 1), (5, 3)]
         # Test inverted
         ing = ng.inverted()
         ling = list(ing)
         ling.sort()
-        assert ling == [(2,1),(5,3),(5,4)]
+        assert ling == [(2, 1), (5, 3), (5, 4)]
         # Test relimg
         assert ing.relimg([2]) == self.nodeset([1])
-        assert ing.relimg([2,5,3]) == self.nodeset([1,3,4])
+        assert ing.relimg([2, 5, 3]) == self.nodeset([1, 3, 4])
         # Test update
-        ing.update([(3,7),(4,8)])
-        assert ing.relimg([2,5,3]) == self.nodeset([1,3,4,7])
+        ing.update([(3, 7), (4, 8)])
+        assert ing.relimg([2, 5, 3]) == self.nodeset([1, 3, 4, 7])
         # Test updated
-        uing = ing.updated([(2,9)])
-        assert ing.relimg([2,5,3]) == self.nodeset([1,3,4,7])
-        assert uing.relimg([2,5,3]) == self.nodeset([1,3,4,7,9])
+        uing = ing.updated([(2, 9)])
+        assert ing.relimg([2, 5, 3]) == self.nodeset([1, 3, 4, 7])
+        assert uing.relimg([2, 5, 3]) == self.nodeset([1, 3, 4, 7, 9])
 
         # Test __getitem__
         tgts = list(uing[2])
         tgts.sort()
-        assert tgts == [1,9]
+        assert tgts == [1, 9]
         # Test __len__
         assert len(uing) == 6
         uing[2] = (2, 8)
         # Test __setitem__
         tgts = list(uing[2])
         tgts.sort()
-        assert tgts == [2,8]
+        assert tgts == [2, 8]
 
         # Test clear
         ng.clear()
@@ -477,8 +476,8 @@ class TestNodeGraph(TestCase):
 
         # Test constructor with iterable
 
-        ng = self.nodegraph([(1,2)])
-        assert list(ng) == [(1,2)]
+        ng = self.nodegraph([(1, 2)])
+        assert list(ng) == [(1, 2)]
         assert not ng.is_mapping
 
         # Test constructor with is_mapping flag
@@ -486,8 +485,8 @@ class TestNodeGraph(TestCase):
         ng = self.nodegraph(is_mapping=True)
         assert ng.is_mapping
         assert list(ng) == []
-        ng.add_edge(1,2)
-        assert list(ng) == [(1,2)]
+        ng.add_edge(1, 2)
+        assert list(ng) == [(1, 2)]
         assert ng[1] == 2
 
         ng = self.nodegraph(is_mapping=False)
@@ -495,13 +494,13 @@ class TestNodeGraph(TestCase):
 
         # Test constructor with iterable & is_mapping flag
 
-        for ng in (self.nodegraph([(1,2)], True),
-                   self.nodegraph(iterable=[(1,2)], is_mapping=True),
-                   self.nodegraph([(1,2)], is_mapping=True),
-                   self.nodegraph(is_mapping=True,iterable=[(1,2)])
+        for ng in (self.nodegraph([(1, 2)], True),
+                   self.nodegraph(iterable=[(1, 2)], is_mapping=True),
+                   self.nodegraph([(1, 2)], is_mapping=True),
+                   self.nodegraph(is_mapping=True, iterable=[(1, 2)])
                    ):
             assert ng.is_mapping
-            assert list(ng) == [(1,2)]
+            assert list(ng) == [(1, 2)]
             assert ng[1] == 2
             ng[1] = 3
             assert ng[1] == 3
@@ -509,8 +508,8 @@ class TestNodeGraph(TestCase):
         # Test is_sorted flag
         # though this behaviour is not fixed - may change with implementation
         ng = self.nodegraph()
-        ng.add_edge(1,2)
-        ng.add_edge(2,1)
+        ng.add_edge(1, 2)
+        ng.add_edge(2, 1)
         assert not ng.is_sorted
         ng[1]
         assert ng.is_sorted
@@ -518,19 +517,19 @@ class TestNodeGraph(TestCase):
     def test_inheritance(self):
         class T(self.heapyc.NodeGraph):
             __slots__ = 'x'
+
             def as_sorted_list(self):
                 a = list(self)
                 a.sort()
                 return a
 
-
         t = T()
-        t.add_edge(1,2)
-        t.add_edge(2,3)
-        assert t.as_sorted_list() == [(1,2),(2,3)]
+        t.add_edge(1, 2)
+        t.add_edge(2, 3)
+        assert t.as_sorted_list() == [(1, 2), (2, 3)]
 
-        t = T([(4,5),(6,7)])
-        assert t.as_sorted_list() == [(4,5),(6,7)]
+        t = T([(4, 5), (6, 7)])
+        assert t.as_sorted_list() == [(4, 5), (6, 7)]
 
         # Test that the base type functionality has been inherited
         #  by making test_constructor_and_methods think NodeGraph is T
@@ -542,6 +541,7 @@ class TestNodeGraph(TestCase):
 
         class R(T):
             __slots__ = 'stop',
+
             def __new__(self, stop):
                 r = T.__new__(R, is_mapping=1)
                 r.add_edges_n1(list(range(stop)), 0)
@@ -559,7 +559,7 @@ class TestNodeGraph(TestCase):
         assert r.is_mapping
         lr = list(r)
         lr.sort()
-        assert lr[-2:] == [(8,0),(9,0)]
+        assert lr[-2:] == [(8, 0), (9, 0)]
 
         keys = list(r.keys())
         keys.sort()
@@ -576,7 +576,7 @@ class TestClassifiers(TestCase):
         def str_inrel(c):
             c = list(c)
             c.sort()
-            return ', '.join(['(%s, %r)'%(x.kind, x.relator) for x in c])
+            return ', '.join(['(%s, %r)' % (x.kind, x.relator) for x in c])
 
         hv = self.hv
         rg = self.nodegraph()
@@ -585,7 +585,7 @@ class TestClassifiers(TestCase):
         rg.add_edge(x, y)
         cli = hv.cli_inrel(rg, {}, {})
         c = cli.classify(x)
-        self.aseq( str_inrel(c), '(2, 0)' )
+        self.aseq(str_inrel(c), '(2, 0)')
 
         for i in range(5):
             y.append(x)
@@ -593,17 +593,18 @@ class TestClassifiers(TestCase):
         self.aseq(str_inrel(c), '(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)')
 
         for i in range(5):
-            r = {str(i):x}
+            r = {str(i): x}
             rg.add_edge(x, r)
         c = cli.classify(x)
-        #print str_inrel(c)
+        # print str_inrel(c)
 
 
-def test_main(debug = False):
+def test_main(debug=False):
     support.run_unittest(TestClassifiers, debug)
     support.run_unittest(TestNodeGraph, debug)
     support.run_unittest(TestLeak, debug)
     support.run_unittest(TestHeapView, debug)
+
 
 if __name__ == "__main__":
     test_main()

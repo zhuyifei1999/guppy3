@@ -1,6 +1,7 @@
-#._cv_part guppy.gsl.Filer
+# ._cv_part guppy.gsl.Filer
 """ Handles filing of data from low-level gsl filing and data records.
 """
+
 
 class Filer:
     def __init__(self, mod, node):
@@ -18,23 +19,25 @@ class Filer:
     def visit_write_file(self, node):
         name = node.arg
         if name in self.writefile_names:
-            raise SyntaxError('Duplicate file name: %r'%name)
+            raise SyntaxError('Duplicate file name: %r' % name)
         self.writefile_names[name] = node
         self.writefile_envs.append(WriteFile(self, node))
 
     def get_info(self):
         infos = []
         for e in self.writefile_envs:
-            infos.append('write file: %s'%e.file_name)
+            infos.append('write file: %s' % e.file_name)
         return '\n'.join(infos)
 
     def write(self):
         for e in self.writefile_envs:
             e.write()
 
+
 class WriteFile:
     node_data = None
     node_mode = None
+
     def __init__(self, filer, node):
         self.filer = filer
         self.mod = mod = filer.mod
@@ -64,7 +67,7 @@ class WriteFile:
 
     def set_single(self, name, node):
         if getattr(self, name, None) is not None:
-            raise SyntaxError('Duplicate %r at index %r'%(name, node.index))
+            raise SyntaxError('Duplicate %r at index %r' % (name, node.index))
         setattr(self, name, node)
         node.children_accept(self, 'no_node_expected')
 
@@ -81,7 +84,7 @@ class WriteFile:
 class _GLUECLAMP_:
     _imports_ = (
         '_parent.FileIO:IO',
-        )
+    )
 
     _setable_ = 'backup_suffix',
 
@@ -113,10 +116,10 @@ class _GLUECLAMP_:
 ..text
 %s
 ..end
-'''%(tempname, data)
+''' % (tempname, data)
             node = N.node_of_string(X)
             f = self.filer(node)
-            assert f.get_info() == 'write file: %s'%tempname
+            assert f.get_info() == 'write file: %s' % tempname
             f.write()
             d = IO.read_file(tempname)
             assert d == data
@@ -133,7 +136,7 @@ class _GLUECLAMP_:
 ..text
 %s
 ..end
-'''%(tempname, data2, tempname+'.3', data3)
+''' % (tempname, data2, tempname+'.3', data3)
 
             node = N.node_of_string(X)
             f = self.filer(node)
@@ -150,7 +153,7 @@ class _GLUECLAMP_:
             IO.rmdir(tempdir)
 
 
-if 0 or __name__=='__main__': # doesnt work
+if 0 or __name__ == '__main__':  # doesnt work
     from guppy import Root
     gsl = Root().guppy.gsl
     gsl.FileIO.set_test_mode()

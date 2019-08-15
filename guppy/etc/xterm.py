@@ -1,4 +1,4 @@
-#._cv_part xterm
+# ._cv_part xterm
 
 # Run an xterm on current process or a forked process
 
@@ -7,7 +7,9 @@
 # the pty name needed by xterm
 # I couldnt import pty.py to use master_open because it didn't find termios.
 
-import os, sys, FCNTL
+import os
+import sys
+import FCNTL
 
 # We couldnt find termios
 
@@ -15,6 +17,7 @@ STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO = 0, 1, 2
 
 # Open pty master.  Returns (master_fd, tty_name).  SGI and Linux/BSD version.
 # Copied from pty.py from Python 1.5.2. /SN
+
 
 def master_open():
     try:
@@ -41,15 +44,16 @@ def master_open():
 # Returns file descriptor.  Linux version.  (Should be universal? --Guido)
 # Copied from pty.py from Python 1.5.2. /SN
 
+
 def slave_open(tty_name):
     return os.open(tty_name, FCNTL.O_RDWR)
 
 
-def xterm(prog = None, options=''):
+def xterm(prog=None, options=''):
     master_fd, tty_name = master_open()
     pid = os.fork()
     if pid:
-    # Acquire controlling terminal.
+        # Acquire controlling terminal.
         slave_fd = slave_open(tty_name)
 
         # Slave becomes stdin/stdout/stderr of child.
@@ -57,20 +61,20 @@ def xterm(prog = None, options=''):
         os.dup2(slave_fd, STDOUT_FILENO)
         os.dup2(slave_fd, STDERR_FILENO)
         if (slave_fd > STDERR_FILENO):
-            os.close (slave_fd)
+            os.close(slave_fd)
         os.close(master_fd)
-        sys.stdin.readline() # Throw away an init string from xterm
+        sys.stdin.readline()  # Throw away an init string from xterm
         if prog is not None:
             prog()
     else:
         os.setsid()
-        cmd = 'xterm %s -S%s%d'%(options, tty_name[-2:], master_fd)
+        cmd = 'xterm %s -S%s%d' % (options, tty_name[-2:], master_fd)
         os.system(cmd)
         #os.waitpid(pid, 0)
     return pid
 
 
-def forkxterm(prog = None, options=''):
+def forkxterm(prog=None, options=''):
     pid = os.fork()
     if pid:
         return pid

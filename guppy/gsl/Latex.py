@@ -1,9 +1,10 @@
-#._cv_part guppy.gsl.Latex
+# ._cv_part guppy.gsl.Latex
 
 
 class Doc2Latex:
     sizes = ('tiny', 'scriptsize', 'footnotesize', 'small',
              'normalsize', 'large', 'Large', 'LARGE', 'huge', 'Huge')
+
     def __init__(self, mod, doc, node):
         self.mod = mod
         self.doc = doc
@@ -40,7 +41,7 @@ class Doc2Latex:
             si = 0
         elif si >= len(self.sizes):
             si = len(self.sizes) - 1
-        self.append('{\\%s '%self.sizes[si])
+        self.append('{\\%s ' % self.sizes[si])
         self.cur_size = si
         if self.cur_style != 'rm':
             self.style(self.cur_style, node)
@@ -49,10 +50,8 @@ class Doc2Latex:
         self.append('}')
         self.cur_size = osize
 
-
     def append(self, x):
         self.out.append(x)
-
 
     def changed_size(self, delta, node):
         self.abs_size(self.cur_size + delta, node)
@@ -66,10 +65,11 @@ class Doc2Latex:
 
     def no_children(self, node):
         if node.children:
-            self.error('No children allowed for %r.'%node.tag, node.children[0])
+            self.error('No children allowed for %r.' %
+                       node.tag, node.children[0])
 
     def style(self, style, node):
-        self.append('{\\%s '%style)
+        self.append('{\\%s ' % style)
         ostyle = self.cur_style
         self.cur_style = style
         node.arg_accept(self)
@@ -89,7 +89,6 @@ class Doc2Latex:
     def visit_big(self, node):
         self.changed_size(1, node)
 
-
     def visit_block(self, node):
         self._visit_children(node)
 
@@ -103,14 +102,14 @@ class Doc2Latex:
         self.append('\\end{quote}\n')
 
     char_table = {
-        'nbsp'  : '~',
-        }
+        'nbsp': '~',
+    }
 
     def visit_char(self, node):
         char = node.arg.strip()
         c = self.char_table.get(char)
         if c is None:
-            self.error('No such character: %r.'%char, node)
+            self.error('No such character: %r.' % char, node)
             c = char
         self.append(c)
 
@@ -124,16 +123,16 @@ class Doc2Latex:
         self.ms.append('dd')
         step = 24
         ls = (self.ms.count('dd') + self.latex_list_nesting) * step
-        self.append('{\\par \\noindent  \\leftskip = %d pt '%ls)
+        self.append('{\\par \\noindent  \\leftskip = %d pt ' % ls)
         for i, v in enumerate(('i', 'ii', 'iii', 'iv', 'v', 'vi')[self.latex_list_nesting:]):
-            self.append(' \\leftmargin%s = %d pt '%(v, ls + (i + 1) * step))
+            self.append(' \\leftmargin%s = %d pt ' % (v, ls + (i + 1) * step))
         node.arg_accept(self)
         self.append('\\par}\n')
         self.ms.pop()
 
     def visit_default(self, node):
-        self.error('I don\'t know what to generate for the tag %r.'%node.tag, node)
-
+        self.error('I don\'t know what to generate for the tag %r.' %
+                   node.tag, node)
 
     def visit_define(self, node):
         # xxx
@@ -149,7 +148,7 @@ class Doc2Latex:
 
     def visit_dt(self, node):
         self.ms.append('dt')
-        self.append('{\\par \\pagebreak[%f] \\noindent \\hangindent = 12 pt \\hangafter = 1 \n'%(
+        self.append('{\\par \\pagebreak[%f] \\noindent \\hangindent = 12 pt \\hangafter = 1 \n' % (
                     3.4-0.1*len(self.ms),
                     ))
         node.arg_accept(self)
@@ -175,7 +174,6 @@ class Doc2Latex:
             syms = [x.strip() for x in ch.arg.split(',')]
             for sym in syms:
                 self.symplace[sym] = ch.tag
-
 
     def visit_em(self, node):
         self.style('em', node)
@@ -215,16 +213,16 @@ class Doc2Latex:
         n = int(node.tag[1:])
         if self.mode == 'man_page':
             self.append('{\\par \\pagebreak[%d] \\vskip %d pt \\noindent\n' % (
-                [4,3,3,2,2,1,1][n],
+                [4, 3, 3, 2, 2, 1, 1][n],
                 (12 - 2 * n)))
             self.abs_size(len(self.sizes) - n - 2, self.mod.node_of_taci(
                 '', '',
                 [self.mod.node_of_taci('strong', node.arg, node.children)]))
-            self.append('\\par \\vskip %d pt\n} \\noindent\n'%(12 - 2 * n))
+            self.append('\\par \\vskip %d pt\n} \\noindent\n' % (12 - 2 * n))
             self.noindent = 1
-            #self.append('\\end{list}\n')
+            # self.append('\\end{list}\n')
         else:
-            self.append('\\%s{'%self.mod.section_table[n])
+            self.append('\\%s{' % self.mod.section_table[n])
             node.arg_accept(self)
             self.append('}\n')
 
@@ -305,7 +303,6 @@ class Doc2Latex:
         self.visit_paragraph(node)
         self.latex_mode -= 1
 
-
     def visit_man_page_mode(self, node):
         omode = self.mode
         self.mode = 'man_page'
@@ -319,7 +316,6 @@ class Doc2Latex:
         self.append('\\begin{enumerate}\n')
         self._visit_children(node)
         self.append('\\end{enumerate}\n')
-
 
     def visit_p(self, node):
         self.visit_paragraph(node)
@@ -350,17 +346,16 @@ class Doc2Latex:
             return
         self.append('\\par\n')
         self.encoder.insert_none_breaking_blanks += 1
-        self.encoder.literal+=1
+        self.encoder.literal += 1
         first = 1
-        self.append('{\\tt{%s}}\n'%self.encode(lines[0]))
+        self.append('{\\tt{%s}}\n' % self.encode(lines[0]))
         for line in lines[1:]:
             self.append(
-                '{ \\par \\parindent = 0 pt \\parskip = 0 pt \\tt{%s} }\n'%
+                '{ \\par \\parindent = 0 pt \\parskip = 0 pt \\tt{%s} }\n' %
                 self.encode(line))
         self.encoder.insert_none_breaking_blanks -= 1
         self.encoder.literal -= 1
         self.append('\\par\n')
-
 
     def visit_small(self, node):
         self.changed_size(-1, node)
@@ -437,7 +432,8 @@ class Doc2Latex:
 
 
 class Table(Doc2Latex):
-    many_hlines = 1 # Use extra many hlines.. looks good, a matter of taste.
+    many_hlines = 1  # Use extra many hlines.. looks good, a matter of taste.
+
     def __init__(self, d2l, node):
         self.d2l = d2l
         self.__dict__.update(d2l.__dict__)
@@ -454,17 +450,18 @@ class Table(Doc2Latex):
                 maxcols = len(row.columns)
 
         if not maxcols:
-            return # Empty table
+            return  # Empty table
         if self.colwidth is not None:
             if not len(self.colwidth) == maxcols:
                 self.error("Wrong number of column width specifications (%d) vs\n"
-                           "    max columns in table (%d)."%(len(self.colwidth), maxcols),
+                           "    max columns in table (%d)." % (
+                               len(self.colwidth), maxcols),
                            node)
         else:
             self.colwidth = [1.0/maxcols]*maxcols
         ap = self.d2l.append
-        ap('\n\\begin{longtable}[c]{|%s|}\n'%('|'.join(['p{%.2g\\linewidth}'%cw
-                                                     for cw in self.colwidth])))
+        ap('\n\\begin{longtable}[c]{|%s|}\n' % ('|'.join(['p{%.2g\\linewidth}' % cw
+                                                          for cw in self.colwidth])))
         if self.many_hlines:
             ap('\\hline\n')
         for row in self.rows:
@@ -484,13 +481,12 @@ class Table(Doc2Latex):
                 ap('\\endhead\n')
         ap('\n\\end{longtable}\n')
 
-
     def visit_colgroup(self, node):
         colwidth = []
 
         for c in node.children:
             if c.tag != "col_width":
-                self.error('Unrecognized colgroup option: %r'%c.tag, c)
+                self.error('Unrecognized colgroup option: %r' % c.tag, c)
             cg = c.arg
             if cg.endswith('%'):
                 cg = cg[:-1]
@@ -510,8 +506,10 @@ class Table(Doc2Latex):
     def visit_tr(self, node):
         self.rows.append(Row(self, node))
 
+
 class Row(Doc2Latex):
     is_head = 0
+
     def __init__(self, table, node):
         self.__dict__.update(table.__dict__)
         self.columns = []
@@ -523,6 +521,7 @@ class Row(Doc2Latex):
     def visit_th(self, node):
         self.columns.append(Column(self, node))
 
+
 class Column(Doc2Latex):
     def __init__(self, row, node):
         self.__dict__.update(row.__dict__)
@@ -531,16 +530,15 @@ class Column(Doc2Latex):
         node.arg_accept(self)
 
 
-
 class Babel:
     """Language specifics for LaTeX."""
     # country code by a.schlock.
     # partly manually converted from iso and babel stuff, dialects and some
     _ISO639_TO_BABEL = {
-        'no': 'norsk',     #XXX added by hand ( forget about nynorsk?)
-        'gd': 'scottish',  #XXX added by hand
-        'hu': 'magyar',    #XXX added by hand
-        'pt': 'portuguese',#XXX added by hand
+        'no': 'norsk',  # XXX added by hand ( forget about nynorsk?)
+        'gd': 'scottish',  # XXX added by hand
+        'hu': 'magyar',  # XXX added by hand
+        'pt': 'portuguese',  # XXX added by hand
         'sl': 'slovenian',
         'af': 'afrikaans',
         'bg': 'bulgarian',
@@ -551,7 +549,7 @@ class Babel:
         'da': 'danish',
         'fr': 'french',
         # french, francais, canadien, acadian
-        'de': 'ngerman',  #XXX rather than german
+        'de': 'ngerman',  # XXX rather than german
         # ngerman, naustrian, german, germanb, austrian
         'el': 'greek',
         'en': 'english',
@@ -587,7 +585,7 @@ class Babel:
 
         # pdflatex does not produce double quotes for ngerman in tt.
         self.double_quote_replacment = None
-        if self.re.search('^de',self.language):
+        if self.re.search('^de', self.language):
             #self.quotes = ("\"`", "\"'")
             self.quotes = ('{\\glqq}', '{\\grqq}')
             self.double_quote_replacment = "{\\dq}"
@@ -597,10 +595,10 @@ class Babel:
 
     def next_quote(self):
         q = self.quotes[self.quote_index]
-        self.quote_index = (self.quote_index+1)%2
+        self.quote_index = (self.quote_index+1) % 2
         return q
 
-    def quote_quotes(self,text):
+    def quote_quotes(self, text):
         t = None
         for part in text.split('"'):
             if t == None:
@@ -609,7 +607,7 @@ class Babel:
                 t += self.next_quote() + part
         return t
 
-    def double_quotes_in_tt (self,text):
+    def double_quotes_in_tt(self, text):
         if not self.double_quote_replacment:
             return text
         return text.replace('"', self.double_quote_replacment)
@@ -625,8 +623,6 @@ class Babel:
         return None
 
 
-
-
 class Encoder:
     literal_block = 0
     literal = 0
@@ -637,20 +633,20 @@ class Encoder:
     insert_none_breaking_blanks = 0
 
     latex_equivalents = {
-        '\u00A0' : '~',
-        '\u2013' : '{--}',
-        '\u2014' : '{---}',
-        '\u2018' : '`',
-        '\u2019' : '\'',
-        '\u201A' : ',',
-        '\u201C' : '``',
-        '\u201D' : '\'\'',
-        '\u201E' : ',,',
-        '\u2020' : '{\\dag}',
-        '\u2021' : '{\\ddag}',
-        '\u2026' : '{\\dots}',
-        '\u2122' : '{\\texttrademark}',
-        '\u21d4' : '{$\\Leftrightarrow$}',
+        '\u00A0': '~',
+        '\u2013': '{--}',
+        '\u2014': '{---}',
+        '\u2018': '`',
+        '\u2019': '\'',
+        '\u201A': ',',
+        '\u201C': '``',
+        '\u201D': '\'\'',
+        '\u201E': ',,',
+        '\u2020': '{\\dag}',
+        '\u2021': '{\\ddag}',
+        '\u2026': '{\\dots}',
+        '\u2122': '{\\texttrademark}',
+        '\u21d4': '{$\\Leftrightarrow$}',
     }
 
     def __init__(self, mod):
@@ -660,53 +656,52 @@ class Encoder:
         self.font_encoding = mod.font_encoding
         self.latex_encoding = self.to_latex_encoding(mod.output_encoding)
 
-    def to_latex_encoding(self,docutils_encoding):
+    def to_latex_encoding(self, docutils_encoding):
         """
         Translate docutils encoding name into latex's.
 
         Default fallback method is remove "-" and "_" chars from docutils_encoding.
 
         """
-        tr = {  "iso-8859-1": "latin1",     # west european
-                "iso-8859-2": "latin2",     # east european
-                "iso-8859-3": "latin3",     # esperanto, maltese
-                "iso-8859-4": "latin4",     # north european,scandinavian, baltic
-                "iso-8859-5": "iso88595",   # cyrillic (ISO)
-                "iso-8859-9": "latin5",     # turkish
-                "iso-8859-15": "latin9",    # latin9, update to latin1.
-                "mac_cyrillic": "maccyr",   # cyrillic (on Mac)
-                "windows-1251": "cp1251",   # cyrillic (on Windows)
-                "koi8-r": "koi8-r",         # cyrillic (Russian)
-                "koi8-u": "koi8-u",         # cyrillic (Ukrainian)
-                "windows-1250": "cp1250",   #
-                "windows-1252": "cp1252",   #
-                "us-ascii": "ascii",        # ASCII (US)
-                # unmatched encodings
-                #"": "applemac",
-                #"": "ansinew",  # windows 3.1 ansi
-                #"": "ascii",    # ASCII encoding for the range 32--127.
-                #"": "cp437",    # dos latine us
-                #"": "cp850",    # dos latin 1
-                #"": "cp852",    # dos latin 2
-                #"": "decmulti",
-                #"": "latin10",
-                #"iso-8859-6": ""   # arabic
-                #"iso-8859-7": ""   # greek
-                #"iso-8859-8": ""   # hebrew
-                #"iso-8859-10": ""   # latin6, more complete iso-8859-4
-             }
+        tr = {"iso-8859-1": "latin1",     # west european
+              "iso-8859-2": "latin2",     # east european
+              "iso-8859-3": "latin3",     # esperanto, maltese
+              "iso-8859-4": "latin4",     # north european,scandinavian, baltic
+              "iso-8859-5": "iso88595",   # cyrillic (ISO)
+              "iso-8859-9": "latin5",     # turkish
+              "iso-8859-15": "latin9",    # latin9, update to latin1.
+              "mac_cyrillic": "maccyr",   # cyrillic (on Mac)
+              "windows-1251": "cp1251",   # cyrillic (on Windows)
+              "koi8-r": "koi8-r",         # cyrillic (Russian)
+              "koi8-u": "koi8-u",         # cyrillic (Ukrainian)
+              "windows-1250": "cp1250",   #
+              "windows-1252": "cp1252",   #
+              "us-ascii": "ascii",        # ASCII (US)
+              # unmatched encodings
+              # "": "applemac",
+              # "": "ansinew",  # windows 3.1 ansi
+              # "": "ascii",    # ASCII encoding for the range 32--127.
+              # "": "cp437",    # dos latine us
+              # "": "cp850",    # dos latin 1
+              # "": "cp852",    # dos latin 2
+              # "": "decmulti",
+              # "": "latin10",
+              # "iso-8859-6": ""   # arabic
+              # "iso-8859-7": ""   # greek
+              # "iso-8859-8": ""   # hebrew
+              # "iso-8859-10": ""   # latin6, more complete iso-8859-4
+              }
         if docutils_encoding.lower() in tr:
             return tr[docutils_encoding.lower()]
-        return docutils_encoding.translate(self.mod.string.maketrans("",""),"_-").lower()
+        return docutils_encoding.translate(self.mod.string.maketrans("", ""), "_-").lower()
 
-
-    def unicode_to_latex(self,text):
+    def unicode_to_latex(self, text):
         # see LaTeX codec
         # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252124
         # Only some special chracters are translated, for documents with many
         # utf-8 chars one should use the LaTeX unicode package.
         for uchar in list(self.latex_equivalents.keys()):
-            text = text.replace(uchar,self.latex_equivalents[uchar])
+            text = text.replace(uchar, self.latex_equivalents[uchar])
         return text
 
     def encode(self, text):
@@ -727,7 +722,7 @@ class Encoder:
         # first the braces.
         if 'encode_re_braces' not in self.__dict__:
             self.encode_re_braces = self.re.compile(r'([{}])')
-        text = self.encode_re_braces.sub(r'{\\\1}',text)
+        text = self.encode_re_braces.sub(r'{\\\1}', text)
         if 'encode_re_bslash' not in self.__dict__:
             # find backslash: except in the form '{\{}' or '{\}}'.
             self.encode_re_bslash = self.re.compile(r'(?<!{)(\\)(?![{}]})')
@@ -737,7 +732,7 @@ class Encoder:
 
         # then dollar
         text = text.replace("$", '{\\$}')
-        if not ( self.literal_block or self.literal or self.mathmode ):
+        if not (self.literal_block or self.literal or self.mathmode):
             # the vertical bar: in mathmode |,\vert or \mid
             #   in textmode \textbar
             text = text.replace("|", '{\\textbar}')
@@ -791,7 +786,8 @@ class Encoder:
             else:
                 closings = ""
                 openings = ""
-            text = text.replace("\n", "%s}\\\\\n\\mbox{%s" % (closings,openings))
+            text = text.replace(
+                "\n", "%s}\\\\\n\\mbox{%s" % (closings, openings))
         # lines starting with "[" give errors.
         text = text.replace('[', '{[}')
         if self.insert_none_breaking_blanks:
@@ -801,7 +797,6 @@ class Encoder:
         return text
 
 
-
 class _GLUECLAMP_:
     _imports_ = (
         '_parent:SpecNodes',
@@ -809,7 +804,7 @@ class _GLUECLAMP_:
         '_parent.Main:ReportedError',
         '_root:re',
         '_root:string',
-        )
+    )
 
     font_encoding = ''
     double_quote_replacment = ''
@@ -817,14 +812,14 @@ class _GLUECLAMP_:
     output_encoding = ''
 
     section_table = {
-        0:'part',
-        1:'chapter',
-        2:'section',
-        3:'subsection',
-        4:'subsubsection',
-        5:'paragraph',
-        6:'subparagraph'
-        }
+        0: 'part',
+        1: 'chapter',
+        2: 'section',
+        3: 'subsection',
+        4: 'subsubsection',
+        5: 'paragraph',
+        6: 'subparagraph'
+    }
 
     def doc2text(self, doc, node):
         d2l = Doc2Latex(self, doc, node)
@@ -832,6 +827,7 @@ class _GLUECLAMP_:
 
     def doc2filer(self, doc, node, name, dir, opts, IO):
         text = self.doc2text(doc, node)
-        path = IO.path.join(dir, '%s.tex'%name)
-        node = self.node_of_taci('write_file', path, [self.node_of_taci('text', text)])
+        path = IO.path.join(dir, '%s.tex' % name)
+        node = self.node_of_taci('write_file', path, [
+                                 self.node_of_taci('text', text)])
         return node

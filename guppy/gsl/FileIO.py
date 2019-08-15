@@ -1,4 +1,5 @@
-#._cv_part guppy.gsl.FileIO
+# ._cv_part guppy.gsl.FileIO
+
 
 class TestPath:
     _path_using_io = (
@@ -8,12 +9,14 @@ class TestPath:
         'samefile', 'sameopenfile', 'samestat',
         'walk',
 
-        )
+    )
+
     def __init__(self, os):
         for name in dir(os.path):
             if (not name.startswith('_') and
-                name not in self._path_using_io):
+                    name not in self._path_using_io):
                 setattr(self, name, getattr(os.path, name))
+
 
 class TestIO:
     def __init__(self, mod):
@@ -41,7 +44,7 @@ class TestIO:
 
     def mkdtemp(self):
         self.tempno += 1
-        return '/tmp/xyz%d'%self.tempno
+        return '/tmp/xyz%d' % self.tempno
 
     def read_file(self, name):
         return self.files[name]
@@ -50,13 +53,13 @@ class TestIO:
         try:
             del self.files[name]
         except KeyError:
-            raise IOError('No such file: %r'%name)
+            raise IOError('No such file: %r' % name)
 
     def rename(self, src, tgt):
         try:
             data = self.files[src]
         except KeyError:
-            raise IOError('No such file: %r'%src)
+            raise IOError('No such file: %r' % src)
         del self.files[src]
         self.files[tgt] = data
 
@@ -65,6 +68,7 @@ class TestIO:
 
     def write_file(self, name, text):
         self.files[name] = text
+
 
 class RealIO:
     def __init__(self, mod):
@@ -91,6 +95,7 @@ class RealIO:
         f = open(name, 'w')
         f.write(data)
         f.close()
+
 
 class _GLUECLAMP_:
 

@@ -1,11 +1,12 @@
-#._cv_part guppy.gsl.Help
+# ._cv_part guppy.gsl.Help
+
 
 class _GLUECLAMP_:
     _imports_ = (
         '_root:os',
         '_root.guppy:specs',
         '_root:webbrowser',
-        )
+    )
 
     default_doc_file = 'guppy.html'
 

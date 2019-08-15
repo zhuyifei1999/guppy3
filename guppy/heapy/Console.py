@@ -1,9 +1,11 @@
-#._cv_part guppy.heapy.Console
+# ._cv_part guppy.heapy.Console
 
 import code
 
+
 class Console(code.InteractiveConsole):
     EOF_key_sequence = '-'
+
     def __init__(self, stdin, stdout, locals=None, filename="<console>"):
         self.stdin = stdin
         self.stdout = stdout
@@ -20,12 +22,11 @@ class Console(code.InteractiveConsole):
         line = self.stdin.readline()
         if not line:
             raise EOFError
-        line=line.rstrip()
+        line = line.rstrip()
         if line == self.EOF_key_sequence:
             raise EOFError
         else:
             return line
-
 
     def write(self, data):
         self.stdout.write(data)

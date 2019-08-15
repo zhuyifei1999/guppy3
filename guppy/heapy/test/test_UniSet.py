@@ -1,4 +1,6 @@
 from guppy.heapy.test import support
+
+
 class FirstCase(support.TestCase):
     def setUp(self):
         support.TestCase.setUp(self)
@@ -8,17 +10,17 @@ class FirstCase(support.TestCase):
         a = []
         b = []
         c = self.iso(a, b)
-        asrt( len(c.nodes) == 2)
-        asrt( a in c )
-        asrt( b in c )
-        asrt( [] not in c )
-        asrt( c not in c )
+        asrt(len(c.nodes) == 2)
+        asrt(a in c)
+        asrt(b in c)
+        asrt([] not in c)
+        asrt(c not in c)
 
         d = self.idset(c.nodes)
 
-        asrt( c.nodes == d.nodes )
+        asrt(c.nodes == d.nodes)
 
-        asrt( c == d )
+        asrt(c == d)
 
     def test_2(self):
         # Test standard set operations
@@ -38,19 +40,19 @@ class FirstCase(support.TestCase):
         a = []
         b = [a]
         c = [b]
-        self.View.root =  c
+        self.View.root = c
 
         x = iso(b)
 
-        self.assertTrue( x.referrers == iso(c))
-        self.aseq( x.referents,  iso(a))
-        self.aseq( x.referents.referrers,  x)
-        self.aseq( x.dominos, iso(a, b))
-
+        self.assertTrue(x.referrers == iso(c))
+        self.aseq(x.referents,  iso(a))
+        self.aseq(x.referents.referrers,  x)
+        self.aseq(x.dominos, iso(a, b))
 
 
 def test_main(debug=False):
-    support.run_unittest(FirstCase,debug)
+    support.run_unittest(FirstCase, debug)
+
 
 if __name__ == "__main__":
     test_main()

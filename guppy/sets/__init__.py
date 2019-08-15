@@ -1,4 +1,4 @@
-#._cv_part guppy.sets
+# ._cv_part guppy.sets
 
 from setsc import BitSet        # base bitset type
 from setsc import ImmBitSet     # immutable bitset type
@@ -17,8 +17,9 @@ if hasattr(copy_reg, 'safe_constructors'):      # < 2.3 version
 else:
     # In at least Python 2.3.3, we have to set __module__;
     # it didn't find it otherwise.
-    _bs.__module__      # Due to bug in Python version 2.3.3, we have to read it first..
-    _bs.__module__= 'guppy.sets' # ..to be able to set it.
+    # Due to bug in Python version 2.3.3, we have to read it first..
+    _bs.__module__
+    _bs.__module__ = 'guppy.sets'  # ..to be able to set it.
 del copy_reg
 
 
@@ -32,6 +33,7 @@ mutbitset = MutBitSet
 immnodeset = ImmNodeSet
 mutnodeset = MutNodeSet
 
+
 def mutnodeset_union(iterable):
     "Return a mutable nodeset which is the union of all nodesets in iterable."
     set = mutnodeset()
@@ -39,10 +41,12 @@ def mutnodeset_union(iterable):
         set |= it
     return set
 
+
 def immnodeset_union(iterable, *args):
     "Return an immmutable nodeset which is the union of all nodesets in iterable."
     set = mutnodeset_union(iterable)
     return immnodeset(set, *args)
+
 
 def laxnodeset(v):
     """\
@@ -58,6 +62,7 @@ what happens to be most effectively implemented."""
 # Make attributes assignable by reading one;
 # this is getting around a bug in Python 2.3.3
 # and should be harmless in any version.
+
 
 try:
     mutnodeset()._hiding_tag_

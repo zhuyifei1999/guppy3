@@ -1,4 +1,4 @@
-#._cv_part guppy.gsl.SpecNodes
+# ._cv_part guppy.gsl.SpecNodes
 
 
 ##
@@ -48,6 +48,7 @@ class SpecObject:
 # Collects specifications from several files
 # Maps names to specification objects
 
+
 class SpecEnv:
     def __init__(self, mod):
         self.mod = mod
@@ -80,7 +81,6 @@ class FileEnv:
 
         node.children_accept(file)
 
-
     def visit_aspects_of(self, node):
         name = node.arg
         subject = self.find_subject(node, name)
@@ -88,8 +88,9 @@ class FileEnv:
 
     def def_subject(self, node, name, subject):
         if name in self.subjects:
-            self.error_node(node, 'Redefinition of %r.'%name)
-            self.error_node(self.subjects[name].node, 'Previous definition of %r.'%name)
+            self.error_node(node, 'Redefinition of %r.' % name)
+            self.error_node(self.subjects[name].node,
+                            'Previous definition of %r.' % name)
         else:
             self.subjects[name] = subject
 
@@ -97,18 +98,18 @@ class FileEnv:
         index = node.index
         lineno = index + 1
         if 0:
-            print('%s:%d: %s,'%(self.filename, lineno, msg))
-            print('in line %r.'%self.get_line(index))
+            print('%s:%d: %s,' % (self.filename, lineno, msg))
+            print('in line %r.' % self.get_line(index))
         else:
-            print('%s:%s:'% (self.filename, lineno))
-            print('    %r'%self.get_line(index))
-            print('    %s'%msg)
+            print('%s:%s:' % (self.filename, lineno))
+            print('    %r' % self.get_line(index))
+            print('    %s' % msg)
             print()
 
     def find_subject(self, node, name):
         subject = self.subjects.get(name)
         if subject is None:
-            self.error_node(node, 'No such subject: %r.'%name)
+            self.error_node(node, 'No such subject: %r.' % name)
         return subject
 
     def get_line(self, index):
@@ -128,13 +129,13 @@ class FileEnv:
         name = env.name+'::'+node.tag
         return self.get_subject(name)
 
+
 class Subject:
     def __init__(self, file, node, name):
         self.file = file
         self.node = node
         self.name = name
         self.aspects = []
-
 
     def visit_default(self, node):
         of = node.tag.endswith('_of')
@@ -162,6 +163,7 @@ class Subject:
         else:
             return SubjectOf(self.file, node, of)
 
+
 class AspectsOf(Subject):
     def __init__(self, file, node, of):
         self.node = node
@@ -170,6 +172,7 @@ class AspectsOf(Subject):
 
     def visit_default(self, node):
         self.of.visit_default(node)
+
 
 class SubjectOf(Subject):
     def __init__(self, file, node, of):
@@ -184,8 +187,6 @@ class GuppyWorld(Subject):
         self.name = "Guppy World"
         self.node = None
         self.aspects = []
-
-
 
 
 ##
@@ -206,6 +207,7 @@ class GuppyWorld(Subject):
 
 class SpecNode(object):
     __slots__ = 'tag', 'arg', 'children', 'index', 'src'
+
     def __init__(self, tag, arg, children=(), index=0, src=None):
         self.tag = tag
         self.arg = arg
@@ -214,13 +216,13 @@ class SpecNode(object):
         self.src = src
 
     def __repr__(self):
-        return '%s(%r,%r,%r)'%(
+        return '%s(%r,%r,%r)' % (
             self.__class__.__name__, self.tag, self.arg, self.children)
 
     def __str__(self):
-        return '%s(%r,%r,%s)'%(
+        return '%s(%r,%r,%s)' % (
             self.__class__.__name__, self.tag, self.arg,
-            '(%s)'%(','.join([str(c) for c in self.children])))
+            '(%s)' % (','.join([str(c) for c in self.children])))
 
     def arg_accept(self, visitor, prefix='visit_'):
         if self.arg:
@@ -250,7 +252,8 @@ class SpecNode(object):
         if m is None:
             m = getattr(visitor, (prefix+'default'), None)
             if m is None:
-                msg = 'accept: unknown: %r, %r  in %r'%(prefix, self.tag, visitor)
+                msg = 'accept: unknown: %r, %r  in %r' % (
+                    prefix, self.tag, visitor)
                 print(msg)
                 raise ValueError(msg)
                 return
@@ -260,7 +263,6 @@ class SpecNode(object):
         if node is None:
             node = self
         node.src.error(msg, node)
-
 
     def get_text(self):
         " Get the total text of all text children, joined with and ended with '\n' "
@@ -295,7 +297,6 @@ class SpecNode(object):
             children = self.children
         return children
 
-
     def get_arg_rest(self, nostrip=0):
         arg = self.arg
         if not nostrip:
@@ -307,7 +308,7 @@ class SpecNode(object):
             but make sure there are no more children.
             '''
         if self.children:
-            raise SyntaxError('No children nodes expected in node: %s'%self)
+            raise SyntaxError('No children nodes expected in node: %s' % self)
         return self.arg.strip()
 
     def get_namearg(self):
@@ -317,7 +318,7 @@ class SpecNode(object):
         '''
         name = self.arg.strip()
         if '\n' in name or ':' in name or ',' in name:
-            raise SyntaxError('Invalid name: %r'%name)
+            raise SyntaxError('Invalid name: %r' % name)
         return name
 
     def split_attrs(self, tag=None, attrdict=False):
@@ -325,13 +326,15 @@ class SpecNode(object):
             tag = self.tag
         if attrdict:
             attrs = {}
+
             def addattr(tag, attr, node):
                 if tag in attrs:
-                    node.error('Duplicate attribute: %s'%attr)
+                    node.error('Duplicate attribute: %s' % attr)
                 else:
                     attrs[tag] = attr
         else:
             attrs = []
+
             def addattr(tag, attr, node):
                 attrs.append((tag, attr))
         children = []
@@ -343,7 +346,8 @@ class SpecNode(object):
                     else:
                         self.error('Bad attribute, no argument.', opt)
                     if opt.children:
-                        self.error('Expected no children to attribute.', opt.children[0])
+                        self.error(
+                            'Expected no children to attribute.', opt.children[0])
                     if opt.arg:
                         addattr(opt.tag, arg, opt)
             elif ch.tag[-1:] == '=':
@@ -383,29 +387,28 @@ class Source:
             if src is not None:
                 filename = src.filename
                 linetext = src.get_line(index=index)
-            print('%s:%s:'% (filename, index+1))
+            print('%s:%s:' % (filename, index+1))
             if linetext:
-                print('    %s'%linetext)
+                print('    %s' % linetext)
 
-
-    def error(self, message, context=None, exception=None, more=(), harmless = 0):
-        self.error_reports.append((message, context, exception, more, harmless))
+    def error(self, message, context=None, exception=None, more=(), harmless=0):
+        self.error_reports.append(
+            (message, context, exception, more, harmless))
         if harmless:
             self.num_warnings += 1
         else:
             self.num_errors += 1
 
-
         self.errmsg_context(context)
         if harmless:
-            print('*   %s'%message)
+            print('*   %s' % message)
         else:
-            print('*** %s'%message)
+            print('*** %s' % message)
         print()
 
         for msg, ctx in more:
             self.errmsg_context(ctx)
-            print('    %s'%msg)
+            print('    %s' % msg)
             print()
 
         if self.debug:
@@ -415,7 +418,6 @@ class Source:
                 raise TooManyErrors('Too many errors, giving up')
             if exception is not None:
                 raise exception
-
 
     def get_line(self, index):
         if self.lines is None:
@@ -439,22 +441,22 @@ class _GLUECLAMP_:
         '_parent:DottedTree',
         '_root:re',
         '_root:os',
-        )
+    )
 
     node_aliases_defs = (
-        ('attr' , 'attribute'),
-        ('c'    , 'comment'),
-        ('cond' , 'condition'),
-        ('d'    , 'description'),
-        ('dwh'  , 'description_with_header'),
-        ('eg'   , 'example'),
-        ('fop'  , 'function_operator'),
-        ('iop'  , 'inplace_operator'),
-        ('ka'   , 'key_arg'),
-        ('op'   , 'operator'),
-        ('rop'  , 'reverse_operator'),
-        ('t'    , 'text'),
-        )
+        ('attr', 'attribute'),
+        ('c', 'comment'),
+        ('cond', 'condition'),
+        ('d', 'description'),
+        ('dwh', 'description_with_header'),
+        ('eg', 'example'),
+        ('fop', 'function_operator'),
+        ('iop', 'inplace_operator'),
+        ('ka', 'key_arg'),
+        ('op', 'operator'),
+        ('rop', 'reverse_operator'),
+        ('t', 'text'),
+    )
 
     def _get_node_aliases(self):
         return dict(self.node_aliases_defs)
@@ -471,7 +473,6 @@ class _GLUECLAMP_:
 
     def get_predefined_subjects(self):
         return (GuppyWorld(self),)
-
 
     ##
     # Parses a file and makes a tree of nodes
@@ -518,7 +519,8 @@ class _GLUECLAMP_:
                 if not ' ' in tag[:textpos] or textpos >= len(tag.rstrip()):
                     colonpos = textpos
                 else:
-                    raise SyntaxError('No colon in spaced tag in node %s'%dtree)
+                    raise SyntaxError(
+                        'No colon in spaced tag in node %s' % dtree)
             tag, arg = (tag[:colonpos].strip(),
                         tag[colonpos+1:]
                         )
@@ -545,8 +547,6 @@ class _GLUECLAMP_:
             nodes.extend(node.children)
         return tuple(nodes)
 
-
-
     def _get_node_of_taci(self):
         return SpecNode
 
@@ -554,11 +554,12 @@ class _GLUECLAMP_:
         if text:
             if tag == 'text':
                 if arg:
-                    arg = arg + '\n'+ text
+                    arg = arg + '\n' + text
                 else:
                     arg = text
             else:
-                children  = (self.node_of_taci('text', text, (), index, src),) + children
+                children = (self.node_of_taci(
+                    'text', text, (), index, src),) + children
         return self.node_of_taci(tag, arg, children, index, src)
 
     def node_of_text(self, text):
@@ -601,7 +602,6 @@ class _GLUECLAMP_:
         print(specdir)
         main_dt_name = root.os.path.join(specdir, "main.gsl")
 
-
         env = self.SpecEnv(self)
 
         node = self.node_of_file(main_dt_name)
@@ -624,8 +624,6 @@ class _GLUECLAMP_:
             head = head + '\n' + text
         tag = self.DottedTree.unparse_tag(level, head)
         return tag
-
-
 
 
 def test_main():

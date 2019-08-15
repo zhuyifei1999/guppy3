@@ -1,4 +1,4 @@
-#._cv_part guppy.heapy.OutputHandling
+# ._cv_part guppy.heapy.OutputHandling
 
 
 class OutputHandler:
@@ -6,8 +6,9 @@ class OutputHandler:
         self.mod = mod
         self.output_file = output_file
 
+
 class OutputBuffer:
-    def __init__(self, mod, opts = None):
+    def __init__(self, mod, opts=None):
         self.mod = mod
         self.strio = mod._root.cStringIO.StringIO()
 
@@ -41,6 +42,7 @@ class OutputBuffer:
 
 class MorePrinter:
     _oh_next_lineno = None
+
     def __init__(self, printer, previous):
         self._oh_printer = printer
         self._oh_previous = previous
@@ -59,12 +61,13 @@ class MorePrinter:
     def _oh_get_start_lineno(self):
         return self._oh_previous._oh_get_next_lineno()
 
+
 class Printer:
     def __init__(self, mod, client,  get_line_iter=None, max_top_lines=None, max_more_lines=None,
-                 get_num_lines = None,
-                 get_more_msg = None,
-                 get_more_state_msg = None,
-                 stop_only_when_told = None
+                 get_num_lines=None,
+                 get_more_msg=None,
+                 get_more_state_msg=None,
+                 stop_only_when_told=None
                  ):
 
         if get_line_iter is None:
@@ -85,7 +88,8 @@ class Printer:
         if get_more_msg is not None:
             self.get_more_msg = get_more_msg
         if get_more_state_msg is None:
-            get_more_state_msg = getattr(client, '_oh_get_more_state_msg', None)
+            get_more_state_msg = getattr(
+                client, '_oh_get_more_state_msg', None)
         if get_more_state_msg is not None:
             self.get_more_state_msg = get_more_state_msg
         self.stop_only_when_told = stop_only_when_told
@@ -127,7 +131,6 @@ class Printer:
                 return
             idx += 1
 
-
     def _get_more(self, mp):
         return MorePrinter(self, mp)
 
@@ -160,12 +163,12 @@ class Printer:
         if num_lines is None:
             of_num_lines = ''
         else:
-            of_num_lines = ' of %d'%num_lines
-        return "Lines %d..%d%s. "%(start_lineno, end_lineno, of_num_lines)
+            of_num_lines = ' of %d' % num_lines
+        return "Lines %d..%d%s. " % (start_lineno, end_lineno, of_num_lines)
 
     def get_more_msg(self, start_lineno, end_lineno):
         state_msg = self.get_more_state_msg(start_lineno, end_lineno)
-        return "<%sType e.g. '_.more' for more.>"%(state_msg)
+        return "<%sType e.g. '_.more' for more.>" % (state_msg)
 
     def get_num_lines(self):
         return None
@@ -180,7 +183,7 @@ class Printer:
             lineno = start_lineno
             for line in it:
                 if (numlines >= max_lines and
-                    ((not self.stop_only_when_told) or self.stop_linenos.get(lineno-1))) :
+                        ((not self.stop_only_when_told) or self.stop_linenos.get(lineno-1))):
                     try:
                         self.line_at(lineno+1)
                     except IndexError:
@@ -198,12 +201,11 @@ class Printer:
 
         return printer.mod._parent.View.enter(lambda: f())
 
-
-
     def reset(self):
         self.lines_seen = []
         self.stop_linenos = {}
         self.line_iter = None
+
 
 class BasicMorePrinter:
     def __init__(self, mod, top, handler, startindex=None):
@@ -219,7 +221,7 @@ class BasicMorePrinter:
     def __getattr__(self, attr):
         if attr == 'more':
             return self.__class__(self.mod, self.top, self.handler,
-                               self.handler.get_more_index(self.startindex))
+                                  self.handler.get_more_index(self.startindex))
         else:
             return getattr(self.top, attr)
 
@@ -233,8 +235,7 @@ class BasicMorePrinter:
 
     def at(self, idx):
         return self.__class__(self.mod, self.top, self.handler,
-                           idx)
-
+                              idx)
 
 
 class _GLUECLAMP_:
@@ -244,8 +245,8 @@ class _GLUECLAMP_:
     max_top_lines = 10
     max_more_lines = 10
 
-    def _get__hiding_tag_(self):                return self._parent.View._hiding_tag_
-    def _get_output_file(self):         return self._root.sys.stdout
+    def _get__hiding_tag_(self): return self._parent.View._hiding_tag_
+    def _get_output_file(self): return self._root.sys.stdout
 
     def more_printer(self, client, **kwds):
 
@@ -260,17 +261,15 @@ class _GLUECLAMP_:
             output_file = self.output_file
         return OutputHandler(self, output_file)
 
-
     def setup_printing(self, client, **kwds):
         more = self.more_printer(client, **kwds)
         printer = more._oh_printer
         client.more = more
         client.printer = printer
         client.__str__ = client.__repr__ = (lambda:
-            printer.get_str_of_top())
-
+                                            printer.get_str_of_top())
 
     def basic_more_printer(self, top, handler, startindex=None):
         return BasicMorePrinter(self, top, handler, startindex)
 
-    def _get_stdout(self):              return self._root.sys.stdout
+    def _get_stdout(self): return self._root.sys.stdout

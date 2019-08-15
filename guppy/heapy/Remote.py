@@ -1,4 +1,4 @@
-#._cv_part guppy.heapy.Remote
+# ._cv_part guppy.heapy.Remote
 
 """
     Support remote access to a Python interpreter.
@@ -11,10 +11,19 @@ from guppy.heapy.RemoteConstants import *
 from guppy.heapy.Console import Console
 from guppy.sets import mutbitset
 
-import os, socket, sys, time, _thread, threading, traceback, queue
+import os
+import socket
+import sys
+import time
+import _thread
+import threading
+import traceback
+import queue
+
 
 class SocketClosed(Exception):
     pass
+
 
 class IsolatedCaller:
     # Isolates the target interpreter from us
@@ -27,6 +36,7 @@ class IsolatedCaller:
 
     def __call__(self, *args, **kwds):
         return self.func(*args, **kwds)
+
 
 class QueueWithReadline(queue.Queue):
     def readline(self, size=-1):
@@ -59,13 +69,14 @@ class Annex(cmd.Cmd):
     socket_type = socket.SOCK_STREAM
     use_rawinput = 0
     prompt = '<Annex> '
+
     def __init__(self, target, port=None):
         cmd.Cmd.__init__(self)
         if port is None:
             port = HEAPYPORT
         self.server_address = (LOCALHOST, port)
         self.target = target
-        #target.close = target.sys.modules['guppy.heapy.Remote'].IsolatedCaller(
+        # target.close = target.sys.modules['guppy.heapy.Remote'].IsolatedCaller(
         target.close = IsolatedCaller(
             self.asynch_close)
         self.socket = None
@@ -73,9 +84,8 @@ class Annex(cmd.Cmd):
         self.closelock = _thread.allocate_lock()
 
         self.intlocals = {
-            }
+        }
         self.do_reset('')
-
 
     def asynch_close(self):
         # This may be called asynchronously
@@ -113,7 +123,7 @@ class Annex(cmd.Cmd):
         else:
             return
 
-        #print 'CONNECTED'
+        # print 'CONNECTED'
         self.stdout = self.socket.makefile('w', bufsize=0)
         self.stdin = NotiInput(self.socket.makefile('r'), self.stdout)
         self.stderr = sys.stderr
@@ -126,7 +136,6 @@ class Annex(cmd.Cmd):
 
         cmd.Cmd.__init__(self, stdin=self.stdin, stdout=self.stdout)
 
-
     def start_ki_thread(self):
         # Start a thread that can generates keyboard interrupr
         # Inserts a spy thread between old stdin and a new stdin
@@ -137,8 +146,8 @@ class Annex(cmd.Cmd):
         self.stdin = NotiInput(input=queue,
                                output=ostdin.output)
 
-
         socket = self.socket
+
         def run():
             try:
                 _hiding_tag_ = self.intlocals['hp']._hiding_tag_
@@ -157,14 +166,10 @@ class Annex(cmd.Cmd):
                     heapyc.set_async_exc(self.target.annex_thread,
                                          SocketClosed)
 
-
         th = threading.Thread(target=run,
-                                  args=())
+                              args=())
 
         th.start()
-
-
-
 
     def disconnect(self):
         socket = self.socket
@@ -179,7 +184,7 @@ class Annex(cmd.Cmd):
             socket.close()
         except:
             pass
-        sys.last_traceback=None
+        sys.last_traceback = None
         sys.exc_clear()
 
     def do_close(self, arg):
@@ -226,13 +231,11 @@ With a command name as argument, print help about that command.""", file=self.st
             sys.stdout = self.stdout
             sys.stderr = self.stdout
 
-            con = Console(stdin=sys.stdin,stdout=sys.stdout,
-                                       locals=self.intlocals)
+            con = Console(stdin=sys.stdin, stdout=sys.stdout,
+                          locals=self.intlocals)
             con.interact(
-                "Remote interactive console. To return to Annex, type %r."%
+                "Remote interactive console. To return to Annex, type %r." %
                 con.EOF_key_sequence)
-
-
 
         finally:
             sys.stdin = ostdin
@@ -260,9 +263,7 @@ executing in parallell with the remote control interpreter. So there
 may be some problems to do with that if both are executing at the same
 time. This has to be dealt with for each case specifically.""", file=self.stdout)
 
-
     _bname = 'a1e55f5dc4c9f708311e9f97b8098cd3'
-
 
     def do_isolatest(self, arg):
         hp = self.intlocals['hp']
@@ -271,20 +272,22 @@ time. This has to be dealt with for each case specifically.""", file=self.stdout
         self._a = a
         b = []
         self.intlocals[self._bname] = b
-        eval('0', self.intlocals) # to make __builtins__ exist if it did not already
+        # to make __builtins__ exist if it did not already
+        eval('0', self.intlocals)
 
         testobjects = [a,
-                    b,
-                    self.intlocals['__builtins__'],
-                    self.intlocals,
-                    hp]
+                       b,
+                       self.intlocals['__builtins__'],
+                       self.intlocals,
+                       hp]
 
         h = hp.heap()
         if hp.iso(*testobjects) & h:
             print('Isolation test failed.', file=self.stdout)
             for i, v in enumerate(testobjects):
                 if hp.iso(v) & h:
-                    print('-- Shortest Path(s) to testobjects[%d] --'%i, file=self.stdout)
+                    print(
+                        '-- Shortest Path(s) to testobjects[%d] --' % i, file=self.stdout)
                     print(hp.iso(v).shpaths, file=self.stdout)
         else:
             print('Isolation test succeeded.', file=self.stdout)
@@ -320,13 +323,12 @@ This doesn't currently do anything except printing a message.  (I
 thought it would be too confusing to have a q (quit) command from the
 Annex, when there was a similarly named command in the Monitor.)""", file=self.stdout)
 
-
     def do_reset(self, arg):
         self.intlocals.clear()
         self.intlocals.update(
-            {'hpy' : self.hpy,
-             'hp'  : self.hpy(),
-             'target':self.target
+            {'hpy': self.hpy,
+             'hp': self.hpy(),
+             'target': self.target
              })
         # Set shorthand h, it is so commonly used
         # and the instance name now used in README example etc
@@ -353,10 +355,14 @@ interpreter heap under investigation rather than the current one.)
     def do_stat(self, arg):
         print("Target overview", file=self.stdout)
         print("------------------------------------", file=self.stdout)
-        print("target.sys.executable   = %s"%self.target.sys.executable, file=self.stdout)
-        print("target.sys.argv         = %s"%self.target.sys.argv, file=self.stdout)
-        print("target.wd               = %s"%self.target.wd, file=self.stdout)
-        print("target.pid              = %d"%self.target.pid, file=self.stdout)
+        print("target.sys.executable   = %s" %
+              self.target.sys.executable, file=self.stdout)
+        print("target.sys.argv         = %s" %
+              self.target.sys.argv, file=self.stdout)
+        print("target.wd               = %s" %
+              self.target.wd, file=self.stdout)
+        print("target.pid              = %d" %
+              self.target.pid, file=self.stdout)
         print("------------------------------------", file=self.stdout)
         if not self.interruptible:
             print("noninterruptible interactive console", file=self.stdout)
@@ -374,6 +380,7 @@ working directory may have changed since that time). The row labeled
 target.pid is the process id of the target interpreter.
 
 """, file=self.stdout)
+
     def hpy(self, *args, **kwds):
         from guppy import hpy
         hp = hpy(*args, **kwds)
@@ -407,7 +414,7 @@ target.pid is the process id of the target interpreter.
             # without the annex being closed,
             # and that we WAIT if someone else is being closing us.
             self.asynch_close()
-            #print 'Annex DONE'
+            # print 'Annex DONE'
 
 
 def on():
@@ -428,8 +435,9 @@ from guppy.heapy import Remote
 Remote.Annex(target).run()
 """
     target = Target.Target()
-    annex_thread = heapyc.interpreter(start_annex, {'target':target})
+    annex_thread = heapyc.interpreter(start_annex, {'target': target})
     target.annex_thread = annex_thread
+
 
 def off():
     global annex_thread, target
@@ -451,6 +459,7 @@ def off():
 
     heapyc.set_async_exc(annex_thread, SystemExit)
     annex_thread = target = None
+
 
 annex_thread = None
 target = None

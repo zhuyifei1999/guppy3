@@ -1,4 +1,4 @@
-#._cv_part guppy.heapy.Spec
+# ._cv_part guppy.heapy.Spec
 
 """
 Contains some experimental set constructions.
@@ -10,14 +10,15 @@ You don't get any other documentation than this right now.
 """
 
 
-DEBUG=1
+DEBUG = 1
+
 
 def briefstr(x):
     try:
         return getattr(x, 'brief')
     except AttributeError:
         if isinstance(x, tuple):
-            return '(%s)'%(','.join([briefstr(xi) for xi in x]))
+            return '(%s)' % (','.join([briefstr(xi) for xi in x]))
         return str(x)
 
 
@@ -36,19 +37,17 @@ class SpecFamily:
         else:
             return b.fam._and_ATOM(b, a)
 
-
     def _and_ID(self, a, b):
         env = self.specmod._static_test_env
         res = self.mod.mutnodeset()
         for bi in b.nodes:
             try:
                 env.test_contains(a, bi, 'select contains')
-            except : #TestError
+            except:  # TestError
                 pass
             else:
                 res.add(bi)
         return self.mod.fam_Identity._cons(self.mod.immnodeset(res))
-
 
     def c_contains(self, a, b):
         env = self.specmod._static_test_env
@@ -64,7 +63,7 @@ class SpecFamily:
         return x
 
     def c_get_brief(self, a):
-        return '<%s(%s)>'%(self.__class__.__name__, briefstr(a.arg))
+        return '<%s(%s)>' % (self.__class__.__name__, briefstr(a.arg))
 
     if 0:
 
@@ -80,6 +79,7 @@ class SpecFamily:
                     res.add(bi)
             return self.mod.fam_Identity._cons(self.mod.immnodeset(res))
 
+
 class ArgNamesFamily(SpecFamily):
     def __call__(self, *args):
         return self.Set(self, args)
@@ -88,9 +88,9 @@ class ArgNamesFamily(SpecFamily):
         inspect = self.specmod._root.inspect
         (args, varargs, varkw) = inspect.getargs(code)
         if varargs is not None:
-            args.append('*%s'%varargs)
+            args.append('*%s' % varargs)
         if varkw is not None:
-            args.append('**%s'%varkw)
+            args.append('**%s' % varkw)
         return tuple(args)
 
     def func_argnames(self, f, args):
@@ -109,8 +109,8 @@ class ArgNamesFamily(SpecFamily):
             return False
 
     def c_contains(self, a, x):
-        func_argnames = lambda f:self.func_argnames(f, a.arg)
-        meth_argnames = lambda m:self.meth_argnames(m, a.arg)
+        def func_argnames(f): return self.func_argnames(f, a.arg)
+        def meth_argnames(m): return self.meth_argnames(m, a.arg)
         types = self.mod._root.types
         return (func_argnames(x) or
                 meth_argnames(x) or
@@ -123,9 +123,10 @@ class ArgNamesFamily(SpecFamily):
                 (isinstance(x, type) and
                  (hasattr(x, '__init__') and
                   meth_argnames(x.__init__))) or
-                 (hasattr(x, '__call__') and
-                  meth_argnames(x.__call__))
+                (hasattr(x, '__call__') and
+                 meth_argnames(x.__call__))
                 )
+
 
 class AttributeFamily(SpecFamily):
     def __call__(self, name, type=None):
@@ -142,17 +143,18 @@ class AttributeFamily(SpecFamily):
         return type.test_contains(x, env)
 
     def c_get_brieflimstr(self, a):
-        x = '<AttributeFamily(%r%%s>'%(a.arg[0],)
+        x = '<AttributeFamily(%r%%s>' % (a.arg[0],)
         if a.arg[1] is not None:
-            x = x%(','+a.arg[1].brief)
+            x = x % (','+a.arg[1].brief)
         else:
-            x = x%''
+            x = x % ''
         return x
+
 
 class AdaptupleFamily(SpecFamily):
     def __init__(self, *a, **k):
         SpecFamily.__init__(self, *a, **k)
-        self.add_export('new', lambda x:x.arg[0])
+        self.add_export('new', lambda x: x.arg[0])
 
     def __call__(self, func, type):
         func, doc = self.specmod._exodoc(func)
@@ -187,8 +189,8 @@ class CartesianProductFamily(SpecFamily):
         exs = []
         for i, ai in enumerate(a.arg):
             ex = list(env.get_examples(ai))
-            if not ex: #???
-                if not env.failed_coverage('cartesian product', ai, None, 'the argument #%d'%i):
+            if not ex:  # ???
+                if not env.failed_coverage('cartesian product', ai, None, 'the argument #%d' % i):
                     return []
             exs.append(ex)
 
@@ -204,7 +206,8 @@ class CartesianProductFamily(SpecFamily):
         types = a.arg
         bs = tuple(b)
         if len(types) != len(bs):
-            env.failed('cprod of length %d: argument has length %d'%(len(types), len(bs)))
+            env.failed('cprod of length %d: argument has length %d' %
+                       (len(types), len(bs)))
         else:
             for t, b in zip(types, bs):
                 if not t.test_contains(b, env):
@@ -228,11 +231,10 @@ class SequenceFamily(SpecFamily):
                 yield x
 
 
-
 class MappingFamily(SpecFamily):
     def __init__(self, *a, **k):
         SpecFamily.__init__(self, *a, **k)
-        self.add_export('arrow', lambda x:lambda f:self.c_arrow(x, f))
+        self.add_export('arrow', lambda x: lambda f: self.c_arrow(x, f))
 
     def c_arrow(self, a, f):
         tf, ts, ret = a.arg
@@ -250,23 +252,24 @@ class MappingFamily(SpecFamily):
                 if ai == '->':
                     i += 1
                     if not i == len(args)-1:
-                        raise SyntaxError("The '->' specifier must be next to last in the argument list")
+                        raise SyntaxError(
+                            "The '->' specifier must be next to last in the argument list")
                     ret = setcast(args[i])
                 elif ai.endswith('='):
                     i += 1
                     t = setcast(args[i])
-                    as_.append('%s=%args[%d]'%(ai[:-1], len(ts)))
+                    as_.append('%s=%args[%d]' % (ai[:-1], len(ts)))
                     ts.append(t)
                 elif ai == '*':
                     i += 1
                     t = setcast(args[i])
-                    as_.append('*args[%d]'%len(ts))
+                    as_.append('*args[%d]' % len(ts))
                     ts.append(self.specmod.sequence(t))
                 else:
-                    raise SyntaxError("Invalid argument specifier: %r"%ai)
+                    raise SyntaxError("Invalid argument specifier: %r" % ai)
 
             else:
-                as_.append('args[%d]'%len(ts))
+                as_.append('args[%d]' % len(ts))
                 ts.append(setcast(ai))
             i += 1
 
@@ -281,10 +284,11 @@ class MappingFamily(SpecFamily):
         f, ts, ret = a.arg
 
         f = f(func)
+
         def g(env, args):
             try:
                 r = f(*args)
-            except: # TypeError, ValueError, AttributeError ... - what not
+            except:  # TypeError, ValueError, AttributeError ... - what not
                 raise
                 #env.failed('Call exception')
             else:
@@ -308,8 +312,9 @@ class PredicateFamily(SpecFamily):
     def c_test_contains(self, a, b, env):
         pred, doc = a.arg
         if not pred(env, b):
-            return env.failed('pred: doc = %r; failed for element == %s'%(doc, env.name(b)))
+            return env.failed('pred: doc = %r; failed for element == %s' % (doc, env.name(b)))
         return True
+
 
 class PowersetFamily(SpecFamily):
     def __init__(self, *args):
@@ -331,7 +336,8 @@ class PowersetFamily(SpecFamily):
 
     def c_test_contains(self, a, b, env):
         if not b in self.specmod.set:
-            env.failed('powerset.test_contains: not a set: %s'%self.specmod.iso(b))
+            env.failed('powerset.test_contains: not a set: %s' %
+                       self.specmod.iso(b))
         set = a.arg
         return env.forall(b, lambda env, x: env.test_contains(set, x, 'powerset'), 'powerset')
 
@@ -349,11 +355,12 @@ class DocFamily(SpecFamily):
         doc, type = a.arg
         return type.test_contains(b, env)
 
+
 class RelOpFamily(SpecFamily):
     def __init__(self, *a, **k):
         SpecFamily.__init__(self, *a, **k)
-        self.add_export('domain', lambda x:x.arg[0])
-        self.add_export('range', lambda x:x.arg[2])
+        self.add_export('domain', lambda x: x.arg[0])
+        self.add_export('range', lambda x: x.arg[2])
         # The memo dict keeps relops with the same domain, op, and range.
         # Primarily introduced to make equality work with default mechanism,
         # since different compiled func's compared differently even with
@@ -369,7 +376,7 @@ class RelOpFamily(SpecFamily):
         x = self.memo.get((domain, op, range))
         if x is None:
             if op in ('<', '<=', '==', '!=', '>', '>=', 'in', 'not in', 'is', 'is not'):
-                func = eval('lambda x,y: x %s y'%op)
+                func = eval('lambda x,y: x %s y' % op)
                 func.name = op
             else:
                 func = op
@@ -404,7 +411,6 @@ class RelOpFamily(SpecFamily):
         return True
 
 
-
 class EqualsFamily(SpecFamily):
     def __call__(self, *args):
         if not args:
@@ -419,6 +425,7 @@ class EqualsFamily(SpecFamily):
     def c_get_examples(self, a, env):
         return a.arg
 
+
 class ExampleFamily(SpecFamily):
     def __call__(self, set, *examples):
         return self.Set(self, (set, examples))
@@ -432,6 +439,7 @@ class ExampleFamily(SpecFamily):
         # for e in examples:        env.test_contains(set, e, 'ExampleFamily.c_get_examples')
         return examples
 
+
 class SynonymsFamily(SpecFamily):
     def __call__(self, *names):
         return self.Set(self, names)
@@ -443,15 +451,17 @@ class SynonymsFamily(SpecFamily):
             x = env.getattr(b, name)
             ms.add(x)
         if not len(ms):
-            env.failed('Synonyms: no such names: %r'%names)
+            env.failed('Synonyms: no such names: %r' % names)
         if len(ms) > 1:
-            env.failed('Synonyms: %d different nodes for names: %r'%(len(ms), names))
+            env.failed('Synonyms: %d different nodes for names: %r' %
+                       (len(ms), names))
         return True
+
 
 class InstanceFamily(SpecFamily):
     def c_test_contains(self, a, b, env):
         if not isinstance(b, a.arg):
-            env.failed('InstanceFamily: %s is not an instance of %s'%(
+            env.failed('InstanceFamily: %s is not an instance of %s' % (
                 self.specmod.iso(b), a.arg))
         return True
 
@@ -469,7 +479,7 @@ class ExpressionPredicateFamily(SpecFamily):
 
     def c_test_contains(self, a, b, env):
         names, expression, func = a.arg
-        func = eval('lambda %s:%s'%(','.join(names), expression))
+        func = eval('lambda %s:%s' % (','.join(names), expression))
         d = {}
         for name in names:
             x = env.getattr(b, name)
@@ -479,8 +489,9 @@ class ExpressionPredicateFamily(SpecFamily):
         except:
             raise
         if not x:
-            env.failed('False expression: %s'%expression)
+            env.failed('False expression: %s' % expression)
         return True
+
 
 class ExpressionSetFamily(SpecFamily):
     def __call__(self, expression, *names):
@@ -489,8 +500,9 @@ class ExpressionSetFamily(SpecFamily):
 
     def c_test_contains(self, a, b, env):
         names, expression, func = a.arg
-        func = self.specmod.eval('lambda %s:(%s)'%(','.join(('LE',)+tuple(names)), expression))
-        d = {'LE':env.LE}
+        func = self.specmod.eval('lambda %s:(%s)' % (
+            ','.join(('LE',)+tuple(names)), expression))
+        d = {'LE': env.LE}
         for name in names:
             x = env.getattr(b, name)
             d[name] = x
@@ -498,7 +510,8 @@ class ExpressionSetFamily(SpecFamily):
             x = func(**d)
         except:
             raise
-        return env.test_contains(x, b, 'expset(%s, %s)'%(expression, ','.join(names)))
+        return env.test_contains(x, b, 'expset(%s, %s)' % (expression, ','.join(names)))
+
 
 class MatchesFamily(SpecFamily):
     def __init__(self, *a, **k):
@@ -515,6 +528,7 @@ class MatchesFamily(SpecFamily):
             return env.failed('Did not match')
         return True
 
+
 class RecurSelfFamily(SpecFamily):
     def __init__(self, *a, **k):
         SpecFamily.__init__(self, *a, **k)
@@ -524,7 +538,7 @@ class RecurSelfFamily(SpecFamily):
 
         self.RecurSpec = RecurSpec
 
-    def __call__(self, expr, recursion_limit = 10):
+    def __call__(self, expr, recursion_limit=10):
         s = self.RecurSpec(self, expr)
         s.recursion_limit = recursion_limit
         s.recursion_level = 0
@@ -535,18 +549,18 @@ class RecurSelfFamily(SpecFamily):
             func = a.func
         except AttributeError:
             expr = a.arg
-            func = a.func = env.eval('lambda self:%s'%expr)
+            func = a.func = env.eval('lambda self:%s' % expr)
         s = func(self.specmod.Nothing)
         try:
             tf = env.test_contains(s, b, 'recur with Nothing, ok to fail')
             if not tf:
                 raise TestError
-        except : # TestError: eg for match, we got a TypeError..
+        except:  # TestError: eg for match, we got a TypeError..
             s = func(a)
             rl = a.recursion_level
             try:
                 if rl >= a.recursion_limit:
-                    return env.failed('recurself: recursion_level = %s'%a.recursion_limit)
+                    return env.failed('recurself: recursion_level = %s' % a.recursion_limit)
                 else:
                     a.recursion_level = rl + 1
                 tf = env.test_contains(s, b, 'recur')
@@ -554,8 +568,10 @@ class RecurSelfFamily(SpecFamily):
                 a.recursion_level = rl
         return tf
 
+
 class Dummy:
     pass
+
 
 class TupleformFamily(SpecFamily):
     def __call__(self, form, set):
@@ -567,7 +583,7 @@ class TupleformFamily(SpecFamily):
         bt = tuple(b)
 
         if len(bt) != len(form):
-            return env.failed('tupleform: wrong length: got %d expected %d'%(len(bt), len(form)))
+            return env.failed('tupleform: wrong length: got %d expected %d' % (len(bt), len(form)))
 
         ob = Dummy()
         for name, val in zip(form, bt):
@@ -594,6 +610,7 @@ class Arrow:
         other = self.category.validate(other)
         return self.category.compose(other, self)
 
+
 class IdentityArrow(Arrow):
     def __init__(self, category, object):
         Arrow.__init__(self, category, object, object)
@@ -601,14 +618,17 @@ class IdentityArrow(Arrow):
     def __call__(self, x):
         return x
 
+
 class FunctionArrow(Arrow):
     def __init__(self, category, source, target, function):
         Arrow.__init__(self, category, source, target)
         self.__call__ = function
 
+
 class RepresentationCategory:
     _derive_origin_ = None
     _origin_ = None
+
     def __init__(self, mod, spec):
         fam = mod.family(RepresentationObjectFamily)
         fam.init2(self, spec)
@@ -625,6 +645,7 @@ class RepresentationCategory:
         self.__dict__[name] = r
         return r
 
+
 class RepresentationObjectFamily(SpecFamily):
     def init2(self, cat, spec):
         self.cat = cat
@@ -632,10 +653,10 @@ class RepresentationObjectFamily(SpecFamily):
         self.specs = {}
         self.arrows = {}
 
-
         self.add_export('fromuniversal', self.fromuniversal)
 
         Set = self.Set
+
         class RepresentationObject(Set):
             __slots__ = 'to', 'from'
 
@@ -647,16 +668,13 @@ class RepresentationObjectFamily(SpecFamily):
                 self._cat = fam.cat
 
             def __getattr__(self, name):
-                if hasattr(self.__class__, '_get_%s'%name):
-                    r = getattr(self, '_get_%s'%name)(self._fam.specmod)
+                if hasattr(self.__class__, '_get_%s' % name):
+                    r = getattr(self, '_get_%s' % name)(self._fam.specmod)
                     self.__dict__[name] = r
                     return r
                 raise AttributeError(name)
 
         self.spec = RepresentationCategorySpec(self)
-
-
-
 
     def getarrow(self, dom, cod):
         dc = (dom, cod)
@@ -677,20 +695,20 @@ class RepresentationObjectFamily(SpecFamily):
         self.objects[normname] = self.objects[name] = o
         return o
 
-        raise SpecError('No such object: %r'%name)
+        raise SpecError('No such object: %r' % name)
 
     def getspec(self, obj):
         name = obj.arg
         if name in self.specs:
             return self.specs[name]
 
-        gs = getattr(self.spec, '_get_spec_%s'%name, None)
+        gs = getattr(self.spec, '_get_spec_%s' % name, None)
         if gs is not None:
             sp = gs(self.specmod)
             self.specs[name] = sp
             return sp
 
-        raise SpecError('getspec: No spec of %r'%name)
+        raise SpecError('getspec: No spec of %r' % name)
 
     def fromuniversal(self, target):
         # Find a most general arrow into 'target'
@@ -706,7 +724,7 @@ class RepresentationObjectFamily(SpecFamily):
         # Arrows thus created are memoized.
 
         name = target.arg
-        arrowname = '%s.fromuniversal'%name
+        arrowname = '%s.fromuniversal' % name
         if arrowname in self.arrows:
             return self.arrows[arrowname]
 
@@ -737,8 +755,8 @@ class RepresentationObjectFamily(SpecFamily):
                 return env.failed('Object is not a source of this target')
             return env.test_contains(O, A, 'Value is not an element of this object')
 
-        uniname = '%s.universal'%name
-        P = self.specmod.predicate(p, 'Specification-set for %r'%uniname)
+        uniname = '%s.universal' % name
+        P = self.specmod.predicate(p, 'Specification-set for %r' % uniname)
         self.specs[uniname] = P
         source = self(uniname)
 
@@ -755,7 +773,6 @@ class RepresentationObjectFamily(SpecFamily):
                 (O, E) = xxx_todo_changeme
                 return self[O.arg](E)
 
-
         arrow = AlphaSum(self.cat, source, target, S)
         self.arrows[arrowname] = arrow
         return arrow
@@ -771,13 +788,16 @@ class RepresentationObjectFamily(SpecFamily):
                     if n == on:
                         if nn is not None:
                             return nn
-                        raise SpecError('No numeric object name corresponding to %r'%on)
+                        raise SpecError(
+                            'No numeric object name corresponding to %r' % on)
         return on
 
     def __call__(self, name):
         r = self.specoarg(name)
+
         class To:
             __slots__ = 'source',
+
             def __init__(self, source):
                 self.source = source
 
@@ -801,11 +821,14 @@ class RepresentationObjectFamily(SpecFamily):
         set = self.getspec(a)
         return env.get_examples(set)
 
+
 class AbstractSetFamily(SpecFamily):
     def __init__(self, *a, **k):
         SpecFamily.__init__(self, *a, **k)
+
         class AbstractSet(self.Set):
             __slots__ = '_memo',
+
             def __init__(self, fam, arg):
                 self.fam = fam
                 self.arg = arg
@@ -835,25 +858,29 @@ class AbstractSetFamily(SpecFamily):
         srcset = pararrow.source
 
         def p(env, x):
-            t = env.test_contains(srcset, x, 'AbstractSet: not in arrow.source')
+            t = env.test_contains(
+                srcset, x, 'AbstractSet: not in arrow.source')
             if t:
                 e = pararrow(x)
-                t = env.test_contains(set, e, 'AbstractSet: not in argument set')
+                t = env.test_contains(
+                    set, e, 'AbstractSet: not in argument set')
             return t
 
             return env.contains(set, y)
 
-        s = self.specmod.predicate(p, 'Abstract set attribute: %r'%b) #...
+        s = self.specmod.predicate(p, 'Abstract set attribute: %r' % b)  # ...
         a._memo[b] = s
         return s
 
     def c_test_contains(self, a, b, env):
         arrow, set = a.arg
-        t = env.test_contains(arrow.source, b, 'AbstractSet: not in arrow.source')
+        t = env.test_contains(
+            arrow.source, b, 'AbstractSet: not in arrow.source')
         if t:
             e = arrow(b)
             t = env.test_contains(set, e, 'AbstractSet: not in argument set')
         return t
+
 
 class ElemFamily(SpecFamily):
     def __call__(self, func):
@@ -863,6 +890,7 @@ class ElemFamily(SpecFamily):
         func = a.arg
         s = func(b)
         return env.test_contains(s, b, 'ElemFamily')
+
 
 class IntersectionFamily(SpecFamily):
     def __call__(self, domain, function):
@@ -877,27 +905,29 @@ class IntersectionFamily(SpecFamily):
 class SpecError(Exception):
     pass
 
+
 class TestError(Exception):
     pass
+
 
 class CoverageError(Exception):
     pass
 
 
-
 class LocalEnv:
     _derive_origin_ = 'ADD'
+
     def __init__(self, mod, spec, nodoc=1):
         self._mod = mod
         self._spec = spec
         self._origin_ = None
         self.nodoc = nodoc
 
-
     def __getattr__(self, attribute_name):
         mod = self._mod
         f = getattr(self._spec, attribute_name)
-        d = self._mod._load_names(mod._root.guppy.etc.Code.co_findloadednames(f.__code__))
+        d = self._mod._load_names(
+            mod._root.guppy.etc.Code.co_findloadednames(f.__code__))
         nf = mod._root.new.function(
             f.__code__,
             d,
@@ -913,8 +943,10 @@ class TestEnv:
     _derive_origin_ = 'ADD'
     iscomplete = False
     issilent = False
-    max_sequence_examples_length = 2    # ie. (), cprod(x) cprod(x, y) are yielded by default
+    # ie. (), cprod(x) cprod(x, y) are yielded by default
+    max_sequence_examples_length = 2
     TestError = TestError
+
     def __init__(self, mod, Spec):
         self.mod = mod
         self.messages = []
@@ -935,12 +967,12 @@ class TestEnv:
         mod = self.mod
         types = mod._root.types
         if isinstance(expr, (str,)):
-            func = self.mod.eval('lambda LE:(\n%s\n)'%expr)
+            func = self.mod.eval('lambda LE:(\n%s\n)' % expr)
             return func(self.LE)
 
         ls = []
         selfset = None
-        #print 1
+        # print 1
 
         names = list(expr.__dict__.keys())
         names.sort()
@@ -952,7 +984,8 @@ class TestEnv:
             except AttributeError:
                 continue
             if co.co_varnames[:co.co_argcount] == ('IN',):
-                d = mod._load_names(mod._root.guppy.etc.Code.co_findloadednames(co))
+                d = mod._load_names(
+                    mod._root.guppy.etc.Code.co_findloadednames(co))
                 #d = mod._load_names()
 
                 nf = mod._root.new.function(
@@ -981,11 +1014,10 @@ class TestEnv:
             # Alternatively: r = r & selfset afterwards,
             # but could be unnecessarily slow
 
-        #print 2
+        # print 2
         r = mod.UniSet.fam_And._cons(ls)
-        #print 3
+        # print 3
         return r
-
 
     def get_examples(self, collection):
         try:
@@ -1008,15 +1040,15 @@ class TestEnv:
                 try:
                     x = getattr(x, subname)
                 except:
-                    return self.failed('getattr: %s has no attribute %r'%(self.name(obj), name)+
-                                      ',\nbecause %s has no attribute %r'%(self.name(x), subname))
+                    return self.failed('getattr: %s has no attribute %r' % (self.name(obj), name) +
+                                       ',\nbecause %s has no attribute %r' % (self.name(x), subname))
         else:
             try:
                 x = getattr(obj, name)
             except:
                 if DEBUG:
                     raise
-                return self.failed('attr: %s has no attribute %r'%(self.name(obj), name))
+                return self.failed('attr: %s has no attribute %r' % (self.name(obj), name))
         return x
 
     def gengetattr(self, obj, name_or_tuple):
@@ -1037,10 +1069,10 @@ class TestEnv:
         if isinstance(obj, self.mod.UniSet.UniSet):
             return str(obj)
         else:
-            return '%s'%self.mod.iso(obj)
+            return '%s' % self.mod.iso(obj)
 
     def name_coll(self, collection):
-        return '%s'%collection
+        return '%s' % collection
 
     def test(self, obj):
         self.get_obj_examples(obj)
@@ -1059,8 +1091,6 @@ class TestEnv:
             for v in vs:
                 s.append(v)
                 self.test_contains(e, v, 'testing example of set')
-
-
 
     def dump_failure(self, xxx_todo_changeme3, noraise=0):
         (type, value, traceback) = xxx_todo_changeme3
@@ -1107,27 +1137,28 @@ class TestEnv:
             a.test_contains(b, self)
         except CoverageError:
             raise
-        except: # TestError: # well we axcept anything.. ok?
+        except:  # TestError: # well we axcept anything.. ok?
             return True
         else:
-            return self.failed('test_contains_not, from: %s'%message)
+            return self.failed('test_contains_not, from: %s' % message)
 
     def failed(self, message=''):
         if not self.issilent:
-            self.log( 'Failed:' + message)
+            self.log('Failed:' + message)
             raise TestError(message)
         return False
 
     def failed_coverage(self, forwhat, collection, func, message):
         if collection is self.mod.Nothing:
             return True
-        raise CoverageError('%s: no examples for collection = %s, message: %s'%(forwhat, collection, message))
+        raise CoverageError('%s: no examples for collection = %s, message: %s' % (
+            forwhat, collection, message))
 
     def failed_exc_info(self, message):
         exc_info = self.mod._root.sys.exc_info()
         type, value, traceback = exc_info
         if not self.issilent:
-            self.log( 'Failed:' + message)
+            self.log('Failed:' + message)
             raise type(value)
         return False
 
@@ -1136,7 +1167,7 @@ class TestEnv:
         n = 0
         for e in ex:
             if not func(self, e):
-                return self.failed('forall: e = %s, from: %s'%(self.name(e), message))
+                return self.failed('forall: e = %s, from: %s' % (self.name(e), message))
             n += 1
         if not n:
             try:
@@ -1155,7 +1186,7 @@ class TestEnv:
         for a in as_:
             for b in self.get_examples(collection):
                 if not func(self, a, b):
-                    self.failed('forall_pairs: a = %s, b = %s, from: %s'%(
+                    self.failed('forall_pairs: a = %s, b = %s, from: %s' % (
                         self.name(a), self.name(b), message))
                 n += 1
         if not n:
@@ -1169,26 +1200,25 @@ class TestEnv:
             for b in self.get_examples(collection):
                 for c in self.get_examples(collection):
                     if not func(self, a, b, c):
-                        self.failed('forall_triples: a = %s, b = %s, c=%s, from: %s'%(
+                        self.failed('forall_triples: a = %s, b = %s, c=%s, from: %s' % (
                             self.name(a), self.name(b), self.name(c), message))
                     n += 1
         if not n:
             self.failed_coverage('forall_triples', collection, func, message)
         return True
 
-
     def forsome(self, collection, func, message=''):
         failures = []
         for i, x in enumerate(collection):
             try:
                 b = func(x)
-            except : # TestError:
+            except:  # TestError:
                 failures.append((i, self.mod._root.sys.exc_info()))
                 continue
             if b:
                 return True
         for (i, tvt) in failures:
-            print('forsome: exception at collection[%d]:'%i)
+            print('forsome: exception at collection[%d]:' % i)
             self.dump_failure(tvt, noraise=1)
         self.failed(message)
 
@@ -1207,12 +1237,12 @@ class _GLUECLAMP_:
         '_parent:Use',
         '_parent.Use:iso',
         '_parent.Use:Nothing',
-        )
+    )
 
-    def _get_AbstractAlgebra(self):     return self._parent.AbstractAlgebra
-    def _get_UniSet(self):              return self._parent.UniSet
-    def _get_Doc(self):                 return self._parent.Doc
-    def _get_View(self):                return self._parent.View
+    def _get_AbstractAlgebra(self): return self._parent.AbstractAlgebra
+    def _get_UniSet(self): return self._parent.UniSet
+    def _get_Doc(self): return self._parent.Doc
+    def _get_View(self): return self._parent.View
 
     #
 
@@ -1223,7 +1253,7 @@ class _GLUECLAMP_:
         Doc = self.Doc
         if name == 'setof':
             pass
-            #pdb.set_trace()
+            # pdb.set_trace()
         try:
             obj = Doc.wrap(obj, Doc.attribute(self._origin_, name))
         except Doc.DocError:
@@ -1264,9 +1294,8 @@ class _GLUECLAMP_:
             return True
         return self.predicate(p, 'boolean')
 
-
     def _get_callable(self):
-        return self.predicate(lambda env, x:callable(x), 'callable')
+        return self.predicate(lambda env, x: callable(x), 'callable')
 
     def _get_compile(self):
         token = self._root.token
@@ -1279,10 +1308,11 @@ class _GLUECLAMP_:
         def mapchildren_default(node, f):
             return [node[0]] + [f(n) for n in node[1:]]
 
-        mapchildren_dispatch = dict([(value, mapchildren_id) for value in range(token.N_TOKENS)])
+        mapchildren_dispatch = dict(
+            [(value, mapchildren_id) for value in range(token.N_TOKENS)])
 
         mapchildren_dispatch.update(dict([(value, mapchildren_default)
-                                     for value, name in list(symbol.sym_name.items())]))
+                                          for value, name in list(symbol.sym_name.items())]))
 
         def mapchildren(node, f):
             return mapchildren_dispatch[node[0]](node, f)
@@ -1292,12 +1322,13 @@ class _GLUECLAMP_:
             for value, name in list(symbol.sym_name.items()):
                 if hasattr(C, name):
                     d[value] = getattr(C, name).__func__
-            _visit = lambda node: d[node[0]](node, _visit)
+
+            def _visit(node): return d[node[0]](node, _visit)
             return _visit
 
         def recover_source_node(node, l):
             for n in node[1:]:
-                recover_source_dispatch[n[0]] (n, l)
+                recover_source_dispatch[n[0]](n, l)
 
         def recover_source_token(node, l):
             if l and l[-1] != '(':
@@ -1309,7 +1340,6 @@ class _GLUECLAMP_:
                 l.append(' ')
             l.append(node[1])
 
-
         def recover_source_tight_left(node, l):
             l.append(node[1])
 
@@ -1318,9 +1348,8 @@ class _GLUECLAMP_:
                 l.append(' ')
             l.append(node[1])
 
-
         recover_source_dispatch = dict([(value, recover_source_node)
-                                     for value, name in list(symbol.sym_name.items())])
+                                        for value, name in list(symbol.sym_name.items())])
         recover_source_dispatch.update(
             dict([(value, recover_source_token) for value in range(token.N_TOKENS)]))
 
@@ -1328,14 +1357,14 @@ class _GLUECLAMP_:
 
         for tok in ('RPAR', 'LSQB', 'RSQB', 'COLON', 'COMMA', 'SEMI',
                     'DOT', 'LBRACE', 'RBRACE'):
-            recover_source_dispatch[getattr(token, tok)] = recover_source_tight_left
+            recover_source_dispatch[getattr(
+                token, tok)] = recover_source_tight_left
 
         recover_source_dispatch[token.LPAR] = recover_source_lpar
 
-
         def recover_source(node):
             l = []
-            recover_source_dispatch[node[0]] (node, l)
+            recover_source_dispatch[node[0]](node, l)
             return ''.join(l)
 
         class wrap_lambdef:
@@ -1347,12 +1376,11 @@ class _GLUECLAMP_:
 
                     return (
                         292, (293, (294, (295, (297, (298, (299, (300, (301,
-                        (302, (303, (304, (305, (1, 'wrap_source_string')),
-                        (308, (7, '('), (317, (318, (292, lnode)), (12, ','),
-                        (318, (292, (293, (294, (295, (297, (298, (299, (300,
-                        (301, (302, (303, (304, (305, (3, '%r'%lsource
-                        )))))))))))))))), (8, ')'))))))))))))))
-
+                                                                        (302, (303, (304, (305, (1, 'wrap_source_string')),
+                                                                                     (308, (7, '('), (317, (318, (292, lnode)), (12, ','),
+                                                                                                      (318, (292, (293, (294, (295, (297, (298, (299, (300,
+                                                                                                                                                       (301, (302, (303, (304, (305, (3, '%r' % lsource
+                                                                                                                                                                                      )))))))))))))))), (8, ')'))))))))))))))
 
                 return mapchildren(node, f)
 
@@ -1394,17 +1422,15 @@ class _GLUECLAMP_:
             mode = 'spec'
         co = self.compile(expr, '', mode)
 
-
         d = self._load_names(self._root.guppy.etc.Code.co_findloadednames(co))
         if init is not None:
             d = d.copy()
             exec(init, d)
 
-
         return eval(co, d)
 
     def _get_all_names(self):
-        names = {'_root':1}
+        names = {'_root': 1}
         for x in _GLUECLAMP_.__dict__:
             # print 'x', x
             if x.startswith('_get_'):
@@ -1412,8 +1438,7 @@ class _GLUECLAMP_:
             names[x] = 1
         return names
 
-
-    def _load_names(self, names = None):
+    def _load_names(self, names=None):
         if names is None:
             if '_loaded' not in self.__dict__:
                 for x in self.all_names:
@@ -1427,8 +1452,6 @@ class _GLUECLAMP_:
         d = self.__dict__
         d['__builtins__'] = self._load_names.__globals__['__builtins__']
         return d
-
-
 
     def _get_eg(self):
         return self.family(ExampleFamily)
@@ -1452,10 +1475,8 @@ class _GLUECLAMP_:
             source = '\n'.join(block)
             return expr, self.Doc.getdoc(source)
 
-
         else:
             return expr, self.Doc.getdoc(expr)
-
 
     def _get_expred(self):
         return self.family(ExpressionPredicateFamily)
@@ -1463,9 +1484,9 @@ class _GLUECLAMP_:
     def _get_expression(self):
         def p(env, x):
             try:
-                eval( 'lambda : %s'%x )
+                eval('lambda : %s' % x)
             except SyntaxError:
-                env.failed('Not a valid expression: %r'%x)
+                env.failed('Not a valid expression: %r' % x)
             return True
         return self.predicate(p, 'expression')
 
@@ -1493,7 +1514,6 @@ class _GLUECLAMP_:
     def _get_SPLE(self):
         return self.LE
 
-
     def _get_mapping(self):
         return self.family(MappingFamily)
 
@@ -1504,7 +1524,7 @@ class _GLUECLAMP_:
         return TestEnv(self, Spec)
 
     def newtype(self, name):
-        return self.predicate(lambda e, x: 1, name) # xxx new family?
+        return self.predicate(lambda e, x: 1, name)  # xxx new family?
 
     def _get_nothing(self):
         return self.Use.Nothing
@@ -1548,7 +1568,7 @@ class _GLUECLAMP_:
                 ('3', 'defiop', 'fuop', ),
                 ('4', 'defipair'),
                 ('5', 'defitriple'),
-                ]
+            ]
 
             def _get_spec_1(self, e):
                 return e.setof(e.cprod(e.Anything, e.Anything))
@@ -1570,10 +1590,15 @@ class _GLUECLAMP_:
                 return e.family(RelOpFamily)
 
             map_2_to_1 = id
-            def map_3_to_4(self, e, fuop):      return (e.Anything, fuop)
-            def map_3_to_2(self, e, fuop):      return self._relop(e.Anything, fuop) # redundant
-            def map_4_to_2(self, e, xxx_todo_changeme1): (A, fuop) = xxx_todo_changeme1; return self._relop(A, fuop)
-            def map_5_to_1(self, e, xxx_todo_changeme2): (A,fuop,B) = xxx_todo_changeme2; return self._relop(A, fuop, B)
+            def map_3_to_4(self, e, fuop): return (e.Anything, fuop)
+            def map_3_to_2(self, e, fuop): return self._relop(
+                e.Anything, fuop)  # redundant
+            def map_4_to_2(self, e, xxx_todo_changeme1): (
+                A, fuop) = xxx_todo_changeme1
+            return self._relop(A, fuop)
+            def map_5_to_1(self, e, xxx_todo_changeme2): (
+                A, fuop, B) = xxx_todo_changeme2
+            return self._relop(A, fuop, B)
 
         return self.repcat(RelationSpec)
 
@@ -1620,7 +1645,7 @@ class _GLUECLAMP_:
 
     def union_equals(self, set):
         return self.eg(self.attr('union', self.equals(set)),
-                  self.powerset(set))
+                       self.powerset(set))
 
     def wrap_source_string(self, func, str):
         func._origin_ = self.Doc.source(str)

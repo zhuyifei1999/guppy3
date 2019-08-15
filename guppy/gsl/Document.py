@@ -1,4 +1,5 @@
-#._cv_part guppy.gsl.Document
+# ._cv_part guppy.gsl.Document
+
 
 class Document:
     def __init__(self, mod, node, env):
@@ -38,12 +39,13 @@ class Document:
             self.out.append(self.node_of_taci('symbol', s.tgtfullname))
 
     def _visit_gets(self, node, what):
-        self._visit_subjects(getattr(self.get_arg_subject(node), 'get_%s'%what)())
+        self._visit_subjects(
+            getattr(self.get_arg_subject(node), 'get_%s' % what)())
 
     def ap_text(self, text):
         self.out.append(self.node_of_taci('text', text, (), 0))
 
-    def close(self, chktag = None, n=1, chk = None, get=False):
+    def close(self, chktag=None, n=1, chk=None, get=False):
         for i in range(n):
             out, tag, arg = self.outstack.pop()
             node = self.node_of_taci(tag, arg, self.out)
@@ -64,7 +66,7 @@ class Document:
         self.env.error(msg, context, more=more, **kwds)
 
     def error_no_sub_element(self, node, subelement):
-        self.error('No such subelement allowed in the enclosing element %r.'%
+        self.error('No such subelement allowed in the enclosing element %r.' %
                    node.tag, subelement, exception=None)
 
     def expand_arg(self, arg):
@@ -85,11 +87,10 @@ class Document:
         self.out = oldout
         return newout
 
-
     def expand_node(self, node, optarg=0, optmore=0):
-        arg, rest = self.get_arg_rest(node, optarg=optarg, optmore=optmore,nostrip=1)
+        arg, rest = self.get_arg_rest(
+            node, optarg=optarg, optmore=optmore, nostrip=1)
         return self.node_of_taci(node.tag, arg, rest, node.index, node.src)
-
 
     def gen_char(self, char):
         self.gen_tag('char', char)
@@ -115,7 +116,7 @@ class Document:
     def gen_symbol(self, arg):
         self.out.append(self.node_of_taci('symbol', arg))
 
-    def gen_tag(self, tag, arg = '', children=()):
+    def gen_tag(self, tag, arg='', children=()):
         self.out.append(self.node_of_taci(tag, arg, children))
 
     def gen_text(self, text):
@@ -127,7 +128,7 @@ class Document:
             self.error('Node has extra children, only 1 arg or child expected')
         return arg
 
-    def get_arg_rest(self, node, optarg=0, optmore=0,nostrip=0):
+    def get_arg_rest(self, node, optarg=0, optmore=0, nostrip=0):
         arg, rest = node.get_arg_rest(nostrip=nostrip)
         rest = self.expand_list(rest)
         if arg:
@@ -135,7 +136,8 @@ class Document:
         else:
             if not (rest and rest[0].tag == 'symbol'):
                 if not optarg:
-                    self.error('Argument on line or as next children expected.', node)
+                    self.error(
+                        'Argument on line or as next children expected.', node)
             else:
                 arg = rest[0].arg.strip()
                 rest = rest[1:]
@@ -166,7 +168,7 @@ class Document:
             arg = self.expand_arg(arg)
             args.append(arg)
         rest = []
-        for a in self.expand_list(node.children) :
+        for a in self.expand_list(node.children):
             if a.tag == 'symbol':
                 if rest:
                     self.error(
@@ -189,14 +191,15 @@ class Document:
 
     def get_filers(self, output_dir):
         if not self.output_directives:
-            print('Document %r: No output directives'%self.name)
+            print('Document %r: No output directives' % self.name)
         filers = []
         r = self.get_result()
         name = self.get_doc_name()
-        #print 'directives', self.output_directives
+        # print 'directives', self.output_directives
         for (handler, opts) in self.output_directives:
             print('processing', handler, opts, name)
-            filers.append(handler.doc2filer(self, r, name, output_dir, opts, self.mod.IO))
+            filers.append(handler.doc2filer(
+                self, r, name, output_dir, opts, self.mod.IO))
         return filers
 
     def get_link_name(self, a):
@@ -238,10 +241,10 @@ class Document:
         else:
             names = self.get_arglist_only(node)
             if len(names) != len(self.macro_args):
-                self.error('%d args passed, here is %d names'%(len(self.macro_args),len(names)),
+                self.error('%d args passed, here is %d names' % (len(self.macro_args), len(names)),
                            node)
-            self.localstack.append( dict([(x.strip(), self.macro_args[i])
-                                          for i, x in enumerate( names )]) )
+            self.localstack.append(dict([(x.strip(), self.macro_args[i])
+                                         for i, x in enumerate(names)]))
 
     def visit_arguments_of(self, node):
         self._visit_gets(node, 'arguments')
@@ -262,7 +265,8 @@ class Document:
         arg, rest = self.get_arg_rest(node)
 
         arg = self.get_link_name(self.get_subject(arg, node))
-        self.out.append(self.node_of_taci(node.tag, arg, rest, node.index, node.src))
+        self.out.append(self.node_of_taci(
+            node.tag, arg, rest, node.index, node.src))
 
     def visit_defines(self, node):
         sd = self.specified_definitions
@@ -279,7 +283,7 @@ class Document:
         self._visit_children(node)
         if self.document_title is None:
             self.open('document_title')
-            self.gen_text('GSL document %s'%self.document_name)
+            self.gen_text('GSL document %s' % self.document_name)
             self.close()
         self.close()
 
@@ -294,7 +298,8 @@ class Document:
             self.error('For loop without subelements.', node)
 
         if not (node.children[0].tag == 'in'):
-            self.error("First subelement of for loop must be 'in'.", node.children[0])
+            self.error("First subelement of for loop must be 'in'.",
+                       node.children[0])
         inode = node.children[0]
 
         names = self.get_arglist_only(inode)
@@ -316,7 +321,8 @@ class Document:
     def visit_gsml(self, node):
         arg, rest = node.get_arg_rest()
         if arg:
-            rest = [self.mod.node_of_taci('text', arg, (), node.index, node.src)]+list(rest)
+            rest = [self.mod.node_of_taci(
+                'text', arg, (), node.index, node.src)]+list(rest)
         self.open('block')
         for a in rest:
             if a.tag == 'text':
@@ -357,7 +363,7 @@ class Document:
         if rest:
             self.error_no_sub_element(node, rest[0])
         for subject in subjects:
-            self.subdoc_do(subject, lambda sd:sd.gen_man_page(subject))
+            self.subdoc_do(subject, lambda sd: sd.gen_man_page(subject))
 
         self.close()
         self.close()
@@ -375,7 +381,8 @@ class Document:
             name = arg[:colon].strip()
             content = arg[colon+1:].strip()
             mknode = self.mod.node_of_taci
-            ch = (mknode('name', name), mknode('content', content) ) + node.children
+            ch = (mknode('name', name), mknode(
+                'content', content)) + node.children
             node = mknode('meta', '', ch)
         self.out.append(node)
 
@@ -389,10 +396,10 @@ class Document:
             try:
                 handler_name = self.mod.output_handlers[mode.lower()]
             except KeyError:
-                self.error('Unknown output mode: %r. Expected one of %r.'%(
+                self.error('Unknown output mode: %r. Expected one of %r.' % (
                     mode, list(self.mod.output_handlers.keys())),
-                           node,
-                           exception=None)
+                    node,
+                    exception=None)
             else:
                 handler = getattr(self.mod, handler_name)
                 self.output_directives.append((handler, rest))
@@ -425,23 +432,22 @@ class Document:
                 idn = idn + '.' + name
                 text = name
         else:
-            self.error('Invalid tag: %r in reference.'%tag, node)
+            self.error('Invalid tag: %r in reference.' % tag, node)
 
         if not rest:
             rest = [self.node_of_taci('text', text)]
         self.out.append(self.node_of_taci(
             'link_to', idn, rest, node.index))
 
-
     def visit_specified_definitions(self, node):
         if node.arg.strip() or node.children:
-            self.error('No argument or subelement allowed for element %r.'%node.tag, node,
+            self.error('No argument or subelement allowed for element %r.' % node.tag, node,
                        exception=None)
         if self.specified_definitions is None:
             self.error('No definitions have been specified.', node)
         for s in self.specified_definitions:
-            self.out.append(self.node_of_taci('symbol', s, (), node.index, node.src))
-
+            self.out.append(self.node_of_taci(
+                'symbol', s, (), node.index, node.src))
 
     def visit_symbol(self, node):
         arg = self.get_arg_only(node)
@@ -461,7 +467,8 @@ class Document:
         args, rest = self.get_arg_subjects_rest(node)
         for kind in args:
             self.open('to_tester_only')
-            self.out.append(self.node_of_taci(node.tag, kind, rest, node.index, node.src))
+            self.out.append(self.node_of_taci(
+                node.tag, kind, rest, node.index, node.src))
             self.close()
 
     def visit_take_all(self, node):
@@ -512,6 +519,7 @@ class Document:
 
 class Attributes:
     d_tag = 'attributes'
+
     def __init__(self, as_):
         self.as_ = as_
 
@@ -519,7 +527,7 @@ class Attributes:
         return self.as_[0].find_kind_aspects()
 
     def get_link_name(self):
-        return self.as_[0].mod.tgt_prefix+'(%s)'%','.join([x.get_link_name() for x in self.as_])
+        return self.as_[0].mod.tgt_prefix+'(%s)' % ','.join([x.get_link_name() for x in self.as_])
 
     def get_name(self):
         return ', '.join([x.get_name() for x in self.as_])
@@ -559,7 +567,7 @@ class SubDoc(Document):
             for (i, as_) in attrs:
                 a = as_[0]
                 if (a.src.node is ka.src.node
-                    and len(a.aspects) == len(ka.aspects)):
+                        and len(a.aspects) == len(ka.aspects)):
                     as_.append(ka)
                     break
             else:
@@ -569,7 +577,6 @@ class SubDoc(Document):
             if len(as_) > 1:
                 nkas[i] = Attributes(as_)
         return nkas
-
 
     def combine_attrs_of_same_kind_and_description(self, kas):
         return self.combine_attrs_of_same_kind(kas)
@@ -634,7 +641,7 @@ class SubDoc(Document):
             if tag:
                 self.gen_text(' ')
                 gen_su(tag+colon, su)
-                sycomma[:]=[]
+                sycomma[:] = []
             if len(args) != 1:
                 gen_lbracket(brackets[0])
                 func(args)
@@ -643,9 +650,8 @@ class SubDoc(Document):
                 clr_sycomma()
                 func(args)
 
-
         def gen_or(asp, sep,
-                   orparneed = False,   # Set to True if sequences needs parentheses between or
+                   orparneed=False,   # Set to True if sequences needs parentheses between or
                    sup=1
                    ):
 
@@ -668,9 +674,7 @@ class SubDoc(Document):
                     clr_sycomma()
                     gen_arg(ch, parneed=orparneed)
 
-
-
-        def gen_arg(a, parneed = 0):
+        def gen_arg(a, parneed=0):
             t = a.d_tag
             if t in ('arg', 'key_arg'):
                 gen_sycomma()
@@ -687,7 +691,8 @@ class SubDoc(Document):
                     gen_arg(args[0])
                     gen_rbracket(']')
                 else:
-                    gen_taggy('draw', args, lambda args: gen_or(args, ' , ', sup=0))
+                    gen_taggy('draw', args, lambda args: gen_or(
+                        args, ' , ', sup=0))
             elif t == 'optionals':
                 args = a.find_arg_aspects()
                 for s in args:
@@ -709,9 +714,9 @@ class SubDoc(Document):
             else:
                 assert 0
 
-
         def gen_args(args, parneed=0):
             args = flatten(args)
+
             def ga(args):
                 for a in args:
                     gen_arg(a)
@@ -731,7 +736,7 @@ class SubDoc(Document):
         self.close()
 
     def gen_attribute_def(self, a):
-        def gen_dt(do_kind = 0):
+        def gen_dt(do_kind=0):
             if dt_done:
                 return
             dt_done.append(1)
@@ -766,7 +771,6 @@ class SubDoc(Document):
                 kind_done.append(1)
             self.close('dd')
 
-
         def gen_afterkind(a):
             dt_done.pop()
             gen_dt(1)
@@ -793,7 +797,7 @@ class SubDoc(Document):
                 if dt_done or kind_done:
                     pass
                 if not dt_done:
-                    gen_dt(do_kind = 1)
+                    gen_dt(do_kind=1)
                 elif not kind_done:
                     gen_afterkind(a)
             elif t == 'self':
@@ -802,7 +806,7 @@ class SubDoc(Document):
                 assert 0
 
         if not dt_done:
-            gen_dt(do_kind = 1)
+            gen_dt(do_kind=1)
         self.level -= 1
 
     def gen_attribute_name(self, a):
@@ -857,7 +861,7 @@ class SubDoc(Document):
 
         for d in cond.find_aspects('*'):
             t = d.d_tag
-            if t== 'description':
+            if t == 'description':
                 self.gen_description_dd(d)
             elif t == 'python_code':
                 self.open('dd')
@@ -890,7 +894,7 @@ class SubDoc(Document):
 
         self.level -= 1
 
-    def gen_condition_ref(self, cond, define = 0):
+    def gen_condition_ref(self, cond, define=0):
         link_name = self.get_link_name(cond)
         if define:
             self.open('define', link_name)
@@ -901,12 +905,11 @@ class SubDoc(Document):
         self.gen_text(cond.get_def_name())
         self.close()
         self.close()
-        self.close() # define
+        self.close()  # define
 
         self.gen_text('(')
         self.gen_text(', '.join(cond.get_arg_names()))
         self.gen_text(')')
-
 
     def gen_constructor_def(self, c):
         self.open('define', self.get_link_name(c))
@@ -934,7 +937,7 @@ class SubDoc(Document):
         cdccs = []
         for c in li:
             ds = c.find_aspects('description')
-            descs.extend( ds)
+            descs.extend(ds)
             ccs.extend(c.args)
             cdccs.append((c, ds, c.args))
 
@@ -987,9 +990,8 @@ class SubDoc(Document):
         self.close('dl')
         self.close('dd')
 
-
     def gen_def(self, a):
-        getattr(self, 'gen_%s_def'%a.d_tag)(a)
+        getattr(self, 'gen_%s_def' % a.d_tag)(a)
 
     def gen_delitem_def(self, op):
         self.open('dt')
@@ -1043,7 +1045,7 @@ class SubDoc(Document):
     def gen_description_syn(self, li):
         pass
 
-    def gen_descriptions(self, ats, use_attr_header = 1):
+    def gen_descriptions(self, ats, use_attr_header=1):
         if not ats:
             return
         tab = self.sortup_aspects(ats)
@@ -1051,7 +1053,7 @@ class SubDoc(Document):
         for typ, li in tab:
             try:
                 try:
-                    gen_desc = getattr(self, 'gen_%s_descriptions'%typ)
+                    gen_desc = getattr(self, 'gen_%s_descriptions' % typ)
                 except AttributeError:
                     hd = typ
                     if (len(li) > 1):
@@ -1064,7 +1066,6 @@ class SubDoc(Document):
                     gen_desc(li)
             except self.mod.ReportedError:
                 pass
-
 
     def gen_either_def(self, k):
         self.gen_either_ref(k)
@@ -1108,8 +1109,6 @@ class SubDoc(Document):
             self.close()
             self.close()
             continue
-
-
 
             self.open('dd')
             self.open('code')
@@ -1243,7 +1242,6 @@ class SubDoc(Document):
         self.close()
         self.close()
 
-
     def gen_kind_def(self, k):
         kas = k.find_kind_aspects()
         self.gen_kind_refodef(k, 1)
@@ -1256,7 +1254,7 @@ class SubDoc(Document):
         if len(kas) == 1:
             self.gen_ref(kas[0])
         else:
-            assert 0 # to be tested
+            assert 0  # to be tested
 
     def gen_kind_ref(self, k, defi=0):
         self.gen_kind_refodef(k, 0)
@@ -1352,7 +1350,7 @@ class SubDoc(Document):
 
             if a.arg_names:
                 self.gen_text('(')
-                #self.open('var')
+                # self.open('var')
                 comma = 0
                 for an in a.arg_names:
                     if comma:
@@ -1366,7 +1364,7 @@ class SubDoc(Document):
                         # I think it normally is clearer to not have
                         # slanted argument names
                         self.gen_text(an)
-                #self.close()
+                # self.close()
                 self.gen_text(')')
 
         def gen_condition_desc(a):
@@ -1456,7 +1454,8 @@ class SubDoc(Document):
                         elif not eqconds_done:
                             eqconds_done = 1
                             self.open('dt')
-                            cs = a.find_aspects('precondition', 'postcondition')
+                            cs = a.find_aspects(
+                                'precondition', 'postcondition')
                             for cr in cs:
                                 if cr.d_tag == 'precondition':
                                     self.open('strong')
@@ -1481,7 +1480,6 @@ class SubDoc(Document):
                     self.close()
                     self.close()
 
-
                 else:
                     if not args_described:
                         self.open('dd')
@@ -1493,7 +1491,6 @@ class SubDoc(Document):
                     else:
                         t = last_t
                 last_t = t
-
 
         self.level += 1
         gen_description(m)
@@ -1533,7 +1530,6 @@ class SubDoc(Document):
         self.gen_text('# ')
         self.close()
         self.close()
-
 
     def gen_mapping_doc(self, m):
         def gen_synopsis(m):
@@ -1594,7 +1590,7 @@ class SubDoc(Document):
         self.close()
 
     def gen_operator_ref(self, op, subdescript=0):
-        #self.gen_text('(')
+        # self.gen_text('(')
 
         link_name = self.get_link_name(op)
 
@@ -1622,7 +1618,7 @@ class SubDoc(Document):
             else:
                 assert 0
 
-        #self.gen_text(')')
+        # self.gen_text(')')
 
         self.gen_returns(op, subdescript)
 
@@ -1652,7 +1648,7 @@ class SubDoc(Document):
 
     def gen_ref(self, k):
         t = k.d_tag
-        getattr(self, 'gen_%s_ref'%t)(k)
+        getattr(self, 'gen_%s_ref' % t)(k)
 
     def gen_returns(self, m, subdescript):
         if self.no_ret:
@@ -1681,7 +1677,7 @@ class SubDoc(Document):
         self.close()
 
     def gen_reverse_operator_ref(self, op, subdescript=0):
-        #self.gen_text('(')
+        # self.gen_text('(')
 
         link_name = self.get_link_name(op)
 
@@ -1710,7 +1706,7 @@ class SubDoc(Document):
 
         self.gen_self(op)
 
-        #self.gen_text(')')
+        # self.gen_text(')')
 
         self.gen_returns(op, subdescript)
 
@@ -1822,7 +1818,7 @@ class SubDoc(Document):
         if len(kas) == 1:
             self.gen_ref(kas[0])
         else:
-            assert 0 # to be tested
+            assert 0  # to be tested
 
     def gen_superkind_ref(self, k):
         self.gen_localname(k)
@@ -1838,7 +1834,7 @@ class SubDoc(Document):
             self.level += 1
             for typ, li in tab:
                 try:
-                    gen_syn = getattr(self, 'gen_%s_syn'%typ)
+                    gen_syn = getattr(self, 'gen_%s_syn' % typ)
                 except AttributeError:
                     name = typ.capitalize().replace('_', ' ')
                     if len(li) != 1:
@@ -1855,7 +1851,6 @@ class SubDoc(Document):
             self.close()
             self.close()
 
-
     def get_self_node(self, a):
         sn = self.use_self
         if sn is None:
@@ -1864,13 +1859,13 @@ class SubDoc(Document):
                 sn = self.node_of_taci('text', sn)
         return sn
 
-
     def sortup_aspects(self, ats, synopsis=0):
         # Get aspects sorted up in the same order for synopsis and main description
 
         order = ('description', 'subkind_of', 'constructor', 'self', 'method',
-                    'operator', 'mapping', 'attribute', 'condition', 'example', )
+                 'operator', 'mapping', 'attribute', 'condition', 'example', )
         tab = {}
+
         def gen_outer(what):
             assert what in order
             if what not in tab:
@@ -1912,7 +1907,7 @@ class _GLUECLAMP_:
         '_parent.SpecNodes:node_aliases',
         '_parent:Tester',
         '_parent:XHTML'
-        )
+    )
 
     # Map from output mode spelling in output directive to handler name
     # -- Why should we need to map anyway?
@@ -1920,12 +1915,13 @@ class _GLUECLAMP_:
     # If they are case insenitive, we need to map here.
     # I hereby decide they are case insensitive!
 
-    output_handlers = {'html': 'Html', 'xhtml': 'XHTML', 'latex': 'Latex', 'tester': 'Tester'}
+    output_handlers = {'html': 'Html', 'xhtml': 'XHTML',
+                       'latex': 'Latex', 'tester': 'Tester'}
 
     # Brackets to use when rendering kind references
-    kindbrackets = ('[',']')
+    kindbrackets = ('[', ']')
     #kindbrackets = ('{','\n}')
-    kindbrackets = (' (',' )')
+    kindbrackets = (' (', ' )')
     #kindbrackets = '  '
 
     # Brackets to use when rendering either kinds
@@ -1958,13 +1954,12 @@ class _GLUECLAMP_:
                 else:
                     assert 0
 
-
         class TestEnv:
             def __init__(self, mod):
                 self.mod = mod
+
             def get_subject(self, name):
                 return TestSubject(self.mod, name)
-
 
         env = TestEnv(self)
         x = """
@@ -1983,10 +1978,9 @@ class _GLUECLAMP_:
         print(r)
         h = self._parent.Html.doc2html(r)
         print(h)
-        open('/tmp/d.html','w').write(h)
+        open('/tmp/d.html', 'w').write(h)
 
 
-
-if 0 or __name__=='__main__':
+if 0 or __name__ == '__main__':
     from guppy import Root
     Root().guppy.gsl.Document._test_main_()

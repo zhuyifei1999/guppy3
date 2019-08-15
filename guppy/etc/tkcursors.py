@@ -1,9 +1,10 @@
-#._cv_part guppy.etc.tkcursors
+# ._cv_part guppy.etc.tkcursors
 
 # A Tk window that shows what cursor shapes are available.
 # Moving the mouse over the cursor name shows the cursor in that shape.
 
 from tkinter import *
+
 
 def tkcursors(master=None):
     if master is None:
@@ -92,14 +93,15 @@ def tkcursors(master=None):
         'xterm'
 
 
-        )):
+    )):
 
-        w = Label(root, text=cursor,cursor=cursor,
-                  width=20,anchor=W,relief=SUNKEN)
+        w = Label(root, text=cursor, cursor=cursor,
+                  width=20, anchor=W, relief=SUNKEN)
         col, row = divmod(i, 27)
         w.grid(row=row, column=col)
     if master is None:
         root.mainloop()
+
 
 if __name__ == '__main__':
     tkcursors()

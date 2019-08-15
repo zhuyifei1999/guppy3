@@ -1,4 +1,4 @@
-#._cv_part guppy.etc.Unpack
+# ._cv_part guppy.etc.Unpack
 
 from opcode import *
 import sys
@@ -11,6 +11,7 @@ STORE_GLOBAL = opmap['STORE_GLOBAL']
 STORE_ATTR = opmap['STORE_ATTR']
 STORE_SUBSCR = opmap['STORE_SUBSCR']
 STORE_SLICE = opmap['STORE_SLICE+0']
+
 
 def unpack(x):
     try:
@@ -53,44 +54,46 @@ def unpack(x):
 
 def test_unpack():
     class C:
-        a=1
-        b=3
-        c=4
+        a = 1
+        b = 3
+        c = 4
     y = C()
     a, b, c = unpack(y)
-    x =  [a,b,c]
+    x = [a, b, c]
+
     class D:
         pass
     D.a, c, D.b = unpack(y)
     x.extend([D.a, c, D.b])
 
-    l=[None]
+    l = [None]
     try:
         l[0], c, b = unpack(y)
     except SyntaxError:
         pass
     else:
         raise RuntimeError
-    l=[None]
+    l = [None]
     try:
         l[1:2], c, b = unpack(y)
     except SyntaxError:
         pass
     else:
         raise RuntimeError
-    y=[]
+    y = []
 
-    y = {'a':'A', 'b':'B'}
+    y = {'a': 'A', 'b': 'B'}
     a, b = unpack(y)
     x.extend([a, b])
 
     global g
-    y['g']='G'
+    y['g'] = 'G'
     g, b = unpack(y)
     x.extend([g, b])
 
     if x != [1, 3, 4, 1, 4, 3, 'A', 'B', 'G', 'B']:
         raise RuntimeError
+
 
 __all__ = 'unpack'
 

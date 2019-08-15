@@ -1,4 +1,4 @@
-#._cv_part guppy.etc.Compat
+# ._cv_part guppy.etc.Compat
 
 #
 # This module resolves some differences
@@ -36,10 +36,12 @@ except NameError:
     def enumerate(lt):
         return map(None, range(len(lt)), lt)
 
+
 def _make_system_compatible():
     import builtins
     for name, value in list(globals().items()):
         if name[:1] != '_':
             setattr(__builtin__, name, value)
+
 
 _make_system_compatible()

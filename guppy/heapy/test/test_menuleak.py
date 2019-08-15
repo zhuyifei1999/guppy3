@@ -2,6 +2,7 @@ from tkinter import *
 import sys
 import gc
 
+
 class FixedMenu(Menu):
     # A fix for the .delete() method in Menu.
     # To delete commands defined in the menu items deleted.
@@ -33,10 +34,11 @@ def test1(M):
     button = Menubutton(root, text='Window')
     menu = M(button)
     button['menu'] = menu
+
     def command():
         print('command button pressed')
     rc = sys.getrefcount(command)
-    menu.add_command(command=command) # or add_radiobutton etc
+    menu.add_command(command=command)  # or add_radiobutton etc
     idx = menu.index(END)
     menu.delete(idx)
     gc.collect()
@@ -49,6 +51,7 @@ def test1(M):
 
     root.destroy()
 
+
 def test2(M):
     # Test with 3 commands, especially to see that deleting a range works.
 
@@ -57,12 +60,15 @@ def test2(M):
     button = Menubutton(root, text='Window')
     menu = M(button)
     button['menu'] = menu
+
     def command0():
         print('command 0 button pressed')
         'deleting 0 and 1'
         menu.delete(idx0, idx1)
+
     def command1():
         print('command 1 button pressed')
+
     def command2():
         print('command 2 button pressed')
         print('deleting at END')
@@ -71,12 +77,14 @@ def test2(M):
     rc = [sys.getrefcount(x) for x in (command0, command1, command0)]
     del x
     button.pack()
-    menu.add_command(command=command0,label='press first') # or add_radiobutton etc
+    # or add_radiobutton etc
+    menu.add_command(command=command0, label='press first')
     idx0 = menu.index(END)
-    menu.add_radiobutton(command=command1,label='command1')
-    menu.add_command(label='no Command') # to see that delete works even when no command supplied
+    menu.add_radiobutton(command=command1, label='command1')
+    # to see that delete works even when no command supplied
+    menu.add_command(label='no Command')
     idx1 = menu.index(END)
-    menu.add_command(command=command2,label='press last')
+    menu.add_command(command=command2, label='press last')
     idx2 = menu.index(END)
     root.mainloop()
 
@@ -85,12 +93,12 @@ def test2(M):
     del x
     print('leak test with class', M, end=' ')
     if rc1 != rc:
-        print('failed: command is now hold by', rc1, 'references, should be', rc)
+        print('failed: command is now hold by',
+              rc1, 'references, should be', rc)
     else:
         print('succeeded: command is now hold by', rc1, 'references')
 
     root.destroy()
-
 
 
 for M in (Menu, FixedMenu,):

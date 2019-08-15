@@ -1,10 +1,11 @@
-#._cv_part guppy.etc.FSA
+# ._cv_part guppy.etc.FSA
+
 
 class FiniteAutomaton:
     def __init__(self, start_state, dump_state=''):
         self.start_state = start_state
         self.dump_state = dump_state
-        self.table = {self.dump_state:{}}
+        self.table = {self.dump_state: {}}
         self.unresolved_composites = []
         self.resolved_composites = []
         self.composite_memo = {}
@@ -61,7 +62,6 @@ class FiniteAutomaton:
                             break
                 for k, v in list(ds.items()):
                     self.add_transition(c, k, *v)
-
 
     def get_all_input_symbols(self):
         syms = {}
@@ -177,7 +177,7 @@ class FiniteAutomaton:
             for eq in list(eqs.values()):
                 ideq = id(eq)
                 if ideq not in csbyid:
-                    c = 'MS%d'%i
+                    c = 'MS%d' % i
                     i += 1
                     csbyid[ideq] = eq[0], c
                     for s in eq:
@@ -220,20 +220,18 @@ class FiniteAutomaton:
             self.unresolved_composites.append(cs)
             return cs
 
-
     def pp(self):
         ks = list(self.table.keys())
         ks.sort()
         num = dict([(s, i) for i, s in enumerate(ks)])
         for s in ks:
             k = self.table[s]
-            print('%d: %s'%(num[s], s))
+            print('%d: %s' % (num[s], s))
             cs = list(k.keys())
             cs.sort()
             for c in cs:
                 v = k[c]
-                print('   %r  -> #%d: %s'%(c, num[v], v))
-
+                print('   %r  -> #%d: %s' % (c, num[v], v))
 
 
 class CompositeState(tuple):
