@@ -14,7 +14,6 @@ Root()  Create an object that provides a top level entry point.
 
 __all__ = ('hpy', 'Root')
 
-import guppy.etc.Compat                 # Do one-time compatibility adjustments
 from guppy.etc.Glue import Root         # Get main Guppy entry point
 
 

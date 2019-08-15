@@ -40,7 +40,7 @@ def iterpermute(*args):
         assert n == wanted
         return
     ixs = list(enumerate(lens))
-    ixs.sort(lambda (ixa, lna), (ixb, lnb): cmp(lna, lnb))
+    ixs.sort(lambda a, b: a[1] - b[1])
     ixs = [ix for (ix, ln) in ixs]
     jxs = [0] * la
     seen = dict([(tuple([j % lens[i] for i in ixs]), 1)

@@ -840,7 +840,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'expected ValueError for remove'
+            raise AssertionError('expected ValueError for remove')
         ms.append(0)
         assert list(~ms) == []
         try:
@@ -848,7 +848,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'expected ValueError for append'
+            raise AssertionError('expected ValueError for append')
 
         ms.remove(0)
         try:
@@ -856,7 +856,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'expected ValueError for pop'
+            raise AssertionError('expected ValueError for pop')
 
     def test14(self):
         # Test the bitrange() constructor
@@ -911,7 +911,7 @@ MutBitSet([])
             except OverflowError:
                 pass
             else:
-                raise 'expected OverflowError'
+                raise AssertionError('expected OverflowError')
 
         tsv(bitset([maxint]), 1)
         tsv(bitset([minint]), -1)
@@ -1070,7 +1070,7 @@ MutBitSet([])
         except OverflowError:
             pass
         else:
-            raise 'expected OverflowError'
+            raise AssertionError('expected OverflowError')
 
         # a more exhaustive check,
         # it tests some > 70000 combinations if not self.faster
@@ -1267,7 +1267,7 @@ MutBitSet([])
         except OverflowError:
             pass
         else:
-            raise 'expected OverflowError'
+            raise AssertionError('expected OverflowError')
 
         assert int(bs) == int(sys.maxsize)+1
 
@@ -1423,7 +1423,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'expected ValueError'
+            raise AssertionError('expected ValueError')
 
         assert ns0 is ns
 
@@ -1503,7 +1503,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'no exception from append'
+            raise AssertionError('no exception from append')
 
         s.remove(e1)
 
@@ -1512,7 +1512,7 @@ MutBitSet([])
         except ValueError:
             pass
         else:
-            raise 'no exception from remove'
+            raise AssertionError('no exception from remove')
 
         assert r1 == grc(e1)
         assert r2 == grc(e2)
