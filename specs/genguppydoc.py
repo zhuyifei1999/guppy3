@@ -54,19 +54,19 @@ class GenGuppyDoc:
         self.gen('genguppy.gsl')
 
     def gengsl(self):
-	self.gen('index.gsl')
-	self.gen('heapy_tutorial.gsl')
+        self.gen('index.gsl')
+        self.gen('heapy_tutorial.gsl')
 
-	self.gen('gsl.gsl')
-	self.gen('docexample.gsl')
-	gslexample = self.extemplate % (
-	    ('\n'+open(join(self.input_dir, 'docexample.gsl')).read()).replace('\n.','\n\\.'),
-	    open(join(self.output_dir, 'docexample.py')).read())
-		    
-	self.gen('gslexample.gsl',input_string=gslexample)
+        self.gen('gsl.gsl')
+        self.gen('docexample.gsl')
+        gslexample = self.extemplate % (
+            ('\n'+open(join(self.input_dir, 'docexample.gsl')).read()).replace('\n.','\n\\.'),
+            open(join(self.output_dir, 'docexample.py')).read())
+
+        self.gen('gslexample.gsl',input_string=gslexample)
 
 
-		 
+
 def main():
     g=GenGuppyDoc()
     g.genext()

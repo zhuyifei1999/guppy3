@@ -9,53 +9,53 @@ def iterpermute(*args):
     nexts = [None] * la
     n = 0
     while 1:
-	anynew = 0
-	for i in range(la):
-	    if stopped[i]:
-		next = bufs[i][n%lens[i]]
-	    else:
-		try:
-		    next = args[i].next()
-		except StopIteration:
-		    if lens[i] == 0:
-			# raise ValueError, 'The iterator passed in arg %d did not return any item'%i
-			return
-		    stopped[i] = 1
-		    next = bufs[i][n%lens[i]]
-		else:
-		    anynew = 1
-		    bufs[i].append(next)
-		    lens[i] += 1
-	    nexts[i] = next
-	if anynew:
-	    n += 1
-	    yield tuple(nexts)
-	else:
-	    break
-    
+        anynew = 0
+        for i in range(la):
+            if stopped[i]:
+                next = bufs[i][n%lens[i]]
+            else:
+                try:
+                    next = args[i].next()
+                except StopIteration:
+                    if lens[i] == 0:
+                        # raise ValueError, 'The iterator passed in arg %d did not return any item'%i
+                        return
+                    stopped[i] = 1
+                    next = bufs[i][n%lens[i]]
+                else:
+                    anynew = 1
+                    bufs[i].append(next)
+                    lens[i] += 1
+            nexts[i] = next
+        if anynew:
+            n += 1
+            yield tuple(nexts)
+        else:
+            break
+
     wanted = reduce(lambda x, y: x*y, lens, 1)
     if n >= wanted:
-	assert n == wanted
-	return
+        assert n == wanted
+        return
     ixs = list(enumerate(lens))
     ixs.sort(lambda (ixa, lna), (ixb, lnb) : cmp(lna, lnb))
     ixs = [ix for (ix,ln) in ixs]
     jxs = [0] * la
     seen = dict([(tuple([j%lens[i] for i in ixs]), 1)
-		 for j in range(n)])
+                 for j in range(n)])
 
     while n < wanted:
-	t = tuple([jxs[i] for i in ixs]) 
-	if t not in seen:
-	    yield tuple([bufs[i][jxs[i]] for i in range(la)])
-	    n += 1
+        t = tuple([jxs[i] for i in ixs])
+        if t not in seen:
+            yield tuple([bufs[i][jxs[i]] for i in range(la)])
+            n += 1
 
-	for i in ixs:
-	    j = jxs[i]
-	    j = (j + 1)%lens[i]
-	    jxs[i] = j
-	    if j != 0:
-		break
+        for i in ixs:
+            j = jxs[i]
+            j = (j + 1)%lens[i]
+            jxs[i] = j
+            if j != 0:
+                break
 
 
 

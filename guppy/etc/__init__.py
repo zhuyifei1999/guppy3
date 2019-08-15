@@ -2,5 +2,4 @@
 
 class _GLUECLAMP_:
     def _get_iterpermute(self): return self.IterPermute.iterpermute
-    def _get_unpack(self):	return self.Unpack.unpack
-
+    def _get_unpack(self):      return self.Unpack.unpack

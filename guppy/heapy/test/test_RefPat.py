@@ -3,242 +3,242 @@ import StringIO, sys, types, unittest
 
 class TestCase(support.TestCase):
     def setUp(self):
-	support.TestCase.setUp(self)
-	self.RefPat = self.heapy.RefPat
-	self.iso = self.Use.iso
+        support.TestCase.setUp(self)
+        self.RefPat = self.heapy.RefPat
+        self.iso = self.Use.iso
 
     def makegraph(self, width, length):
-	# Generate a structure which will yield a high number
-	# of shortest paths.
-	# Returns a pair src, dst which are connected via a noncyclic graph
-	# with many edges.
-	# The length of each path (all shortest), number of edges will be length
-	# The number of nodes will be 2 + width * (length - 1)
-	# The number of paths will be
-	#	width ** length, if width >= 1 and length >= 1
+        # Generate a structure which will yield a high number
+        # of shortest paths.
+        # Returns a pair src, dst which are connected via a noncyclic graph
+        # with many edges.
+        # The length of each path (all shortest), number of edges will be length
+        # The number of nodes will be 2 + width * (length - 1)
+        # The number of paths will be
+        #       width ** length, if width >= 1 and length >= 1
 
-	dst = []
-	ls = []
-	for i in range(width):
-	    ls.append([dst])
-	ls = [dst] * width
-	for i in range(length-1):
-	    xs = []
-	    for j in range(width):
-		ys = []
-		xs.append(ys)
-		for k in range(width):
-		    ys.append(ls[k])
-	    ls = xs
-	src = ls
-	return src, dst
+        dst = []
+        ls = []
+        for i in range(width):
+            ls.append([dst])
+        ls = [dst] * width
+        for i in range(length-1):
+            xs = []
+            for j in range(width):
+                ys = []
+                xs.append(ys)
+                for k in range(width):
+                    ys.append(ls[k])
+            ls = xs
+        src = ls
+        return src, dst
 
     def makegraph(self, width, length):
-	# Generate a structure which will yield a high number
-	# of shortest paths.
-	# Returns a pair src, dst which are connected via a noncyclic graph
-	# with many edges.
-	# The length of each path (all shortest), number of edges will be length
-	# The number of nodes will be 2 + width * (length - 1)
-	# The number of paths will be
-	#	width ** length, if width >= 1 and length >= 1
+        # Generate a structure which will yield a high number
+        # of shortest paths.
+        # Returns a pair src, dst which are connected via a noncyclic graph
+        # with many edges.
+        # The length of each path (all shortest), number of edges will be length
+        # The number of nodes will be 2 + width * (length - 1)
+        # The number of paths will be
+        #       width ** length, if width >= 1 and length >= 1
 
-	dst = []
-	ls = []
-	for i in range(width):
-	    ls.append([dst])
-	ls = [dst] * width
-	for i in range(length-1):
-	    xs = []
-	    for j in range(width):
-		ys = []
-		xs.append(ys)
-		for k in range(width):
-		    ys.append(ls[k])
-	    ls = xs
-	src = ls
-	return src, dst
+        dst = []
+        ls = []
+        for i in range(width):
+            ls.append([dst])
+        ls = [dst] * width
+        for i in range(length-1):
+            xs = []
+            for j in range(width):
+                ys = []
+                xs.append(ys)
+                for k in range(width):
+                    ys.append(ls[k])
+            ls = xs
+        src = ls
+        return src, dst
 
     def rp(self, dst, src, **kwds):
-	iso = self.iso
-	if src is not None:
-	    src = iso(src)
-	rp = iso(dst).get_rp(src=src, **kwds)
-	rp.mod.UniSet.summary_str.str_address = lambda a: '<address>'
-	return rp
+        iso = self.iso
+        if src is not None:
+            src = iso(src)
+        rp = iso(dst).get_rp(src=src, **kwds)
+        rp.mod.UniSet.summary_str.str_address = lambda a: '<address>'
+        return rp
 
 
 class RefPatCase(TestCase):
     def test_basic_methods(self):
-	# Test basic methods: iteration, indexing, length, tree addressing via attribute access
+        # Test basic methods: iteration, indexing, length, tree addressing via attribute access
 
-	# Test iteration
+        # Test iteration
 
-	dst = src = []
-	lists = [dst]
-	for i in range(5):
-	    src = [src]
-	    lists.append(src)
-	    
-	    
-	rp = self.rp(dst, src,depth=10)
-	for i, x in enumerate(rp):
-	    if i < len(lists):
-		self.asis(lists[i], x.theone)
-	    
-
-	# Test indexing
-
-	# First case, when already iterated over
-
-	self.asis( rp[0].theone, lists[0] )
-	self.asis( rp[-2].theone, lists[-1])
+        dst = src = []
+        lists = [dst]
+        for i in range(5):
+            src = [src]
+            lists.append(src)
 
 
-	# Second case, when not iterated over before
+        rp = self.rp(dst, src,depth=10)
+        for i, x in enumerate(rp):
+            if i < len(lists):
+                self.asis(lists[i], x.theone)
 
-	rp = self.rp(dst, src,depth=10)
 
-	self.asis( rp[0].theone, lists[0] )
-	self.asis( rp[-2].theone, lists[-1])
+        # Test indexing
 
-	# Test length
+        # First case, when already iterated over
 
-	self.aseq( len(rp), len(lists) + 1)
-	rp = self.rp(dst, src,depth=10)
-	self.aseq( len(rp), len(lists) + 1)
+        self.asis( rp[0].theone, lists[0] )
+        self.asis( rp[-2].theone, lists[-1])
 
-	# Test attribute access
 
-	self.asis(rp._.theone, lists[0])
-	self.asis(rp.a.theone, lists[1])
+        # Second case, when not iterated over before
 
-	# Test attribute access, when not iterated over before
+        rp = self.rp(dst, src,depth=10)
 
-	rp = self.rp(dst, src,depth=10)
-	self.asis(rp.a2.theone, lists[2])
-	self.asis(rp.a.theone, lists[1])
+        self.asis( rp[0].theone, lists[0] )
+        self.asis( rp[-2].theone, lists[-1])
 
-	# Make sure attribute access is cached:
-	# so it doesn't change when struct is changed
+        # Test length
 
-	lists[2].append(lists[0])
-	rp.View.clear_retainers()
-	rp.View.update_referrers(self.iso(lists[0]))
-	self.asis(rp.a.theone, lists[1])
+        self.aseq( len(rp), len(lists) + 1)
+        rp = self.rp(dst, src,depth=10)
+        self.aseq( len(rp), len(lists) + 1)
 
-	# Test with recursive structure
+        # Test attribute access
 
-	dst = []
-	dst.append(dst)
-	src = [dst]
-	rp = self.rp(dst, src)
-	self.asis(rp._.theone, dst)
-	self.aseq(rp.a, self.iso(dst, src))
-	self.aseq(rp.a, rp.a2)
-	self.aseq(rp.a, rp[1])
+        self.asis(rp._.theone, lists[0])
+        self.asis(rp.a.theone, lists[1])
+
+        # Test attribute access, when not iterated over before
+
+        rp = self.rp(dst, src,depth=10)
+        self.asis(rp.a2.theone, lists[2])
+        self.asis(rp.a.theone, lists[1])
+
+        # Make sure attribute access is cached:
+        # so it doesn't change when struct is changed
+
+        lists[2].append(lists[0])
+        rp.View.clear_retainers()
+        rp.View.update_referrers(self.iso(lists[0]))
+        self.asis(rp.a.theone, lists[1])
+
+        # Test with recursive structure
+
+        dst = []
+        dst.append(dst)
+        src = [dst]
+        rp = self.rp(dst, src)
+        self.asis(rp._.theone, dst)
+        self.aseq(rp.a, self.iso(dst, src))
+        self.aseq(rp.a, rp.a2)
+        self.aseq(rp.a, rp[1])
 
     def test_presentation(self):
 
-	output = StringIO.StringIO()
+        output = StringIO.StringIO()
 
-	src = []
+        src = []
 
-	def write(x):
-	    print >>output, x
+        def write(x):
+            print >>output, x
 
-	R = self.RefPat
-	def test_pp(dst, src, result=None, **kwds):
+        R = self.RefPat
+        def test_pp(dst, src, result=None, **kwds):
 
-	    rp = self.rp(dst, src, **kwds)
-	    write( repr(rp) )
-	    return rp
+            rp = self.rp(dst, src, **kwds)
+            write( repr(rp) )
+            return rp
 
-	dst = []
-	src.append(dst)
-	#print R.refpat(dst=dst)
+        dst = []
+        src.append(dst)
+        #print R.refpat(dst=dst)
 
-	test_pp(dst, src)
+        test_pp(dst, src)
 
-	for i in range(5):
-	    x = dst
-	    dst = []
-	    x.append(dst)
-	test_pp(dst, src)
+        for i in range(5):
+            x = dst
+            dst = []
+            x.append(dst)
+        test_pp(dst, src)
 
-	src, dst = self.makegraph(5,7)
+        src, dst = self.makegraph(5,7)
 
-	test_pp(dst, src, depth=10)
+        test_pp(dst, src, depth=10)
 
-	# Test that pp() prints limited number of lines
-	
-	src, dst = self.makegraph(5,17)
+        # Test that pp() prints limited number of lines
 
-	rp = test_pp(dst, src, depth=17)
-	
-	write( repr(rp.more) )
+        src, dst = self.makegraph(5,17)
 
-	# Test more of more
+        rp = test_pp(dst, src, depth=17)
 
-	src, dst = self.makegraph(1,30)
+        write( repr(rp.more) )
 
-	rp = test_pp(dst, src, depth=35)
+        # Test more of more
 
-	m = rp.more
+        src, dst = self.makegraph(1,30)
 
-	write( repr(m) )
-	write( repr(m.more) )
-	m1 = m.more
-	write( repr(m1) )
-	m2 = m.more
-	write( repr(m2.more) )
-	write( str(m1.more) ) # Test also that str() is the same as repr()
+        rp = test_pp(dst, src, depth=35)
 
-	# Test that we get back to start by .top
+        m = rp.more
 
-	write( m1.top )
+        write( repr(m) )
+        write( repr(m.more) )
+        m1 = m.more
+        write( repr(m1) )
+        m2 = m.more
+        write( repr(m2.more) )
+        write( str(m1.more) ) # Test also that str() is the same as repr()
 
-	# Test that we get back to previous by .prev
+        # Test that we get back to start by .top
 
-	write( m1.prev )
+        write( m1.top )
 
-	if 0:
-	    # I don't know if I really want this, after new general output handling
-	
-	    # Test that .top works at the top
+        # Test that we get back to previous by .prev
 
-	    write( m1.top.top )
+        write( m1.prev )
 
-	#pdb.set_trace()
+        if 0:
+            # I don't know if I really want this, after new general output handling
 
-	# Test that they won't say '...more lines...' if the # of lines is what is printed
+            # Test that .top works at the top
 
-	src, dst = self.makegraph(1,30)
+            write( m1.top.top )
 
-	rp = test_pp(dst, src, depth=10)
+        #pdb.set_trace()
 
-	# Test how no more lines is printed
+        # Test that they won't say '...more lines...' if the # of lines is what is printed
 
-	write( rp.more)	
-	write( rp.more.more)
+        src, dst = self.makegraph(1,30)
 
-	# Test that one more line is printed rather than '1 more line'
+        rp = test_pp(dst, src, depth=10)
 
-	src, dst = self.makegraph(1,30)
+        # Test how no more lines is printed
 
-	rp = test_pp(dst, src, depth=21)
-	write( rp.more)	
+        write( rp.more)
+        write( rp.more.more)
 
-	# Test that we can do more without first printing
+        # Test that one more line is printed rather than '1 more line'
 
-	rp = self.rp(dst, src, depth=20)
-	
-	write( rp.more )
+        src, dst = self.makegraph(1,30)
 
-	if 0:
-	    print output.getvalue()
-	else:
-	    self.aseq(output.getvalue(), """\
+        rp = test_pp(dst, src, depth=21)
+        write( rp.more)
+
+        # Test that we can do more without first printing
+
+        rp = self.rp(dst, src, depth=20)
+
+        write( rp.more )
+
+        if 0:
+            print output.getvalue()
+        else:
+            self.aseq(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -403,111 +403,111 @@ Reference Pattern by <[dict of] class>.
 19: a19                      [-] 1 list: <address>*1
 20: a20 --------------------- [+] 1 list: <address>*1
 """)
-	
+
     def test_referrer_registration(self):
-	import gc
+        import gc
 
-	# The reference pattern should register itself as referrer target
-	# so that after a gc, the rp target will still be included in the referrer target
-	# Since the target is passed to referrers and update, it will still find the
-	# referrers. It is an optimization issue: it should cover the referrers.
-	# We test this by having two different-typed referrers
-	# Accessing a referrer of the first one, then gc collecting, then checking that
-	# the second one can be accessed without update: it was created automatically.
-	# The test failed when not registering, but succeeded when registering was added.
-	# It succeeds any case if no GC collection is made.
+        # The reference pattern should register itself as referrer target
+        # so that after a gc, the rp target will still be included in the referrer target
+        # Since the target is passed to referrers and update, it will still find the
+        # referrers. It is an optimization issue: it should cover the referrers.
+        # We test this by having two different-typed referrers
+        # Accessing a referrer of the first one, then gc collecting, then checking that
+        # the second one can be accessed without update: it was created automatically.
+        # The test failed when not registering, but succeeded when registering was added.
+        # It succeeds any case if no GC collection is made.
 
-	dst = []
-	a = [dst]
-	aa = [a]
-	b = (dst,)
-	ba = [b]
-	src = [aa, ba]
-	rp = self.rp(dst, src)
+        dst = []
+        a = [dst]
+        aa = [a]
+        b = (dst,)
+        ba = [b]
+        src = [aa, ba]
+        rp = self.rp(dst, src)
 
-	self.asis(rp._.theone, dst)
-	gc.collect()
-	self.asis(rp.aa.theone, aa)
-	self.asis(rp.View.rg[b][0], ba)
-    
+        self.asis(rp._.theone, dst)
+        gc.collect()
+        self.asis(rp.aa.theone, aa)
+        self.asis(rp.View.rg[b][0], ba)
+
 
     def test_some_more_advanced_usages(self):
-	import gc
+        import gc
 
-	# Test immediate dominators
+        # Test immediate dominators
 
-	dst = []
-	src = [dst]
-	src.append([dst])
-	rp = self.rp(dst, src, depth=10, imdom=1)
-	self.asis(rp._.theone, dst)
-	self.asis(rp.a.theone, src)
+        dst = []
+        src = [dst]
+        src.append([dst])
+        rp = self.rp(dst, src, depth=10, imdom=1)
+        self.asis(rp._.theone, dst)
+        self.asis(rp.a.theone, src)
 
-	# Test with mixed types
+        # Test with mixed types
 
-	# In particular, dict owned by an instance
+        # In particular, dict owned by an instance
 
-	dst = []
-	class A:
-	    pass
-	a = A()
-	a.dst = dst
-	b = {'dst':dst}
+        dst = []
+        class A:
+            pass
+        a = A()
+        a.dst = dst
+        b = {'dst':dst}
 
-	src = (a, b)
+        src = (a, b)
 
-	gc.collect()
-	rp = self.rp(dst, src, depth=10)
-	rp.er.classifier.is_clear_drg_enabled = 0 # Note Apr 19 2005
-	self.asis(rp.a.theone, b)
-	self.asis(rp.b.theone, a.__dict__)
+        gc.collect()
+        rp = self.rp(dst, src, depth=10)
+        rp.er.classifier.is_clear_drg_enabled = 0 # Note Apr 19 2005
+        self.asis(rp.a.theone, b)
+        self.asis(rp.b.theone, a.__dict__)
 
-	# Test that the dict is eventually automatically removed from dictowners - 
-	# First test that dictowners is nonzero
+        # Test that the dict is eventually automatically removed from dictowners -
+        # First test that dictowners is nonzero
 
-	ln = len(rp.mod.View.dict_ownership)
-	self.assert_(ln > 0)
+        ln = len(rp.mod.View.dict_ownership)
+        self.assert_(ln > 0)
 
-	del src
-	del a
-	mod = rp.mod
-	rp.er.classifier.is_clear_drg_enabled = 1
-	del rp
-	# It is cleared after GC
+        del src
+        del a
+        mod = rp.mod
+        rp.er.classifier.is_clear_drg_enabled = 1
+        del rp
+        # It is cleared after GC
 
-	gc.collect()
-	lnnow = len(mod.View.dict_ownership)
-	self.assert_(lnnow == 0)
+        gc.collect()
+        lnnow = len(mod.View.dict_ownership)
+        self.assert_(lnnow == 0)
 
 class NewCase(TestCase):
     # Some new tests as they come up
 
 
     def test_reset(self):
-	# Test the .reset() method
+        # Test the .reset() method
 
-	dst = []
-	a = [dst]
-	b = [dst]
-	src = [a,b]
-	rp = self.rp(dst, src)
-	self.aseq( rp.a, self.iso(a, b) )
+        dst = []
+        a = [dst]
+        b = [dst]
+        src = [a,b]
+        rp = self.rp(dst, src)
+        self.aseq( rp.a, self.iso(a, b) )
 
-	b.pop()
-	rp.reset()
-	self.aseq( rp.a, self.iso(a) )
+        b.pop()
+        rp.reset()
+        self.aseq( rp.a, self.iso(a) )
 
 
     def test_paths(self):
-	# Test the .paths() method
+        # Test the .paths() method
 
-	dst = []
-	a = [dst]+[None]*40	# Make order well-defined. Note May 2 2005.
-	b = [dst]
-	src = [a,b]
-	rp = self.rp(dst, src)
+        dst = []
+        a = [dst]+[None]*40     # Make order well-defined. Note May 2 2005.
+        b = [dst]
+        src = [a,b]
+        rp = self.rp(dst, src)
 
-	expected = """\
+        expected = """\
 Paths from source 'a3' to target '_'.
  0: a3 [0] @ [0]
  1: aa [0]  @ [0]
@@ -516,17 +516,17 @@ Paths from source 'a3' to target '_'.
  4: aa [0]  @ [1]
  5: a  [1]   @ [0] -> #3"""
 
-	self.aseq( str(rp.paths('a3')), expected)
+        self.aseq( str(rp.paths('a3')), expected)
 
-	expected = expected[:expected.index('\n 4:')]
+        expected = expected[:expected.index('\n 4:')]
 
- 	# Test the andsets argument, given as a dict
+        # Test the andsets argument, given as a dict
 
-	self.aseq( str(rp.paths('a3', andsets={'a':self.iso(a)})), expected)
+        self.aseq( str(rp.paths('a3', andsets={'a':self.iso(a)})), expected)
 
- 	# Test the andsets argument, given as a list
+        # Test the andsets argument, given as a list
 
-	self.aseq( str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
+        self.aseq( str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
 
 
 def test_main(debug=0):
@@ -542,11 +542,11 @@ def test_leak():
     i = 0
     xmemstats()
     while 1:
-	print '[%d]'%i, time.asctime()
-	i += 1
-	test_main()
-	gc.collect()
-	xmemstats()
+        print '[%d]'%i, time.asctime()
+        i += 1
+        test_main()
+        gc.collect()
+        xmemstats()
 
 if __name__ == "__main__":
     test_main()

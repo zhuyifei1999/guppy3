@@ -125,7 +125,7 @@ class Cmd:
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
                 else:
-		    self.preinput()
+                    self.preinput()
                     if self.use_rawinput:
                         try:
                             line = raw_input(self.prompt)
@@ -139,7 +139,7 @@ class Cmd:
                             line = 'EOF'
                         else:
                             line = line[:-1] # chop \n
-		    line = self.postinput(line)
+                    line = self.postinput(line)
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)
@@ -151,7 +151,7 @@ class Cmd:
                     readline.set_completer(self.old_completer)
                 except ImportError:
                     pass
-            
+
 
     def precmd(self, line):
         """Hook method executed just before the command line is
@@ -169,7 +169,7 @@ class Cmd:
 
     def postinput(self, line):
         """Hook method executed just after an input line is read."""
-	return line
+        return line
 
     def preloop(self):
         """Hook method executed once when the cmdloop() method is called."""
@@ -181,7 +181,7 @@ class Cmd:
 
         """
         pass
-    
+
     def parseline(self, line):
         line = line.strip()
         if not line:

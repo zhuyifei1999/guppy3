@@ -193,9 +193,9 @@ def run_unittest(testclass, debug=0):
     """Run tests from a unittest.TestCase-derived class."""
     suite = unittest.makeSuite(testclass)
     if debug:
-	suite.debug()
+        suite.debug()
     else:
-	run_suite(suite, testclass)
+        run_suite(suite, testclass)
 
 def debug_unittest(testclass):
     """ Debug tests from a unittest.TestCase-derived class."""
@@ -237,39 +237,37 @@ def run_doctest(module, verbosity=None):
 
 class TestCase(unittest.TestCase):
     def setUp(self):
-	from guppy import Root
-	self.python = Root()
-	self.guppy = self.python.guppy
-	self.heapy = self.guppy.heapy
-	self.Part = self.heapy.Part
-	self.ImpSet = self.heapy.ImpSet
-	self.Use = self.heapy.Use
-	self.View = self.heapy.View
-	self.allocation_behaves_as_originally = self.heapy.allocation_behaves_as_originally
-	self.iso = self.Use.iso
-	self.idset = self.Use.idset
+        from guppy import Root
+        self.python = Root()
+        self.guppy = self.python.guppy
+        self.heapy = self.guppy.heapy
+        self.Part = self.heapy.Part
+        self.ImpSet = self.heapy.ImpSet
+        self.Use = self.heapy.Use
+        self.View = self.heapy.View
+        self.allocation_behaves_as_originally = self.heapy.allocation_behaves_as_originally
+        self.iso = self.Use.iso
+        self.idset = self.Use.idset
 
     def aseq(self, a, b, cont=0):
-	if a != b:
-	    print "aseq: Expected: b = ", b
-	    print "Got actually  : a = ", a
-	    if cont <= 0:
-		if cont < 0:
-		    pdb.set_trace()
-		else:
-		    self.assert_(0)
-    
+        if a != b:
+            print "aseq: Expected: b = ", b
+            print "Got actually  : a = ", a
+            if cont <= 0:
+                if cont < 0:
+                    pdb.set_trace()
+                else:
+                    self.assert_(0)
+
     def asis(self, a, b, cont=0):
-	if a is not b:
-	    print "asis: Expected: b = ", b
-	    print "Got actually  : a = ", a
-	    if cont <= 0:
-		if cont < 0:
-		    pdb.set_trace()
-		else:
-		    self.assert_(0)
-    
+        if a is not b:
+            print "asis: Expected: b = ", b
+            print "Got actually  : a = ", a
+            if cont <= 0:
+                if cont < 0:
+                    pdb.set_trace()
+                else:
+                    self.assert_(0)
+
     def tearDown(self):
-	pass
-
-
+        pass
