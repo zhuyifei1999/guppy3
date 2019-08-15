@@ -69,12 +69,12 @@ class Paths:
             row = self.srcrow
             for i, s in enumerate(andsets):
                 if row is None:
-                    raise ValueError, 'andsets argument is too long'
+                    raise ValueError('andsets argument is too long')
                 if s is not None:
                     self.andsetbyname[row.ixlstr] = s
                 row = row.parent
         else:
-            raise TypeError, 'andsets argument must be dict, tuple, or list'
+            raise TypeError('andsets argument must be dict, tuple, or list')
 
         mod.OutputHandling.setup_printing(
             self,
@@ -279,7 +279,7 @@ class RefPatIter:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             x = self.rp[self.ix]
         except IndexError:
@@ -384,7 +384,7 @@ Methods
 
     def __getattr__(self, s):
         if not self.is_initialized:
-            raise AttributeError, s
+            raise AttributeError(s)
 
         try:
             return getattr(self.__class__, s)
@@ -393,7 +393,7 @@ Methods
         try:
             row = self.get_row_named(s)
         except ValueError:
-            raise AttributeError, s
+            raise AttributeError(s)
         return row.set
 
     def __getitem__(self, ix):
@@ -415,10 +415,10 @@ Methods
 
     def _cv_print(self, file):
         label = self._cv_getlabel()
-        print >>file, label
+        print(label, file=file)
 
         for line in self:
-            print >>file, line
+            print(line, file=file)
 
 
     def _oh_get_more_state_msg(self, startindex, lastindex):
@@ -441,7 +441,7 @@ Methods
     def generate(self, ix=None):
         while ix is None or ix < 0 or ix >= len(self.lines):
             try:
-                self.lines.append(self.lg.next())
+                self.lines.append(next(self.lg))
             except StopIteration:
                 self.isfullygenerated = 1
                 return
@@ -465,7 +465,7 @@ Methods
             try:
                 row = row.getchild(ix)
             except IndexError:
-                raise ValueError, 'Reference pattern has no row named %r'%name
+                raise ValueError('Reference pattern has no row named %r'%name)
         return row
 
 
@@ -479,7 +479,8 @@ Methods
                 return
             start += 1
 
-    def linegenerator(self, (kind, set), ixl, parent=None):
+    def linegenerator(self, xxx_todo_changeme, ixl, parent=None):
+        (kind, set) = xxx_todo_changeme
         seenline = self.seensets.get(set.nodes)
         ixl = list(ixl)
         line = RefPatRow(self, (kind, set), seenline=seenline,
@@ -629,8 +630,7 @@ Description
             elif callable(ref):
                 relimg = ref
             else:
-                raise ValueError, \
- "ref should be 'gc', 'gcx', 'imdom', or a callable"
+                raise ValueError("ref should be 'gc', 'gcx', 'imdom', or a callable")
         else:
             relimg = lambda X:X.referrers
         if stopkind is None:

@@ -1,5 +1,5 @@
 from guppy.heapy.test import support
-import StringIO, sys, types, unittest
+import io, sys, types, unittest
 
 class TestCase(support.TestCase):
     def setUp(self):
@@ -140,12 +140,12 @@ class RefPatCase(TestCase):
 
     def test_presentation(self):
 
-        output = StringIO.StringIO()
+        output = io.StringIO()
 
         src = []
 
         def write(x):
-            print >>output, x
+            print(x, file=output)
 
         R = self.RefPat
         def test_pp(dst, src, result=None, **kwds):
@@ -236,7 +236,7 @@ class RefPatCase(TestCase):
         write( rp.more )
 
         if 0:
-            print output.getvalue()
+            print(output.getvalue())
         else:
             self.aseq(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
@@ -466,7 +466,7 @@ Reference Pattern by <[dict of] class>.
         # First test that dictowners is nonzero
 
         ln = len(rp.mod.View.dict_ownership)
-        self.assert_(ln > 0)
+        self.assertTrue(ln > 0)
 
         del src
         del a
@@ -477,7 +477,7 @@ Reference Pattern by <[dict of] class>.
 
         gc.collect()
         lnnow = len(mod.View.dict_ownership)
-        self.assert_(lnnow == 0)
+        self.assertTrue(lnnow == 0)
 
 class NewCase(TestCase):
     # Some new tests as they come up
@@ -542,7 +542,7 @@ def test_leak():
     i = 0
     xmemstats()
     while 1:
-        print '[%d]'%i, time.asctime()
+        print('[%d]'%i, time.asctime())
         i += 1
         test_main()
         gc.collect()

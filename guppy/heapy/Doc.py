@@ -127,12 +127,12 @@ class CallFunc(Doc):
         return '%s(%s%s)'%(
             self.obj.getstr(),
             ', '.join([x.getstr() for x in self.args]),
-            ', '.join(['%s=%s'%(k,v.getstr()) for k, v in self.kwds.items()]))
+            ', '.join(['%s=%s'%(k,v.getstr()) for k, v in list(self.kwds.items())]))
 
     def mapchildren(self, f):
         obj = f(self.obj)
         args = [f(a) for a in self.args]
-        kwds = dict([(k, f(v)) for (k, v) in self.kwds.items()])
+        kwds = dict([(k, f(v)) for (k, v) in list(self.kwds.items())])
         return self.__class__(self.mod, obj, *args, **kwds)
 
 
@@ -224,7 +224,7 @@ class _GLUECLAMP_:
         getdoc = self.getdoc
         obj = getdoc(obj)
         args = [getdoc(a) for a in args]
-        kwds = dict([(k, getdoc(v)) for (k, v) in kwds.items()])
+        kwds = dict([(k, getdoc(v)) for (k, v) in list(kwds.items())])
         return CallFunc(self, obj, *args, **kwds)
 
     def getdoc(self, obj):
@@ -282,7 +282,7 @@ class _GLUECLAMP_:
                 #pdb.set_trace()
                 obj = self.add_origin(obj, doc)
             else:
-                raise DocError, "Doc.wrap:  attribute '_derive_origin_' has invalid value"
+                raise DocError("Doc.wrap:  attribute '_derive_origin_' has invalid value")
         elif isinstance(obj, self._root.types.MethodType):
             obj = self.wrap_method(obj, doc)
         elif isinstance(obj, self._root.types.FunctionType):
@@ -303,9 +303,9 @@ class _GLUECLAMP_:
         return f
 
     def wrap_method(mod, obj, doc):
-        im_func = obj.im_func
+        im_func = obj.__func__
         def f(self, *args, **kwds):
             r = im_func(self, *args, **kwds)
             r = mod.wrap(r, mod.callfunc(doc, *args, **kwds))
             return r
-        return mod._root.new.instancemethod(f, obj.im_self, obj.im_self.__class__)
+        return mod._root.new.instancemethod(f, obj.__self__, obj.__self__.__class__)

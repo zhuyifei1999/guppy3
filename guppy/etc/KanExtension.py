@@ -75,16 +75,13 @@ class LeftKanExtension:
                 for b in Fa:
                     srcb = self.B.source(b)
                     if srcb != t:
-                        raise ValueError, \
-'Arrow [%s] with source %s does not compose with target %s'%(b, srcb, t)
+                        raise ValueError('Arrow [%s] with source %s does not compose with target %s'%(b, srcb, t))
                     t = self.B.target(b)
                 if t != Ftgta:
-                    raise ValueError, \
-'Arrow %s with target %s does not compose with %s'%(Fa, t, Ftgta)
+                    raise ValueError('Arrow %s with target %s does not compose with %s'%(Fa, t, Ftgta))
             else:
                 if Fsrca != Ftgta:
-                    raise ValueError, \
-'Source %s does not match target %s'%(Fsrca, Ftgta)
+                    raise ValueError('Source %s does not match target %s'%(Fsrca, Ftgta))
             for x in XA:
                 add_rule(((srca, x),) + Fa , ((tgta, Xa(x)),) )
 
@@ -114,7 +111,7 @@ class LeftKanExtension:
                 XA.append(((A, x),))
 
         follows = dict([(B, []) for B in self.B.objects])
-        for b, (srcb, tgtb) in self.B.arrows.items():
+        for b, (srcb, tgtb) in list(self.B.arrows.items()):
             follows[srcb].append((b, tgtb))
 
         IR = dict([(self.make_term(u), self.make_term(v)) for u, v in self.Rconf])
@@ -259,8 +256,8 @@ class LeftKanExtension:
             tab = dict([(s, self.reduce(s + (a,))) for s in src])
             Kb[a] = self.Cat.Function(tab, src, tgt)
 
-        KB = self.Cat.Function(KB, self.B.objects, KB.values())
-        Kb = self.Cat.Function(Kb, self.B.arrows, Kb.values())
+        KB = self.Cat.Function(KB, self.B.objects, list(KB.values()))
+        Kb = self.Cat.Function(Kb, self.B.arrows, list(Kb.values()))
 
         self.KB = KB
         self.Kb = Kb
@@ -339,13 +336,13 @@ class KanAction:
 
     def __call__(self, s):
         if self.targetof(s) != self.srca:
-            raise TypeError, '''\
+            raise TypeError('''\
 Target of %r (= %r) does not match source of %r (= %r)'''%(
-    s, self.targetof(s), self.a, self.srca)
+    s, self.targetof(s), self.a, self.srca))
         if not self.irreducible(s):
-            raise TypeError, '''\
+            raise TypeError('''\
 Argument %r is reducible to %r; and is thus not in the source set K.fo(%r)'''%(
-            s, self.reduce(s),self.srca)
+            s, self.reduce(s),self.srca))
         return self.reduce(s + (self.a,))
 
 
@@ -416,7 +413,7 @@ class ObjectTester:
              'fo':self.functor.fo,
              'e':e,
              }
-        exec code in d
+        exec(code, d)
         return e
 
     def intercode(self, arg):
@@ -431,13 +428,13 @@ class ObjectTester:
             elif a == 'asfo':
                 ob, src = c[1:]
                 if not fo[ob](e[src]):
-                    raise ValueError, 'Predicate failed'
+                    raise ValueError('Predicate failed')
             elif a == 'aseq':
                 na, nb = c[1:]
                 if e[na] != e[nb]:
-                    raise ValueError, 'e[%r] != e[%r]'%(na, nb)
+                    raise ValueError('e[%r] != e[%r]'%(na, nb))
             else:
-                raise ValueError, 'Invalid code: %r'%(a,)
+                raise ValueError('Invalid code: %r'%(a,))
 
 
     def test(self, arg):
@@ -561,7 +558,7 @@ class CategoryTester:
         except:
             pass
         else:
-            raise Exception, 'Exception excepted'
+            raise Exception('Exception excepted')
 
 
 
@@ -699,12 +696,12 @@ class _GLUECLAMP_:
         colimit_functions = dict([
             (A, self.Cat.Function(
                 dict([(a, k[0])
-                      for (a, k) in cof.items()]),
+                      for (a, k) in list(cof.items())]),
                 cof.src,
                 colimit_object,
                 )
              )
-            for (A, cof) in colimit_functions.items()])
+            for (A, cof) in list(colimit_functions.items())])
 
 
         return colimit_object, colimit_functions

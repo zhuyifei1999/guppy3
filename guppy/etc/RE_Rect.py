@@ -148,7 +148,7 @@ def brect(lines):
                 r.width = width = width + 1
             donerects.append(r)
             width += 1
-            for k, v in d.items():
+            for k, v in list(d.items()):
                 if len(v) > 1:
                     new_r = r.__class__(width, v)
                     newrects.append(new_r)
@@ -363,13 +363,13 @@ def pr():
                  'ace',
                  'xby'])
 
-    print x
+    print(x)
     x = chooserects(['ab1',
                  'ab2',
                  'ac3',
                  'ac4'])
 
-    print x
+    print(x)
 
     # Case where.. (from right).. :
     # the total gain of two rects (bfbf+cfcf = 4) is greater than the gain of another
@@ -382,7 +382,7 @@ def pr():
         '3cf',
         '4cf'])
 
-    print x
+    print(x)
 
     # Case where it chooses twice..
 
@@ -394,7 +394,7 @@ def pr():
         'bdy'
         ])
 
-    print 'TW',x
+    print('TW',x)
 
     # Case where it didn't choose enough rects
 
@@ -404,32 +404,32 @@ def pr():
         'e'
         ])
 
-    print chooserects(x)
+    print(chooserects(x))
 
     # Case where it should prefer one side or the other
     # i.e. left traditionally
 
-    print chooserects(['abc','axc'])
+    print(chooserects(['abc','axc']))
 
     # Case where it should give a width 0 rect
 
-    print chooserects(['a',''])
+    print(chooserects(['a','']))
 
     # Case with overlap
 
-    print chooserects(['abcd','abce','a','f'])
+    print(chooserects(['abcd','abce','a','f']))
 
     # Case with induce
 
-    print chooserects(['abcd','abce','d','e'])
+    print(chooserects(['abcd','abce','d','e']))
 
 
-    print chooserects(['auvw', 'buvw', 'a', 'b'])
-    print chooserects(['axuvw','bxuvw','axy','bxy','cy'])
+    print(chooserects(['auvw', 'buvw', 'a', 'b']))
+    print(chooserects(['axuvw','bxuvw','axy','bxy','cy']))
 
     # Case with overlap reversed as per Mar 4
 
-    print chooserects(['dcba','ecba','a','f'], trace='choosen')
+    print(chooserects(['dcba','ecba','a','f'], trace='choosen'))
 
 def tmany():
     for i in range(100):

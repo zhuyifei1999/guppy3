@@ -121,7 +121,7 @@ class Path:
     def pp(self, output=None):
         if output is None:
             output = self.output
-        print >>output, '%2d:'%self.index, str(self)%self.srcname
+        print('%2d:'%self.index, str(self)%self.srcname, file=output)
 
     def types(self):
         return [type(x) for x in self.path]
@@ -173,7 +173,7 @@ class PathsIter:
         self.isatend = not idxs
 
 
-    def next(self):
+    def __next__(self):
         paths = self.paths
         if (self.isatend or
             self.stop is not None and self.pos >= self.stop):
@@ -280,7 +280,7 @@ class ShortestPaths:
 
     def __getitem__(self, idx):
         try:
-            return self.iter(start=idx).next()
+            return next(self.iter(start=idx))
         except StopIteration:
             raise IndexError
 
@@ -380,7 +380,7 @@ class ShortestPaths:
         lastindex = None
         while i < self.maxpaths:
             try:
-                el = it.next()
+                el = next(it)
             except StopIteration:
                 it.reset(0)
                 break
@@ -393,7 +393,7 @@ class ShortestPaths:
                 if nummore == 1:
                     it.next().pp(output=output)
                 elif nummore > 1:
-                    print >>output, '<... %d more paths ...>'%nummore
+                    print('<... %d more paths ...>'%nummore, file=output)
 
 class ShortestGraph:
     def __init__(self, mod, G, DstSets, Src, AvoidEdges,
@@ -428,7 +428,7 @@ class ShortestGraph:
         if output is None:
             output = self.mod.output
         for i, p in enumerate(self):
-            print >>output, '--- %s[%d] ---'%(self.dstname, i)
+            print('--- %s[%d] ---'%(self.dstname, i), file=output)
             p.pp(output=output)
 
 

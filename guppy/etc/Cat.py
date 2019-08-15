@@ -14,7 +14,7 @@ class Graph:
 
     def get_dual(self):
         objects = self.objects
-        arrows = dict([(arrow, (tgt, src)) for (arrow, (src, tgt)) in self.arrows.items()])
+        arrows = dict([(arrow, (tgt, src)) for (arrow, (src, tgt)) in list(self.arrows.items())])
         return self.__class__(objects, arrows)
 
 class Cat:
@@ -48,7 +48,7 @@ class Function:
         else:
             f = map
             if not callable(f):
-                raise TypeError, 'Function: map is neither callable or indexable'
+                raise TypeError('Function: map is neither callable or indexable')
         self.__getitem__ = self.__call__ = f
         self.src = src
         self.tgt = tgt
@@ -66,7 +66,7 @@ class Function:
         return list(self.src)
 
     def values(self):
-        return [v for (k, v) in self.items()]
+        return [v for (k, v) in list(self.items())]
 
 
 class Identity(Function):
@@ -80,9 +80,9 @@ def check_graph(G):
     Gob = G.objects
     for a in G.arrows:
         if not G.source(a) in Gob:
-            raise ValueError, 'Arrow %r has source %r not in graph objects'%(a, G.source(a))
+            raise ValueError('Arrow %r has source %r not in graph objects'%(a, G.source(a)))
         if not G.target(a) in Gob:
-            raise ValueError, 'Arrow %r has target %r not in graph objects'%(a, G.target(a))
+            raise ValueError('Arrow %r has target %r not in graph objects'%(a, G.target(a)))
 
 def check_rules(R, G):
     # Check that the rules in R contain valid composing arrows in graph G
@@ -96,12 +96,12 @@ def check_rules(R, G):
         a0 = None
         for a in com:
             if a not in G.arrows:
-                raise ValueError, 'Arrow %r, used in a rule, is not a valid arrow'%(a,)
+                raise ValueError('Arrow %r, used in a rule, is not a valid arrow'%(a,))
             if a0 is not None:
                 if G.source(a) != G.target(a0):
-                    raise ValueError, '''\
+                    raise ValueError('''\
 Source of arrow %r (%r) does not match target of arrow %r (%r)'''%(
-                a, G.source(a), a0, G.target(a0))
+                a, G.source(a), a0, G.target(a0)))
             a0 = a
 
 
@@ -116,8 +116,8 @@ def oarcat(objects, arrows, relations):
 def adapt_function(f):
     if not isinstance(f, Function):
         if isinstance(f, dict):
-            src = f.keys()
-            tgt = f.values()
+            src = list(f.keys())
+            tgt = list(f.values())
         else:
             src = None
             tgt = None

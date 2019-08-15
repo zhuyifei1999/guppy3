@@ -18,7 +18,7 @@ class _GLUECLAMP_:
     # otherwise some size-dependent tests will fail.
 
     import sys
-    allocation_behaves_as_originally = sys.maxint==0x7fffffff
+    allocation_behaves_as_originally = sys.maxsize==0x7fffffff
 
     #
 

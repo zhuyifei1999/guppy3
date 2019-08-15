@@ -39,7 +39,7 @@ class GsmlHandler:
         self.out.append(self.mod.node_of_taci('char', name))
 
     def unknown_entityref(self, name):
-        raise SyntaxError, 'Unknown entity ref: %r'%name
+        raise SyntaxError('Unknown entity ref: %r'%name)
 
     def handle_data(self, data):
         # print 'data', data
@@ -80,7 +80,7 @@ class _GLUECLAMP_:
         p.feed(text)
         p.close()
         if p.stack:
-            raise SyntaxError, 'Missing end tag'
+            raise SyntaxError('Missing end tag')
         node = self.node_of_taci('block', '', p.out, 0)
         return node
 
@@ -102,7 +102,7 @@ Handle char ref: &lt;.
         """
 
         node = self.node_of_gsml(x)
-        print node
+        print(node)
 
 
 if 0 or __name__=='__main__':

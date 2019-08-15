@@ -10,8 +10,8 @@
 
 """
 
-from Tkinter import *
-import tkMessageBox
+from tkinter import *
+import tkinter.messagebox
 
 class TextViewer(Toplevel):
     """
@@ -54,8 +54,8 @@ class TextViewer(Toplevel):
         try:
             textFile = open(fileName, 'r')
         except IOError:
-            tkMessageBox.showerror(title='File Load Error',
-                    message='Unable to load file '+`fileName`+' .')
+            tkinter.messagebox.showerror(title='File Load Error',
+                    message='Unable to load file '+repr(fileName)+' .')
         else:
             self.textView.insert(0.0,textFile.read())
 

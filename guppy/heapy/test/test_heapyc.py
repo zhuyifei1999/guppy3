@@ -76,7 +76,7 @@ class TestHeapView(TestCase):
             u = U()
             u.t = []
             u.u = []
-            data = range(16)
+            data = list(range(16))
             for x in data:
                 a.append(x)
                 t.append(x)
@@ -88,7 +88,7 @@ class TestHeapView(TestCase):
             zt = hv.indisize_sum([t])
             zu = hv.indisize_sum([u])
 
-            self.assert_(za < zt < zu)
+            self.assertTrue(za < zt < zu)
 
             # Test traverse
 
@@ -100,7 +100,7 @@ class TestHeapView(TestCase):
 
             def rel(src, tgt):
                 r = hv.relate(src, tgt)
-                self.assert_( r != ((),)*len(r) )
+                self.assertTrue( r != ((),)*len(r) )
                 return r
 
             self.aseq(rel(t, data[1]), rel(a, data[1]))
@@ -188,14 +188,14 @@ class TestHeapView(TestCase):
 
 
         self.root.extend(100000*[h])
-        self.root.extend(range(100000))
+        self.root.extend(list(range(100000)))
 
         start = clock()
 
         x = hv.heap()
 
         elapsed0 = clock() - start
-        print 'elapsed0', elapsed0, 'len(x)', len(x)
+        print('elapsed0', elapsed0, 'len(x)', len(x))
 
         class Set(object):
             __slots__ = 'some', '_hiding_tag_', 'other'
@@ -216,7 +216,7 @@ class TestHeapView(TestCase):
         x = hv.heap()
 
         elapsed1 = clock() - start
-        print 'elapsed1', elapsed1, 'len(x)', len(x)
+        print('elapsed1', elapsed1, 'len(x)', len(x))
 
         # This has failed a couple of times so I remove it now, (apr 5 2008)
         # xxx should look into this later ...
@@ -303,7 +303,7 @@ class TestLeak(support.TestCase):
         rcli0 = [grc(x) for x in li]
         del x
 
-        ns |= li + range(10000, 10010)
+        ns |= li + list(range(10000, 10010))
         root.extend(li)
 
         rcli = [grc(x) for x in li]
@@ -544,7 +544,7 @@ class TestNodeGraph(TestCase):
             __slots__ = 'stop',
             def __new__(self, stop):
                 r = T.__new__(R, is_mapping=1)
-                r.add_edges_n1(range(stop), 0)
+                r.add_edges_n1(list(range(stop)), 0)
                 r.stop = stop
                 return r
 
@@ -552,7 +552,7 @@ class TestNodeGraph(TestCase):
                 return list(self.get_domain())
 
             def values(self):
-                return [self[k] for k in self.keys()]
+                return [self[k] for k in list(self.keys())]
 
         r = R(10)
         assert r.stop == 10
@@ -561,10 +561,10 @@ class TestNodeGraph(TestCase):
         lr.sort()
         assert lr[-2:] == [(8,0),(9,0)]
 
-        keys = r.keys()
+        keys = list(r.keys())
         keys.sort()
-        assert keys == range(10)
-        values = r.values()
+        assert keys == list(range(10))
+        values = list(r.values())
         assert values == [0]*10
 
 

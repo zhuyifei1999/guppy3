@@ -10,7 +10,8 @@ class FiniteAutomaton:
         self.composite_memo = {}
         self.is_updated = 1
 
-    def __setitem__(self, (state, symbol), x):
+    def __setitem__(self, xxx_todo_changeme, x):
+        (state, symbol) = xxx_todo_changeme
         self.table.setdefault(state, {})[symbol] = x
         self.is_updated = 1
 
@@ -29,7 +30,7 @@ class FiniteAutomaton:
 
     def get_row_items(self, state):
         try:
-            x = self.table[state].items()
+            x = list(self.table[state].items())
         except KeyError:
             return ()
         ris = []
@@ -53,18 +54,18 @@ class FiniteAutomaton:
                 for a in c:
                     for k, v in self.get_row_items(a):
                         ds.setdefault(k, []).append(v)
-                for k, v in ds.items():
+                for k, v in list(ds.items()):
                     for a in c:
                         if k not in self.table[a]:
                             v.append(self.dump_state)
                             break
-                for k, v in ds.items():
+                for k, v in list(ds.items()):
                     self.add_transition(c, k, *v)
 
 
     def get_all_input_symbols(self):
         syms = {}
-        for state, trans in self.table.items():
+        for state, trans in list(self.table.items()):
             for k, v in trans:
                 syms[k] = 1
         return syms
@@ -78,14 +79,14 @@ class FiniteAutomaton:
     def get_composites(self):
         if self.is_updated:
             self.make_deterministic()
-        return self.composite_memo.values()
+        return list(self.composite_memo.values())
 
     def get_transition_classes(self):
         # Get classes of states that have the same outgoing transitions
         tc = {}
         tck = {}
-        for k, v in self.table.items():
-            trans = v.keys()
+        for k, v in list(self.table.items()):
+            trans = list(v.keys())
             trans.sort()
             trans = tuple(trans)
             ks = tc.get(trans)
@@ -112,7 +113,7 @@ class FiniteAutomaton:
                         if (p in finals) == (q in finals):
                             PS[(p, q)] = ()
 
-            for pq in PS.keys():
+            for pq in list(PS.keys()):
                 p, q = pq
                 dp = table[p]
                 dq = table[q]
@@ -173,7 +174,7 @@ class FiniteAutomaton:
             csbyas = {}         # Composite state by atomic state
 
             i = 0
-            for eq in eqs.values():
+            for eq in list(eqs.values()):
                 ideq = id(eq)
                 if ideq not in csbyid:
                     c = 'MS%d'%i
@@ -185,9 +186,9 @@ class FiniteAutomaton:
             fsa = self.__class__(csbyas[self.start_state])
             fsa.final_states = {}
 
-            for cs0, cst in csbyid.values():
+            for cs0, cst in list(csbyid.values()):
                 fsa.table[cst] = trans = {}
-                for a, s in self.table[cs0].items():
+                for a, s in list(self.table[cs0].items()):
                     trans[a] = csbyas[s]
                 if cs0 in finals:
                     fsa.final_states[cst] = 1
@@ -202,14 +203,14 @@ class FiniteAutomaton:
             tctck = self._tctck
 
         tc, tck = tctck
-        tcv = tc.values()
+        tcv = list(tc.values())
         PS = markall(finals, tcv, self.table)
         eqs = combine(tcv, PS)
         fsa = finalize(eqs)
         return fsa
 
     def new_composite(self, args):
-        cs = CompositeState(dict([(arg, 1) for arg in args]).keys())
+        cs = CompositeState(list(dict([(arg, 1) for arg in args]).keys()))
         if len(cs) == 1:
             return args[0]
         try:
@@ -221,17 +222,17 @@ class FiniteAutomaton:
 
 
     def pp(self):
-        ks = self.table.keys()
+        ks = list(self.table.keys())
         ks.sort()
         num = dict([(s, i) for i, s in enumerate(ks)])
         for s in ks:
             k = self.table[s]
-            print '%d: %s'%(num[s], s)
-            cs = k.keys()
+            print('%d: %s'%(num[s], s))
+            cs = list(k.keys())
             cs.sort()
             for c in cs:
                 v = k[c]
-                print '   %r  -> #%d: %s'%(c, num[v], v)
+                print('   %r  -> #%d: %s'%(c, num[v], v))
 
 
 

@@ -1,3 +1,4 @@
+from functools import reduce
 #._cv_part guppy.etc.IterPermute
 
 def iterpermute(*args):
@@ -15,7 +16,7 @@ def iterpermute(*args):
                 next = bufs[i][n%lens[i]]
             else:
                 try:
-                    next = args[i].next()
+                    next = next(args[i])
                 except StopIteration:
                     if lens[i] == 0:
                         # raise ValueError, 'The iterator passed in arg %d did not return any item'%i
@@ -65,10 +66,10 @@ def test_iterpermute():
     assert list(iterpermute()) == [()]
     assert list(iterpermute(repeat(1, 2))) == [(1,), (1,)]
     assert list(iterpermute(repeat(1, 1), repeat(2, 1))) == [(1,2)]
-    assert list(iterpermute(range(0,2), range(2,3))) == [(0, 2), (1, 2)]
-    assert list(iterpermute(range(0,2), range(2,4))) == [(0, 2), (1, 3), (1, 2), (0, 3)]
-    print list(iterpermute(range(0,2), range(0,3)))
-    print list(iterpermute(range(0,3), range(0,2)))
+    assert list(iterpermute(list(range(0,2)), list(range(2,3)))) == [(0, 2), (1, 2)]
+    assert list(iterpermute(list(range(0,2)), list(range(2,4)))) == [(0, 2), (1, 3), (1, 2), (0, 3)]
+    print(list(iterpermute(list(range(0,2)), list(range(0,3)))))
+    print(list(iterpermute(list(range(0,3)), list(range(0,2)))))
 
 
 if __name__ == '__main__':

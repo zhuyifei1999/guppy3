@@ -615,12 +615,12 @@ class Babel:
         return text.replace('"', self.double_quote_replacment)
 
     def get_language(self):
-        if self._ISO639_TO_BABEL.has_key(self.language):
+        if self.language in self._ISO639_TO_BABEL:
             return self._ISO639_TO_BABEL[self.language]
         else:
             # support dialects.
             l = self.language.split("_")[0]
-            if self._ISO639_TO_BABEL.has_key(l):
+            if l in self._ISO639_TO_BABEL:
                 return self._ISO639_TO_BABEL[l]
         return None
 
@@ -637,20 +637,20 @@ class Encoder:
     insert_none_breaking_blanks = 0
 
     latex_equivalents = {
-        u'\u00A0' : '~',
-        u'\u2013' : '{--}',
-        u'\u2014' : '{---}',
-        u'\u2018' : '`',
-        u'\u2019' : '\'',
-        u'\u201A' : ',',
-        u'\u201C' : '``',
-        u'\u201D' : '\'\'',
-        u'\u201E' : ',,',
-        u'\u2020' : '{\\dag}',
-        u'\u2021' : '{\\ddag}',
-        u'\u2026' : '{\\dots}',
-        u'\u2122' : '{\\texttrademark}',
-        u'\u21d4' : '{$\\Leftrightarrow$}',
+        '\u00A0' : '~',
+        '\u2013' : '{--}',
+        '\u2014' : '{---}',
+        '\u2018' : '`',
+        '\u2019' : '\'',
+        '\u201A' : ',',
+        '\u201C' : '``',
+        '\u201D' : '\'\'',
+        '\u201E' : ',,',
+        '\u2020' : '{\\dag}',
+        '\u2021' : '{\\ddag}',
+        '\u2026' : '{\\dots}',
+        '\u2122' : '{\\texttrademark}',
+        '\u21d4' : '{$\\Leftrightarrow$}',
     }
 
     def __init__(self, mod):
@@ -695,7 +695,7 @@ class Encoder:
                 #"iso-8859-8": ""   # hebrew
                 #"iso-8859-10": ""   # latin6, more complete iso-8859-4
              }
-        if tr.has_key(docutils_encoding.lower()):
+        if docutils_encoding.lower() in tr:
             return tr[docutils_encoding.lower()]
         return docutils_encoding.translate(self.mod.string.maketrans("",""),"_-").lower()
 
@@ -705,7 +705,7 @@ class Encoder:
         # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/252124
         # Only some special chracters are translated, for documents with many
         # utf-8 chars one should use the LaTeX unicode package.
-        for uchar in self.latex_equivalents.keys():
+        for uchar in list(self.latex_equivalents.keys()):
             text = text.replace(uchar,self.latex_equivalents[uchar])
         return text
 
@@ -725,10 +725,10 @@ class Encoder:
         # compile the regexps once. do it here so one can see them.
         #
         # first the braces.
-        if not self.__dict__.has_key('encode_re_braces'):
+        if 'encode_re_braces' not in self.__dict__:
             self.encode_re_braces = self.re.compile(r'([{}])')
         text = self.encode_re_braces.sub(r'{\\\1}',text)
-        if not self.__dict__.has_key('encode_re_bslash'):
+        if 'encode_re_bslash' not in self.__dict__:
             # find backslash: except in the form '{\{}' or '{\}}'.
             self.encode_re_bslash = self.re.compile(r'(?<!{)(\\)(?![{}]})')
         # then the backslash: except in the form from line above:

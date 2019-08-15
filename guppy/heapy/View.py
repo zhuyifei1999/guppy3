@@ -28,7 +28,7 @@ class ClearCallback(object):
         if self.callback is not None:
             self.callback(wr)
         else:
-            print 'No callback'
+            print('No callback')
 
 class Gchook_type(object):
     __slots__ = 'x', '__weakref__', 'cb'
@@ -94,7 +94,7 @@ class _GLUECLAMP_:
             if c is None:
                 self.clear_setup()
             elif self._root.sys.getrefcount(c) > 3:
-                print 'GC hook object was referred to from somebody!'
+                print('GC hook object was referred to from somebody!')
                 self.clear_callback(wr)
                 c.cb.callback = None
 
@@ -141,7 +141,7 @@ class _GLUECLAMP_:
         # We touch self.heapyc to import it & its dependent guppy.sets;
         # this is kinda specialcase-hacky but see Notes Apr 8 2005.
         self.heapyc
-        return self.target.sys.modules.items()
+        return list(self.target.sys.modules.items())
 
     def _get_heapdefs(self):
         heapdefs = []
@@ -417,7 +417,7 @@ visible subobjects. See also: domisize."""
         try:
             return self.immnodeset(self.hv.heap()).obj_at(addr)
         except ValueError:
-            raise ValueError, 'No object found at address %s'%hex(addr)
+            raise ValueError('No object found at address %s'%hex(addr))
 
     def observation_containers(self):
         # Return the current set of 'observation containers'
@@ -476,8 +476,8 @@ any of the objects in the set X."""
                     if t is not None:
                         Y |= t.set.nodes
                 if 0:
-                    print 'old update'
-                    print self.idset(Y - self.rg.get_domain())
+                    print('old update')
+                    print(self.idset(Y - self.rg.get_domain()))
                 Y |= self.rg.get_domain()
                 self.rg.clear()
                 self.hv.update_referrers(self.rg, Y)
@@ -486,9 +486,9 @@ any of the objects in the set X."""
                 self.norefer -= self.rg.get_domain()
                 Y = self.mutnodeset(X) - self.norefer
                 if not self.rg.domain_covers(Y):
-                    print 'update_referrers failed'
-                    print 'Y - domain of rg:'
-                    print self.idset(Y - self.rg.get_domain())
+                    print('update_referrers failed')
+                    print('Y - domain of rg:')
+                    print(self.idset(Y - self.rg.get_domain()))
                     from pdb import pm, set_trace
                     set_trace()
 
@@ -540,10 +540,10 @@ def prime_builtin_types():
     import sys
     import weakref
 
-    for mod in sys.modules.values():
+    for mod in list(sys.modules.values()):
         if mod is None:
             continue
-        for t in mod.__dict__.values():
+        for t in list(mod.__dict__.values()):
             if isinstance(t, type):
                 dir(t)
     # Other type(s)

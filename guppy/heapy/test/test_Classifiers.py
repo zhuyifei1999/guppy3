@@ -1,6 +1,7 @@
 #._cv_part guppy.heapy.test.test_Classifiers
 
 from guppy.heapy.test import support
+import importlib
 
 PORTABLE_TEST = 1       # Relax tests to be more portable
 
@@ -36,24 +37,24 @@ class TestCase(support.TestCase):
         self.c1 = c1
 
     def lt(self, a, b):
-        self.assert_(a < b)
+        self.assertTrue(a < b)
 
     def eq(self, a, b):
-        self.assert_(a == b)
+        self.assertTrue(a == b)
 
     def dj(self, a, b):
         # disjoint; not related by <= or >=, and not overlapping
-        self.assert_(not a <= b)
-        self.assert_(not b <= a)
-        self.assert_(not a & b)
-        self.assert_(a.disjoint(b))
+        self.assertTrue(not a <= b)
+        self.assertTrue(not b <= a)
+        self.assertTrue(not a & b)
+        self.assertTrue(a.disjoint(b))
 
     def nr(self, a, b):
         # not related by <= or >=, and overlapping
-        self.assert_(not a <= b)
-        self.assert_(not b <= a)
-        self.assert_(a & b)
-        self.assert_(not a.disjoint(b))
+        self.assertTrue(not a <= b)
+        self.assertTrue(not b <= a)
+        self.assertTrue(a & b)
+        self.assertTrue(not a.disjoint(b))
 
 
 class NewCases(TestCase):
@@ -91,8 +92,8 @@ class SpecialCases(TestCase):
         c1 = self.c1
 
         def eq(a, b):
-            self.assert_(a == b)
-            self.assert_(str(a) == str(b))
+            self.assertTrue(a == b)
+            self.assertTrue(str(a) == str(b))
 
         e1 = []
         e2 = {}
@@ -123,7 +124,7 @@ class SpecialCases(TestCase):
 
         a = ty(int)
         b = ty(dict)
-        self.assert_( ~a & ~b != Nothing)
+        self.assertTrue( ~a & ~b != Nothing)
 
 
         eq( ty(list) & iso(e1, e2, e3), iso(e1, e3))
@@ -178,10 +179,10 @@ class SpecialCases(TestCase):
                 return 1
 
         def asrt(x):
-            self.assert_(x)
+            self.assertTrue(x)
 
         def no(x):
-            self.assert_(not x)
+            self.assertTrue(not x)
 
         eq = self.aseq
 
@@ -214,7 +215,7 @@ class SpecialCases(TestCase):
         # Also tests that dict & dict owners are not leaked
         import sys
         if sys.hexversion >= 0x02070000:
-            print "XXX SKIPPING test_dictowner TEST BECAUSE OF SLUGGISHNESS WITH PYTHON 2.7"
+            print("XXX SKIPPING test_dictowner TEST BECAUSE OF SLUGGISHNESS WITH PYTHON 2.7")
             return
         import gc
         from sys import getrefcount as grc
@@ -247,8 +248,8 @@ class SpecialCases(TestCase):
 
         # This was the fast case, when only reachable dicts are classified
         for i in range(N):
-            print >>o, iso(d3).kind
-            print >>o, iso(c1.__dict__).kind
+            print(iso(d3).kind, file=o)
+            print(iso(c1.__dict__).kind, file=o)
 
         # Now measure it
 
@@ -272,8 +273,8 @@ class SpecialCases(TestCase):
 
         gc.collect()
         for i in range(N):
-            print >>o, iso(*d1).kind
-            print >>o, iso(c1.__dict__).kind
+            print(iso(*d1).kind, file=o)
+            print(iso(c1.__dict__).kind, file=o)
 
         gc.collect()
         # Now measure it
@@ -285,7 +286,7 @@ class SpecialCases(TestCase):
         slow = clock()-t
 
         #print 'slow,fast',slow,fast
-        self.assert_( slow <= 1.5*fast )
+        self.assertTrue( slow <= 1.5*fast )
 
         # This is another slow case according to notes Nov 18 2004.
         # A succession of different unreachable dicts.
@@ -293,7 +294,7 @@ class SpecialCases(TestCase):
         gc.collect()
         dn = self.View.immnodeset([{} for i in range(N)])
         for i in range(N):
-            print >>o, iso(list(dn)[i]).kind
+            print(iso(list(dn)[i]).kind, file=o)
 
         # Now measure it
         gc.collect()
@@ -305,12 +306,12 @@ class SpecialCases(TestCase):
         slow = clock()-t
 
         #print 'slow,fast',slow,fast
-        self.assert_( slow <= 1.5*fast )
+        self.assertTrue( slow <= 1.5*fast )
 
         # Partition was likewise slow for unreachable dicts
         dn = self.View.immnodeset([{} for i in range(N)])
         gc.collect()
-        print >>o, [x[0] for x in Use.Clodo.classifier.partition(dn)]
+        print([x[0] for x in Use.Clodo.classifier.partition(dn)], file=o)
 
         # Now measure it
         dn = self.View.immnodeset([{} for i in range(M)])
@@ -319,7 +320,7 @@ class SpecialCases(TestCase):
         [x[0] for x in Use.Clodo.classifier.partition(dn)]
         slow = clock()-t
         #print 'slow,fast',slow,fast
-        self.assert_( slow <= 1.5*fast )
+        self.assertTrue( slow <= 1.5*fast )
 
         # Check that ref counts for target objects are the same as initially
 
@@ -380,10 +381,10 @@ dict (no owner)
         rcC1 = grc(C1)
 
         o = self.python.StringIO.StringIO()
-        print >>o, iso(C1).byrcs.kind
+        print(iso(C1).byrcs.kind, file=o)
 
         s = iso(c1).byrcs.kind
-        print >>o, s
+        print(s, file=o)
         self.aseq(s & iso(c1), iso(c1))
 
         x = C1()
@@ -427,10 +428,10 @@ dict (no owner)
 
             gc.collect()
             hv.update_referrers_completely(rg)
-            self.assert_( x in rg[a] )
+            self.assertTrue( x in rg[a] )
 
 
-            self.assert_(rg[list(b)[0]] == (None,))
+            self.assertTrue(rg[list(b)[0]] == (None,))
             rg.clear()
             rg=None
 
@@ -439,8 +440,8 @@ dict (no owner)
         self.View.is_rg_update_all = True
         gc.collect()
         iso(a).referrers
-        self.assert_( a in self.View.rg.get_domain() )
-        self.assert_( list(b)[0] in self.View.rg.get_domain())
+        self.assertTrue( a in self.View.rg.get_domain() )
+        self.assertTrue( list(b)[0] in self.View.rg.get_domain())
 
         clock = self.python.time.clock
         s = iso(a)
@@ -465,7 +466,7 @@ dict (no owner)
             s.referrers
         slow = clock() - t
         #print 'slow,fast,faster',slow, fast, faster
-        self.assert_(not slow > fast * 4)
+        self.assertTrue(not slow > fast * 4)
 
 
     def test_via(self, vlist=['v',]): # vlist is just to make v unoptimizable
@@ -489,7 +490,7 @@ dict (no owner)
 
         s = iso(v)
 
-        self.assert_( s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[1]') or
+        self.assertTrue( s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[1]') or
                       s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[0]'))
 
         del s
@@ -524,7 +525,7 @@ class RenderCase(TestCase):
         self.US.summary_str.str_address = lambda x:'<address>'
 
         def ps(x):
-            print >>o, x.brief
+            print(x.brief, file=o)
 
         ps( iso(1,2) )
         ps( iso(1,2.0, 3.0) )
@@ -535,7 +536,7 @@ class RenderCase(TestCase):
         ps( iso(self.python.exceptions.TypeError()) )
         ps( iso(None) )
         ps( iso(sys, support, types) )
-        ps( iso(int, types.ClassType, C3) )
+        ps( iso(int, type, C3) )
         ps( iso(C1()) )
         ps( iso(C3()) )
         ps( iso(C1) )
@@ -543,7 +544,7 @@ class RenderCase(TestCase):
         ps( iso(len) )
         ps( iso(self.setUp) )
         ps( iso(C1.x) )
-        ps( iso(C1.x.im_func) )
+        ps( iso(C1.x.__func__) )
         ps( iso(C1().x) )
         ps( iso(C3.x) )
         ps( iso(C3().x) )
@@ -604,24 +605,24 @@ class RenderCase(TestCase):
         # and then some
         # Except: frametype; its size varies from time to time!
 
-        x = iso(len, C1, 1.0+3j, {1:2,3:4}, 1.25, C1.x.im_func, 1, ['list'],
-           100000000000l, None, C1.x, C1().x, C3.x, C3().x, sys, support,
+        x = iso(len, C1, 1.0+3j, {1:2,3:4}, 1.25, C1.x.__func__, 1, ['list'],
+           100000000000, None, C1.x, C1().x, C3.x, C3().x, sys, support,
            'string', ('tuple',), C3, int, type(None),
            # and some types not defined
            C1(), C3(), c1.__dict__
 
            )
 
-        print >>o, x
-        print >>o, x.more
+        print(x, file=o)
+        print(x.more, file=o)
 
         # Test instancetype; we need to replace the classifier with bytype
 
         x = iso(C1()).bytype
-        print >>o, x
+        print(x, file=o)
 
         if 0:
-            print o.getvalue()
+            print(o.getvalue())
         else:
             expected = """\
 Partition of a set of 24 objects. Total size = 2128 bytes.
@@ -752,7 +753,7 @@ class BaseCase(TestCase):
             if cmp is eq:
                 eq(b, a)
             elif cmp is lt:
-                self.assert_(b > a)
+                self.assertTrue(b > a)
                 eq(b ^ a, b - a)        # Simple transformation
                 eq(a ^ b, b - a)        # -=-, indep. of type
                 lt(a, b)
@@ -795,27 +796,27 @@ class BaseCase(TestCase):
         ty = self.ty
         c1 = self.c1
 
-        self.failUnlessRaises(TypeError, lambda : cl(c1))
-        self.failUnlessRaises(TypeError, lambda : ty(c1))
-        self.failUnlessRaises(TypeError, lambda:ty(int) <= None)
-        self.failUnlessRaises(TypeError, lambda:None >= ty(int))
-        self.failUnlessRaises(TypeError, lambda:None <= ty(int))
+        self.assertRaises(TypeError, lambda : cl(c1))
+        self.assertRaises(TypeError, lambda : ty(c1))
+        self.assertRaises(TypeError, lambda:ty(int) <= None)
+        self.assertRaises(TypeError, lambda:None >= ty(int))
+        self.assertRaises(TypeError, lambda:None <= ty(int))
 
-        self.failUnlessRaises(TypeError, lambda:list(ty(int)))
-        self.failUnlessRaises(TypeError, lambda:len(ty(int)))
+        self.assertRaises(TypeError, lambda:list(ty(int)))
+        self.assertRaises(TypeError, lambda:len(ty(int)))
 
-        self.failUnlessRaises(TypeError, lambda:ty(int) & None)
-        self.failUnlessRaises(TypeError, lambda:None & ty(int))
-        self.failUnlessRaises(TypeError, lambda:ty(int) | None)
-        self.failUnlessRaises(TypeError, lambda:None | ty(int))
-        self.failUnlessRaises(TypeError, lambda:ty(int) - None)
-        self.failUnlessRaises(TypeError, lambda:None - ty(int))
-        self.failUnlessRaises(TypeError, lambda:ty(int) ^ None)
-        self.failUnlessRaises(TypeError, lambda:None ^ ty(int))
+        self.assertRaises(TypeError, lambda:ty(int) & None)
+        self.assertRaises(TypeError, lambda:None & ty(int))
+        self.assertRaises(TypeError, lambda:ty(int) | None)
+        self.assertRaises(TypeError, lambda:None | ty(int))
+        self.assertRaises(TypeError, lambda:ty(int) - None)
+        self.assertRaises(TypeError, lambda:None - ty(int))
+        self.assertRaises(TypeError, lambda:ty(int) ^ None)
+        self.assertRaises(TypeError, lambda:None ^ ty(int))
 
-        self.failUnlessRaises(TypeError, lambda: ty(int) | [14])
-        self.failUnlessRaises(TypeError, lambda: ty(int) | dict)
-        self.failUnlessRaises(TypeError, lambda: ty(int) | self.C1)
+        self.assertRaises(TypeError, lambda: ty(int) | [14])
+        self.assertRaises(TypeError, lambda: ty(int) | dict)
+        self.assertRaises(TypeError, lambda: ty(int) | self.C1)
 
     def test_fancy_list_args(self):
         # Test the, normally disabled, possibility to use iterables as
@@ -880,7 +881,7 @@ class BaseCase(TestCase):
         c1 = self.c1
 
         def eq(a, b):
-            self.assert_(a == b)
+            self.assertTrue(a == b)
 
         e1 = []
         e2 = {}
@@ -1037,7 +1038,7 @@ class ClassificationCase(TestCase):
             pass
         a = A()
         b = B()
-        li = Use.iso(135l, [], {}, a, b, a.__dict__, b.__dict__)
+        li = Use.iso(135, [], {}, a, b, a.__dict__, b.__dict__)
 
         allers = (Use.Unity, Use.Type, Use.Class, Use.Clodo,
                   Use.Rcs, Use.Via) #, Use.Id
@@ -1051,9 +1052,9 @@ class ClassificationCase(TestCase):
                 else:
                     ps[ak] = av
 
-        for ak, av in ps.items():
+        for ak, av in list(ps.items()):
             self.aseq ( ak & li, av )
-            for bk, bv in ps.items():
+            for bk, bv in list(ps.items()):
                 # Test set operations by selection definition
                 self.aseq ( (ak & bk) & li, av & bv)
                 self.aseq ( (ak | bk) & li, av | bv)
@@ -1086,5 +1087,5 @@ if 0 and __name__ == "__main__":
     # needs to have its actual module name.
     import guppy.heapy.test.test_Classifiers as x
     if 1:
-        reload(x)
+        importlib.reload(x)
     x.test_main()

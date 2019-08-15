@@ -102,7 +102,7 @@ class Printer:
     def line_at(self, idx):
         while idx >= len(self.lines_seen):
             try:
-                li = self.line_iter.next()
+                li = next(self.line_iter)
             except StopIteration:
                 raise IndexError
             else:
@@ -184,14 +184,14 @@ class Printer:
                     try:
                         self.line_at(lineno+1)
                     except IndexError:
-                        print >>ob, line
+                        print(line, file=ob)
                         lineno += 1
                         break
                     else:
-                        print >>ob, self.get_more_msg(start_lineno, lineno-1)
+                        print(self.get_more_msg(start_lineno, lineno-1), file=ob)
                         break
                 numlines += 1
-                print >>ob, line
+                print(line, file=ob)
                 lineno += 1
             printer._oh_next_lineno = lineno
             return ob.getvalue().rstrip()

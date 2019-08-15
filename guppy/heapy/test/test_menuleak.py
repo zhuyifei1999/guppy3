@@ -1,4 +1,4 @@
-from Tkinter import *
+from tkinter import *
 import sys
 import gc
 
@@ -8,7 +8,7 @@ class FixedMenu(Menu):
     # Also changed the comment: INDEX2 is actually INCLUDED.
     def delete(self, index1, index2=None):
         """Delete menu items between INDEX1 and INDEX2 (included)."""
-        print self._tclCommands
+        print(self._tclCommands)
         if index2 is None:
             index2 = index1
         # First find out what entries have defined commands.
@@ -34,18 +34,18 @@ def test1(M):
     menu = M(button)
     button['menu'] = menu
     def command():
-        print 'command button pressed'
+        print('command button pressed')
     rc = sys.getrefcount(command)
     menu.add_command(command=command) # or add_radiobutton etc
     idx = menu.index(END)
     menu.delete(idx)
     gc.collect()
     rc1 = sys.getrefcount(command)
-    print 'leak test with class', M,
+    print('leak test with class', M, end=' ')
     if rc1 != rc:
-        print 'failed: command is now hold by', rc1, 'references'
+        print('failed: command is now hold by', rc1, 'references')
     else:
-        print 'succeeded: command is now hold by', rc1, 'references'
+        print('succeeded: command is now hold by', rc1, 'references')
 
     root.destroy()
 
@@ -58,14 +58,14 @@ def test2(M):
     menu = M(button)
     button['menu'] = menu
     def command0():
-        print 'command 0 button pressed'
+        print('command 0 button pressed')
         'deleting 0 and 1'
         menu.delete(idx0, idx1)
     def command1():
-        print 'command 1 button pressed'
+        print('command 1 button pressed')
     def command2():
-        print 'command 2 button pressed'
-        print 'deleting at END'
+        print('command 2 button pressed')
+        print('deleting at END')
         menu.delete(END)
         root.quit()
     rc = [sys.getrefcount(x) for x in (command0, command1, command0)]
@@ -83,11 +83,11 @@ def test2(M):
     gc.collect()
     rc1 = [sys.getrefcount(x) for x in (command0, command1, command0)]
     del x
-    print 'leak test with class', M,
+    print('leak test with class', M, end=' ')
     if rc1 != rc:
-        print 'failed: command is now hold by', rc1, 'references, should be', rc
+        print('failed: command is now hold by', rc1, 'references, should be', rc)
     else:
-        print 'succeeded: command is now hold by', rc1, 'references'
+        print('succeeded: command is now hold by', rc1, 'references')
 
     root.destroy()
 

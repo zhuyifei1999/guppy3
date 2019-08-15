@@ -4,7 +4,7 @@
 # Only sets right now.
 
 def test_main(debug = 0):
-    print 'Testing sets'
+    print('Testing sets')
     from guppy.sets import test
     test.test_main()
 

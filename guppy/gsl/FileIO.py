@@ -50,13 +50,13 @@ class TestIO:
         try:
             del self.files[name]
         except KeyError:
-            raise IOError, 'No such file: %r'%name
+            raise IOError('No such file: %r'%name)
 
     def rename(self, src, tgt):
         try:
             data = self.files[src]
         except KeyError:
-            raise IOError, 'No such file: %r'%src
+            raise IOError('No such file: %r'%src)
         del self.files[src]
         self.files[tgt] = data
 

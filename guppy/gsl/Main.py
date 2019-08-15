@@ -21,9 +21,9 @@ class SpecEnv:
             if src is not None:
                 filename = src.filename
                 linetext = src.get_line(index=context.index)
-            print '%s:%s:'% (filename, lineno)
+            print('%s:%s:'% (filename, lineno))
             if linetext:
-                print '    %r'%linetext
+                print('    %r'%linetext)
 
 
     def error(self, message, context=None, exception=ReportedError, more=(), harmless = 0):
@@ -36,21 +36,21 @@ class SpecEnv:
 
         self.errmsg_context(context)
         if harmless:
-            print '*   %s'%message
+            print('*   %s'%message)
         else:
-            print '*** %s'%message
-        print
+            print('*** %s'%message)
+        print()
 
         for msg, ctx in more:
             self.errmsg_context(ctx)
-            print '    %s'%msg
-            print
+            print('    %s'%msg)
+            print()
 
         if self.debug:
             set_trace()
         else:
             if self.num_errors >= self.max_errors:
-                raise TooManyErrors, 'Too many errors, giving up'
+                raise TooManyErrors('Too many errors, giving up')
             if exception is not None:
                 raise exception
 
@@ -65,7 +65,7 @@ class SpecEnv:
         if pac is None:
             if name in self.importing_packages:
                 self.error('Invalid mutual import involving packages %r'%(
-                    self.importing_packages.keys(),), context)
+                    list(self.importing_packages.keys()),), context)
             self.importing_packages[name] = 1
             filename = name.replace('.', self.mod.IO.path.sep)+'.gsl'
             ip = self.package_of_filename(filename, name)
@@ -95,22 +95,22 @@ class SpecEnv:
             node = d.get_result()
             walk(node)
 
-        for name, ds in defines.items():
+        for name, ds in list(defines.items()):
             if len(ds) > 1:
-                print 'Duplicate definition of name %r, defined in:'%name
+                print('Duplicate definition of name %r, defined in:'%name)
                 for (d, node) in ds:
-                    print '    %s line %s'%(d.get_doc_name(), node.index+1)
-                print 'Will use the first one.'
+                    print('    %s line %s'%(d.get_doc_name(), node.index+1))
+                print('Will use the first one.')
 
         nodefs = []
 
-        for name, ds in links.items():
+        for name, ds in list(links.items()):
             if name not in defines:
                 used = {}
                 for (d, node) in ds:
                     used[d.get_doc_name()] = 1
                     node.tag = 'link_to_unresolved'
-                used = used.keys()
+                used = list(used.keys())
                 used.sort()
                 used = ', '.join(used)
                 nodefs.append('%s used in %s'%(name, used))
@@ -124,9 +124,9 @@ class SpecEnv:
                         node.children = (defd.doc_name_node,)+node.children
         if nodefs:
             nodefs.sort()
-            print 'Unresolved links:'
+            print('Unresolved links:')
             for nd in nodefs:
-                print '  ', nd
+                print('  ', nd)
 
     def mkPackage(self, sub):
         pac = PackageDescription(self, sub, sub)
@@ -160,7 +160,7 @@ class SpecEnv:
 
         node = mod.SpecNodes.node_of_string(data, filename, nostrip=nostrip)
         numerr = self.num_errors
-        print 'Making package subject %r'%packname
+        print('Making package subject %r'%packname)
         package = PackageSubject(mod, self, node, packname, filename)
         if numerr == self.num_errors:
             mod.package_cache[digest] = package
@@ -188,7 +188,7 @@ class SpecEnv:
             if not documents:
                 self.error('No documents specified.', exception=None, harmless=1)
             if not self.num_errors or process_despite_errors:
-                print 'Linking'
+                print('Linking')
                 self.link_documents(documents)
             if not self.num_errors or process_despite_errors:
                 filers = self.get_filers(documents)
@@ -199,16 +199,16 @@ class SpecEnv:
         if not self.num_errors:
             for filer in filers:
                 f = self.mod.Filer.filer(filer)
-                print 'Writing: ', ', '.join(list(f.writefile_names))
+                print('Writing: ', ', '.join(list(f.writefile_names)))
                 f.write()
         if self.num_warnings:
-            print '*   %d warning%s reported.'%(
-                self.num_warnings, 's'[:self.num_warnings>1])
+            print('*   %d warning%s reported.'%(
+                self.num_warnings, 's'[:self.num_warnings>1]))
         if self.num_errors:
-            print '*** %d error%s reported --%s no files written.'%(
-                self.num_errors, 's'[:self.num_errors>1], giving_up)
+            print('*** %d error%s reported --%s no files written.'%(
+                self.num_errors, 's'[:self.num_errors>1], giving_up))
             if raise_at_errors:
-                raise HadReportedError, 'Some error has been reported.'
+                raise HadReportedError('Some error has been reported.')
 
 
 
@@ -573,7 +573,7 @@ class Definition(Description):
             if src.d_tag != self.d_tag:
                 # Can't think of how this would happen -
                 # so not yet converted to .error()
-                raise ImportError, 'Different description tag'
+                raise ImportError('Different description tag')
         src.aspects_extend(self.aspects)
 
 
@@ -724,7 +724,7 @@ class Package(Description):
     def get_tgtdicts(self):
         seen = {id(self.tgtview):1}
         tgtdicts = [self.tgtview]
-        for p in self.imported_packages.values():
+        for p in list(self.imported_packages.values()):
             sds = p.get_tgtdicts()
             for sd in sds:
                 if id(sd) not in seen:
@@ -833,7 +833,7 @@ class Attribute(Definition):
             if len(kas) == 1:
                 k = kas[0]
             else:
-                raise ValueError, "Don't know how to name this kind, %r"%self
+                raise ValueError("Don't know how to name this kind, %r"%self)
         return k.tgtfullname
 
     def get_link_name(self):
@@ -1006,8 +1006,8 @@ class Mapping(Description):
             try:
                 xs = re.sequni()
             except self.mod.RE.InfiniteError:
-                print 'Infinitely long args example for %s'%self.srcfullname
-                print 'Limiting by expanding each Cleene closure 0 up to %d times.'%coverage
+                print('Infinitely long args example for %s'%self.srcfullname)
+                print('Limiting by expanding each Cleene closure 0 up to %d times.'%coverage)
                 re = re.limited(coverage)
                 xs = re.sequni()
             examples = [ArgsExample(self, tuple(x), mapname, top_kind) for x in xs]
@@ -1080,7 +1080,7 @@ class ArgsExample:
                 if a.get_name() == name:
                     return self.egs[i]
             else:
-                raise ConditionError, 'No argument matches: %r'%name
+                raise ConditionError('No argument matches: %r'%name)
             i += 1
 
     def get_preconditions(self):

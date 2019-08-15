@@ -39,12 +39,12 @@ class AlgebraicStructure:
                     opkwds['identity'] = kwds['identity']
                 op = mod.binary_operation.new(range, op, **opkwds)
             else:
-                raise TypeError, '%s is not a valid operation'%op
+                raise TypeError('%s is not a valid operation'%op)
             self.ops.append(op)
             setattr(self, 'op%d'%i, op)
         self.numops = len(self.ops)
 
-        for k, v in kwds.items():
+        for k, v in list(kwds.items()):
             setattr(self, k, v)
 
 
@@ -358,7 +358,8 @@ class _GLUECLAMP_:
                         attr('LUB')
                         )
 
-            def map_quadruple_to_struct(self, e, (S, LE, GLB, LUB)):
+            def map_quadruple_to_struct(self, e, xxx_todo_changeme):
+                (S, LE, GLB, LUB) = xxx_todo_changeme
                 S = e.setcast(S)
                 LE = e.relation.paxa.fromuniversal((e.relation.defipair, (S, LE)))
                 GLB = e.AA.binary_operation.new(S, GLB)

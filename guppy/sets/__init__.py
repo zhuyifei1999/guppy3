@@ -10,10 +10,10 @@ from setsc import NodeSet       # base nodeset type
 from setsc import ImmNodeSet    # immmutable nodeset type
 from setsc import MutNodeSet    # mutable nodeset type
 
-import copy_reg
+import copyreg
 from setsc import _bs
 if hasattr(copy_reg, 'safe_constructors'):      # < 2.3 version
-    copy_reg.safe_constructors[_bs] = 1
+    copyreg.safe_constructors[_bs] = 1
 else:
     # In at least Python 2.3.3, we have to set __module__;
     # it didn't find it otherwise.

@@ -80,7 +80,7 @@ class Node2Html:
         self.error_report(msg, *args, **kwds)
 
     def error_report(self, msg, *args, **kwds):
-        print 'HTML ENCODING ERROR: ', msg, 'args=',args, 'kwds=',kwds
+        print('HTML ENCODING ERROR: ', msg, 'args=',args, 'kwds=',kwds)
         raise ValueError
 
     def gen_document_header(self, lang, header_nodes):

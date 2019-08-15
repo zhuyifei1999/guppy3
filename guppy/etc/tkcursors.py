@@ -3,7 +3,7 @@
 # A Tk window that shows what cursor shapes are available.
 # Moving the mouse over the cursor name shows the cursor in that shape.
 
-from Tkinter import *
+from tkinter import *
 
 def tkcursors(master=None):
     if master is None:

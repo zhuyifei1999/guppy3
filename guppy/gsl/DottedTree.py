@@ -108,7 +108,7 @@ class _GLUECLAMP_:
 
         while 1:
             try:
-                lineindex, next = it.next()
+                lineindex, next = next(it)
             except StopIteration:
                 next = None
                 break
@@ -131,7 +131,7 @@ class _GLUECLAMP_:
                 return lineindex, next, self.node(tag, children, firstline)
             if len(next) > pos+1 and next[pos+1] == dotchar:
                 if src is None:
-                    raise SyntaxError, 'Level must increase with 1 max'
+                    raise SyntaxError('Level must increase with 1 max')
                 else:
                     src.error('Level must increase with 1 max', lineindex)
             lineindex, next, child = self.parse_iter(pos+1, [next[pos+1:]],
@@ -298,7 +298,7 @@ line 3
                         (Node('line 2\nline 3', (), 2),), 1),
                 Node('line 4\n', (), 4)), 0)
     assert repr(node) == repr(exp)
-    print node
+    print(node)
 
 def test_doctest():
     import doctest, guppy.gsl.DottedTree

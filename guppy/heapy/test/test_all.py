@@ -27,8 +27,8 @@ def test_main(debug=False):
             del sys.modules[testname]
         except KeyError:
             pass
-        exec 'import %s as x'%testname
-        print 'imported:', testname
+        exec('import %s as x'%testname)
+        print('imported:', testname)
         f = x.test_main
         f(debug=debug)
         del sys.modules[testname]

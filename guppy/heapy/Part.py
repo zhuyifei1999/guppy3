@@ -60,23 +60,22 @@ class Format(object):
         if idx is None:
             label = self.get_label()
             if label is not None:
-                print >>ob, label
+                print(label, file=ob)
             idx = 0
         if idx < 0:
             idx = impl.numrows + startindex
 
         it = impl.get_rows(idx)
-        print >>ob, self.get_row_header()
+        print(self.get_row_header(), file=ob)
         numrows = 0
         for row in it:
             form = self.get_formatted_row(row)
-            print >>ob, form
+            print(form, file=ob)
             numrows += 1
             if numrows >= 10:
                 nummore = impl.numrows - 1 - row.index
                 if nummore > 1:
-                    print >>ob, \
-"<%d more rows. Type e.g. '_.more' to view.>"%nummore
+                    print("<%d more rows. Type e.g. '_.more' to view.>"%nummore, file=ob)
                     break
 
 
@@ -243,17 +242,17 @@ class Stat:
         self.timemade = float(self.timemade)
 
     def __getitem__(self, idx):
-        if  isinstance(idx, (int, long)):
+        if  isinstance(idx, int):
             if idx < 0:
                 idx = self.numrows + idx
             if not (0 <= idx < self.numrows):
-                raise IndexError, 'Stat index out of range.'
+                raise IndexError('Stat index out of range.')
             rows = [self.get_row(idx)]
         elif isinstance(idx, slice):
             start, stop, step = idx.indices(self.numrows)
             rows = [self.get_row(idx) for idx in range(start, stop, step)]
         else:
-            raise IndexError, 'Stat indices must be integers or slices.'
+            raise IndexError('Stat indices must be integers or slices.')
 
         count = 0
         size = 0
@@ -288,10 +287,10 @@ class Stat:
 
     def __sub__(self, other):
         if not isinstance(other, Stat):
-            raise TypeError, 'Can only take difference with other Stat instance.'
+            raise TypeError('Can only take difference with other Stat instance.')
         if self.kindheader != other.kindheader:
-            raise ValueError, 'Mismatching table kind header, %r vs %r.'%(
-                self.kindheader, other.kindheader)
+            raise ValueError('Mismatching table kind header, %r vs %r.'%(
+                self.kindheader, other.kindheader))
         rows = []
         otab = {}
         stab = {}
@@ -320,7 +319,7 @@ class Stat:
                 sr = StatRow(count, size, r.name)
                 stab[sr.name] = sr
                 rows.append(sr)
-        rs = otab.values()
+        rs = list(otab.values())
         rs.sort(lambda x,y:cmp(x.index, y.index)) # Preserve orig. order
         for r in rs:
             sr = StatRow(-r.count, -r.size, r.name)
@@ -376,7 +375,7 @@ class Stat:
 
     def get_next(self):
         try:
-            r = self.it.next()
+            r = next(self.it)
         except StopIteration:
             r = None
         else:
@@ -430,7 +429,7 @@ class Stat:
         # Returns a NEW LIST (caller may modify/sort it)
 
         if sortby not in ('Size', 'Count'):
-            raise ValueError, "Argument 'sortby' must be 'Size' or 'Count'."
+            raise ValueError("Argument 'sortby' must be 'Size' or 'Count'.")
 
         # Rows are already sorted by Size, largest first.
         # If they want by Count, we need to resort them.
@@ -483,7 +482,7 @@ class Stat:
     def parse_next_row(self):
         r = self.last
         if not r:
-            raise IndexError, 'Row index out of range.'
+            raise IndexError('Row index out of range.')
         if r.startswith('.r: '):
             r = r[4:]
             sr = self.format.load_statrow(r)
@@ -494,7 +493,7 @@ class Stat:
             return
 
         elif r.startswith('.end'):
-            raise IndexError, 'Row index out of range.'
+            raise IndexError('Row index out of range.')
         else:
             raise SyntaxError
 
@@ -620,7 +619,7 @@ class IdentityPartition(Partition):
 
     def get_nodeset_cluster(self, start, stop, step):
         if step <= 0:
-            raise ValueError, 'Step must be positive.'
+            raise ValueError('Step must be positive.')
         ns = self.mod.mutnodeset()
         if start >= stop:
             return (ns, None)
@@ -675,7 +674,7 @@ class IdentityPartition(Partition):
     def get_row(self, rowidx):
         ns, clu = self.get_nodeset_cluster(rowidx, rowidx+1, 1)
         if not ns:
-            raise IndexError, 'Partition index out of range.'
+            raise IndexError('Partition index out of range.')
         vi = self.mod.idset(ns, er=self.er)
         row = PartRow(1, clu.obsize, self.render(vi.theone),
                       rowidx, (rowidx+1-clu.locount)*clu.obsize + clu.losize,
@@ -685,7 +684,7 @@ class IdentityPartition(Partition):
     def get_rowset(self, rowidx):
         ns = self.get_nodeset(rowidx, rowidx+1, 1)
         if not ns:
-            raise IndexError, 'Partition index out of range.'
+            raise IndexError('Partition index out of range.')
         return self.mod.idset(ns, er=self.er)
 
 
@@ -722,7 +721,7 @@ class SetPartition(Partition):
 
     def get_nodeset(self, start, stop, step):
         if step <= 0:
-            raise ValueError, 'Step must be positive.'
+            raise ValueError('Step must be positive.')
         ns = self.mod.mutnodeset()
         while start < stop:
             ns |= self.rows[start].set.nodes
@@ -733,7 +732,7 @@ class SetPartition(Partition):
         try:
             return self.rows[idx]
         except IndexError:
-            raise IndexError, 'Partition index out of range.'
+            raise IndexError('Partition index out of range.')
 
     def get_rowset(self, idx):
         return self.get_row(idx).set
