@@ -267,7 +267,7 @@ immnodeset_hash(NyNodeSetObject *v)
 
 static PyMemberDef immnodeset_members[] = {
     {"_hiding_tag_",     T_OBJECT_EX, OFF(_hiding_tag_), READONLY},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 #undef OFF
@@ -410,30 +410,30 @@ immnodeset_obj_at(NyNodeSetObject *v, PyObject *obj)
 
 static PyMethodDef immnodeset_methods[] = {
     {"obj_at",    (PyCFunction)immnodeset_obj_at, METH_O, immnodeset_obj_at_doc},
-    {NULL,        NULL}        /* sentinel */
+    {0} /* sentinel */
 };
 
 
 
 PyTypeObject NyImmNodeSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.ImmNodeSet",
-    .tp_basicsize      = sizeof(NyNodeSetObject)-sizeof(PyObject *),
-    .tp_itemsize       = sizeof(PyObject *),
-    .tp_dealloc        = (destructor)immnodeset_dealloc,
-    .tp_hash           = (hashfunc)immnodeset_hash,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = immnodeset_doc,
-    .tp_traverse       = (traverseproc)immnodeset_gc_traverse,
-    .tp_clear          = (inquiry)immnodeset_gc_clear,
-    .tp_richcompare    = (richcmpfunc)nodeset_richcompare,
-    .tp_iter           = (getiterfunc)immnodeset_iter,
-    .tp_methods        = immnodeset_methods,
-    .tp_members        = immnodeset_members,
-    .tp_getset         = immnodeset_getset,
-    .tp_base           = &NyNodeSet_Type,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_new            = immnodeset_new,
-    .tp_free           = PyObject_GC_Del,
+    .tp_name        = "guppy.sets.setsc.ImmNodeSet",
+    .tp_basicsize   = sizeof(NyNodeSetObject)-sizeof(PyObject *),
+    .tp_itemsize    = sizeof(PyObject *),
+    .tp_dealloc     = (destructor)immnodeset_dealloc,
+    .tp_hash        = (hashfunc)immnodeset_hash,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = immnodeset_doc,
+    .tp_traverse    = (traverseproc)immnodeset_gc_traverse,
+    .tp_clear       = (inquiry)immnodeset_gc_clear,
+    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
+    .tp_iter        = (getiterfunc)immnodeset_iter,
+    .tp_methods     = immnodeset_methods,
+    .tp_members     = immnodeset_members,
+    .tp_getset      = immnodeset_getset,
+    .tp_base        = &NyNodeSet_Type,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_new         = immnodeset_new,
+    .tp_free        = PyObject_GC_Del,
 };

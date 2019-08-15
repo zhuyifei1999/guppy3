@@ -24,7 +24,7 @@ hv_cli_none_le(PyObject * self, PyObject *a, PyObject *b)
 {
     return 1;
 }
-    
+
 
 static NyObjectClassifierDef hv_cli_none_def = {
     0,
@@ -60,11 +60,9 @@ static int
 hv_cli_class_le(PyObject * self, PyObject *a, PyObject *b)
 {
     if (a == b)
-      return 1;
+        return 1;
     if (PyType_Check(a) && PyType_Check(b))
-      return PyType_IsSubtype((PyTypeObject *)a, (PyTypeObject *)b);
-    if (PyClass_Check(a) && PyClass_Check(b))
-      return PyClass_IsSubclass(a, b);
+        return PyType_IsSubtype((PyTypeObject *)a, (PyTypeObject *)b);
     return 0;
 }
 
@@ -139,4 +137,3 @@ hv_cli_type(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_type_def);
 }
-

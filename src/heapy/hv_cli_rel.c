@@ -4,7 +4,7 @@
     outrel
 */
 
-PyDoc_STRVAR(hv_cli_inrel_doc, 
+PyDoc_STRVAR(hv_cli_inrel_doc,
 
 "HV.cli_inrel(referrers, memo) -> ObjectClassifier\n"
 "\n"
@@ -28,7 +28,7 @@ rel_dealloc(NyRelationObject *op)
     PyObject_GC_UnTrack(op);
     Py_TRASHCAN_SAFE_BEGIN(op)
     Py_XDECREF(op->relator);
-    op->ob_type->tp_free(op);
+    Py_TYPE(op)->tp_free(op);
     Py_TRASHCAN_SAFE_END(op)
 }
 
@@ -37,10 +37,10 @@ NyRelation_SubTypeNew(PyTypeObject *type, int kind, PyObject *relator)
 {
     NyRelationObject *rel = (NyRelationObject *)type->tp_alloc(type, 1);
     if (!rel)
-      return 0;
+        return 0;
     rel->kind = kind;
     if (!relator) {
-	relator = Py_None;
+        relator = Py_None;
     }
     rel->relator = relator;
     Py_INCREF(relator);
@@ -60,15 +60,15 @@ rel_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *relator;
     static char *kwlist[] = {"kind", "relator", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "iO:rel_new",kwlist,
-				     &kind,
-				     &relator))
-      return NULL;
+                                     &kind,
+                                     &relator))
+        return NULL;
     if (! (0 < kind && kind < NYHR_LIMIT) ) {
-	PyErr_Format(PyExc_ValueError,
-		     "rel_new: Invalid relation kind: %d, must be > 0 and < %d.",
-		     kind,
-		     NYHR_LIMIT);
-	return 0;
+        PyErr_Format(PyExc_ValueError,
+                     "rel_new: Invalid relation kind: %d, must be > 0 and < %d.",
+                     kind,
+                     NYHR_LIMIT);
+        return 0;
     }
     return NyRelation_SubTypeNew(type, kind, relator);
 }
@@ -78,7 +78,7 @@ static int
 rel_traverse(NyRelationObject *op, visitproc visit, void *arg)
 {
     if (op->relator)
-      return visit(op->relator, arg);
+        return visit(op->relator, arg);
     return 0;
 }
 
@@ -95,10 +95,10 @@ rel_hash(NyRelationObject *op)
 {
     long x = PyObject_Hash(op->relator);
     if (x == -1)
-      return -1;
+        return -1;
     x ^= op->kind;
     if (x == -1)
-      x = -2;
+        x = -2;
     return x;
 }
 
@@ -108,36 +108,34 @@ rel_richcompare(PyObject *v, PyObject *w, int op)
     NyRelationObject *vr, *wr;
     int vkind, wkind;
     if (! (NyRelation_Check(v) && NyRelation_Check(w))) {
-	Py_INCREF(Py_NotImplemented);
-	return Py_NotImplemented;
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
     }
     vr = (NyRelationObject *)v;
     wr = (NyRelationObject *)w;
     vkind = vr->kind;
     wkind = wr->kind;
     if (vkind != wkind) {
-	PyObject *result;
-	int cmp;
-	switch (op) {
-	  case Py_LT: cmp = vkind <  wkind; break;
-	  case Py_LE: cmp = vkind <= wkind; break;
-	  case Py_EQ: cmp = vkind == wkind; break;
-	  case Py_NE: cmp = vkind != wkind; break;
-	  case Py_GT: cmp = vkind >  wkind; break;
-	  case Py_GE: cmp = vkind >= wkind; break;
-	  default: return NULL; /* cannot happen */
-	}
-	result = cmp? Py_True:Py_False;
-	Py_INCREF(result);
-	return result;
+        PyObject *result;
+        int cmp;
+        switch (op) {
+        case Py_LT: cmp = vkind <  wkind; break;
+        case Py_LE: cmp = vkind <= wkind; break;
+        case Py_EQ: cmp = vkind == wkind; break;
+        case Py_NE: cmp = vkind != wkind; break;
+        case Py_GT: cmp = vkind >  wkind; break;
+        case Py_GE: cmp = vkind >= wkind; break;
+        default: return NULL; /* cannot happen */
+        }
+        result = cmp? Py_True:Py_False;
+        Py_INCREF(result);
+        return result;
     }
     return PyObject_RichCompare(vr->relator, wr->relator, op);
 }
-	
-	    
 
 static PyMethodDef rel_methods[] = {
-    {NULL,		NULL}		/* sentinel */
+    {0} /* sentinel */
 };
 
 #define OFF(x) offsetof(NyRelationObject, x)
@@ -145,58 +143,29 @@ static PyMethodDef rel_methods[] = {
 static PyMemberDef rel_members[] = {
     {"kind", T_INT, OFF(kind), READONLY},
     {"relator", T_OBJECT, OFF(relator), READONLY},
-    {NULL}  /* Sentinel */
+    {0} /* Sentinel */
 };
 
 #undef OFF
 
 PyTypeObject NyRelation_Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,
-	"guppy.heapy.heapyc.Relation",		/* tp_name */
-	sizeof(NyRelationObject),		/* tp_basicsize */
-	0,					/* tp_itemsize */
-	(destructor)rel_dealloc, 		/* tp_dealloc */
-	0,					/* tp_print */
-	0,					/* tp_getattr */
-	0,					/* tp_setattr */
-	(cmpfunc)0,				/* tp_compare */
-	(reprfunc)0,				/* tp_repr */
-	0,					/* tp_as_number */
-	0,					/* tp_as_sequence */
-	0,					/* tp_as_mapping */
-	(hashfunc)rel_hash,			/* tp_hash */
-	0,					/* tp_call */
-	0,					/* tp_str */
-	PyObject_GenericGetAttr,		/* tp_getattro */
-	0,					/* tp_setattro */
-	0,					/* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
- 	rel_doc,				/* tp_doc */
- 	(traverseproc)rel_traverse,		/* tp_traverse */
-	(inquiry)rel_clear,			/* tp_clear */
-	rel_richcompare,			/* tp_richcompare */
-	0,					/* tp_weaklistoffset */
-	(getiterfunc)0,				/* tp_iter */
-	0,					/* tp_iternext */
-	rel_methods,				/* tp_methods */
-	rel_members,				/* tp_members */
-	0,					/* tp_getset */
-	0,					/* tp_base */
-	0,					/* tp_dict */
-	0,					/* tp_descr_get */
-	0,					/* tp_descr_set */
-	0,					/* tp_dictoffset */
-	(initproc)0,				/* tp_init */
-	PyType_GenericAlloc,			/* tp_alloc */
-	rel_new,				/* tp_new */
-	_PyObject_GC_Del,			/* tp_free */
-
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name           = "guppy.heapy.heapyc.Relation",
+    .tp_basicsize      = sizeof(NyRelationObject),
+    .tp_dealloc        = (destructor)rel_dealloc,
+    .tp_hash           = (hashfunc)rel_hash,
+    .tp_getattro       = PyObject_GenericGetAttr,
+    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    .tp_doc            = rel_doc,
+    .tp_traverse       = (traverseproc)rel_traverse,
+    .tp_clear          = (inquiry)rel_clear,
+    .tp_richcompare    = rel_richcompare,
+    .tp_methods        = rel_methods,
+    .tp_members        = rel_members,
+    .tp_alloc          = PyType_GenericAlloc,
+    .tp_new            = rel_new,
+    .tp_free           = PyObject_GC_Del,
 };
-
-
-
-
 
 typedef struct {
     /* Mimics a tuple - xxx should perhaps make a proper object/use tuple macros?! */
@@ -217,21 +186,21 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
 {
     PyObject *mrel;
     if (!NyRelation_Check(obj)) {
-	PyErr_Format(PyExc_TypeError,
-	       "inrel_visit_memoize_relation: can only memoize relation (not \"%.200s\")",
-	       obj->ob_type->tp_name);
-	return -1;
+        PyErr_Format(PyExc_TypeError,
+               "inrel_visit_memoize_relation: can only memoize relation (not \"%.200s\")",
+               Py_TYPE(obj)->tp_name);
+        return -1;
     }
     mrel = PyDict_GetItem(arg->memorel, obj);
     if (!mrel) {
-	if (PyErr_Occurred())
-	  return -1;
-	if (PyDict_SetItem(arg->memorel, obj, obj) == -1)
-	  return -1;
-	mrel = obj;
+        if (PyErr_Occurred())
+            return -1;
+        if (PyDict_SetItem(arg->memorel, obj, obj) == -1)
+            return -1;
+        mrel = obj;
     }
     if (NyNodeSet_setobj(arg->ns, mrel) == -1)
-      return -1;
+        return -1;
     return 0;
 }
 
@@ -241,15 +210,15 @@ inrel_fast_memoized_kind(InRelObject * self, PyObject *kind)
 {
     PyObject *result = PyDict_GetItem(self->memokind, kind);
     if (!result) {
-	if (PyErr_Occurred())
-	  goto Err;
-	if (PyDict_SetItem(self->memokind, kind, kind) == -1)
-	  goto Err;
-	result = kind;
+        if (PyErr_Occurred())
+            goto Err;
+        if (PyDict_SetItem(self->memokind, kind, kind) == -1)
+            goto Err;
+        result = kind;
     }
     Py_INCREF(result);
     return result;
-  Err:
+Err:
     return 0;
 }
 
@@ -262,16 +231,16 @@ hv_cli_inrel_memoized_kind(InRelObject * self, PyObject *kind)
     arg.memorel = self->memorel;
     arg.ns = hv_mutnodeset_new(self->hv);
     if (!arg.ns)
-      return 0;
+        return 0;
     if (iterable_iterate(kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
-      goto Err;
+        goto Err;
     if (NyNodeSet_be_immutable(&arg.ns) == -1)
-      goto Err;
+        goto Err;
     result = inrel_fast_memoized_kind(self, (PyObject *)arg.ns);
-  Ret:
+Ret:
     Py_DECREF(arg.ns);
     return result;
-  Err:
+Err:
     result = 0;
     goto Ret;
 }
@@ -292,10 +261,10 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     arg->err = -1;
 
     if (!relator) {
-	if (PyErr_Occurred())
-	  return -1;
-	relator = Py_None;
-	Py_INCREF(relator);
+        if (PyErr_Occurred())
+            return -1;
+        relator = Py_None;
+        Py_INCREF(relator);
     }
 
     arg->rel->kind = kind;
@@ -303,18 +272,18 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
 
     rel = PyDict_GetItem(arg->memorel, (PyObject *)arg->rel);
     if (!rel) {
-	rel = (PyObject *)NyRelation_New(kind, relator);
-	if (!rel)
-	  goto ret;
-	if (PyDict_SetItem(arg->memorel, rel, rel) == -1) {
-	    Py_DECREF(rel);
-	    goto ret;
-	}
-	Py_DECREF(rel);
+        rel = (PyObject *)NyRelation_New(kind, relator);
+        if (!rel)
+            goto ret;
+        if (PyDict_SetItem(arg->memorel, rel, rel) == -1) {
+            Py_DECREF(rel);
+            goto ret;
+        }
+        Py_DECREF(rel);
     }
     if (NyNodeSet_setobj(arg->relset, rel) != -1)
-      arg->err = 0;
-  ret:
+        arg->err = 0;
+ret:
     Py_DECREF(relator);
     return arg->err;
 }
@@ -338,34 +307,34 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
     crva.rel = self->rel;
     crva.relset = hv_mutnodeset_new(self->hv);
     if (!crva.relset)
-      return 0;
+        return 0;
 
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1) {
-	goto Err;
+        goto Err;
     }
 
     for (cur = lo; cur < hi; cur++) {
-	if (cur->tgt == Py_None)
-	  continue;
-	crva.hr.src = cur->tgt;
-	xt = hv_extra_type(self->hv, crva.hr.src->ob_type);
-	assert (xt->xt_hv == self->hv);
-	assert(self->hv == (void *)crva.hr.hv);
-	
-	if (xt->xt_relate(xt, &crva.hr) == -1 || crva.err) {
-	    /* fprintf(stderr, "xt 0x%x\n", xt); */
-	    goto Err;
-	}
+        if (cur->tgt == Py_None)
+            continue;
+        crva.hr.src = cur->tgt;
+        xt = hv_extra_type(self->hv, Py_TYPE(crva.hr.src));
+        assert (xt->xt_hv == self->hv);
+        assert(self->hv == (void *)crva.hr.hv);
+
+        if (xt->xt_relate(xt, &crva.hr) == -1 || crva.err) {
+            /* fprintf(stderr, "xt 0x%x\n", xt); */
+            goto Err;
+        }
     }
 
     if (NyNodeSet_be_immutable(&crva.relset) == -1)
-      goto Err;
+        goto Err;
     result = inrel_fast_memoized_kind(self, (PyObject *)crva.relset);
-  Ret:
+Ret:
     Py_DECREF(crva.relset);
     self->rel->relator = Py_None;
     return result;
-  Err:
+Err:
     result = 0;
     goto Ret;
 
@@ -395,16 +364,16 @@ hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     InRelObject *s, tmp;
-    if (!PyArg_ParseTuple(args, "O!O!O!:cli_inrel", 
-			  &NyNodeGraph_Type, &tmp.rg,
-			  &PyDict_Type, &tmp.memokind,
-			  &PyDict_Type, &tmp.memorel
-			  )) {
-	return NULL;
+    if (!PyArg_ParseTuple(args, "O!O!O!:cli_inrel",
+                          &NyNodeGraph_Type, &tmp.rg,
+                          &PyDict_Type, &tmp.memokind,
+                          &PyDict_Type, &tmp.memorel
+                          )) {
+        return NULL;
     }
     s = NYTUPLELIKE_NEW(InRelObject);
     if (!s)
-      return 0;
+        return 0;
     s->hv = hv;
     Py_INCREF(s->hv);
     s->rg = tmp.rg;
@@ -416,15 +385,10 @@ hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
     /* Init a relation object used for lookup, to save an allocation per relation. */
     s->rel = NyRelation_New(1, Py_None); /* kind & relator will be changed  */
     if (!s->rel) {
-	Py_DECREF(s);
-	return 0;
+        Py_DECREF(s);
+        return 0;
     }
     r = NyObjectClassifier_New((PyObject *)s, &hv_cli_inrel_def);
     Py_DECREF(s);
     return r;
 }
-
-
-
-
-

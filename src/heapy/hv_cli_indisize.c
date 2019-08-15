@@ -13,10 +13,10 @@ hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
 {
     PyObject *memoedsize = PyDict_GetItem(self->memo, size);
     if (!memoedsize) {
-	if (PyDict_SetItem(self->memo, size, size) == -1) {
-	    return 0;
-	}
-	memoedsize = size;
+        if (PyDict_SetItem(self->memo, size, size) == -1) {
+            return 0;
+        }
+        memoedsize = size;
     }
     Py_INCREF(memoedsize);
     return memoedsize;
@@ -25,10 +25,10 @@ hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
 static PyObject *
 hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
 {
-    PyObject *size = PyInt_FromLong(hv_std_size(self->hv, obj));
+    PyObject *size = PyLong_FromLong(hv_std_size(self->hv, obj));
     PyObject *memoedsize;
     if (!size)
-      return size;
+        return size;
     memoedsize = hv_cli_indisize_memoized_kind(self, size);
     Py_DECREF(size);
     return memoedsize;
@@ -66,12 +66,12 @@ hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r, *memo;
     IndisizeObject *s;
-    if (!PyArg_ParseTuple(args, "O!:cli_indisize", 
-			  &PyDict_Type, &memo))
-      return NULL;
+    if (!PyArg_ParseTuple(args, "O!:cli_indisize",
+                          &PyDict_Type, &memo))
+        return NULL;
     s = NYTUPLELIKE_NEW(IndisizeObject);
     if (!s)
-      return 0;
+        return 0;
     s->hv = self;
     Py_INCREF(s->hv);
     s->memo = memo;

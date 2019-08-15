@@ -397,9 +397,9 @@ NyImmBitSetObject *sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ih
 
 PyTypeObject NyBitSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name        = "guppy.sets.setsc.BitSet",
-    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_doc         = bitset_doc,
+    .tp_name  = "guppy.sets.setsc.BitSet",
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc   = bitset_doc,
 };
 
 
@@ -3847,7 +3847,7 @@ immbitset_reduce(NyImmBitSetObject *self, PyObject *args)
 static PyMethodDef immbitset_methods[] = {
     {"mutcopy", (PyCFunction)immbitset_mutable_copy, METH_NOARGS, mutable_copy_doc},
     {"__reduce__", (PyCFunction)immbitset_reduce, METH_NOARGS, "helper for pickle"},
-    {NULL,        NULL}        /* sentinel */
+    {0} /* sentinel */
 };
 
 
@@ -3876,31 +3876,31 @@ char immbitset_is_immutable_doc[] =
 
 static PyGetSetDef immbitset_getsets[] = {
     {"is_immutable", (getter)immbitset_is_immutable, (setter)0, immbitset_is_immutable_doc},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 PyTypeObject NyImmBitSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.ImmBitSet",
-    .tp_basicsize      = sizeof(NyImmBitSetObject) - sizeof(NyBitField),
-    .tp_itemsize       = sizeof(NyBitField),
-    .tp_dealloc        = (destructor)immbitset_dealloc,
-    .tp_repr           = (reprfunc)immbitset_repr,
-    .tp_as_number      = &immbitset_as_number,
-    .tp_as_sequence    = &immbitset_as_sequence,
-    .tp_as_mapping     = &immbitset_as_mapping,
-    .tp_hash           = (hashfunc)immbitset_hash,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = ImmBitSet_doc,
-    .tp_richcompare    = (richcmpfunc)immbitset_richcompare,
-    .tp_iter           = (getiterfunc)immbitset_iter,
-    .tp_methods        = immbitset_methods,
-    .tp_getset         = immbitset_getsets,
-    .tp_base           = &NyBitSet_Type,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_new            = immbitset_new,
-    .tp_free           = PyObject_Del,
+    .tp_name        = "guppy.sets.setsc.ImmBitSet",
+    .tp_basicsize   = sizeof(NyImmBitSetObject) - sizeof(NyBitField),
+    .tp_itemsize    = sizeof(NyBitField),
+    .tp_dealloc     = (destructor)immbitset_dealloc,
+    .tp_repr        = (reprfunc)immbitset_repr,
+    .tp_as_number   = &immbitset_as_number,
+    .tp_as_sequence = &immbitset_as_sequence,
+    .tp_as_mapping  = &immbitset_as_mapping,
+    .tp_hash        = (hashfunc)immbitset_hash,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = ImmBitSet_doc,
+    .tp_richcompare = (richcmpfunc)immbitset_richcompare,
+    .tp_iter        = (getiterfunc)immbitset_iter,
+    .tp_methods     = immbitset_methods,
+    .tp_getset      = immbitset_getsets,
+    .tp_base        = &NyBitSet_Type,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_new         = immbitset_new,
+    .tp_free        = PyObject_Del,
 };
 
 static PyNumberMethods cplbitset_as_number = {
@@ -3935,7 +3935,7 @@ cplbitset_reduce(NyCplBitSetObject *self, PyObject *args)
 static PyMethodDef cplbitset_methods[] = {
     {"mutcopy", (PyCFunction)cplbitset_mutable_copy, METH_NOARGS, mutable_copy_doc},
     {"__reduce__", (PyCFunction)cplbitset_reduce, METH_NOARGS, "helper for pickle"},
-    {NULL,        NULL}        /* sentinel */
+    {0} /* sentinel */
 };
 
 
@@ -3948,29 +3948,29 @@ cplbitset_traverse(NyHeapTraverse *ta)
 
 static PyGetSetDef cplbitset_getsets[] = {
     {"is_immutable", (getter)immbitset_is_immutable, (setter)0, immbitset_is_immutable_doc},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 
 PyTypeObject NyCplBitSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.CplBitSet",
-    .tp_basicsize      = sizeof(NyCplBitSetObject),
-    .tp_dealloc        = (destructor)cplbitset_dealloc,
-    .tp_repr           = (reprfunc)cplbitset_repr,
-    .tp_as_number      = &cplbitset_as_number,
-    .tp_as_sequence    = &cplbitset_as_sequence,
-    .tp_hash           = (hashfunc)cplbitset_hash,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = cplbitset_doc,
-    .tp_richcompare    = (richcmpfunc)cplbitset_richcompare,
-    .tp_methods        = cplbitset_methods,
-    .tp_getset         = cplbitset_getsets,
-    .tp_base           = &NyBitSet_Type,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_new            = cplbitset_new,
-    .tp_free           = PyObject_Del,
+    .tp_name        = "guppy.sets.setsc.CplBitSet",
+    .tp_basicsize   = sizeof(NyCplBitSetObject),
+    .tp_dealloc     = (destructor)cplbitset_dealloc,
+    .tp_repr        = (reprfunc)cplbitset_repr,
+    .tp_as_number   = &cplbitset_as_number,
+    .tp_as_sequence = &cplbitset_as_sequence,
+    .tp_hash        = (hashfunc)cplbitset_hash,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = cplbitset_doc,
+    .tp_richcompare = (richcmpfunc)cplbitset_richcompare,
+    .tp_methods     = cplbitset_methods,
+    .tp_getset      = cplbitset_getsets,
+    .tp_base        = &NyBitSet_Type,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_new         = cplbitset_new,
+    .tp_free        = PyObject_Del,
 };
 
 
@@ -4026,7 +4026,7 @@ static PyMethodDef mutbitset_methods[] = {
        mutable_copy_doc},
     {"tas", (PyCFunction)mutbitset_tasbit, METH_O, tasbit_doc},
     {"tac", (PyCFunction)mutbitset_tacbit, METH_O, tacbit_doc},
-    {NULL,        NULL}        /* sentinel */
+    {0} /* sentinel */
 };
 
 static PyObject *
@@ -4108,13 +4108,13 @@ static PyGetSetDef mutbitset_getsets[] = {
     {"_num_seg", (getter)mutbitset_get_num_seg, (setter)0},
     {"_indisize", (getter)anybitset_get_indisize, (setter)0},
     {"is_immutable", (getter)mutbitset_is_immutable, (setter)0, mutbitset_is_immutable_doc},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 #define OFF(x) offsetof(NyMutBitSetObject, x)
 static PyMemberDef mutbitset_members[] = {
     {"_splitting_size", T_INT, OFF(splitting_size)},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 static PyMappingMethods mutbitset_as_mapping = {
@@ -4124,47 +4124,47 @@ static PyMappingMethods mutbitset_as_mapping = {
 
 PyTypeObject NyMutBitSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.MutBitSet",
-    .tp_basicsize      = sizeof(NyMutBitSetObject),
-    .tp_dealloc        = (destructor)mutbitset_dealloc,
-    .tp_repr           = (reprfunc)mutbitset_repr,
-    .tp_as_number      = &mutbitset_as_number,
-    .tp_as_sequence    = &mutbitset_as_sequence,
-    .tp_as_mapping     = &mutbitset_as_mapping,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = mutbitset_doc,
-    .tp_richcompare    = (richcmpfunc)mutbitset_richcompare,
-    .tp_iter           = (getiterfunc)mutbitset_iter,
-    .tp_methods        = mutbitset_methods,
-    .tp_members        = mutbitset_members,
-    .tp_getset         = mutbitset_getsets,
-    .tp_base           = &NyBitSet_Type,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_new            = mutbitset_new,
-    .tp_free           = PyObject_Del,
+    .tp_name        = "guppy.sets.setsc.MutBitSet",
+    .tp_basicsize   = sizeof(NyMutBitSetObject),
+    .tp_dealloc     = (destructor)mutbitset_dealloc,
+    .tp_repr        = (reprfunc)mutbitset_repr,
+    .tp_as_number   = &mutbitset_as_number,
+    .tp_as_sequence = &mutbitset_as_sequence,
+    .tp_as_mapping  = &mutbitset_as_mapping,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = mutbitset_doc,
+    .tp_richcompare = (richcmpfunc)mutbitset_richcompare,
+    .tp_iter        = (getiterfunc)mutbitset_iter,
+    .tp_methods     = mutbitset_methods,
+    .tp_members     = mutbitset_members,
+    .tp_getset      = mutbitset_getsets,
+    .tp_base        = &NyBitSet_Type,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_new         = mutbitset_new,
+    .tp_free        = PyObject_Del,
 };
 
 
 PyTypeObject NyImmBitSetIter_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "immbitset-iterator",
-    .tp_basicsize      = sizeof(NyImmBitSetIterObject),
-    .tp_dealloc        = (destructor)bsiter_dealloc,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT,
-    .tp_iter           = (getiterfunc)bsiter_getiter,
-    .tp_iternext       = (iternextfunc)bsiter_iternext,
+    .tp_name      = "immbitset-iterator",
+    .tp_basicsize = sizeof(NyImmBitSetIterObject),
+    .tp_dealloc   = (destructor)bsiter_dealloc,
+    .tp_getattro  = PyObject_GenericGetAttr,
+    .tp_flags     = Py_TPFLAGS_DEFAULT,
+    .tp_iter      = (getiterfunc)bsiter_getiter,
+    .tp_iternext  = (iternextfunc)bsiter_iternext,
 };
 
 PyTypeObject NyUnion_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.Union",
-    .tp_basicsize      = sizeof(NyUnionObject) - NyUnion_MINSIZE*sizeof(NySetField),
-    .tp_itemsize       = sizeof(NySetField),
-    .tp_dealloc        = (destructor)union_dealloc,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT,
+    .tp_name      = "guppy.sets.setsc.Union",
+    .tp_basicsize = sizeof(NyUnionObject) - NyUnion_MINSIZE*sizeof(NySetField),
+    .tp_itemsize  = sizeof(NySetField),
+    .tp_dealloc   = (destructor)union_dealloc,
+    .tp_getattro  = PyObject_GenericGetAttr,
+    .tp_flags     = Py_TPFLAGS_DEFAULT,
 };
 
 
@@ -4496,5 +4496,4 @@ int fsb_dx_nybitset_init(PyObject *m)
     return 0;
     error:
     return -1;
-
 }

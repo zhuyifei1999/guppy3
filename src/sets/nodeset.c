@@ -241,13 +241,13 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
 
 PyTypeObject NyMutNodeSetIter_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "nodeset-iterator",
-    .tp_basicsize      = sizeof(NyMutNodeSetIterObject),
-    .tp_dealloc        = (destructor)mutnsiter_dealloc,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT,
-    .tp_iter           = (getiterfunc)mutnsiter_getiter,
-    .tp_iternext       = (iternextfunc)mutnsiter_iternext,
+    .tp_name      = "nodeset-iterator",
+    .tp_basicsize = sizeof(NyMutNodeSetIterObject),
+    .tp_dealloc   = (destructor)mutnsiter_dealloc,
+    .tp_getattro  = PyObject_GenericGetAttr,
+    .tp_flags     = Py_TPFLAGS_DEFAULT,
+    .tp_iter      = (getiterfunc)mutnsiter_getiter,
+    .tp_iternext  = (iternextfunc)mutnsiter_iternext,
 };
 
 
@@ -905,7 +905,7 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
         Py_DECREF(bsv);
         Py_DECREF(bsw);
         return (void *)ret;
-        err:
+err:
         Py_XDECREF(w);
         Py_XDECREF(bs);
         Py_XDECREF(bsv);
@@ -1013,12 +1013,12 @@ nodeset_iand(NyNodeSetObject *v, PyObject *w)
     if (NyNodeSet_iterate(v, (NyIterableVisitor) nodeset_iand_visit, &ta) == -1)
         goto err;
     Py_INCREF(v);
-    ret:
+ret:
     if (ta.w != (void *)w) {
         Py_XDECREF(ta.w);
     }
     return (PyObject *)v;
-    err:
+err:
     v = 0;
     goto ret;
 
@@ -1097,14 +1097,14 @@ static PyMethodDef mutnodeset_methods[] = {
     {"remove",      (PyCFunction)nodeset_remove, METH_O, remove_doc},
     {"tas",            (PyCFunction)nodeset_tas, METH_O, tas_doc},
     {"tac",       (PyCFunction)nodeset_tac, METH_O, tac_doc},
-    {NULL,            NULL}            /* sentinel */
+    {0} /* sentinel */
 };
 
 #define OFF(x) offsetof(NyNodeSetObject, x)
 
 static PyMemberDef mutnodeset_members[] = {
     {"_hiding_tag_",       T_OBJECT_EX, OFF(_hiding_tag_)},
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 #undef OFF
@@ -1135,20 +1135,20 @@ static  PyGetSetDef mutnodeset_getset[] = {
 
 PyTypeObject NyNodeSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.NodeSet",
-    .tp_basicsize      = sizeof(NyNodeSetObject),
-    .tp_as_number      = &nodeset_as_number,
-    .tp_as_sequence    = &nodeset_as_sequence,
-    .tp_as_mapping     = &nodeset_as_mapping,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = nodeset_doc,
-    .tp_traverse       = (traverseproc)mutnodeset_gc_traverse,
-    .tp_clear          = (inquiry)mutnodeset_gc_clear,
-    .tp_richcompare    = (richcmpfunc)nodeset_richcompare,
-    .tp_getset         = nodeset_getset,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_free           = PyObject_GC_Del,
+    .tp_name        = "guppy.sets.setsc.NodeSet",
+    .tp_basicsize   = sizeof(NyNodeSetObject),
+    .tp_as_number   = &nodeset_as_number,
+    .tp_as_sequence = &nodeset_as_sequence,
+    .tp_as_mapping  = &nodeset_as_mapping,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = nodeset_doc,
+    .tp_traverse    = (traverseproc)mutnodeset_gc_traverse,
+    .tp_clear       = (inquiry)mutnodeset_gc_clear,
+    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
+    .tp_getset      = nodeset_getset,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_free        = PyObject_GC_Del,
 };
 
 
@@ -1156,23 +1156,23 @@ PyTypeObject NyNodeSet_Type = {
 
 PyTypeObject NyMutNodeSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name           = "guppy.sets.setsc.MutNodeSet",
-    .tp_basicsize      = sizeof(NyNodeSetObject),
-    .tp_dealloc        = (destructor)mutnodeset_dealloc,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = mutnodeset_doc,
-    .tp_traverse       = (traverseproc)mutnodeset_gc_traverse,
-    .tp_clear          = (inquiry)mutnodeset_gc_clear,
-    .tp_richcompare    = (richcmpfunc)nodeset_richcompare,
-    .tp_iter           = (getiterfunc)mutnodeset_iter,
-    .tp_methods        = mutnodeset_methods,
-    .tp_members        = mutnodeset_members,
-    .tp_getset         = mutnodeset_getset,
-    .tp_base           = &NyNodeSet_Type,
-    .tp_alloc          = PyType_GenericAlloc,
-    .tp_new            = mutnodeset_new,
-    .tp_free           = PyObject_GC_Del,
+    .tp_name        = "guppy.sets.setsc.MutNodeSet",
+    .tp_basicsize   = sizeof(NyNodeSetObject),
+    .tp_dealloc     = (destructor)mutnodeset_dealloc,
+    .tp_getattro    = PyObject_GenericGetAttr,
+    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .tp_doc         = mutnodeset_doc,
+    .tp_traverse    = (traverseproc)mutnodeset_gc_traverse,
+    .tp_clear       = (inquiry)mutnodeset_gc_clear,
+    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
+    .tp_iter        = (getiterfunc)mutnodeset_iter,
+    .tp_methods     = mutnodeset_methods,
+    .tp_members     = mutnodeset_members,
+    .tp_getset      = mutnodeset_getset,
+    .tp_base        = &NyNodeSet_Type,
+    .tp_alloc       = PyType_GenericAlloc,
+    .tp_new         = mutnodeset_new,
+    .tp_free        = PyObject_GC_Del,
 };
 
 
