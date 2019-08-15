@@ -1,10 +1,12 @@
-#._cv_part guppy.etc.Help
+# ._cv_part guppy.etc.Help
 # -*- coding: utf-8 -*-
 
-import io, inspect, os
+import io
+import inspect
+import os
 
 THISDIR = os.path.dirname(__file__)
-#print 'THISDIR',THISDIR
+# print 'THISDIR',THISDIR
 
 
 class GuppyDoc:
@@ -27,15 +29,14 @@ class GuppyDoc:
                 continue
             elif not refline:
                 continue
-            line=line.strip()
+            line = line.strip()
             assert line.startswith('[')
-            refstop=line.index(']')
+            refstop = line.index(']')
             ref = line[1:refstop]
             refs[int(ref)] = line[refstop+1:].strip()
         url = refs[idx]
         url = self.mod.docurl(url)
         return self.mod.open_browser(url)
-
 
     def getheader(self):
         lines = self.str.split('\n')
@@ -56,6 +57,7 @@ class GuppyDoc:
 
     def __str__(self):
         return self.str
+
 
 class Lister:
     def __init__(self):
@@ -89,6 +91,7 @@ class GuppyDir(object):
         self.mod = mod
         self.opts = opts
         self.kwds = kwds
+
     def __call__(self, opts=None):
         li = self.li
         obj = self.obj
@@ -118,12 +121,15 @@ class GuppyDir(object):
                 r += t + '\n\n'
         else:
             r = Lister().list(self.li).getvalue().rstrip()
-        header = self.kwds.get('header','')
-        if header: header += '\n'
-        footer = self.kwds.get('footer','')
-        if footer: footer = '\n'+footer
+        header = self.kwds.get('header', '')
+        if header:
+            header += '\n'
+        footer = self.kwds.get('footer', '')
+        if footer:
+            footer = '\n'+footer
         r = header+r+footer
         return r
+
 
 class _GLUECLAMP_:
     def dir(self, obj=None, opts='', **kwds):
@@ -132,19 +138,20 @@ class _GLUECLAMP_:
         except AttributeError:
             return self.getdir_no_share(obj, opts, **kwds)
         clamp = share.Clamp
-        dl = getattr(clamp, '_dir_',None)
+        dl = getattr(clamp, '_dir_', None)
         if dl is not None:
             dl = list(dl)
         else:
             dl = []
-            private = getattr(clamp,'_private_',())
+            private = getattr(clamp, '_private_', ())
             try:
                 imports = clamp._imports_
             except AttributeError:
                 pass
             for imp in imports:
                 ix = imp.find(':')
-                if ix == -1: continue
+                if ix == -1:
+                    continue
                 dl.append(imp[ix+1:])
             for gm in dir(clamp):
                 if gm.startswith('_get_'):
@@ -154,12 +161,12 @@ class _GLUECLAMP_:
                         dl.append(gm)
             dl = [d for d in dl if not d in private]
         dl.sort()
-        return GuppyDir(dl,obj,self, opts, **kwds)
+        return GuppyDir(dl, obj, self, opts, **kwds)
 
     def getdir_no_share(self, obj, opts, **kwds):
         dl = dir(obj)
         dl = [d for d in dl if not d.startswith('_')]
-        return GuppyDir(dl,obj,self, opts, **kwds)
+        return GuppyDir(dl, obj, self, opts, **kwds)
 
     def getdoc2(self, obj, name):
         try:
@@ -177,20 +184,20 @@ class _GLUECLAMP_:
                 if ix == -1:
                     pass
                 else:
-                    if imp[ix+1:]==name:
+                    if imp[ix+1:] == name:
                         return self.getdoc_import(obj, clamp, name, imp, ix)
         for gm in dir(clamp):
-            if gm.startswith('_get_') and gm[5:]==name:
+            if gm.startswith('_get_') and gm[5:] == name:
                 return self.getdoc__get_(clamp, gm)
             else:
-                if name==gm:
+                if name == gm:
                     return self.getdoc_other(clamp, name)
 
         return GuppyDoc(self, '???')
 
     def getdoc_no_share(self, obj, name):
         try:
-            doc = getattr(obj,'_doc_'+name)
+            doc = getattr(obj, '_doc_'+name)
         except AttributeError:
             pass
         else:
@@ -240,7 +247,6 @@ class _GLUECLAMP_:
         print('doc', doc)
         return GuppyDoc(self, doc)
 
-
     def docurl(self, url):
         path = os.path.dirname(__file__)+'/../doc'
         url = 'file://'+path+'/'+url
@@ -250,13 +256,17 @@ class _GLUECLAMP_:
         try:
             import webbrowser
             webbrowser.open(url)
-        except ImportError: # pre-webbrowser.py compatibility
+        except ImportError:  # pre-webbrowser.py compatibility
             if sys.platform == 'win32':
                 os.system('start "%s"' % url)
             elif sys.platform == 'mac':
-                try: import ic
-                except ImportError: pass
-                else: ic.launchurl(url)
+                try:
+                    import ic
+                except ImportError:
+                    pass
+                else:
+                    ic.launchurl(url)
             else:
                 rc = os.system('netscape -remote "openURL(%s)" &' % url)
-                if rc: os.system('netscape "%s" &' % url)
+                if rc:
+                    os.system('netscape "%s" &' % url)

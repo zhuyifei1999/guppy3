@@ -1,6 +1,7 @@
-#._cv_part guppy.gsl.Main
+# ._cv_part guppy.gsl.Main
 
 from guppy.gsl.Exceptions import *
+
 
 class SpecEnv:
     def __init__(self, mod):
@@ -21,29 +22,28 @@ class SpecEnv:
             if src is not None:
                 filename = src.filename
                 linetext = src.get_line(index=context.index)
-            print('%s:%s:'% (filename, lineno))
+            print('%s:%s:' % (filename, lineno))
             if linetext:
-                print('    %r'%linetext)
+                print('    %r' % linetext)
 
-
-    def error(self, message, context=None, exception=ReportedError, more=(), harmless = 0):
-        self.error_reports.append((message, context, exception, more, harmless))
+    def error(self, message, context=None, exception=ReportedError, more=(), harmless=0):
+        self.error_reports.append(
+            (message, context, exception, more, harmless))
         if harmless:
             self.num_warnings += 1
         else:
             self.num_errors += 1
 
-
         self.errmsg_context(context)
         if harmless:
-            print('*   %s'%message)
+            print('*   %s' % message)
         else:
-            print('*** %s'%message)
+            print('*** %s' % message)
         print()
 
         for msg, ctx in more:
             self.errmsg_context(ctx)
-            print('    %s'%msg)
+            print('    %s' % msg)
             print()
 
         if self.debug:
@@ -64,7 +64,7 @@ class SpecEnv:
         pac = self.imported_packages.get(name)
         if pac is None:
             if name in self.importing_packages:
-                self.error('Invalid mutual import involving packages %r'%(
+                self.error('Invalid mutual import involving packages %r' % (
                     list(self.importing_packages.keys()),), context)
             self.importing_packages[name] = 1
             filename = name.replace('.', self.mod.IO.path.sep)+'.gsl'
@@ -78,6 +78,7 @@ class SpecEnv:
         defines = {}
 
         links = {}
+
         def walk(node):
             t = node.tag
             if t == 'link_to':
@@ -97,9 +98,9 @@ class SpecEnv:
 
         for name, ds in list(defines.items()):
             if len(ds) > 1:
-                print('Duplicate definition of name %r, defined in:'%name)
+                print('Duplicate definition of name %r, defined in:' % name)
                 for (d, node) in ds:
-                    print('    %s line %s'%(d.get_doc_name(), node.index+1))
+                    print('    %s line %s' % (d.get_doc_name(), node.index+1))
                 print('Will use the first one.')
 
         nodefs = []
@@ -113,7 +114,7 @@ class SpecEnv:
                 used = list(used.keys())
                 used.sort()
                 used = ', '.join(used)
-                nodefs.append('%s used in %s'%(name, used))
+                nodefs.append('%s used in %s' % (name, used))
             else:
                 defd, defnode = defines[name][0]
                 for (d, node) in ds:
@@ -134,7 +135,7 @@ class SpecEnv:
         pac.resolve_all()
         return pac
 
-    def package_of_filename(self, filename, packname = None, nostrip=1, input_string=None):
+    def package_of_filename(self, filename, packname=None, nostrip=1, input_string=None):
         mod = self.mod
         if packname is None:
             if filename.endswith('.gsl'):
@@ -151,8 +152,8 @@ class SpecEnv:
         else:
             data = mod.IO.read_file(filename)
         md5 = mod.md5()
-        md5.update('.filename: %s\n'%filename)
-        md5.update('.packname: : %s\n'%packname)
+        md5.update('.filename: %s\n' % filename)
+        md5.update('.packname: : %s\n' % packname)
         md5.update(data)
         digest = md5.digest()
         if digest in mod.package_cache:
@@ -160,14 +161,13 @@ class SpecEnv:
 
         node = mod.SpecNodes.node_of_string(data, filename, nostrip=nostrip)
         numerr = self.num_errors
-        print('Making package subject %r'%packname)
+        print('Making package subject %r' % packname)
         package = PackageSubject(mod, self, node, packname, filename)
         if numerr == self.num_errors:
             mod.package_cache[digest] = package
         return package
 
-
-    def process_main(self, filename, input_dir=None, output_dir=None, debug = False, max_errors=None,
+    def process_main(self, filename, input_dir=None, output_dir=None, debug=False, max_errors=None,
                      process_despite_errors=False, raise_at_errors=False,
                      input_string=None
                      ):
@@ -175,7 +175,7 @@ class SpecEnv:
             input_dir = self.mod.input_dir
         self.input_dir = input_dir
         if output_dir is None:
-            output_dir='/tmp'
+            output_dir = '/tmp'
         self.output_dir = output_dir
         self.debug = debug
         if max_errors is None:
@@ -183,10 +183,12 @@ class SpecEnv:
         self.max_errors = max_errors
 
         try:
-            pac = self.mkPackage(self.package_of_filename(filename, input_string=input_string))
+            pac = self.mkPackage(self.package_of_filename(
+                filename, input_string=input_string))
             documents = pac.get_documents()
             if not documents:
-                self.error('No documents specified.', exception=None, harmless=1)
+                self.error('No documents specified.',
+                           exception=None, harmless=1)
             if not self.num_errors or process_despite_errors:
                 print('Linking')
                 self.link_documents(documents)
@@ -202,14 +204,13 @@ class SpecEnv:
                 print('Writing: ', ', '.join(list(f.writefile_names)))
                 f.write()
         if self.num_warnings:
-            print('*   %d warning%s reported.'%(
-                self.num_warnings, 's'[:self.num_warnings>1]))
+            print('*   %d warning%s reported.' % (
+                self.num_warnings, 's'[:self.num_warnings > 1]))
         if self.num_errors:
-            print('*** %d error%s reported --%s no files written.'%(
-                self.num_errors, 's'[:self.num_errors>1], giving_up))
+            print('*** %d error%s reported --%s no files written.' % (
+                self.num_errors, 's'[:self.num_errors > 1], giving_up))
             if raise_at_errors:
                 raise HadReportedError('Some error has been reported.')
-
 
 
 class UntypedDescription:
@@ -244,16 +245,16 @@ class UntypedDescription:
 
         self.__class__ = dc
 
+
 class Description:
-    d_max_occur = None # Max occurence as an aspect if a number
+    d_max_occur = None  # Max occurence as an aspect if a number
     d_sub = ()  # Tags of allowed sub-aspects
     d_type = 'other'
     d_is_def = 0
     is_lookuped = False
-    is_synthetic = False # Set if it was made not to correspond with a user node
+    is_synthetic = False  # Set if it was made not to correspond with a user node
     the_less_specific_descr = None
     args = ()
-
 
     def aspects_extend(self, as_):
         for asp in as_:
@@ -267,7 +268,7 @@ class Description:
                             # May happen eg as in test16, for a product
                             # But it is somewhat mystical.
                             continue
-                        self.error('Duplicate aspect %r (may be correct in future).'%(k,),
+                        self.error('Duplicate aspect %r (may be correct in future).' % (k,),
                                    w.src.node,
                                    DuplicateError)
                     self.localview[k] = asp
@@ -275,7 +276,7 @@ class Description:
                 oc = asp.d_max_occur
                 if oc is not None:
                     if len(bn) + 1 > oc:
-                        self.error('More than %d %r aspects.'%(
+                        self.error('More than %d %r aspects.' % (
                             oc, asp.d_tag), asp.src.node)
                 bn.append(asp)
                 self.aspects.append(asp)
@@ -291,7 +292,6 @@ class Description:
             except ReportedError:
                 pass
 
-
     def deftgt(self, forme=None):
         if forme is None:
             forme = self
@@ -302,7 +302,8 @@ class Description:
             self.env.deftgt(forme)
         else:
             if forme.tgtfullname in tgtview:
-                self.error('Duplicate definition of %r'%forme.tgtfullname, forme.src.node)
+                self.error('Duplicate definition of %r' %
+                           forme.tgtfullname, forme.src.node)
             tgtview[forme.tgtfullname] = forme
 
     def error(self, msg, node=None, exception=ReportedError, **kwds):
@@ -316,7 +317,7 @@ class Description:
     def resolve_tgt(self):
         self.deftgt()
 
-    def find_aspects(self, tag = '*', *tags):
+    def find_aspects(self, tag='*', *tags):
         al = []
         tag = tag.replace(' ', '_')
         if tag in ('*', 'arg'):
@@ -335,7 +336,6 @@ class Description:
                 al.append(a)
         return al
 
-
     def find_arg_aspects(self):
         al = []
         for a in self.args:
@@ -343,7 +343,7 @@ class Description:
             al.append(a)
         for a in self.aspects:
             if a.d_tag in ('arg', 'seq', 'repeat', 'alt', 'args', 'optionals', 'key_arg',
-                          'draw', 'no_arg'):
+                           'draw', 'no_arg'):
                 a.resolve_lookuped()
                 al.append(a)
         return al
@@ -366,7 +366,6 @@ class Description:
             return self.the_less_specific_descr.get_descr_for_aspect(aspect)
         return self
 
-
     def get_atom_beams(self):
         aspects = self.find_aspects('*')
         aks = []
@@ -381,8 +380,6 @@ class Description:
                 for b in asp.get_atom_beams():
                     aks.append(a + b)
         return aks
-
-
 
     def get_aspects_kind(self, aspects=None):
         if aspects is None:
@@ -410,7 +407,7 @@ class Description:
 
     def get_re(self, opt):
         if opt.get('get_examples'):
-            exres = [self.mod.RE.Single(x) for x in self.get_examples() ]
+            exres = [self.mod.RE.Single(x) for x in self.get_examples()]
             if not exres:
                 self.error('Test coverage error: no examples specified.',
                            self.tgt.node,
@@ -432,14 +429,12 @@ class Description:
                 nds.append(d)
         return nds
 
-
     def get_package(self):
         return self.pac
 
     def is_more_specific_than(self, d):
         r = self.the_less_specific_descr
         return r is d or (r is not None and r.is_more_specific_than(d))
-
 
     def get_self_name(self):
         def find(e):
@@ -456,7 +451,7 @@ class Description:
     def gen_description_doc(self, out):
         ds = self.find_aspects('description')
         if not ds:
-            out.gen_text('<NO DESCRIPTION OF %r>'%self.tgtfullname)
+            out.gen_text('<NO DESCRIPTION OF %r>' % self.tgtfullname)
         else:
             for d in ds:
                 d.gen_doc(out)
@@ -488,7 +483,6 @@ class Description:
     def get_descr_by_subject(self, subject):
         return self.pac.get_descr_by_subject(subject)
 
-
     def init_localview(self, only_vars=0):
         self.localview = {}
         self.aspects = []
@@ -497,11 +491,11 @@ class Description:
         if not only_vars:
             self.aspects_extend_by_subjects(self.tgt.aspects)
 
-
     def resolve_aspects(self):
         self.init_localview()
         if self.src.args:
-            self.args = [self.env.get_descr_by_subject(arg) for arg in self.src.args]
+            self.args = [self.env.get_descr_by_subject(
+                arg) for arg in self.src.args]
         self.resolve_special()
 
     def resolve_special(self):
@@ -511,11 +505,12 @@ class Description:
     def get_the_one_argument(self):
         arg = self.src.node.arg.strip()
         if self.aspects:
-            'No children expected for %r'%self.node.tag
+            'No children expected for %r' % self.node.tag
         return arg
 
     def make_and_test_kind(self, kinds):
         ks = []
+
         def flatten(k):
             if k.d_tag == 'kind':
                 for k1 in k.find_kind_aspects():
@@ -532,18 +527,18 @@ class Description:
         k = Kind()
         k.d_tag = 'kind'
         k.aspects = kinds
-        k.tgtfullname = '(%s)'%('&'.join([x.tgtfullname for x in kinds]))
+        k.tgtfullname = '(%s)' % ('&'.join([x.tgtfullname for x in kinds]))
         k.is_lookuped = 1
         return k
 
     def make_and_kind(self, kinds):
-        if (len(kinds) == 1 and kinds[0].d_tag in( 'kind', 'kind_of')):
+        if (len(kinds) == 1 and kinds[0].d_tag in('kind', 'kind_of')):
             return kinds[0]
 
         k = Kind()
         k.d_tag = 'kind'
         k.aspects = kinds
-        k.tgtfullname = '(%s)'%('&'.join([x.tgtfullname for x in kinds]))
+        k.tgtfullname = '(%s)' % ('&'.join([x.tgtfullname for x in kinds]))
         k.is_lookuped = True
         k.is_synthetic = True
         return k
@@ -555,16 +550,16 @@ class Description:
             k = Superkind()
             k.d_tag = 'kind'
             k.aspects = kinds
-            k.tgtfullname = '(%s)'%('|'.join([x.tgtfullname for x in kinds]))
+            k.tgtfullname = '(%s)' % ('|'.join([x.tgtfullname for x in kinds]))
             k.is_lookuped = True
             k.is_synthetic = True
             return k
 
 
-
 class Definition(Description):
     d_is_def = 1
     d_type = 'definition'
+
     def export_aspects(self, src):
         src.__class__ = self.__class__
         if src.d_tag == 'import':
@@ -579,10 +574,11 @@ class Definition(Description):
 
 class DescriptionDescription(Description):
     d_sub = ('text', )
-    d_tag  = 'description'
+    d_tag = 'description'
 
     def gen_doc(self, out):
         self.srcnode.arg_accept(out)
+
 
 class Default(DescriptionDescription):
     def gen_doc(self, out):
@@ -617,12 +613,15 @@ class DescriptionWithHeader(DescriptionDescription):
         out.close()
         out.close()
 
+
 class Comment(DescriptionDescription):
     d_tag = 'comment'
     pass
 
+
 class Either(Description):
     d_type = 'with_args'
+
     def get_atom_beams(self):
         return [beam(self)]
 
@@ -631,6 +630,7 @@ class Either(Description):
 
     def get_alt_kinds(self):
         return self.find_kind_aspects()
+
 
 class Import(Definition):
     d_sub = ('from', 'resolve_by', 'using',
@@ -641,13 +641,14 @@ class Import(Definition):
              'self',
              'subkind_of',
              )
+
     def resolve_tgt(self):
         self.is_lookuped = 1
         using_name, using_node = self.src.imp_using_map.get(
             self.src.definame, (self.src.definame, self.src.node))
         import_node = self.src.node
         ds = [self.pac.import_package(from_name, from_node).
-                  get_descr_by_name(using_name, using_node)
+              get_descr_by_name(using_name, using_node)
               for (from_name, from_node) in self.src.imp_froms]
 
         if len(ds) == 1:
@@ -668,6 +669,7 @@ class Import(Definition):
     def resolve_aspects(self):
         pass
 
+
 class Product(Description):
     def __init__(self, env, ds, src, mode):
         self.env = env
@@ -679,11 +681,11 @@ class Product(Description):
         tgt = ds[0].tgt
         for d in ds[1:]:
             if d.tgt is not tgt:
-                self.error('Import error when importing from multiple packages:\n'+
-                           '  Can not make a product of %r (tgt = %r) with %r (tgt = %r)\n'%(
-                    d.src.fullname, d.tgt.fullname, ds[0].src.fullname, ds[0].tgt.fullname) +
-                    '  because of different targets.',
-                    d.src.node)
+                self.error('Import error when importing from multiple packages:\n' +
+                           '  Can not make a product of %r (tgt = %r) with %r (tgt = %r)\n' % (
+                               d.src.fullname, d.tgt.fullname, ds[0].src.fullname, ds[0].tgt.fullname) +
+                           '  because of different targets.',
+                           d.src.node)
 
         self.tgt = tgt
         self.ds = ds
@@ -698,6 +700,7 @@ class Product(Description):
                 return True
         return False
 
+
 class PackageDescription(UntypedDescription):
     def __init__(self, env, tgt, src):
         self.env = env
@@ -709,6 +712,7 @@ class PackageDescription(UntypedDescription):
 
 class ErrorDescription:
     d_tag = 'error'
+
     def __init__(self, env):
         self.env = env
 
@@ -722,7 +726,7 @@ class Package(Description):
              )
 
     def get_tgtdicts(self):
-        seen = {id(self.tgtview):1}
+        seen = {id(self.tgtview): 1}
         tgtdicts = [self.tgtview]
         for p in list(self.imported_packages.values()):
             sds = p.get_tgtdicts()
@@ -744,18 +748,17 @@ class Package(Description):
             except KeyError:
                 assert context
                 self.env.error(
-                    'Undefined: %r in %r.'%(part, e.get_id_name()), context,
+                    'Undefined: %r in %r.' % (part, e.get_id_name()), context,
                     exception=UndefinedError)
             e.resolve_lookuped()
         return e
-
 
     def get_descr_by_subject(self, subject):
         name = subject.fullname
         if name.startswith(self.srcfullname+'.'):
             name = name[len(self.srcfullname)+1:].strip()
         else:
-            self.error('Undefined: %r'%name, subject.node)
+            self.error('Undefined: %r' % name, subject.node)
         return self.get_descr_by_name(name, subject.node)
 
     def get_descr_by_tgt_name(self, name, context=None):
@@ -768,15 +771,16 @@ class Package(Description):
                 d = d.get_descr_for_aspect('*')
                 descrs.append(d)
         if not descrs:
-            self.error('No definition of tgt %r'%name, context, UndefinedError)
+            self.error('No definition of tgt %r' %
+                       name, context, UndefinedError)
         descrs = self.get_most_specific_descrs(descrs)
         if len(descrs) > 1:
             descrs = self.merge_policy(descrs)
             if len(descrs) > 1:
-                self.error('Conflicting descriptions of %r:%r'%(
+                self.error('Conflicting descriptions of %r:%r' % (
                     name, [d.src.fullname for d in descrs]),
-                           context,
-                           DuplicateError)
+                    context,
+                    DuplicateError)
 
         return descrs[0]
 
@@ -809,9 +813,11 @@ class Package(Description):
 
         return documents
 
+
 class Attribute(Definition):
     d_sub = ('attribute', 'comment', 'description', 'description_with_header',
              'either', 'kind_of', 'mapping', 'method', 'self')
+
     def export_aspects(self, src):
         src.__class__ = self.__class__
         src.aspects_extend(self.aspects)
@@ -833,13 +839,14 @@ class Attribute(Definition):
             if len(kas) == 1:
                 k = kas[0]
             else:
-                raise ValueError("Don't know how to name this kind, %r"%self)
+                raise ValueError("Don't know how to name this kind, %r" % self)
         return k.tgtfullname
 
     def get_link_name(self):
         # xxx needs smoother logic
-        s = '%s.%s'%(self.get_descr_by_subject(self.tgt.parent).get_link_name(), self.tgt.lastname)
-        #set_trace()
+        s = '%s.%s' % (self.get_descr_by_subject(
+            self.tgt.parent).get_link_name(), self.tgt.lastname)
+        # set_trace()
         return s
 
     def get_test_kind(self):
@@ -853,6 +860,7 @@ class Attribute(Definition):
     def get_op_name(self):
         return self.get_attr_name()
 
+
 class KindOf(Description):
     d_type = 'with_args'
     d_sub = ()
@@ -861,6 +869,7 @@ class KindOf(Description):
 class SubkindOf(Description):
     d_type = 'with_args'
     d_sub = ('description',)
+
 
 class Kind(Definition):
     d_sub = ('attribute', 'condition', 'description', 'comment', 'constructor',
@@ -879,18 +888,19 @@ class Kind(Definition):
         return self.find_aspects('mapping')
 
 
-
 class Superkind(Definition):
     d_sub = ('comment', 'description', 'example', 'superkind_of')
 
     def get_local_name(self):
-        if 0: # hmm xxx why was this?
+        if 0:  # hmm xxx why was this?
             if not self.aspects:
                 return '<nothing+>'
         return self.srclastname
 
+
 class SuperkindOf(Description):
     d_type = 'with_args'
+
     def get_examples(self, enough=1):
         examples = Description.get_examples(self, enough)
         if len(examples) < enough:
@@ -903,15 +913,15 @@ class SuperkindOf(Description):
         return examples
 
 
-
 class Example(Description):
     d_sub = ('comment', 'description', 'in_context')
-    partab = {"'''":"'''",
-              '"""':'"""',
-              '(':')',
-              '[':']',
-              '{':'}'
+    partab = {"'''": "'''",
+              '"""': '"""',
+              '(': ')',
+              '[': ']',
+              '{': '}'
               }
+
     def get_ex_text(self):
         return self.src.ex_text
 
@@ -928,11 +938,14 @@ class Example(Description):
     def get_use_text(self, x):
         return x
 
+
 class InContext(Description):
     d_max_occur = 1
 
+
 class Defines(Description):
     d_type = 'with_args'
+
     def get_defined_tgt_names(self):
         return [x.tgtfullname for x in self.find_aspects('arg')]
 
@@ -949,6 +962,7 @@ class Macro(Definition):
 
 class Self(Description):
     d_max_occur = 1
+
 
 class Mapping(Description):
     d_type = 'other'
@@ -970,19 +984,19 @@ class Mapping(Description):
             try:
                 if min is not None and min == max and len(x) != min:
                     self.error(
-                        '%s requires %d argument%s specified, got %d.'%(
+                        '%s requires %d argument%s specified, got %d.' % (
                             self.d_tag, min, 's'[min == 1:], len(x)),
                         self.src.node)
 
                 elif min is not None and len(x) < min:
                     self.error(
-                        '%s requires at least %d argument%s specified, got %d.'%(
+                        '%s requires at least %d argument%s specified, got %d.' % (
                             self.d_tag, min, 's'[min == 1:], len(x)),
                         self.src.node)
 
                 elif max is not None and len(x) > min:
                     self.error(
-                        '%s can take at most %d argument%s specified, got %d.'%(
+                        '%s can take at most %d argument%s specified, got %d.' % (
                             self.d_tag, max, 's'[max == 1:], len(x)),
                         self.src.node)
             except ReportedError:
@@ -998,7 +1012,7 @@ class Mapping(Description):
         # Get arguments example, esp. for test purposes
 
         try:
-            opt = {'get_examples':True}
+            opt = {'get_examples': True}
 
             re = self.get_args_re(opt)
 
@@ -1006,11 +1020,13 @@ class Mapping(Description):
             try:
                 xs = re.sequni()
             except self.mod.RE.InfiniteError:
-                print('Infinitely long args example for %s'%self.srcfullname)
-                print('Limiting by expanding each Cleene closure 0 up to %d times.'%coverage)
+                print('Infinitely long args example for %s' % self.srcfullname)
+                print(
+                    'Limiting by expanding each Cleene closure 0 up to %d times.' % coverage)
                 re = re.limited(coverage)
                 xs = re.sequni()
-            examples = [ArgsExample(self, tuple(x), mapname, top_kind) for x in xs]
+            examples = [ArgsExample(self, tuple(
+                x), mapname, top_kind) for x in xs]
         except CoverageError:
             return []
         else:
@@ -1029,9 +1045,9 @@ class Mapping(Description):
                     if not ex:
                         # I have been able to cause this to happen in test67.
                         self.error(
-    'Test coverage error: Can not create precondition for %r\n -- no examples specified for the argument above.'%args.mapping.tgtfullname,
-    a.src.node
-    )
+                            'Test coverage error: Can not create precondition for %r\n -- no examples specified for the argument above.' % args.mapping.tgtfullname,
+                            a.src.node
+                        )
                     v = ex[0]
                 arglist.append(v)
             else:
@@ -1046,19 +1062,15 @@ class Mapping(Description):
             re += a.get_re(opt)
         return re
 
-
     def get_arguments(self):
         # Get the arguments subjects, for doc description purposes
         return self.find_arg_aspects()
-
-
 
     def get_return_kind(self):
         return self.make_and_kind([x.get_kind() for x in self.find_aspects('returns')])
 
     def get_return_test_kind(self):
         return self.make_and_test_kind([x.get_test_kind() for x in self.find_aspects('returns')])
-
 
 
 class ArgsExample:
@@ -1080,7 +1092,7 @@ class ArgsExample:
                 if a.get_name() == name:
                     return self.egs[i]
             else:
-                raise ConditionError('No argument matches: %r'%name)
+                raise ConditionError('No argument matches: %r' % name)
             i += 1
 
     def get_preconditions(self):
@@ -1100,7 +1112,7 @@ class ArgsExample:
         pres = map.find_aspects('precondition')
         # print 'map', map, map.d_tag
         if pres:
-            #set_trace()
+            # set_trace()
             for a in kind.find_aspects('attribute'):
                 for m in a.find_aspects('mapping'):
                     mpre = m.find_aspects('precondition')
@@ -1129,7 +1141,7 @@ class ArgsExample:
         for pre in self.get_preconditions():
             for pos in posts:
                 if pos.cond_id == pre.cond_id:
-                    if len(pos.arg_names) != len( pre.arg_names):
+                    if len(pos.arg_names) != len(pre.arg_names):
                         continue
                     upd = {}
                     for a, b in zip(pos.arg_names, pre.arg_names):
@@ -1144,6 +1156,7 @@ class ArgsExample:
         assert ',' not in match
         return match
 
+
 class SetUp:
     def __init__(self, name, args):
         self.name = name
@@ -1154,7 +1167,6 @@ class SetUp:
 
     def get_args(self):
         return self.args
-
 
 
 class Operator(Mapping):
@@ -1175,12 +1187,15 @@ class Operator(Mapping):
 class ReverseOperator(Operator):
     pass
 
+
 class FunctionOperator(Operator):
     def resolve_special(self):
         self.chk_num_args(0, 0)
 
+
 class InplaceOperator(Operator):
     pass
+
 
 class SetItem(Mapping):
     d_type = 'other'
@@ -1195,15 +1210,18 @@ class SetItem(Mapping):
     def resolve_special(self):
         self.chk_num_args(2, None)
 
+
 class DelItem(SetItem):
     def resolve_special(self):
         self.chk_num_args(1, None)
+
 
 class GetItem(SetItem):
     d_sub = SetItem.d_sub + ('returns', )
 
     def resolve_special(self):
         self.chk_num_args(1, None)
+
 
 class Condition(Description):
     d_is_def = 1
@@ -1223,11 +1241,14 @@ class Condition(Description):
 
     def_name = property(get_def_name)
 
+
 class PythonCode(Description):
     d_sub = ('comment', 'description', 'in_context')
 
+
 class ConditionRef(Description):
     d_sub = ('comment', 'description',)
+
     def __repr__(self):
         try:
             return self.cond_expr
@@ -1255,14 +1276,15 @@ class ConditionRef(Description):
         self.is_not = self.src.is_not
 
 
-
 class Precondition(ConditionRef):
     #doc_name = 'Before'
     doc_name = 'Precondition'
 
+
 class Postcondition(ConditionRef):
     #doc_name = 'After'
     doc_name = 'Postcondition'
+
 
 class PostcondCase:
     # Postcondition with specific variables
@@ -1270,14 +1292,15 @@ class PostcondCase:
         self.postcond = postcond
         self.variables = variables
 
+
 class Constructor(Description):
     d_type = 'with_args'
     d_sub = ('comment', 'description',)
 
 
-
 class Equation(Description):
     d_sub = ('comment', 'description', 'precondition', 'postcondition')
+
 
 class Args(Description):
     d_type = 'with_args'
@@ -1289,9 +1312,11 @@ class Args(Description):
             re += a.get_re(opt)
         return re
 
+
 class NoArg(Description):
     def get_re(self, opt):
         return self.mod.RE.Epsilon
+
 
 class Arg(Description):
     d_sub = ('comment', 'default', 'description', 'superkind_of', 'name', )
@@ -1318,6 +1343,7 @@ class Arg(Description):
             examples.extend(k.get_examples())
         return examples
 
+
 class KeyArgEG:
     def __init__(self, name, eg):
         self.name = name
@@ -1330,7 +1356,7 @@ class KeyArgEG:
         return self.eg.get_ctx_text()
 
     def get_use_text(self, x):
-        return '%s=%s'%(self.name, x)
+        return '%s=%s' % (self.name, x)
 
 
 class KeyArg(Arg):
@@ -1342,17 +1368,21 @@ class KeyArg(Arg):
         name = self.get_arg_name()
         return [KeyArgEG(name, eg) for eg in Arg.get_examples(self, get_all)]
 
+
 class Draw(Description):
     d_sub = ('comment', 'description', 'key_arg', 'seq', )
+
     def get_re(self, opt):
         re = self.mod.RE.Epsilon
         for a in self.find_arg_aspects():
             re += a.get_re(opt)('?')
         return re
 
+
 class Optionals(Description):
     d_sub = ('arg', 'args', 'key_arg', 'comment', 'seq', )
     d_type = 'with_args'
+
     def get_re(self, opt):
         def opt_ra(aspects):
             if not aspects:
@@ -1363,14 +1393,14 @@ class Optionals(Description):
 
 class Repeat(Description):
     d_sub = ('alt', 'arg', 'args', 'comment', 'description')
+
     def get_arg(self):
         return self.src.node.arg.strip()
 
     def get_re(self, opt):
         asp = self.find_arg_aspects()
         if not asp:
-            self.error('No argument aspects.',self.src.node)
-
+            self.error('No argument aspects.', self.src.node)
 
         re = asp[0].get_re(opt)
         for a in asp[1:]:
@@ -1382,7 +1412,8 @@ class Repeat(Description):
         if sep in arg:
             args = arg.split(sep)
             if len(args) != 2:
-                self.error('More than one %r in argument.'%sep, self.src.node)
+                self.error('More than one %r in argument.' %
+                           sep, self.src.node)
             lo, hi = [x.strip() for x in args]
             try:
                 lo = int(lo)
@@ -1392,15 +1423,18 @@ class Repeat(Description):
                 try:
                     hi = int(hi)
                 except:
-                    self.error('Expected int or * in upper bound.', self.src.node)
+                    self.error('Expected int or * in upper bound.',
+                               self.src.node)
         else:
             try:
                 lo = int(arg)
             except:
-                self.error('Expected int, int..int or int..* in argument.', self.src.node)
+                self.error(
+                    'Expected int, int..int or int..* in argument.', self.src.node)
             hi = lo
         if lo < 0 or (hi != '*' and hi < 0):
-            self.error('Expected non-negative repetition count.',  self.src.node)
+            self.error('Expected non-negative repetition count.',
+                       self.src.node)
 
         if hi == '*':
             res = re('*')
@@ -1408,7 +1442,8 @@ class Repeat(Description):
                 res = re + res
         else:
             if hi < lo:
-                self.error('Expected upper bound >= lower bound.', self.src.node)
+                self.error('Expected upper bound >= lower bound.',
+                           self.src.node)
 
             a = self.mod.RE.Epsilon
             for i in range(lo):
@@ -1423,17 +1458,20 @@ class Repeat(Description):
 
 class Seq(Description):
     d_sub = ('arg', 'comment', 'description', 'optionals',)
-    d_sub += ('key_arg', ) # May perhaps be optionally disabled
+    d_sub += ('key_arg', )  # May perhaps be optionally disabled
     d_type = 'with_args'
+
     def get_re(self, opt):
         re = self.mod.RE.Epsilon
         for a in self.find_arg_aspects():
             re += a.get_re(opt)
         return re
 
+
 class Alt(Description):
     d_sub = ('arg', 'comment', 'descripton', 'key_arg', 'no_arg', 'seq', )
     d_type = 'with_args'
+
     def get_re(self, opt):
         asp = self.find_arg_aspects()
         if not asp:
@@ -1442,6 +1480,7 @@ class Alt(Description):
         for a in asp[1:]:
             re |= a.get_re(opt)
         return re
+
 
 class Returns(Description):
     d_sub = ('attribute', 'comment', 'description', 'description_with_header',
@@ -1456,6 +1495,7 @@ class Returns(Description):
 
 # help functions
 
+
 def find_aspects_inseq(seq, tag):
     as_ = []
     for o in seq:
@@ -1463,6 +1503,7 @@ def find_aspects_inseq(seq, tag):
     return as_
 
 # Beam base class
+
 
 class Beam:
     def __init__(self, k_tag, *objects):
@@ -1474,14 +1515,18 @@ class Beam:
     def __add__(self, other):
         return compose(self, other)
 
+
 class KindBeam(Beam):
     pass
+
 
 class AtomKindBeam(Beam):
     pass
 
+
 class KindMappingBeam(Beam):
     pass
+
 
 class KindOpBeam(Beam):
     op_index = 1
@@ -1518,27 +1563,33 @@ class KindOpBeam(Beam):
     def get_return_test_kind(self):
         return self.get_the_op().get_return_test_kind()
 
+
 class KindAttributeBeam(KindOpBeam):
     def get_the_op(self):
         assert 0
 
+
 class KindAttributeMappingBeam(KindOpBeam):
     op_index = 2
+
 
 class KindMappingBeam(KindOpBeam):
     def get_op_name(self):
         return '()'
 
+
 class KOKOpBeam(KindOpBeam):
     op_index = 2
     op_name_index = 2
 
+
 def subkind_of_kind(*objects):
     return beam(*objects[2:])
 
+
 def compose(a, b):
     if a.tgt is not b.src:
-        raise "Composition error, tgt %r is not src %r"%(a.tgt, b.src)
+        raise "Composition error, tgt %r is not src %r" % (a.tgt, b.src)
 
     objects = a.objects + b.objects[1:]
     return beam(*objects)
@@ -1547,72 +1598,75 @@ def compose(a, b):
 def remove_1_2(k_tag, *objects):
     return beam(objects[0], *objects[3:])
 
+
 def remove_0(k_tag, *objects):
     return beam(*objects[1:])
 
-beam_table = {
-    ('attribute', 'attribute') : Beam,
-    ('attribute', 'either') : Beam,
-    ('attribute', 'kind_of') : Beam,
-    ('attribute', 'kind_of', 'kind', 'attribute') : Beam,
-    ('attribute', 'kind_of', 'kind', 'function_operator') : Beam,
-    ('attribute', 'kind_of', 'kind', 'inplace_operator') : Beam,
-    ('attribute', 'kind_of', 'kind', 'mapping') : Beam,
-    ('attribute', 'kind_of', 'kind', 'operator') : Beam,
-    ('attribute', 'kind_of', 'kind', 'reverse_operator') : Beam,
-    ('attribute', 'kind_of', 'kind', 'delitem') : Beam,
-    ('attribute', 'kind_of', 'kind', 'getitem') : Beam,
-    ('attribute', 'kind_of', 'kind', 'setitem') : Beam,
-    ('attribute', 'mapping') : Beam,
-    ('either', ) : Beam,
-    ('either', 'kind') : Beam,
-    ('either', 'kind', 'attribute') : Beam,
-    ('kind', 'attribute') : Beam,
-    ('kind', 'attribute', 'kind_of', 'kind', 'mapping') : KindAttributeBeam,
-    ('kind', 'attribute', 'mapping') : KindAttributeMappingBeam,
-    ('kind', 'either') : Beam,
-    ('kind', 'function_operator') : KindOpBeam,
-    ('kind', 'delitem') : KindOpBeam,
-    ('kind', 'getitem') : KindOpBeam,
-    ('kind', 'inplace_operator') : KindOpBeam,
-    ('kind', 'kind_of') : Beam,
-    ('kind', 'kind_of', 'kind', 'attribute') : Beam,
-    ('kind', 'mapping') : KindMappingBeam,
-    ('kind', 'operator') : KindOpBeam,
-    ('kind', 'reverse_operator') : KindOpBeam,
-    ('kind', 'setitem') : KindOpBeam,
-    ('kind', 'subkind_of') : Beam,
-    ('kind', 'subkind_of', 'kind', 'attribute') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'function_operator') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'delitem') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'getitem') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'inplace_operator') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'mapping') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'operator') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'reverse_operator') : remove_1_2,
-    ('kind', 'subkind_of', 'kind', 'setitem') : remove_1_2,
-    ('kind_of', 'kind') : Beam,
-    ('kind_of', 'kind', 'attribute') : Beam,
-    ('kind_of', 'kind', 'function_operator') : KOKOpBeam,
-    ('kind_of', 'kind', 'delitem') : KOKOpBeam,
-    ('kind_of', 'kind', 'getitem') : KOKOpBeam,
-    ('kind_of', 'kind', 'inplace_operator') : KOKOpBeam,
-    ('kind_of', 'kind', 'operator') : KOKOpBeam,
-    ('kind_of', 'kind', 'reverse_operator') : KOKOpBeam,
-    ('kind_of', 'kind', 'setitem') : KOKOpBeam,
-    ('kind_of', 'kind', 'mapping') : Beam,
-    ('subkind_of', 'kind') : Beam,
-    ('subkind_of', 'kind', 'attribute') : Beam,
-    ('subkind_of', 'kind', 'function_operator') : Beam,
-    ('subkind_of', 'kind', 'delitem') : Beam,
-    ('subkind_of', 'kind', 'getitem') : Beam,
-    ('subkind_of', 'kind', 'inplace_operator') : Beam,
-    ('subkind_of', 'kind', 'mapping') : Beam,
-    ('subkind_of', 'kind', 'operator') : Beam,
-    ('subkind_of', 'kind', 'reverse_operator') : Beam,
-    ('subkind_of', 'kind', 'setitem') : Beam,
 
-    }
+beam_table = {
+    ('attribute', 'attribute'): Beam,
+    ('attribute', 'either'): Beam,
+    ('attribute', 'kind_of'): Beam,
+    ('attribute', 'kind_of', 'kind', 'attribute'): Beam,
+    ('attribute', 'kind_of', 'kind', 'function_operator'): Beam,
+    ('attribute', 'kind_of', 'kind', 'inplace_operator'): Beam,
+    ('attribute', 'kind_of', 'kind', 'mapping'): Beam,
+    ('attribute', 'kind_of', 'kind', 'operator'): Beam,
+    ('attribute', 'kind_of', 'kind', 'reverse_operator'): Beam,
+    ('attribute', 'kind_of', 'kind', 'delitem'): Beam,
+    ('attribute', 'kind_of', 'kind', 'getitem'): Beam,
+    ('attribute', 'kind_of', 'kind', 'setitem'): Beam,
+    ('attribute', 'mapping'): Beam,
+    ('either', ): Beam,
+    ('either', 'kind'): Beam,
+    ('either', 'kind', 'attribute'): Beam,
+    ('kind', 'attribute'): Beam,
+    ('kind', 'attribute', 'kind_of', 'kind', 'mapping'): KindAttributeBeam,
+    ('kind', 'attribute', 'mapping'): KindAttributeMappingBeam,
+    ('kind', 'either'): Beam,
+    ('kind', 'function_operator'): KindOpBeam,
+    ('kind', 'delitem'): KindOpBeam,
+    ('kind', 'getitem'): KindOpBeam,
+    ('kind', 'inplace_operator'): KindOpBeam,
+    ('kind', 'kind_of'): Beam,
+    ('kind', 'kind_of', 'kind', 'attribute'): Beam,
+    ('kind', 'mapping'): KindMappingBeam,
+    ('kind', 'operator'): KindOpBeam,
+    ('kind', 'reverse_operator'): KindOpBeam,
+    ('kind', 'setitem'): KindOpBeam,
+    ('kind', 'subkind_of'): Beam,
+    ('kind', 'subkind_of', 'kind', 'attribute'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'function_operator'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'delitem'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'getitem'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'inplace_operator'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'mapping'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'operator'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'reverse_operator'): remove_1_2,
+    ('kind', 'subkind_of', 'kind', 'setitem'): remove_1_2,
+    ('kind_of', 'kind'): Beam,
+    ('kind_of', 'kind', 'attribute'): Beam,
+    ('kind_of', 'kind', 'function_operator'): KOKOpBeam,
+    ('kind_of', 'kind', 'delitem'): KOKOpBeam,
+    ('kind_of', 'kind', 'getitem'): KOKOpBeam,
+    ('kind_of', 'kind', 'inplace_operator'): KOKOpBeam,
+    ('kind_of', 'kind', 'operator'): KOKOpBeam,
+    ('kind_of', 'kind', 'reverse_operator'): KOKOpBeam,
+    ('kind_of', 'kind', 'setitem'): KOKOpBeam,
+    ('kind_of', 'kind', 'mapping'): Beam,
+    ('subkind_of', 'kind'): Beam,
+    ('subkind_of', 'kind', 'attribute'): Beam,
+    ('subkind_of', 'kind', 'function_operator'): Beam,
+    ('subkind_of', 'kind', 'delitem'): Beam,
+    ('subkind_of', 'kind', 'getitem'): Beam,
+    ('subkind_of', 'kind', 'inplace_operator'): Beam,
+    ('subkind_of', 'kind', 'mapping'): Beam,
+    ('subkind_of', 'kind', 'operator'): Beam,
+    ('subkind_of', 'kind', 'reverse_operator'): Beam,
+    ('subkind_of', 'kind', 'setitem'): Beam,
+
+}
+
 
 def beam(*objects):
     k_tag = tuple([x.d_tag for x in objects])
@@ -1620,15 +1674,16 @@ def beam(*objects):
     return C(k_tag, *objects)
 
 
-
 class ProductSubject:
     def __init__(self, subjects):
         self.subjects = subjects
-        self.fullname = '(%s)'%'*'.join([x.fullname for x in subjects])
+        self.fullname = '(%s)' % '*'.join([x.fullname for x in subjects])
+
 
 class Subject:
     args = ()
     specified_name = None
+
     def __init__(self, parent, node, lastname):
         self.parent = parent
         self.pac = parent.pac
@@ -1657,7 +1712,7 @@ class Subject:
         shtag = self.mod.SpecNodes.reverse_node_aliases[node.tag]
         names = self.get_arglist(node, min=1)
         for name in names:
-            name = '%s:%s'%(shtag, name)
+            name = '%s:%s' % (shtag, name)
             self.add_new_subject(node, name)
 
     def _visit_type_other(self, node):
@@ -1700,19 +1755,18 @@ class Subject:
         if subject.description_class.d_is_def:
             name = subject.lastname
             if name in self.subjects:
-                self.error('Redefinition of %r.'%name, subject.node,
-                           more = [(
-                               'Previous definition of %r.'%name,
+                self.error('Redefinition of %r.' % name, subject.node,
+                           more=[(
+                               'Previous definition of %r.' % name,
                                self.subjects[name].node)]
                            )
-                return # For clarity; there's most certainly an exception
+                return  # For clarity; there's most certainly an exception
 
             subject.definame = name
             self.subjects[name] = subject
         else:
             subject.definame = None
         self.aspects.append(subject)
-
 
     def error(self, msg, node=None, exception=ReportedError, **kwds):
         return self.pac.error(msg, node, exception, **kwds)
@@ -1733,7 +1787,8 @@ class Subject:
                 break
         if len(arglist) < min:
             self.error(
-                'Not enough arguments, minimum %d expected to node %s'%(min, node),
+                'Not enough arguments, minimum %d expected to node %s' % (
+                    min, node),
                 node)
         return arglist
 
@@ -1754,7 +1809,7 @@ class Subject:
             self.aspect_mode = mode
         else:
             if self.aspect_mode != mode:
-                self.error('Inconsistent aspect mode: %r, was: %r'%(mode, self.aspect_mode),
+                self.error('Inconsistent aspect mode: %r, was: %r' % (mode, self.aspect_mode),
                            node)
         self._visit_children(node)
 
@@ -1762,7 +1817,7 @@ class Subject:
         for ch in node.children:
             try:
                 if ch.tag not in self.description_class.d_sub:
-                    self.error('Invalid  tag: %r  in: %r. Allowed = %s'%(
+                    self.error('Invalid  tag: %r  in: %r. Allowed = %s' % (
                         ch.tag, self.tag, self.description_class.d_sub), node)
                 if self.mod.cover_check is not None:
                     self.mod.cover_check.setdefault(self.tag, {})[ch.tag] = 1
@@ -1772,13 +1827,13 @@ class Subject:
             self.node_index += 1
 
     def make_child_name(self, child_lastname):
-        return '%s.%s'%(self.fullname, child_lastname)
+        return '%s.%s' % (self.fullname, child_lastname)
 
     def new_subject(self, node, name=None):
         is_def = self.mod.get_description_class(node.tag).d_is_def
         assert is_def == (name is not None)
         if name is None:
-            name = '<%d>'%self.node_index
+            name = '<%d>' % self.node_index
         tag = node.tag
         if tag == 'macro':
             return MacroSubject(self, node, name)
@@ -1792,7 +1847,7 @@ class Subject:
 
     def no_children(self, node):
         if node.children:
-            self.error('No children expected for node with tag %r'%node.tag,
+            self.error('No children expected for node with tag %r' % node.tag,
                        node,
                        exception=None)
 
@@ -1843,7 +1898,7 @@ class Subject:
     def visit_condition(self, node):
         names = self.get_arglist(node, min=1)
         for name in names:
-            self.add_new_subject(node, 'cond:%s'%name)
+            self.add_new_subject(node, 'cond:%s' % name)
 
     def visit_default(self, node):
         description_class = self.mod.get_description_class(node.tag)
@@ -1851,12 +1906,12 @@ class Subject:
         colon = arg.startswith(':')
         if (description_class.d_type == 'definition') != colon:
             if colon:
-                msg = 'Tag %r is not a definition, should not have ::'%node.tag
+                msg = 'Tag %r is not a definition, should not have ::' % node.tag
             else:
-                msg = 'Tag %r is a definition, requires ::'%node.tag
+                msg = 'Tag %r is a definition, requires ::' % node.tag
             self.error(msg, node, exception=None)
 
-        getattr(self, '_visit_type_%s'%description_class.d_type)(node)
+        getattr(self, '_visit_type_%s' % description_class.d_type)(node)
 
     def visit_description(self, node):
         self.def_new_subject(node)
@@ -1873,8 +1928,8 @@ class Subject:
             if not (partab.get(ex[:1]) == ex[-1:] or
                     partab.get(ex[:3]) == ex[-3:]):
                 self.error('Multi-line expression should be in parentheses (for clarity).', node,
-                       exception=None, harmless=1)
-            ex = '(%s)'%ex
+                           exception=None, harmless=1)
+            ex = '(%s)' % ex
 
         subject.ex_text = ex
 
@@ -1891,7 +1946,8 @@ class Subject:
                     froms.append((name, ch))
             elif t == 'resolve_by':
                 if resolve_mode:
-                    self.error("More than 1 'resolve' clause.", ch.node, exception=None)
+                    self.error("More than 1 'resolve' clause.",
+                               ch.node, exception=None)
                 else:
                     resolve_mode = ch.arg.strip()
                     if not resolve_mode in ('and', 'or'):
@@ -1915,7 +1971,7 @@ class Subject:
                 else:
                     manyfew = 'many'
                 self.error(
-                    "Too %s 'using' names, should match number of names in .import"%manyfew,
+                    "Too %s 'using' names, should match number of names in .import" % manyfew,
                     using_node,
                     exception=None)
             for m, u in zip(my_names, usings):
@@ -1945,7 +2001,7 @@ class Subject:
         if not arg.startswith(':'):
             self.error("Tag 'method' is a definition, requires ::", node)
         self.mod.node_of_taci('attribute', arg,
-                          (self.mod.node_of_taci('mapping', '', node.children),)).accept(self)
+                              (self.mod.node_of_taci('mapping', '', node.children),)).accept(self)
 
     def visit_name(self, node):
         if self.specified_name is not None:
@@ -1959,7 +2015,6 @@ class Subject:
         for name in self.get_arglist(node, min=1):
             ofsubject = self.find_subject(name, node)
             ofsubject._visit_aspect(node, 'or')
-
 
     def visit_postcondition(self, node):
         arg = node.arg.strip()
@@ -1985,7 +2040,6 @@ class Subject:
             cond_name = cond_name[4:].strip()
             is_not = 1
 
-
         parts = cond_name.split('.')
         if not parts[-1].startswith('cond:'):
             parts[-1] = 'cond:'+parts[-1]
@@ -2002,9 +2056,9 @@ class Subject:
         self.visit_postcondition(node)
 
 
-
 class ErrorSubject(Subject):
     pass
+
 
 class PackageSubject(Subject):
     def __init__(self, mod, specenv, node, name, filename):
@@ -2013,7 +2067,7 @@ class PackageSubject(Subject):
         self.pac = self
         self.filename = filename
         #name = 'package_%s'%(name,)
-        name = '%s'%(name,)
+        name = '%s' % (name,)
         Subject.__init__(self, self, node, name)
         self.lastname = name.split('.')[-1]
         self.tag = 'package'
@@ -2025,14 +2079,14 @@ class PackageSubject(Subject):
             self.subjects[s.fullname] = s
 
         self._visit_children(node)
-        del self.specenv # It was used only for error report
+        del self.specenv  # It was used only for error report
 
     def error(self, msg, node=None, exception=ReportedError, **kwds):
         return self.specenv.error(msg, node, exception, **kwds)
 
     def find_subject(self, name, node, context=None):
         if not name:
-            self.error('Invalid subject name: %r'%name, node)
+            self.error('Invalid subject name: %r' % name, node)
 
         parts = [x.strip() for x in name.split('.')]
         if not parts[0]:
@@ -2052,36 +2106,42 @@ class PackageSubject(Subject):
                 if s.tag not in kind_tags:
                     s = None
             if s is None:
-                self.error('mykind tag without such a context: %r'%name, node)
+                self.error('mykind tag without such a context: %r' %
+                           name, node)
         else:
-            self.error('Invalid tag %r in %r'%(tag, name), node)
+            self.error('Invalid tag %r in %r' % (tag, name), node)
 
         sname = s.lastname
         for i, n in enumerate(parts):
             ns = s.subjects.get(n)
             if ns is None:
                 if s.tag != 'import':
-                    self.error('No such subject: %r  in %r.'%(n, sname), node)
+                    self.error('No such subject: %r  in %r.' %
+                               (n, sname), node)
                 return SubImportSubject(s, node, parts[i:])
             sname = sname + '.' + n
             s = ns
         return s
 
+
 class SubImportSubject:
     def __init__(self, parent, node, rnparts):
         self.parent = parent
         self.node = node
-        self.rnparts= rnparts
+        self.rnparts = rnparts
         self.fullname = '.'.join([parent.fullname]+rnparts)
         self.lastname = rnparts[-1]
+
 
 class MacroSubject(Subject):
     def add_top_node(self):
         pass
 
+
 class DocumentSubject(Subject):
     def add_top_node(self):
         self.parent.documents.append(self)
+
 
 class GuppyWorld(Subject):
     def __init__(self, env):
@@ -2091,7 +2151,6 @@ class GuppyWorld(Subject):
         self.tag = '<GuppyWorld>'
         self.aspects = []
         self.description_class = Description
-
 
 
 class _GLUECLAMP_:
@@ -2108,55 +2167,54 @@ class _GLUECLAMP_:
         '_root.md5:md5',
         '_root.guppy.etc:iterpermute',
         '_root.guppy.etc:RE',
-        )
+    )
 
     _chgable_ = ('cover_check', 'io_dir', 'max_errors')
 
     description_classes = {
-        'alt'           : Alt,
-        'arg'           : Arg,
-        'args'          : Args,
-        'attribute'     : Attribute,
-        'comment'       : Comment,
-        'condition'     : Condition,
-        'constructor'   : Constructor,
-        'default'       : Default,
-        'defines'       : Defines,
-        'delitem'       : DelItem,
-        'description'   : DescriptionDescription,
+        'alt': Alt,
+        'arg': Arg,
+        'args': Args,
+        'attribute': Attribute,
+        'comment': Comment,
+        'condition': Condition,
+        'constructor': Constructor,
+        'default': Default,
+        'defines': Defines,
+        'delitem': DelItem,
+        'description': DescriptionDescription,
         'description_with_header': DescriptionWithHeader,
-        'equation'      : Equation,
-        'example'       : Example,
-        'either'        : Either,
-        'draw'          : Draw,
-        'function_operator' : FunctionOperator,
-        'getitem'       : GetItem,
-        'import'        : Import,
-        'in_context'    : InContext,
+        'equation': Equation,
+        'example': Example,
+        'either': Either,
+        'draw': Draw,
+        'function_operator': FunctionOperator,
+        'getitem': GetItem,
+        'import': Import,
+        'in_context': InContext,
         'inplace_operator': InplaceOperator,
-        'key_arg'       : KeyArg,
-        'kind'          : Kind,
-        'kind_of'       : KindOf,
-        'macro'         : Macro,
-        'mapping'       : Mapping,
-        'no_arg'        : NoArg,
-        'operator'      : Operator,
-        'postcondition' : Postcondition,
-        'precondition'  : Precondition,
-        'python_code'   : PythonCode,
-        'reverse_operator'      : ReverseOperator,
-        'optionals'     : Optionals,
-        'package'       : Package,
-        'repeat'        : Repeat,
-        'returns'       : Returns,
-        'self'          : Self,
-        'seq'           : Seq,
-        'setitem'       : SetItem,
-        'subkind_of'    : SubkindOf,
-        'superkind'     : Superkind,
-        'superkind_of'  : SuperkindOf,
-        }
-
+        'key_arg': KeyArg,
+        'kind': Kind,
+        'kind_of': KindOf,
+        'macro': Macro,
+        'mapping': Mapping,
+        'no_arg': NoArg,
+        'operator': Operator,
+        'postcondition': Postcondition,
+        'precondition': Precondition,
+        'python_code': PythonCode,
+        'reverse_operator': ReverseOperator,
+        'optionals': Optionals,
+        'package': Package,
+        'repeat': Repeat,
+        'returns': Returns,
+        'self': Self,
+        'seq': Seq,
+        'setitem': SetItem,
+        'subkind_of': SubkindOf,
+        'superkind': Superkind,
+        'superkind_of': SuperkindOf,
+    }
 
     tgt_prefix = '.tgt.'
 
@@ -2185,6 +2243,6 @@ class _GLUECLAMP_:
         self.input_dir = dir
 
 
-if 0 or __name__=='__main__':
+if 0 or __name__ == '__main__':
     from guppy import Root
     Root().guppy.gsl.Main._test_main_()

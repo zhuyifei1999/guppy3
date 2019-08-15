@@ -1,7 +1,8 @@
-#._cv_part guppy.gsl.XHTML
+# ._cv_part guppy.gsl.XHTML
+
 
 class Node2XHTML:
-    def __init__(self, mod, node=None, error_report = None, encode_name=None
+    def __init__(self, mod, node=None, error_report=None, encode_name=None
                  ):
         self.mod = mod
         self.valid_html40 = False
@@ -17,7 +18,6 @@ class Node2XHTML:
 
         self.header_nodes = []
 
-
         self.indent = 0
         self.indentstep = 1
 
@@ -27,9 +27,9 @@ class Node2XHTML:
         charset = 'utf-8'
         self.header_nodes.append(self.mod.node_of_taci(
             'meta', '', (
-            self.mod.node_of_taci('http-equiv=', 'Content-Type'),
-            self.mod.node_of_taci('content=',
-                                  'text/html; charset=%s'%charset))))
+                self.mod.node_of_taci('http-equiv=', 'Content-Type'),
+                self.mod.node_of_taci('content=',
+                                      'text/html; charset=%s' % charset))))
 
         if node is not None:
             node.accept(self)
@@ -79,21 +79,21 @@ class Node2XHTML:
 
     def end(self, tag):
         self.indent -= self.indentstep
-        self.append('</%s>'%tag)
+        self.append('</%s>' % tag)
 
     def error(self, msg, *args, **kwds):
         msg = 'Doc2XHTML: ' + msg
         self.error_report(msg, *args, **kwds)
 
     def error_report(self, msg, *args, **kwds):
-        print('HTML ENCODING ERROR: ', msg, 'args=',args, 'kwds=',kwds)
+        print('HTML ENCODING ERROR: ', msg, 'args=', args, 'kwds=', kwds)
         raise ValueError
 
     def gen_document_header(self, lang, header_nodes):
         # lang & title are nodes with text or char directives, to be encoded.
         # metas is a list of nodes, with data to be encoded
 
-        strict = 1 # we have alternatives, I just havent yet decided how or if to let the user choose
+        strict = 1  # we have alternatives, I just havent yet decided how or if to let the user choose
 
         if strict:
             self.append("""\
@@ -107,7 +107,8 @@ class Node2XHTML:
 """)
 
         self.begin('html',
-                   'lang=%r xmlns="http://www.w3.org/1999/xhtml"'%self.get_encoded_text(lang),
+                   'lang=%r xmlns="http://www.w3.org/1999/xhtml"' % self.get_encoded_text(
+                       lang),
                    )
         self.begin('head')
         for node in header_nodes:
@@ -140,7 +141,6 @@ class Node2XHTML:
         self.end('a')
         self.append(' on '+self.mod.time.asctime(self.mod.time.localtime()))
 
-
     def gen_meta(self, node, tag=None):
         mknode = self.mod.node_of_taci
         if tag is None:
@@ -154,16 +154,17 @@ class Node2XHTML:
         if tag is None:
             tag = node.tag
         node, attrs = node.split_attrs(tag)
-        self.begin(tag, ' '.join(['%s=%r'%(key, val) for (key, val) in attrs]))
+        self.begin(tag, ' '.join(['%s=%r' % (key, val)
+                                  for (key, val) in attrs]))
         if tag in self.mod._no_end_tag_elements:
             if node.arg:
-                self.error('No enclosed text allowed for Html tag: %r.'%node.tag)
+                self.error(
+                    'No enclosed text allowed for Html tag: %r.' % node.tag)
             self.no_children(node)
             self.indent -= self.indentstep
         else:
             node.arg_accept(self)
             self.end(tag)
-
 
     def get_encoded_text(self, node):
         # From a node's arg and children that are text or characters
@@ -173,7 +174,8 @@ class Node2XHTML:
             if ch.tag in ('text', 'char'):
                 ch.accept(self)
             else:
-                self.error('Only text and char allowed here, not %r.'%ch.tag, ch)
+                self.error('Only text and char allowed here, not %r.' %
+                           ch.tag, ch)
         return ''.join(self.chg_out(old_out))
 
     def get_html(self):
@@ -181,14 +183,13 @@ class Node2XHTML:
 
     def no_children(self, node):
         if node.children:
-            self.error('No children allowed for %r. Got children nodes = %r.'%(
+            self.error('No children allowed for %r. Got children nodes = %r.' % (
                 node.tag, node.children))
 
     def set_out(self, out):
         self.out = out
         self.extend = out.extend
         self.append = out.append
-
 
     def visit_author(self, node):
         self.gen_meta(node)
@@ -199,25 +200,24 @@ class Node2XHTML:
     def visit_char(self, node):
         name = node.get_namearg()
         if name in self.mod.name2codepoint:
-            name = '&%s;'%name
+            name = '&%s;' % name
         else:
             if name[:2] == "0x":
                 char = int(name[2:], 16)
             elif name.isdigit():
                 char = int(name)
             else:
-                self.error('No such character: %r.'%name, node)
+                self.error('No such character: %r.' % name, node)
             name = self.mod.codepoint2name.get(char)
             if name is None:
-                name = '&#%d;'%char
+                name = '&#%d;' % char
             else:
-                name = '&%s;'%name
+                name = '&%s;' % name
         self.append(name)
         self._visit_children(node)
 
-
     def visit_col_width(self, node):
-        self.append('<col width="%s" />'%node.arg)
+        self.append('<col width="%s" />' % node.arg)
 
     def visit_comment(self, node):
         return
@@ -230,16 +230,17 @@ class Node2XHTML:
             else:
                 self.gen_stdhtml(node)
         else:
-            self.error('I don\'t know what to generate for the tag %r.'%node.tag, node)
+            self.error('I don\'t know what to generate for the tag %r.' %
+                       node.tag, node)
 
     def visit_define(self, node):
         name = self.encode_link_name(node.arg)
-        self.begin('a', 'name=%r'%name)
+        self.begin('a', 'name=%r' % name)
         self._visit_children(node)
         self.end('a')
 
     def visit_document(self, node):
-        self.indent = 2 # Known indentation of header to be generated later
+        self.indent = 2  # Known indentation of header to be generated later
         oldout = self.chg_out([])
         self._visit_children(node)
 
@@ -297,8 +298,8 @@ class Node2XHTML:
         name = node.arg
         docname = node.children[0].arg
         children = node.children[1:]
-        uri = '%s.html#%s'%(docname, self.encode_link_name(name))
-        self.begin('a', 'href=%r'%uri)
+        uri = '%s.html#%s' % (docname, self.encode_link_name(name))
+        self.begin('a', 'href=%r' % uri)
         if not children:
             self.append(self.encode(name))
         else:
@@ -306,11 +307,10 @@ class Node2XHTML:
                 ch.accept(self)
         self.end('a')
 
-
     def visit_link_to_local(self, node):
         name = node.arg
-        uri = '#%s'%self.encode_link_name(name)
-        self.begin('a', 'href=%r'%uri)
+        uri = '#%s' % self.encode_link_name(name)
+        self.begin('a', 'href=%r' % uri)
         if not node.children:
             self.append(self.encode(name))
         else:
@@ -336,13 +336,12 @@ class Node2XHTML:
         self.document_metas.append(node)
 
     def visit_spc_colonkind(self, node):
-        #self.append('&nbsp;<strong>:</strong>&nbsp;')
-        #self.append('&nbsp;<code>:</code>&nbsp;')
+        # self.append('&nbsp;<strong>:</strong>&nbsp;')
+        # self.append('&nbsp;<code>:</code>&nbsp;')
         self.append('<code>:</code>&nbsp;')
 
     def visit_spc_mapsto(self, node):
         self.append(' <strong>-></strong> ')
-
 
     def visit_string(self, node):
         self._visit_children(node)
@@ -376,14 +375,14 @@ class Node2XHTML:
     <a href="http://validator.w3.org/check?uri=referer"><img
         src="%s"
         alt="Valid HTML 4.0 Strict" height="31" width="88" /></a>
-"""%attrs.get('src', 'http://www.w3.org/Icons/valid-html40'))
-
+""" % attrs.get('src', 'http://www.w3.org/Icons/valid-html40'))
 
     def visit_with(self, node):
         pass
 
     def visit_word(self, node):
         self._visit_children(node)
+
 
 class _GLUECLAMP_:
     _imports_ = (
@@ -396,7 +395,7 @@ class _GLUECLAMP_:
         '_root.htmlentitydefs:codepoint2name',
         '_root:re',
         '_root:time',
-        )
+    )
 
     _chgable_ = ('tag_uppercase_name_chars',)
 
@@ -411,7 +410,7 @@ class _GLUECLAMP_:
         'a', 'address', 'area',
         'b', 'base', 'big', 'blockquote', 'body', 'br',
         'caption', 'center', 'cite', 'code',
-        'dfn', 'dt','dl', 'dd','div',
+        'dfn', 'dt', 'dl', 'dd', 'div',
         'em', 'form',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'html',
         'i', 'img', 'input', 'kbd',
@@ -427,7 +426,7 @@ class _GLUECLAMP_:
     _html4_0_deprecated = (
         'applet', 'basefont', 'dir', 'font', 'isindex',
         'strike', 'u',
-        )
+    )
 
     # Included in 3.2, not depreciated in 4.0 but one may want to avoid them
     _html_avoid = (
@@ -435,20 +434,20 @@ class _GLUECLAMP_:
     )
     _html4_0 = (
         'abbr', 'acronym',
-        'bdo','button',
+        'bdo', 'button',
         'col', 'colgroup',
         'del',
         'fieldset', 'frame', 'frameset',
         'iframe', 'ins',
         'label', 'legend',
         'noframes', 'noscript',
-        'object','optgroup',
-        'q','s', 'span',
+        'object', 'optgroup',
+        'q', 's', 'span',
         'tbody', 'tfoot', 'thead')
 
     _head_elements = (
-        'base','isindex','link','meta','script','style','title'
-        )
+        'base', 'isindex', 'link', 'meta', 'script', 'style', 'title'
+    )
 
     # The ones that can have no end tag
     # xxx are there more -style etc- look it up!
@@ -458,31 +457,32 @@ class _GLUECLAMP_:
         'meta', 'link',
         # Other
         'img',
-        'hr', # CAN have end tag? but never has. This will self-close to generate valid XHTML.
-        )
+        # CAN have end tag? but never has. This will self-close to generate valid XHTML.
+        'hr',
+    )
 
     # The ones that we may generate line-break before
     # and hope it will not affect the insertion of spaces in rendering.
 
     _line_break_allowed = (
-        'html','head','body','frameset',
+        'html', 'head', 'body', 'frameset',
         # Head Elements
-        ) + _head_elements + (
+    ) + _head_elements + (
         # Generic Block-level Elements
-        'address','blockquote','center','del','div',
-        'h1','h2','h3','h4','h5','h6','hr','ins','isindex','noscript','p','pre',
+        'address', 'blockquote', 'center', 'del', 'div',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'ins', 'isindex', 'noscript', 'p', 'pre',
         # Lists
-        'dir','dl','dt','dd','li','menu','ol','ul',
+        'dir', 'dl', 'dt', 'dd', 'li', 'menu', 'ol', 'ul',
         # Tables
-        'table','caption','colgroup','col','thead','tfoot','tbody','tr','td','th',
+        'table', 'caption', 'colgroup', 'col', 'thead', 'tfoot', 'tbody', 'tr', 'td', 'th',
         # Forms
-        'form','button','fieldset','legend','input','label',
-        'select','optgroup','option','textarea'
-        )
-
+        'form', 'button', 'fieldset', 'legend', 'input', 'label',
+        'select', 'optgroup', 'option', 'textarea'
+    )
 
     # The attributes allowed in META elements
-    meta_attributes = ('name', 'http-equiv', 'content', 'scheme', 'lang', 'dir')
+    meta_attributes = ('name', 'http-equiv', 'content',
+                       'scheme', 'lang', 'dir')
 
     # This returns a function checking if a character is allowed to be used
     # as the first character in a NAME or ID attribute.
@@ -497,11 +497,9 @@ class _GLUECLAMP_:
     def _get_is_name_follower_char(self):
         return self.re.compile(r"[A-Za-z0-9\-_:\.]").match
 
-
     # A set of the ones we generate directly.
     # This includes the ones from html 3.2 and
     # I have also included the deprecated and the 4.0 only
-
 
     def _get_stdhtml(self):
         sh = {}
@@ -517,8 +515,9 @@ class _GLUECLAMP_:
 
     def doc2filer(self, doc, node, name, dir, opts, IO):
         text = self.doc2text(doc, node)
-        path = IO.path.join(dir, '%s.html'%name)
-        node = self.node_of_taci('write_file', path, [self.node_of_taci('text', text)])
+        path = IO.path.join(dir, '%s.html' % name)
+        node = self.node_of_taci('write_file', path, [
+                                 self.node_of_taci('text', text)])
         return node
 
     def doc2text(self, doc, node):
@@ -544,7 +543,7 @@ class _GLUECLAMP_:
         text = text.replace("<", "&lt;")
         text = text.replace('"', "&quot;")
         text = text.replace(">", "&gt;")
-        text = text.replace("@", "&#64;") # may thwart some address harvesters
+        text = text.replace("@", "&#64;")  # may thwart some address harvesters
         return text
 
     # Encode a name according to HTML spec. See also Notes Aug 12 2005.
@@ -572,7 +571,7 @@ class _GLUECLAMP_:
                     upperstate = 0
                 append('-')
                 if ch != '-':
-                    append('%d'%ord(ch))
+                    append('%d' % ord(ch))
                 append('-')
             elif ch.isupper() and self.tag_uppercase_name_chars:
                 if not upperstate:

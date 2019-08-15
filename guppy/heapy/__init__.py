@@ -1,4 +1,5 @@
-#._cv_part guppy.heapy
+# ._cv_part guppy.heapy
+
 
 class _GLUECLAMP_:
     uniset_imports = ('UniSet', 'View', 'Path', 'RefPat')
@@ -18,7 +19,7 @@ class _GLUECLAMP_:
     # otherwise some size-dependent tests will fail.
 
     import sys
-    allocation_behaves_as_originally = sys.maxsize==0x7fffffff
+    allocation_behaves_as_originally = sys.maxsize == 0x7fffffff
 
     #
 

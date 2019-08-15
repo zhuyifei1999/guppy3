@@ -1,4 +1,4 @@
-#._cv_part guppy.gsl
+# ._cv_part guppy.gsl
 
 ##
 # Guppy Specification Language

@@ -1,9 +1,10 @@
-#._cv_part guppy.heapy.test.test_Classifiers
+# ._cv_part guppy.heapy.test.test_Classifiers
 
 from guppy.heapy.test import support
 import importlib
 
 PORTABLE_TEST = 1       # Relax tests to be more portable
+
 
 class TestCase(support.TestCase):
     def setUp(self):
@@ -14,7 +15,7 @@ class TestCase(support.TestCase):
 
         self.Use = Use = self.heapy.Use
         Use.reprefix = 'hp.'
-        self.do = lambda x:x.dictof
+        self.do = lambda x: x.dictof
 
         self.un = Use.Anything.fam
         self.ty = Use.Type
@@ -28,6 +29,7 @@ class TestCase(support.TestCase):
         class C1:
             def x(self):
                 return 0
+
         class C2:
             pass
         c1 = C1()
@@ -65,8 +67,10 @@ class NewCases(TestCase):
     def test_owners(self):
         # Test the .owners attribute
         iso = self.iso
+
         class C:
             pass
+
         class D:
             pass
         c = C()
@@ -120,45 +124,44 @@ class SpecialCases(TestCase):
         b = rc(ty(dict))
         c = iso(c1)
 
-        eq( (a | b) | c , a | (b | c))
+        eq((a | b) | c, a | (b | c))
 
         a = ty(int)
         b = ty(dict)
-        self.assertTrue( ~a & ~b != Nothing)
+        self.assertTrue(~a & ~b != Nothing)
 
+        eq(ty(list) & iso(e1, e2, e3), iso(e1, e3))
+        eq((ty(list) | ty(dict)) & iso(e1, e2, e3, e4), iso(e1, e2, e3))
+        eq((ty(list) & ~rc(cl(C1))) & iso(e1, e2, e3), iso(e1, e3))
+        eq(iso(e1, e3) | ty(list), ty(list))
+        eq(ty(list) | iso(e1, e3), ty(list))
 
-        eq( ty(list) & iso(e1, e2, e3), iso(e1, e3))
-        eq( (ty(list) | ty(dict)) & iso(e1, e2, e3, e4), iso(e1, e2, e3))
-        eq( (ty(list) &~rc(cl(C1))) & iso(e1, e2, e3), iso(e1, e3))
-        eq( iso(e1,e3) |  ty(list), ty(list))
-        eq( ty(list) | iso(e1,e3), ty(list))
+        eq(iso(e1, e3) - iso(e3), iso(e1))
+        eq(~iso(e3) & iso(e1, e3), iso(e1))
 
-        eq( iso(e1,e3) - iso(e3), iso(e1))
-        eq(  ~iso(e3) & iso(e1,e3), iso(e1))
+        eq(iso(e1, e2, e3) - ty(dict), iso(e1, e3))
+        eq(~ty(dict) & iso(e1, e2, e3), iso(e1, e3))
+        eq(ty(dict) | iso(e1, e2), ty(dict) | iso(e1))
+        eq(iso(e1, e2) | ty(dict), ty(dict) | iso(e1))
+        eq((ty(dict) | ty(tuple)) | iso(e1, e2), (ty(dict) | ty(tuple)) | iso(e1))
+        eq(iso(e1, e2) | (ty(dict) | ty(tuple)), (ty(dict) | ty(tuple)) | iso(e1))
+        eq((ty(dict) & ~rc(cl(C1))) | iso(e1, e2),
+           (ty(dict) & ~rc(cl(C1))) | iso(e1))
+        eq(iso(e1, e2) | (ty(dict) & ~rc(cl(C1))),
+           (ty(dict) & ~rc(cl(C1))) | iso(e1))
+        eq(~ty(dict) | iso(e1, e2), ~ty(dict) | iso(e2))
+        eq(iso(e1, e2) | ~ty(dict), ~ty(dict) | iso(e2))
+        eq(ty(dict) - iso(e1, e2), ty(dict) - iso(e2))
+        eq(~iso(e1, e2) & ty(dict), ty(dict) - iso(e2))
 
-        eq( iso(e1,e2,e3) - ty(dict), iso(e1,e3))
-        eq(  ~ty(dict) & iso(e1,e2,e3), iso(e1,e3))
-        eq( ty(dict) | iso(e1,e2), ty(dict) | iso(e1))
-        eq( iso(e1,e2) | ty(dict), ty(dict) | iso(e1))
-        eq( (ty(dict) | ty(tuple)) | iso(e1,e2), (ty(dict) | ty(tuple)) | iso(e1))
-        eq( iso(e1,e2) | (ty(dict) | ty(tuple)), (ty(dict) | ty(tuple)) | iso(e1))
-        eq( (ty(dict) & ~rc(cl(C1))) | iso(e1,e2), (ty(dict)  & ~rc(cl(C1))) | iso(e1))
-        eq( iso(e1,e2) | (ty(dict) & ~rc(cl(C1))), (ty(dict)  & ~rc(cl(C1))) | iso(e1))
-        eq( ~ty(dict) | iso(e1, e2), ~ty(dict) | iso(e2))
-        eq( iso(e1, e2) | ~ty(dict), ~ty(dict) | iso(e2))
-        eq( ty(dict) - iso(e1,e2), ty(dict) - iso(e2))
-        eq( ~iso(e1,e2) & ty(dict), ty(dict) - iso(e2))
+        eq(iso(e1, e3) ^ iso(e2), iso(e1, e2, e3))
+        eq(iso(e1, e3) ^ iso(e2, e3), iso(e1, e2))
+        eq(iso(e1, e3) ^ iso(e1, e3), Nothing)
 
-        eq( iso(e1,e3) ^ iso(e2), iso(e1,e2,e3))
-        eq( iso(e1,e3) ^ iso(e2,e3), iso(e1,e2))
-        eq( iso(e1,e3) ^ iso(e1,e3), Nothing)
-
-        eq( iso(e1,e3) <= ty(list), True)
-        eq( iso(e1,e2) <= ty(list)|ty(dict), True)
-        eq( ty(list) >= iso(e1,e3), True)
-        eq( ty(list)|ty(dict) >= iso(e1,e2), True)
-
-
+        eq(iso(e1, e3) <= ty(list), True)
+        eq(iso(e1, e2) <= ty(list) | ty(dict), True)
+        eq(ty(list) >= iso(e1, e3), True)
+        eq(ty(list) | ty(dict) >= iso(e1, e2), True)
 
     def test_2(self):
 
@@ -198,12 +201,13 @@ class SpecialCases(TestCase):
         # which would leak the elements.
 
         from sys import getrefcount as grc
-        import sys, types
+        import sys
+        import types
 
         c = C1()
         rc = grc(c)
         x = iso(c)
-        x=None
+        x = None
         eq(grc(c), rc)
 
     def test_dictowner(self):
@@ -215,7 +219,8 @@ class SpecialCases(TestCase):
         # Also tests that dict & dict owners are not leaked
         import sys
         if sys.hexversion >= 0x02070000:
-            print("XXX SKIPPING test_dictowner TEST BECAUSE OF SLUGGISHNESS WITH PYTHON 2.7")
+            print(
+                "XXX SKIPPING test_dictowner TEST BECAUSE OF SLUGGISHNESS WITH PYTHON 2.7")
             return
         import gc
         from sys import getrefcount as grc
@@ -229,7 +234,6 @@ class SpecialCases(TestCase):
         # Create a dict hidden from view
         d1 = self.View.immnodeset([{}])
         d3 = {}
-
 
         # Remember the initial ref counts for target objects
 
@@ -260,11 +264,10 @@ class SpecialCases(TestCase):
                 iso(d3).kind
                 iso(c1.__dict__).kind
             fast = clock()-t
-            if fast >= 0.5: # Enough resolution?
+            if fast >= 0.5:  # Enough resolution?
                 break
             else:
-                M *= 2 # No, try more loops
-
+                M *= 2  # No, try more loops
 
         # This was a slow case; involving repeated classification of a unreachable dict
         # It was originally 4.97 times slower when N was 5
@@ -285,8 +288,8 @@ class SpecialCases(TestCase):
             iso(c1.__dict__).kind
         slow = clock()-t
 
-        #print 'slow,fast',slow,fast
-        self.assertTrue( slow <= 1.5*fast )
+        # print 'slow,fast',slow,fast
+        self.assertTrue(slow <= 1.5*fast)
 
         # This is another slow case according to notes Nov 18 2004.
         # A succession of different unreachable dicts.
@@ -305,8 +308,8 @@ class SpecialCases(TestCase):
             iso(list(dn)[i]).kind
         slow = clock()-t
 
-        #print 'slow,fast',slow,fast
-        self.assertTrue( slow <= 1.5*fast )
+        # print 'slow,fast',slow,fast
+        self.assertTrue(slow <= 1.5*fast)
 
         # Partition was likewise slow for unreachable dicts
         dn = self.View.immnodeset([{} for i in range(N)])
@@ -319,8 +322,8 @@ class SpecialCases(TestCase):
         t = clock()
         [x[0] for x in Use.Clodo.classifier.partition(dn)]
         slow = clock()-t
-        #print 'slow,fast',slow,fast
-        self.assertTrue( slow <= 1.5*fast )
+        # print 'slow,fast',slow,fast
+        self.assertTrue(slow <= 1.5*fast)
 
         # Check that ref counts for target objects are the same as initially
 
@@ -333,8 +336,7 @@ class SpecialCases(TestCase):
         self.aseq(grc(C1), rcC1)
         self.aseq(grc(c1.__dict__), rcdc1)
 
-
-        self.aseq( o.getvalue(), """\
+        self.aseq(o.getvalue(), """\
 dict (no owner)
 dict of <Module>.C1
 dict (no owner)
@@ -363,14 +365,13 @@ dict (no owner)
 [hp.Nothing.dictof]
 """.replace('<Module>', self.__module__))
 
-
     def test_retclaset(self):
         # Test (A) that referrer classifications don't leak their classes
         # and (B) that selection is not disturbed by list arguments
         # (This is removed since it doesnt always work)
         # and (C) that selection does update referrer graph correctly
 
-        self.__module__ = '<Module>' # Make the rendering independent on our name
+        self.__module__ = '<Module>'  # Make the rendering independent on our name
 
         from sys import getrefcount as grc
         import gc
@@ -392,14 +393,16 @@ dict (no owner)
         # set_trace()
 
         if 0:
-            self.aseq( s & [c1, x], iso(c1))# (B) makes sure arg is removed from frame when converted
+            # (B) makes sure arg is removed from frame when converted
+            self.aseq(s & [c1, x], iso(c1))
         else:
             self.aseq(s & iso(c1, x), iso(c1))
 
         s = iso(x).byrcs.kind
-        self.aseq( s & iso(c1, x), iso(x))
+        self.aseq(s & iso(c1, x), iso(x))
         x = C1()
-        self.aseq( s & iso(c1, x), iso(x)) # (C) make sure referrer graph is updated by select
+        # (C) make sure referrer graph is updated by select
+        self.aseq(s & iso(c1, x), iso(x))
 
         s = None
         x = None
@@ -407,9 +410,6 @@ dict (no owner)
         gc.collect()
         gc.collect()                    # Note May 17 2005
         self.aseq(grc(C1), rcC1)        # (A)
-
-
-
 
     def test_alt_retclaset(self):
         # Test the alternative referrer memo update
@@ -428,20 +428,19 @@ dict (no owner)
 
             gc.collect()
             hv.update_referrers_completely(rg)
-            self.assertTrue( x in rg[a] )
-
+            self.assertTrue(x in rg[a])
 
             self.assertTrue(rg[list(b)[0]] == (None,))
             rg.clear()
-            rg=None
+            rg = None
 
         # Test View functionality
 
         self.View.is_rg_update_all = True
         gc.collect()
         iso(a).referrers
-        self.assertTrue( a in self.View.rg.get_domain() )
-        self.assertTrue( list(b)[0] in self.View.rg.get_domain())
+        self.assertTrue(a in self.View.rg.get_domain())
+        self.assertTrue(list(b)[0] in self.View.rg.get_domain())
 
         clock = self.python.time.clock
         s = iso(a)
@@ -465,13 +464,11 @@ dict (no owner)
         for i in range(N):
             s.referrers
         slow = clock() - t
-        #print 'slow,fast,faster',slow, fast, faster
+        # print 'slow,fast,faster',slow, fast, faster
         self.assertTrue(not slow > fast * 4)
 
-
-    def test_via(self, vlist=['v',]): # vlist is just to make v unoptimizable
+    def test_via(self, vlist=['v', ]):  # vlist is just to make v unoptimizable
         # Special tests for the via classifier
-
 
         from sys import getrefcount as grc
         import gc
@@ -480,7 +477,7 @@ dict (no owner)
         hp = self.Use
         d = {}
         k = ('k',)
-        v = tuple(vlist) # Make sure v is not optimized to a constant
+        v = tuple(vlist)  # Make sure v is not optimized to a constant
 
         d[k] = v
         d[v] = v
@@ -490,27 +487,25 @@ dict (no owner)
 
         s = iso(v)
 
-        self.assertTrue( s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[1]') or
-                      s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[0]'))
+        self.assertTrue(s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[1]') or
+                        s.byvia.kind == hp.Via("_.f_locals['v']", "_[('k',)]", "_[('v',)]", '_.keys()[0]'))
 
         del s
         gc.collect()
         gc.collect()
         self.aseq(grc(k), rck)
-        self.aseq(grc(v), rcv )
-
-
-
-
+        self.aseq(grc(v), rcv)
 
 
 class RenderCase(TestCase):
 
     def test_rendering(self):
-        import sys, types
+        import sys
+        import types
         iso = self.iso
         C1 = self.C1
         c1 = self.c1
+
         class C3(object):
             def x(self):
                 return 1
@@ -522,45 +517,44 @@ class RenderCase(TestCase):
         o = self.python.StringIO.StringIO()
         # str'ing of homogenous & inhoumogenous values
 
-        self.US.summary_str.str_address = lambda x:'<address>'
+        self.US.summary_str.str_address = lambda x: '<address>'
 
         def ps(x):
             print(x.brief, file=o)
 
-        ps( iso(1,2) )
-        ps( iso(1,2.0, 3.0) )
-        ps( iso(e1) )
-        ps( iso(e1, e2) )
-        ps( iso(e1, e3) )
+        ps(iso(1, 2))
+        ps(iso(1, 2.0, 3.0))
+        ps(iso(e1))
+        ps(iso(e1, e2))
+        ps(iso(e1, e3))
 
-        ps( iso(self.python.exceptions.TypeError()) )
-        ps( iso(None) )
-        ps( iso(sys, support, types) )
-        ps( iso(int, type, C3) )
-        ps( iso(C1()) )
-        ps( iso(C3()) )
-        ps( iso(C1) )
-        ps( iso(C3) )
-        ps( iso(len) )
-        ps( iso(self.setUp) )
-        ps( iso(C1.x) )
-        ps( iso(C1.x.__func__) )
-        ps( iso(C1().x) )
-        ps( iso(C3.x) )
-        ps( iso(C3().x) )
+        ps(iso(self.python.exceptions.TypeError()))
+        ps(iso(None))
+        ps(iso(sys, support, types))
+        ps(iso(int, type, C3))
+        ps(iso(C1()))
+        ps(iso(C3()))
+        ps(iso(C1))
+        ps(iso(C3))
+        ps(iso(len))
+        ps(iso(self.setUp))
+        ps(iso(C1.x))
+        ps(iso(C1.x.__func__))
+        ps(iso(C1().x))
+        ps(iso(C3.x))
+        ps(iso(C3().x))
 
-        ps( iso({}) )
-        ps( iso(c1.__dict__) )
-        ps( iso(types.__dict__) )
+        ps(iso({}))
+        ps(iso(c1.__dict__))
+        ps(iso(types.__dict__))
 
         try:
             1/0
         except:
             typ, value, traceback = sys.exc_info()
 
-        ps( iso(traceback) )
-        ps( iso(traceback.tb_frame) )
-
+        ps(iso(traceback))
+        ps(iso(traceback.tb_frame))
 
         expected = """\
 <2 int: 1, 2>
@@ -605,13 +599,13 @@ class RenderCase(TestCase):
         # and then some
         # Except: frametype; its size varies from time to time!
 
-        x = iso(len, C1, 1.0+3j, {1:2,3:4}, 1.25, C1.x.__func__, 1, ['list'],
-           100000000000, None, C1.x, C1().x, C3.x, C3().x, sys, support,
-           'string', ('tuple',), C3, int, type(None),
-           # and some types not defined
-           C1(), C3(), c1.__dict__
+        x = iso(len, C1, 1.0+3j, {1: 2, 3: 4}, 1.25, C1.x.__func__, 1, ['list'],
+                100000000000, None, C1.x, C1().x, C3.x, C3().x, sys, support,
+                'string', ('tuple',), C3, int, type(None),
+                # and some types not defined
+                C1(), C3(), c1.__dict__
 
-           )
+                )
 
         print(x, file=o)
         print(x.more, file=o)
@@ -661,23 +655,23 @@ class BaseCase(TestCase):
         min = self.US.minimals
         max = self.US.maximals
 
-        self.aseq( min([]), [])
-        self.aseq( min([1]), [1])
-        self.aseq( min([1,1]), [1])
-        self.aseq( min([1,2]), [1])
-        self.aseq( min([[],[]]), [[]])
+        self.aseq(min([]), [])
+        self.aseq(min([1]), [1])
+        self.aseq(min([1, 1]), [1])
+        self.aseq(min([1, 2]), [1])
+        self.aseq(min([[], []]), [[]])
 
-        self.aseq( min([s([1]),s([1,2])]), [s([1])])
-        self.aseq( min([s([1]),s([1,2]),s([3])]), [s([1]),s([3])])
+        self.aseq(min([s([1]), s([1, 2])]), [s([1])])
+        self.aseq(min([s([1]), s([1, 2]), s([3])]), [s([1]), s([3])])
 
-        self.aseq( max([]), [])
-        self.aseq( max([1]), [1])
-        self.aseq( max([1,1]), [1])
-        self.aseq( max([1,2]), [2])
-        self.aseq( max([[],[]]), [[]])
+        self.aseq(max([]), [])
+        self.aseq(max([1]), [1])
+        self.aseq(max([1, 1]), [1])
+        self.aseq(max([1, 2]), [2])
+        self.aseq(max([[], []]), [[]])
 
-        self.aseq( max([s([1]),s([1,2])]), [s([1,2])])
-        self.aseq( max([s([1]),s([1,2]),s([3])]), [s([1,2]), s([3])])
+        self.aseq(max([s([1]), s([1, 2])]), [s([1, 2])])
+        self.aseq(max([s([1]), s([1, 2]), s([3])]), [s([1, 2]), s([3])])
 
     def test_base_classes(self):
         un = self.un
@@ -719,9 +713,9 @@ class BaseCase(TestCase):
             (do(cl(C1)), lt,    ty(dict)),
             (do(cl(C1)), dj,    do(rc(ty(dict)))),
 
-            (rc(ty(dict)),eq,   rc(ty(dict))),
-            (rc(ty(dict)),lt,   All),
-            (rc(ty(dict)),dj,   rc(ty(list))),
+            (rc(ty(dict)), eq,   rc(ty(dict))),
+            (rc(ty(dict)), lt,   All),
+            (rc(ty(dict)), dj,   rc(ty(list))),
             (rc(cl(C1)), dj,    rc(ty(type(C1())))),
             (rc(cl(C1)), nr,    ty(type(C1()))),
             (rc(cl(C1)), nr,    cl(C1)),
@@ -735,7 +729,7 @@ class BaseCase(TestCase):
             (iso(1),    dj,     ty(dict)),
             (iso(1),    dj,     cl(C1)),
             (iso(c1),   lt,     cl(C1)),
-            (iso(c1.__dict__),lt,do(cl(C1))),
+            (iso(c1.__dict__), lt, do(cl(C1))),
             (iso(1),    dj,     do(cl(C1))),
             (iso(1),    dj,     rc(cl(C1))),
 
@@ -743,7 +737,7 @@ class BaseCase(TestCase):
             (Nothing,   eq,     Nothing),
             (Nothing,   lt,     ty(int)),
             (Nothing,   lt,     iso(1)),
-            ]
+        ]
 
         # Test relation of base classifications
         for a, cmp, b in data:
@@ -758,7 +752,7 @@ class BaseCase(TestCase):
                 eq(a ^ b, b - a)        # -=-, indep. of type
                 lt(a, b)
             elif cmp is dj:
-                dj(b, a) # check that the dj relation is symmetric
+                dj(b, a)  # check that the dj relation is symmetric
                 eq(a & b, Nothing)
                 eq(b & a, Nothing)
                 eq(a | b, b | a)
@@ -785,7 +779,6 @@ class BaseCase(TestCase):
                 lt(a, a | b)
                 lt(b, a | b)
 
-
     def test_invalid_operations(self):
         US = self.US
         US.auto_convert_iter = False
@@ -796,23 +789,23 @@ class BaseCase(TestCase):
         ty = self.ty
         c1 = self.c1
 
-        self.assertRaises(TypeError, lambda : cl(c1))
-        self.assertRaises(TypeError, lambda : ty(c1))
-        self.assertRaises(TypeError, lambda:ty(int) <= None)
-        self.assertRaises(TypeError, lambda:None >= ty(int))
-        self.assertRaises(TypeError, lambda:None <= ty(int))
+        self.assertRaises(TypeError, lambda: cl(c1))
+        self.assertRaises(TypeError, lambda: ty(c1))
+        self.assertRaises(TypeError, lambda: ty(int) <= None)
+        self.assertRaises(TypeError, lambda: None >= ty(int))
+        self.assertRaises(TypeError, lambda: None <= ty(int))
 
-        self.assertRaises(TypeError, lambda:list(ty(int)))
-        self.assertRaises(TypeError, lambda:len(ty(int)))
+        self.assertRaises(TypeError, lambda: list(ty(int)))
+        self.assertRaises(TypeError, lambda: len(ty(int)))
 
-        self.assertRaises(TypeError, lambda:ty(int) & None)
-        self.assertRaises(TypeError, lambda:None & ty(int))
-        self.assertRaises(TypeError, lambda:ty(int) | None)
-        self.assertRaises(TypeError, lambda:None | ty(int))
-        self.assertRaises(TypeError, lambda:ty(int) - None)
-        self.assertRaises(TypeError, lambda:None - ty(int))
-        self.assertRaises(TypeError, lambda:ty(int) ^ None)
-        self.assertRaises(TypeError, lambda:None ^ ty(int))
+        self.assertRaises(TypeError, lambda: ty(int) & None)
+        self.assertRaises(TypeError, lambda: None & ty(int))
+        self.assertRaises(TypeError, lambda: ty(int) | None)
+        self.assertRaises(TypeError, lambda: None | ty(int))
+        self.assertRaises(TypeError, lambda: ty(int) - None)
+        self.assertRaises(TypeError, lambda: None - ty(int))
+        self.assertRaises(TypeError, lambda: ty(int) ^ None)
+        self.assertRaises(TypeError, lambda: None ^ ty(int))
 
         self.assertRaises(TypeError, lambda: ty(int) | [14])
         self.assertRaises(TypeError, lambda: ty(int) | dict)
@@ -834,32 +827,32 @@ class BaseCase(TestCase):
         e3 = []
         e4 = ()
 
-        eq( ty(list) & [e1, e2, e3], iso(e1,e3))
-        eq( [e1, e2, e3] & ty(list) , iso(e1,e3))       # Requires __rand__
-        eq( [e1,e2,e4] & (ty(dict)|ty(list)) == [e1,e2], True)
-        eq( [e1,e2] & (ty(dict)|ty(list)) == [e1,e2], True)
-        eq( iso(e1,e2) & (ty(dict)|ty(list)) == [e1,e2], True)
-        eq( iso(e1,e2) & [e1, e3], iso(e1))
-        eq( iso(e1,e2) | [e1, e3], iso(e1,e2,e3))
-        eq( [e1, e3] | iso(e1,e2), iso(e1,e2,e3))               # Requires __ror__
-        eq( iso(e1,e3) - [e3], iso(e1))
-        eq( [e1,e3] - iso(e3), iso(e1))                 # Requires __rsub__
-        eq( [e1,e2,e3] - ty(dict), iso(e1,e3))
-        eq(  ~ty(dict) & [e1,e2,e3], iso(e1,e3))
-        eq( iso(e1,e3) ^ [e2], iso(e1,e2,e3))
-        eq( [e2] ^ iso(e1,e3), iso(e1,e2,e3))           # Requires __rxor__
-        eq( [e1,e2] <= iso(e1,e2,e3), True)
-        eq( [e1,e2] <= ty(list)|ty(dict), True)
-        eq( (ty(list)|ty(dict)) >= [e1,e2], True)
-        eq( [e1,e2] <= ty(list), False)
-        eq( [e1,e2] <= iso(e1), False)
-        eq( [e1,e2] >= iso(e1,e2,e3), False)
-        eq( [e1,e2] >= iso(e1,e2), True)
-        eq( iso(e1,e2,e3) <= [e1,e2], False)
-        eq( iso(e1,e2) <= [e1,e2], True)
-        eq( iso(e1,e2,e3) >= [e1,e2], True)
-        eq( iso(e1,e2) >= [e1,e2,e3], False)
-
+        eq(ty(list) & [e1, e2, e3], iso(e1, e3))
+        eq([e1, e2, e3] & ty(list), iso(e1, e3))       # Requires __rand__
+        eq([e1, e2, e4] & (ty(dict) | ty(list)) == [e1, e2], True)
+        eq([e1, e2] & (ty(dict) | ty(list)) == [e1, e2], True)
+        eq(iso(e1, e2) & (ty(dict) | ty(list)) == [e1, e2], True)
+        eq(iso(e1, e2) & [e1, e3], iso(e1))
+        eq(iso(e1, e2) | [e1, e3], iso(e1, e2, e3))
+        # Requires __ror__
+        eq([e1, e3] | iso(e1, e2), iso(e1, e2, e3))
+        eq(iso(e1, e3) - [e3], iso(e1))
+        eq([e1, e3] - iso(e3), iso(e1))                 # Requires __rsub__
+        eq([e1, e2, e3] - ty(dict), iso(e1, e3))
+        eq(~ty(dict) & [e1, e2, e3], iso(e1, e3))
+        eq(iso(e1, e3) ^ [e2], iso(e1, e2, e3))
+        eq([e2] ^ iso(e1, e3), iso(e1, e2, e3))           # Requires __rxor__
+        eq([e1, e2] <= iso(e1, e2, e3), True)
+        eq([e1, e2] <= ty(list) | ty(dict), True)
+        eq((ty(list) | ty(dict)) >= [e1, e2], True)
+        eq([e1, e2] <= ty(list), False)
+        eq([e1, e2] <= iso(e1), False)
+        eq([e1, e2] >= iso(e1, e2, e3), False)
+        eq([e1, e2] >= iso(e1, e2), True)
+        eq(iso(e1, e2, e3) <= [e1, e2], False)
+        eq(iso(e1, e2) <= [e1, e2], True)
+        eq(iso(e1, e2, e3) >= [e1, e2], True)
+        eq(iso(e1, e2) >= [e1, e2, e3], False)
 
     def test_fancy_type_conversions(self):
         # Test the, perhaps optional, possibility to use types and classes
@@ -888,15 +881,16 @@ class BaseCase(TestCase):
         e3 = []
         e4 = ()
 
-        eq( ty(dict), dict)
-        eq( cl(C1), C1)
-        eq( iso(e1,e2) & dict, iso(e2))
-        eq( dict & iso(e1,e2), iso(e2))
-        eq( iso(e1,e2) | dict, iso(e1) | ty(dict))
-        eq( dict | iso(e1,e2), iso(e1) | ty(dict))
-        eq( iso(e1,e2) - dict, iso(e1))
-        eq( dict - iso(e1,e2), ty(dict) - iso(e2))
-        eq( iso(e1,e2, e3) ^ dict, (ty(dict)-iso(e2))|iso(e1,e3))
+        eq(ty(dict), dict)
+        eq(cl(C1), C1)
+        eq(iso(e1, e2) & dict, iso(e2))
+        eq(dict & iso(e1, e2), iso(e2))
+        eq(iso(e1, e2) | dict, iso(e1) | ty(dict))
+        eq(dict | iso(e1, e2), iso(e1) | ty(dict))
+        eq(iso(e1, e2) - dict, iso(e1))
+        eq(dict - iso(e1, e2), ty(dict) - iso(e2))
+        eq(iso(e1, e2, e3) ^ dict, (ty(dict)-iso(e2)) | iso(e1, e3))
+
 
 class LawsCase(TestCase):
     def test_laws(self):
@@ -937,14 +931,14 @@ class LawsCase(TestCase):
             eq(a & (b - a), Nothing)
             eq((b - a) & a, Nothing)
             eq((b - a) - a, (b - a))
-            eq(a - (b - a), a)  #  note Nov 3 2004
+            eq(a - (b - a), a)  # note Nov 3 2004
             if level > 0:
                 if a is Nothing:
                     eq(b - a, b)
                 else:
                     ltr(b - a, b, level-1)
 
-        def eqr(a, b, level = 1):
+        def eqr(a, b, level=1):
             eq(a, b)
             eq(a & b, a)
             eq(a | b, a)
@@ -953,11 +947,12 @@ class LawsCase(TestCase):
             if level:
                 eqr(b, a, level - 1)
 
-        classes = [All, ty(int), ty(type(c1)), cl(C1), do(cl(C1)), rc(ty(dict)), iso(c1), Nothing]
+        classes = [All, ty(int), ty(type(c1)), cl(C1), do(
+            cl(C1)), rc(ty(dict)), iso(c1), Nothing]
 
         for a in classes:
             idempotence(a)
-            for b  in classes:
+            for b in classes:
                 if a <= b:
                     if b <= a:
                         eqr(a, b)
@@ -981,12 +976,14 @@ class ClassificationCase(TestCase):
 
     def test_classification(self):
         # Test classification by the standard classifiers
-        self.View.is_rg_update_all = True # Tricky details Note Apr 22 2005
+        self.View.is_rg_update_all = True  # Tricky details Note Apr 22 2005
         Use = self.Use
         iso = self.iso
         nodeset = self.heapy.UniSet.immnodeset
+
         class A:
             pass
+
         class B(object):
             pass
         a = A()
@@ -1017,7 +1014,7 @@ class ClassificationCase(TestCase):
             self.aseq(iso(o).byunity.kind, cla)
         for o in li:
             self.aseq(iso(o).byid.kind, Use.Id(id(o)))
-        #self.View.update_referrers(nodeset(li))
+        # self.View.update_referrers(nodeset(li))
         for i, o in enumerate(li):
             cl = iso(o).byrcs.kind
             if 1 <= i <= 2:
@@ -1034,6 +1031,7 @@ class ClassificationCase(TestCase):
 
         class A:
             pass
+
         class B(object):
             pass
         a = A()
@@ -1041,26 +1039,27 @@ class ClassificationCase(TestCase):
         li = Use.iso(135, [], {}, a, b, a.__dict__, b.__dict__)
 
         allers = (Use.Unity, Use.Type, Use.Class, Use.Clodo,
-                  Use.Rcs, Use.Via) #, Use.Id
+                  Use.Rcs, Use.Via)  # , Use.Id
         ps = {}
         for er in allers:
             # p = er.classifier.partition(li.nodes)
             p = [(av.kind, av) for av in li.by(er).partition]
             for ak, av in p:
                 if ak in ps:
-                    self.aseq( ps[ak],  av)
+                    self.aseq(ps[ak],  av)
                 else:
                     ps[ak] = av
 
         for ak, av in list(ps.items()):
-            self.aseq ( ak & li, av )
+            self.aseq(ak & li, av)
             for bk, bv in list(ps.items()):
                 # Test set operations by selection definition
-                self.aseq ( (ak & bk) & li, av & bv)
-                self.aseq ( (ak | bk) & li, av | bv)
-                self.aseq ( (ak - bk) & li, av - bv)
-                self.aseq ( (bk - ak) & li, bv - av)
-                self.aseq ( (ak ^ bk) & li, av ^ bv)
+                self.aseq((ak & bk) & li, av & bv)
+                self.aseq((ak | bk) & li, av | bv)
+                self.aseq((ak - bk) & li, av - bv)
+                self.aseq((bk - ak) & li, bv - av)
+                self.aseq((ak ^ bk) & li, av ^ bv)
+
 
 def test_main(testrender=1, debug=0):
 
@@ -1081,6 +1080,7 @@ def test_main(testrender=1, debug=0):
 
     if 0 or not debug:
         support.run_unittest(SpecialCases, debug)
+
 
 if 0 and __name__ == "__main__":
     # It doesn't like to be run under name __main__,

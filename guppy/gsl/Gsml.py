@@ -1,4 +1,5 @@
-#._cv_part guppy.gsl.Gsml
+# ._cv_part guppy.gsl.Gsml
+
 
 class GsmlHandler:
     # To be mixed in with something like HTMLParser.HTMLParser
@@ -20,7 +21,7 @@ class GsmlHandler:
         self.out.append(node)
 
     def handle_charref(self, name):
-        #print 'charref', name
+        # print 'charref', name
         if name[:1] == "x":
             char = int(name[1:], 16)
             name = '0'+name
@@ -33,29 +34,30 @@ class GsmlHandler:
             self.out.append(self.mod.node_of_taci('char', name))
 
     def handle_entityref(self, name):
-        #print 'handle entityref', name
+        # print 'handle entityref', name
         if name not in self.mod.entitydefs:
             self.unknown_entityref(name)
         self.out.append(self.mod.node_of_taci('char', name))
 
     def unknown_entityref(self, name):
-        raise SyntaxError('Unknown entity ref: %r'%name)
+        raise SyntaxError('Unknown entity ref: %r' % name)
 
     def handle_data(self, data):
         # print 'data', data
         # data = data.strip()
         if data.strip():
-            self.out.extend( self.mod.nodes_of_text(data) )
+            self.out.extend(self.mod.nodes_of_text(data))
 
     def handle_comment(self, data):
-        self.out.append( self.mod.node_of_taci('comment', data, (), 0))
+        self.out.append(self.mod.node_of_taci('comment', data, (), 0))
 
     def handle_decl(self, decl):
         # print 'handle_decl', decl
-        self.out.append( self.mod.node_of_taci('html_declaration', decl))
+        self.out.append(self.mod.node_of_taci('html_declaration', decl))
 
     def handle_pi(self, data):
-        self.out.append( self.mod.node_of_taci('processing_instruction', data))
+        self.out.append(self.mod.node_of_taci('processing_instruction', data))
+
 
 class _GLUECLAMP_:
     _imports_ = (
@@ -63,7 +65,7 @@ class _GLUECLAMP_:
         '_parent.SpecNodes:node_of_taci',
         '_parent.SpecNodes:nodes_of_text',
         '_root.htmlentitydefs:entitydefs',
-        )
+    )
 
     encoding = "iso-8859-1"
 
@@ -74,7 +76,6 @@ class _GLUECLAMP_:
                 self.mod = mod
                 self.out = []
                 self.stack = []
-
 
         p = Parser(self)
         p.feed(text)
@@ -105,6 +106,6 @@ Handle char ref: &lt;.
         print(node)
 
 
-if 0 or __name__=='__main__':
+if 0 or __name__ == '__main__':
     from guppy import Root
     Root().guppy.gsl.Gsml._test_main_()

@@ -1,19 +1,29 @@
-#._cv_part guppy.heapy.Monitor
-import os, pprint, signal, socket, socketserver, sys, threading, time, traceback
+# ._cv_part guppy.heapy.Monitor
+import os
+import pprint
+import signal
+import socket
+import socketserver
+import sys
+import threading
+import time
+import traceback
 import pickle as pickle
 
 try:
-    import readline # Imported to _enable_ command line editing
+    import readline  # Imported to _enable_ command line editing
 except ImportError:
     pass
 
-import select, queue
+import select
+import queue
 
 from guppy.heapy.RemoteConstants import *
 from guppy.heapy.Console import Console
 from guppy.sets import mutnodeset
 from guppy.etc.etc import ptable
 from guppy.etc import cmd
+
 
 class Server(socketserver.ThreadingTCPServer):
     pass
@@ -22,6 +32,7 @@ class Server(socketserver.ThreadingTCPServer):
 def ioready(fd, wait):
     r, w, x = select.select([fd], [], [], wait)
     return len(r)
+
 
 def queue_get_interruptible(q, noblock=0):
     while 1:
@@ -33,7 +44,9 @@ def queue_get_interruptible(q, noblock=0):
 
 # Special value signals that connection has been closed
 
+
 CONN_CLOSED = ('CLOSED',)
+
 
 class Handler(socketserver.StreamRequestHandler):
     allow_reuse_address = 1
@@ -100,9 +113,8 @@ class Handler(socketserver.StreamRequestHandler):
         return ''
 
     def get_val(self, expr):
-        data = self.browser_cmd('dump %s'%expr)
+        data = self.browser_cmd('dump %s' % expr)
         return pickle.loads(data)
-
 
     def handle(self):
         self.prompt = None
@@ -123,12 +135,13 @@ class Handler(socketserver.StreamRequestHandler):
                 break
             if data.endswith(READLINE):
                 prompt = data[:-len(READLINE)]
-                self.dataq.put(('PROMPT',prompt))
+                self.dataq.put(('PROMPT', prompt))
                 if self.prompt is None:
-                    self.firstdata = self.exec_cmd(cmd=None,retdata=1)
+                    self.firstdata = self.exec_cmd(cmd=None, retdata=1)
             else:
-                self.dataq.put(('DATA',data))
+                self.dataq.put(('DATA', data))
         self.close()
+
 
 class MonitorConnection(cmd.Cmd):
     use_raw_input = 1
@@ -141,12 +154,11 @@ class MonitorConnection(cmd.Cmd):
         self.forceexit = 0
         self.prompt = '<Monitor> '
 
-
         self.monitor = monitor
         self.server = s = Server((LOCALHOST, HEAPYPORT), Handler)
         self.server.monitor = monitor
-        self.st = threading.Thread(target = self.run_server,
-                                   args = ())
+        self.st = threading.Thread(target=self.run_server,
+                                   args=())
         self.st.start()
 
     def close(self):
@@ -180,7 +192,6 @@ class MonitorConnection(cmd.Cmd):
         except:
             self.handle_error(line)
 
-
     def handle_error(self, cmdline):
         """Handle an error gracefully.  May be overridden.
 
@@ -188,7 +199,8 @@ class MonitorConnection(cmd.Cmd):
 
         """
         print('-'*40, file=sys.stderr)
-        print('Exception happened during processing the command', end=' ', file=sys.stderr)
+        print('Exception happened during processing the command',
+              end=' ', file=sys.stderr)
         print(repr(cmdline), file=sys.stderr)
         import traceback
         traceback.print_exc()
@@ -208,7 +220,7 @@ class MonitorConnection(cmd.Cmd):
                 ii = 1
                 for tmpArg in args[1:]:
                     line = line.replace("%" + str(ii),
-                                          tmpArg)
+                                        tmpArg)
                     line = line.replace('%>=' + str(ii),
                                         ' '.join(args[ii:]))
                     ii = ii + 1
@@ -226,7 +238,6 @@ class MonitorConnection(cmd.Cmd):
                 self.cmdqueue.append(next)
                 line = line[:marker].rstrip()
         return line
-
 
     def do_exit(self, arg):
         self.forceexit = 1
@@ -252,11 +263,11 @@ With a command name as argument, print help about that command.""")
 
     def do_int(self, arg):
         try:
-            con = Console(stdin=self.stdin,stdout=self.stdout,
-                                       locals=self.__dict__)
+            con = Console(stdin=self.stdin, stdout=self.stdout,
+                          locals=self.__dict__)
             con.interact(
-                "Local interactive console. To return to Monitor, type %r."%
-                         con.EOF_key_sequence)
+                "Local interactive console. To return to Monitor, type %r." %
+                con.EOF_key_sequence)
 
         finally:
             pass
@@ -268,7 +279,6 @@ Local interactive console.
 This will bring up a Python console locally in
 the same interpreter process that the Monitor itself.""")
 
-
     def do_ki(self, arg):
         if not arg:
             arg = self.conid
@@ -278,7 +288,7 @@ the same interpreter process that the Monitor itself.""")
             print('''\
 Error: Can not interrupt this remote connection (uses Python < 2.4)''')
         else:
-            print('Sending KeyboardInterrupt to connection %s.'%arg)
+            print('Sending KeyboardInterrupt to connection %s.' % arg)
             c.send_cmd(KEYBOARDINTERRUPT)
 
     def help_ki(self):
@@ -323,11 +333,10 @@ the Annex that the connection is talking to.
 
 ARGV is the argument vector in the target Python interpereter.""")
 
-
     def do_sc(self, arg):
         if arg:
             self.conid = int(arg)
-        print('Remote connection %d. To return to Monitor, type <Ctrl-C> or .<RETURN>'%self.conid)
+        print('Remote connection %d. To return to Monitor, type <Ctrl-C> or .<RETURN>' % self.conid)
         self.monitor.set_connection(self.monitor.connections[self.conid])
 
     def help_sc(self):
@@ -354,6 +363,7 @@ Quit from the monitor.
 This will not exit from Python itself if called from an interactive
 interpreter. To make sure to exit from Python, use the exit command.""")
 
+
 class Monitor:
     use_raw_input = 1
 
@@ -375,8 +385,7 @@ class Monitor:
         hid = self.newid()
         self.connections[hid] = connection
         connection.monitor_id = hid
-        self.print_async( '*** Connection %s opened ***'%hid)
-
+        self.print_async('*** Connection %s opened ***' % hid)
 
     def print_async(self, text):
         """ Print text only if we are waiting for input,
@@ -390,7 +399,8 @@ class Monitor:
         del self.connections[connection.monitor_id]
         if connection is self.connection:
             self.set_connection(self.monitor_connection)
-        self.print_async( '*** Connection %s closed ***'%connection.monitor_id)
+        self.print_async('*** Connection %s closed ***' %
+                         connection.monitor_id)
 
     def run(self):
         try:
@@ -401,7 +411,7 @@ class Monitor:
                         conn = self.connection
                         self.prompt = conn.prompt
                         if conn is not self.monitor_connection:
-                            conn.exec_cmd(cmd=None,noblock=1)
+                            conn.exec_cmd(cmd=None, noblock=1)
                         cmd = input(conn.prompt)
                         self.prompt = None
                         conn = None
@@ -411,7 +421,7 @@ class Monitor:
                             else:
                                 cmd = cmd[1:]
                                 conn = self.monitor_connection
-                        #elif cmd or self.connection is self.monitor_connection:
+                        # elif cmd or self.connection is self.monitor_connection:
                         else:
                             conn = self.connection
                         if conn:
@@ -421,12 +431,12 @@ class Monitor:
                                 r = 1
                             if conn is self.monitor_connection and r:
                                 stop = 1
-                                #print 'to stop'
-                    #print 'end of loop'
+                                # print 'to stop'
+                    # print 'end of loop'
                 except EOFError:
                     'We better exit in case the input is from a file'
-                    #print 'EOFError'
-                    #print 'Use the monitor q command to quit.'
+                    # print 'EOFError'
+                    # print 'Use the monitor q command to quit.'
                     print('*** End Of File - Exiting Monitor ***')
                     self.connection = self.monitor_connection
                     stop = 1
@@ -437,19 +447,19 @@ class Monitor:
                     continue
 
         finally:
-            self.prompt=None # Avoid closing messages
-            #print 'to close'
+            self.prompt = None  # Avoid closing messages
+            # print 'to close'
             self.close()
 
     def close(self):
         for c in list(self.connections.values()):
             try:
-                #print 'to close:', c
+                # print 'to close:', c
                 c.close()
             except socket.error:
                 pass
         try:
-            #print 'to close: self'
+            # print 'to close: self'
             self.monitor_connection.close()
         except socket.error:
             pass
@@ -459,6 +469,7 @@ class Monitor:
     def set_connection(self, connection):
         self.connection = connection
         self.prompt = connection.prompt
+
 
 def monitor():
     """monitor() [0]
@@ -475,6 +486,7 @@ References
     Remote.off()
     m = Monitor()
     m.run()
+
 
 if __name__ == '__main__':
     monitor()

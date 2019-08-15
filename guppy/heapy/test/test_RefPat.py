@@ -1,5 +1,9 @@
 from guppy.heapy.test import support
-import io, sys, types, unittest
+import io
+import sys
+import types
+import unittest
+
 
 class TestCase(support.TestCase):
     def setUp(self):
@@ -80,33 +84,30 @@ class RefPatCase(TestCase):
             src = [src]
             lists.append(src)
 
-
-        rp = self.rp(dst, src,depth=10)
+        rp = self.rp(dst, src, depth=10)
         for i, x in enumerate(rp):
             if i < len(lists):
                 self.asis(lists[i], x.theone)
-
 
         # Test indexing
 
         # First case, when already iterated over
 
-        self.asis( rp[0].theone, lists[0] )
-        self.asis( rp[-2].theone, lists[-1])
-
+        self.asis(rp[0].theone, lists[0])
+        self.asis(rp[-2].theone, lists[-1])
 
         # Second case, when not iterated over before
 
-        rp = self.rp(dst, src,depth=10)
+        rp = self.rp(dst, src, depth=10)
 
-        self.asis( rp[0].theone, lists[0] )
-        self.asis( rp[-2].theone, lists[-1])
+        self.asis(rp[0].theone, lists[0])
+        self.asis(rp[-2].theone, lists[-1])
 
         # Test length
 
-        self.aseq( len(rp), len(lists) + 1)
-        rp = self.rp(dst, src,depth=10)
-        self.aseq( len(rp), len(lists) + 1)
+        self.aseq(len(rp), len(lists) + 1)
+        rp = self.rp(dst, src, depth=10)
+        self.aseq(len(rp), len(lists) + 1)
 
         # Test attribute access
 
@@ -115,7 +116,7 @@ class RefPatCase(TestCase):
 
         # Test attribute access, when not iterated over before
 
-        rp = self.rp(dst, src,depth=10)
+        rp = self.rp(dst, src, depth=10)
         self.asis(rp.a2.theone, lists[2])
         self.asis(rp.a.theone, lists[1])
 
@@ -151,12 +152,12 @@ class RefPatCase(TestCase):
         def test_pp(dst, src, result=None, **kwds):
 
             rp = self.rp(dst, src, **kwds)
-            write( repr(rp) )
+            write(repr(rp))
             return rp
 
         dst = []
         src.append(dst)
-        #print R.refpat(dst=dst)
+        # print R.refpat(dst=dst)
 
         test_pp(dst, src)
 
@@ -166,74 +167,74 @@ class RefPatCase(TestCase):
             x.append(dst)
         test_pp(dst, src)
 
-        src, dst = self.makegraph(5,7)
+        src, dst = self.makegraph(5, 7)
 
         test_pp(dst, src, depth=10)
 
         # Test that pp() prints limited number of lines
 
-        src, dst = self.makegraph(5,17)
+        src, dst = self.makegraph(5, 17)
 
         rp = test_pp(dst, src, depth=17)
 
-        write( repr(rp.more) )
+        write(repr(rp.more))
 
         # Test more of more
 
-        src, dst = self.makegraph(1,30)
+        src, dst = self.makegraph(1, 30)
 
         rp = test_pp(dst, src, depth=35)
 
         m = rp.more
 
-        write( repr(m) )
-        write( repr(m.more) )
+        write(repr(m))
+        write(repr(m.more))
         m1 = m.more
-        write( repr(m1) )
+        write(repr(m1))
         m2 = m.more
-        write( repr(m2.more) )
-        write( str(m1.more) ) # Test also that str() is the same as repr()
+        write(repr(m2.more))
+        write(str(m1.more))  # Test also that str() is the same as repr()
 
         # Test that we get back to start by .top
 
-        write( m1.top )
+        write(m1.top)
 
         # Test that we get back to previous by .prev
 
-        write( m1.prev )
+        write(m1.prev)
 
         if 0:
             # I don't know if I really want this, after new general output handling
 
             # Test that .top works at the top
 
-            write( m1.top.top )
+            write(m1.top.top)
 
-        #pdb.set_trace()
+        # pdb.set_trace()
 
         # Test that they won't say '...more lines...' if the # of lines is what is printed
 
-        src, dst = self.makegraph(1,30)
+        src, dst = self.makegraph(1, 30)
 
         rp = test_pp(dst, src, depth=10)
 
         # Test how no more lines is printed
 
-        write( rp.more)
-        write( rp.more.more)
+        write(rp.more)
+        write(rp.more.more)
 
         # Test that one more line is printed rather than '1 more line'
 
-        src, dst = self.makegraph(1,30)
+        src, dst = self.makegraph(1, 30)
 
         rp = test_pp(dst, src, depth=21)
-        write( rp.more)
+        write(rp.more)
 
         # Test that we can do more without first printing
 
         rp = self.rp(dst, src, depth=20)
 
-        write( rp.more )
+        write(rp.more)
 
         if 0:
             print(output.getvalue())
@@ -430,7 +431,6 @@ Reference Pattern by <[dict of] class>.
         self.asis(rp.aa.theone, aa)
         self.asis(rp.View.rg[b][0], ba)
 
-
     def test_some_more_advanced_usages(self):
         import gc
 
@@ -448,17 +448,18 @@ Reference Pattern by <[dict of] class>.
         # In particular, dict owned by an instance
 
         dst = []
+
         class A:
             pass
         a = A()
         a.dst = dst
-        b = {'dst':dst}
+        b = {'dst': dst}
 
         src = (a, b)
 
         gc.collect()
         rp = self.rp(dst, src, depth=10)
-        rp.er.classifier.is_clear_drg_enabled = 0 # Note Apr 19 2005
+        rp.er.classifier.is_clear_drg_enabled = 0  # Note Apr 19 2005
         self.asis(rp.a.theone, b)
         self.asis(rp.b.theone, a.__dict__)
 
@@ -479,9 +480,9 @@ Reference Pattern by <[dict of] class>.
         lnnow = len(mod.View.dict_ownership)
         self.assertTrue(lnnow == 0)
 
+
 class NewCase(TestCase):
     # Some new tests as they come up
-
 
     def test_reset(self):
         # Test the .reset() method
@@ -489,14 +490,13 @@ class NewCase(TestCase):
         dst = []
         a = [dst]
         b = [dst]
-        src = [a,b]
+        src = [a, b]
         rp = self.rp(dst, src)
-        self.aseq( rp.a, self.iso(a, b) )
+        self.aseq(rp.a, self.iso(a, b))
 
         b.pop()
         rp.reset()
-        self.aseq( rp.a, self.iso(a) )
-
+        self.aseq(rp.a, self.iso(a))
 
     def test_paths(self):
         # Test the .paths() method
@@ -504,7 +504,7 @@ class NewCase(TestCase):
         dst = []
         a = [dst]+[None]*40     # Make order well-defined. Note May 2 2005.
         b = [dst]
-        src = [a,b]
+        src = [a, b]
         rp = self.rp(dst, src)
 
         expected = """\
@@ -516,37 +516,42 @@ Paths from source 'a3' to target '_'.
  4: aa [0]  @ [1]
  5: a  [1]   @ [0] -> #3"""
 
-        self.aseq( str(rp.paths('a3')), expected)
+        self.aseq(str(rp.paths('a3')), expected)
 
         expected = expected[:expected.index('\n 4:')]
 
         # Test the andsets argument, given as a dict
 
-        self.aseq( str(rp.paths('a3', andsets={'a':self.iso(a)})), expected)
+        self.aseq(str(rp.paths('a3', andsets={'a': self.iso(a)})), expected)
 
         # Test the andsets argument, given as a list
 
-        self.aseq( str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
+        self.aseq(
+            str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
 
 
 def test_main(debug=0):
-    support.run_unittest(RefPatCase,debug)
-    support.run_unittest(NewCase,debug)
+    support.run_unittest(RefPatCase, debug)
+    support.run_unittest(NewCase, debug)
+
 
 def test_leak():
     # Runs the tests in a loop and prints memory statistics,
     # to see if there are underlying low-level memory problems.
     # Requires Python to be compiled with debug support.
     from guppy.heapy.heapyc import xmemstats
-    import gc, sys, time
+    import gc
+    import sys
+    import time
     i = 0
     xmemstats()
     while 1:
-        print('[%d]'%i, time.asctime())
+        print('[%d]' % i, time.asctime())
         i += 1
         test_main()
         gc.collect()
         xmemstats()
+
 
 if __name__ == "__main__":
     test_main()

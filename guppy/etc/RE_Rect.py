@@ -1,4 +1,4 @@
-#._cv_part guppy.etc.RE_Rect
+# ._cv_part guppy.etc.RE_Rect
 """ Support functions for RE simplification.
 This module is intended for use by the RE module.
 It is in a separate module to keep RE itself cleaner
@@ -19,8 +19,10 @@ pr() gives some example usages of chooserects.
 
 from guppy.sets import immbitset, mutbitset, immbitrange
 
+
 class Rect(object):
     __slots__ = 'width', 'lines', 'gainmemo', 'lnos', 'all_lines', 'common_part'
+
     def __init__(self, width, lines):
         self.width = width
         self.lines = lines
@@ -44,22 +46,23 @@ class Rect(object):
         if len(lnos) == 1:
             self.width = len(self.lines[0])
 
-    def get_lines(self, pickednos = 0):
+    def get_lines(self, pickednos=0):
         lines = []
         for i in self.lnos & ~ pickednos:
             lines.append(self.all_lines[i])
         return lines
 
     def __str__(self):
-        return '<\n dir = %d\n width = %d\n lnos = %s\n lines = %s\n>'%(
+        return '<\n dir = %d\n width = %d\n lnos = %s\n lines = %s\n>' % (
             self.dir, self.width, list(self.lnos), self.lines)
 
-    __repr__=__str__
+    __repr__ = __str__
 
 
 class LeftRect(Rect):
     __slots__ = ()
     dir = 0
+
     def get_common_part(self):
         return self.lines[0][:self.width]
 
@@ -69,9 +72,11 @@ class LeftRect(Rect):
             uc.append(line[self.width:])
         return uc
 
+
 class RightRect(Rect, object):
     __slots__ = ()
     dir = -1
+
     def get_common_part(self):
         lo = -self.width
         if lo == 0:
@@ -87,6 +92,7 @@ class RightRect(Rect, object):
             uc.append(line[:hi])
         return uc
 
+
 def sum_gauge(gauge, lst):
     global hits, misses
     if gauge is None:
@@ -97,6 +103,7 @@ def sum_gauge(gauge, lst):
             gain += gauge(x)
     return gain
 
+
 def cmp_gauged(xs, ys, gauges):
     for gauge in gauges:
         gx = sum_gauge(gauge, xs)
@@ -105,6 +112,7 @@ def cmp_gauged(xs, ys, gauges):
         if c:
             return c
     return 0
+
 
 class InducedRect:
     def __init__(self, s, lines, lnos):
@@ -115,13 +123,12 @@ class InducedRect:
         self.lnos = lnos
 
 
-
 class InducedRightRect(InducedRect, RightRect):
     pass
 
+
 class InducedLeftRect(InducedRect, LeftRect):
     pass
-
 
 
 def brect(lines):
@@ -155,7 +162,8 @@ def brect(lines):
 
     return donerects
 
-def choose(rects, lines = [], gauges = [None], trace=''):
+
+def choose(rects, lines=[], gauges=[None], trace=''):
     def induce(r):
         if trace == 'induce':
             pdb.set_trace()
@@ -186,9 +194,8 @@ def choose(rects, lines = [], gauges = [None], trace=''):
                 irs.append(ir)
 
         if irs:
-            #pdb.set_trace()
+            # pdb.set_trace()
             news.extend(irs)
-
 
     def overlap(r):
         #
@@ -292,7 +299,7 @@ def choose(rects, lines = [], gauges = [None], trace=''):
                         break
                     rn = sn
                     rw = sw
-                    rwn =  sn * sw
+                    rwn = sn * sw
                 if r is not None:
                     rects.remove(r)
             if r is not None:
@@ -315,12 +322,10 @@ def choose(rects, lines = [], gauges = [None], trace=''):
     if gauges[0] == None:
         gauges = gauges[1:]
 
-
     lnobyid = dict([(id(line), i) for i, line in enumerate(lines)])
 
     orects = rects
     rects = list(orects)
-
 
     for r in rects:
         r.init2(lnobyid, lines)
@@ -350,24 +355,24 @@ def choose(rects, lines = [], gauges = [None], trace=''):
     return pickedrects
 
 
-def chooserects(lines, gauges = [None], trace=''):
+def chooserects(lines, gauges=[None], trace=''):
     rects = brect(lines)
     choosen = choose(rects, lines, gauges, trace)
     return choosen
 
 
 def pr():
-    x = chooserects(['abc','ade'])
+    x = chooserects(['abc', 'ade'])
     x = chooserects(['abc',
-                 'abe',
-                 'ace',
-                 'xby'])
+                     'abe',
+                     'ace',
+                     'xby'])
 
     print(x)
     x = chooserects(['ab1',
-                 'ab2',
-                 'ac3',
-                 'ac4'])
+                     'ab2',
+                     'ac3',
+                     'ac4'])
 
     print(x)
 
@@ -386,15 +391,14 @@ def pr():
 
     # Case where it chooses twice..
 
-
     x = chooserects([
         'abc',
         'abd',
         'bcx',
         'bdy'
-        ])
+    ])
 
-    print('TW',x)
+    print('TW', x)
 
     # Case where it didn't choose enough rects
 
@@ -402,38 +406,38 @@ def pr():
         'abc',
         'abd',
         'e'
-        ])
+    ])
 
     print(chooserects(x))
 
     # Case where it should prefer one side or the other
     # i.e. left traditionally
 
-    print(chooserects(['abc','axc']))
+    print(chooserects(['abc', 'axc']))
 
     # Case where it should give a width 0 rect
 
-    print(chooserects(['a','']))
+    print(chooserects(['a', '']))
 
     # Case with overlap
 
-    print(chooserects(['abcd','abce','a','f']))
+    print(chooserects(['abcd', 'abce', 'a', 'f']))
 
     # Case with induce
 
-    print(chooserects(['abcd','abce','d','e']))
-
+    print(chooserects(['abcd', 'abce', 'd', 'e']))
 
     print(chooserects(['auvw', 'buvw', 'a', 'b']))
-    print(chooserects(['axuvw','bxuvw','axy','bxy','cy']))
+    print(chooserects(['axuvw', 'bxuvw', 'axy', 'bxy', 'cy']))
 
     # Case with overlap reversed as per Mar 4
 
-    print(chooserects(['dcba','ecba','a','f'], trace='choosen'))
+    print(chooserects(['dcba', 'ecba', 'a', 'f'], trace='choosen'))
+
 
 def tmany():
     for i in range(100):
         x = chooserects(['abc',
-             'abe',
-             'ace',
-             'xby'])
+                         'abe',
+                         'ace',
+                         'xby'])

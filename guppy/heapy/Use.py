@@ -1,23 +1,24 @@
-#._cv_part guppy.heapy.Use
+# ._cv_part guppy.heapy.Use
 
 import guppy.etc.Glue
+
 
 class _GLUECLAMP_(guppy.etc.Glue.Interface):
     _preload_ = '_hiding_tag_',
     _chgable_ = ('reprefix', 'default_reprefix', 'gcobjs',
                  'relheap', 'relheapg', 'relheapu', '__doc__')
     _dir_ = (
-            'Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
-            'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
-            'Via', 'doc', 'findex', 'heap', 'heapu',
-            'idset','iso', 'load', 'monitor', 'pb',
-            'setref', 'test')
+        'Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
+        'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
+        'Via', 'doc', 'findex', 'heap', 'heapu',
+        'idset', 'iso', 'load', 'monitor', 'pb',
+        'setref', 'test')
 
-    _private_ = ('View','_hiding_tag_','_load_stat','ctime','default_reprefix',
-                 'dumph','gcobjs','heapg','loadc','relheap','relheapg',
-                 'relheapu','reprefix','setrelheap','setrelheapg',
-                 'setrelheapu','tc_adapt','tc_repr','union',
-                 'uniset_from_setcsatable','warnings','Stat'
+    _private_ = ('View', '_hiding_tag_', '_load_stat', 'ctime', 'default_reprefix',
+                 'dumph', 'gcobjs', 'heapg', 'loadc', 'relheap', 'relheapg',
+                 'relheapu', 'reprefix', 'setrelheap', 'setrelheapg',
+                 'setrelheapu', 'tc_adapt', 'tc_repr', 'union',
+                 'uniset_from_setcsatable', 'warnings', 'Stat'
                  )
 
     default_reprefix = 'hpy().'
@@ -42,8 +43,8 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
         import __main__
         for k, v in list(__main__.__dict__.items()):
             if (isinstance(v, self.__class__) and
-                getattr(v, '_share', None) is self._share):
-                return '%s.'%k
+                    getattr(v, '_share', None) is self._share):
+                return '%s.' % k
         return self.default_reprefix
 
     def _get_Root(self):
@@ -62,11 +63,10 @@ References
     def __repr__(self):
         return """\
 Top level interface to Heapy.
-Use eg: %sdoc for more info on %s.""" %(
-            self.reprefix,self.reprefix[:-1])
+Use eg: %sdoc for more info on %s.""" % (
+            self.reprefix, self.reprefix[:-1])
 
-
-    __str__=__repr__
+    __str__ = __repr__
 
     def Ddir(self, opts=''):
         """\
@@ -117,13 +117,12 @@ References
                                              header="""\
 Top level interface to Heapy. Available attributes:""",
                                              footer="""\
-Use eg: %sdoc.<attribute> for info on <attribute>."""%self.reprefix)
-
+Use eg: %sdoc.<attribute> for info on <attribute>.""" % self.reprefix)
 
     def heapg(self, rma=1):
         """ DEPRECATED """
         self.warnings.warn(
-"Method Use.heapg is depreciated, it doesn't work well. Use heapu instead.")
+            "Method Use.heapg is depreciated, it doesn't work well. Use heapu instead.")
         h = self.View.heapg(rma)
         h -= self.relheapg
         return h
@@ -146,7 +145,6 @@ References
     [0] heapy_Use.html#heapykinds.Use.heapu
     [1] heapy_Use.html#heapykinds.Use.setref"""
 
-
         h = self.View.heapu(rma)
         rel = 0
         if not abs and self.relheapu and isinstance(self.relheapu, type(h)):
@@ -161,10 +159,9 @@ References
             h.firstheader = 'Data from unreachable objects'
 
             if rel:
-                h.firstheader += ' relative to: %s'%\
+                h.firstheader += ' relative to: %s' %\
                                  self.ctime(self.relheapu.timemade)
             h.firstheader += '.\n'
-
 
         return h
 
@@ -228,6 +225,7 @@ References
             #  (at least by Stat.dump() and if OS=Linux)
             #  if data are written to a new file with the same name.)
             f = open(fn)
+
             def get_trows():
                 pos = 0
                 while 1:
@@ -260,7 +258,7 @@ References
             line = get_line()
             if not line:
                 raise StopIteration
-            endline = '.end: %s'%line
+            endline = '.end: %s' % line
             try:
                 while line:
                     trows.append(line)
@@ -275,22 +273,25 @@ References
             def get_trows():
                 return trows
         else:
-            raise TypeError('Argument should be a string, file or an iterable yielding strings.')
+            raise TypeError(
+                'Argument should be a string, file or an iterable yielding strings.')
 
         a = next(iter(get_trows()))
         if not a.startswith('.loader:'):
-            raise ValueError('Format error in %r: no initial .loader directive.'%fn)
+            raise ValueError(
+                'Format error in %r: no initial .loader directive.' % fn)
         loader = a[a.index(':')+1:].strip()
         try:
             loader = getattr(self, loader)
         except AttributeError:
-            raise ValueError('Format error in %r: no such loader: %r.'%(fn, loader))
+            raise ValueError(
+                'Format error in %r: no such loader: %r.' % (fn, loader))
         return loader(get_trows)
 
-    def loadall(self,f):
+    def loadall(self, f):
         ''' Generates all objects from an open file f or a file named f'''
-        if isinstance(f,str):
-            f=open(f)
+        if isinstance(f, str):
+            f = open(f)
         while True:
             yield self.load(f)
 
@@ -339,13 +340,13 @@ References
 
     def setrelheapg(self, reference=None):
         self.warnings.warn(
-"Method Use.setrelheapg is depreciated, use setref instead.")
+            "Method Use.setrelheapg is depreciated, use setref instead.")
         if reference is None:
             self.relheapg = None
             reference = self.View.heapg()
         self.relheapg = reference
 
-    def setrelheapu(self, reference=None,stat=1):
+    def setrelheapu(self, reference=None, stat=1):
         if reference is None:
             self.relheapu = None
             reference = self.heapu(abs=True, stat=stat)
@@ -394,7 +395,7 @@ Argument
         '_parent.View:_hiding_tag_',
         '_root.time:ctime',
         '_root:warnings',
-        )
+    )
 
     _doc_Anything = """Anything: Kind
 
@@ -403,7 +404,7 @@ A symbolic set that represents all possible Python objects.
 References
     [0] heapy_Use.html#heapykinds.Use.Anything"""
 
-    _doc_Class ="""Class:EquivalenceRelation
+    _doc_Class = """Class:EquivalenceRelation
 Class(tc:typeorclass+) -> Kind
 
 Equivalence relation by class. It defines objects to be equivalent
@@ -415,7 +416,7 @@ returns the equivalenc class defined by the argument:
 References
     [0] heapy_Use.html#heapykinds.Use.Class"""
 
-    _doc_Clodo ="""Clodo:EquivalenceRelation
+    _doc_Clodo = """Clodo:EquivalenceRelation
 Clodo(alt:[tc: typeorclassexceptdict+ or dictof =
         typeorclassoremptytuple+]) -> Kind
 
@@ -439,7 +440,7 @@ OR:
 References
     [0] heapy_Use.html#heapykinds.Use.Clodo"""
 
-    _doc_Id="""Id:EquivalenceRelation
+    _doc_Id = """Id:EquivalenceRelation
 Id(address: objectaddress+) -> Kind)
 
 This equivalence relation defines objects to be equivalent only if
@@ -451,7 +452,7 @@ the equivalence class defined by the argument:
 References
     [0] heapy_Use.html#heapykinds.Use.Id"""
 
-    _doc_Idset="""Id:EquivalenceRelation
+    _doc_Idset = """Id:EquivalenceRelation
 Idset(node: Anything+) -> IdentitySet
 
 This equivalence relation defines objects to be equivalent only if
@@ -511,7 +512,6 @@ each of which representing an equivalence class of Clodo.
         Kinds of referrers.
 References
     [0] heapy_Use.html#heapykinds.Use.Rcs"""
-
 
     _doc_Size = """\
 Size: EquivalenceRelation
@@ -652,7 +652,6 @@ References
     [0] heapy_Use.html#heapykinds.Use.iso
     [1] heapy_UniSet.html#heapykinds.IdentitySet
     [2] heapy_Use.html#heapykinds.Use.idset"""
-
 
     _doc_sokind = """
 """

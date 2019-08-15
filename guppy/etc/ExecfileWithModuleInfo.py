@@ -1,12 +1,16 @@
-#._cv_part guppy.etc.ExecfileWithModuleInfo
+# ._cv_part guppy.etc.ExecfileWithModuleInfo
 
-import sys, os, imp, md5
+import sys
+import os
+import imp
+import md5
 
-_VERBOSE   = True
-_RELOAD_ALWAYS = True # False
+_VERBOSE = True
+_RELOAD_ALWAYS = True  # False
 _MAGIC = '#._cv_part'
 
 modsums = {}
+
 
 def pyname(m):
     fname = m.__file__
@@ -15,14 +19,17 @@ def pyname(m):
         fname = se[0]+'.py'
     return fname
 
+
 def calc_stringsum(s):
     return md5.md5(s).digest()
+
 
 def calc_modsum(m):
     return calc_stringsum(open(pyname(m)).read())
 
+
 def execfile(filename, globs=None, locs=None):
-    if globs==None:
+    if globs == None:
         # Do this in an interior frame to not change caller's sys.exc_info()
         def get_globs():
             try:
@@ -33,7 +40,7 @@ def execfile(filename, globs=None, locs=None):
                     frame = trb.tb_frame.f_back.f_back
                     globs = frame.f_globals
                 finally:
-                    del typ,val,trb
+                    del typ, val, trb
             return globs
         globs = get_globs()
 
@@ -54,11 +61,11 @@ def execfile(filename, globs=None, locs=None):
 
     eix = text.find('\n', ix)
     name = text[ix:eix]
-    name=name.strip()
+    name = name.strip()
     m = sys.modules.get(name)
     if m is None:
         if _VERBOSE:
-            print('%s.execfile: importing'%__name__, name)
+            print('%s.execfile: importing' % __name__, name)
         __import__(name, globs, locs, [])
         m = sys.modules[name]
 
@@ -73,7 +80,7 @@ def execfile(filename, globs=None, locs=None):
 
     if _RELOAD_ALWAYS or msum != tsum:
         if _VERBOSE:
-            print('%s.execfile: reloading'%__name__, name)
+            print('%s.execfile: reloading' % __name__, name)
         fname = pyname(m)
         code = compile(text, fname, 'exec')
         exec(code, m.__dict__)

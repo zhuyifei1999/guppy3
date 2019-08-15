@@ -1,7 +1,9 @@
-#._cv_part guppy.heapy.Part
+# ._cv_part guppy.heapy.Part
+
 
 class Format(object):
     __slots__ = 'impl', 'mod'
+
     def __init__(self, impl):
         self.impl = impl
         self.mod = impl.mod
@@ -75,45 +77,48 @@ class Format(object):
             if numrows >= 10:
                 nummore = impl.numrows - 1 - row.index
                 if nummore > 1:
-                    print("<%d more rows. Type e.g. '_.more' to view.>"%nummore, file=ob)
+                    print("<%d more rows. Type e.g. '_.more' to view.>" %
+                          nummore, file=ob)
                     break
 
 
 class SetFormat(Format):
     __slots__ = ()
+
     def get_label(self):
         impl = self.impl
         if impl.count != 1:
             s = 's'
         else:
             s = ''
-        return 'Partition of a set of %d object%s. Total size = %d bytes.'%(
+        return 'Partition of a set of %d object%s. Total size = %d bytes.' % (
             impl.count, s, impl.size)
 
-
     def get_rowdata(self, row):
-        return '%d %d %s'%(row.count, row.size, row.name)
+        return '%d %d %s' % (row.count, row.size, row.name)
 
     def get_stat_header(self):
         return (
-' Index  Count   %     Size   % Cumulative  % ')
+            ' Index  Count   %     Size   % Cumulative  % ')
 
     def get_stat_data(self, row):
         format = '%6d %6d %3d %8d %3d %9d %3d '
         impl = self.impl
         fr = format % (
             row.index,
-            row.count, int('%.0f'%(row.count * 100.0/impl.count)),
-            row.size, int('%.0f'%(row.size * 100.0/impl.size)),
-            row.cumulsize, int('%.0f'%(row.cumulsize * 100.0/impl.size)),
-            )
+            row.count, int('%.0f' % (row.count * 100.0/impl.count)),
+            row.size, int('%.0f' % (row.size * 100.0/impl.size)),
+            row.cumulsize, int('%.0f' % (row.cumulsize * 100.0/impl.size)),
+        )
         return fr
 
     def load_statrow(self, r):
         return self.load_statrow_csk(r)
 
+
 class IdFormat(Format):
     __slots__ = ()
+
     def get_label(self):
         impl = self.impl
         if impl.count != 1:
@@ -121,16 +126,16 @@ class IdFormat(Format):
         else:
             s = ''
         return (
-'Set of %d %s object%s. Total size = %d bytes.'%(
-    impl.count, impl.kindname, s, impl.size))
+            'Set of %d %s object%s. Total size = %d bytes.' % (
+                impl.count, impl.kindname, s, impl.size))
         return part
 
     def get_rowdata(self, row):
-        return '%d %s'%(row.size, row.name)
+        return '%d %s' % (row.size, row.name)
 
     def get_stat_header(self):
         return (
-' Index     Size   %   Cumulative  %   ')
+            ' Index     Size   %   Cumulative  %   ')
 
     def get_stat_data(self, row):
         impl = self.impl
@@ -139,40 +144,41 @@ class IdFormat(Format):
             row.index,
             row.size, (row.size * 100.0/impl.size),
             row.cumulsize, row.cumulsize * 100.0/impl.size,
-            )
+        )
         return fr
 
     def load_statrow(self, r):
         return self.load_statrow_sk(r)
+
 
 class DiffFormat(Format):
     __slots__ = ()
 
     def _percent_of_b(self, size):
         if self.impl.b_size != 0:
-            return '%9.3g'%(size*100.0/self.impl.b_size,)
+            return '%9.3g' % (size*100.0/self.impl.b_size,)
         else:
             return '   (n.a.)'
 
     def get_label(self):
         impl = self.impl
         x = (
-'Summary of difference operation (A-B).\n'+
-'        Count     Size\n'+
-'  A    %6d %8d\n'%(impl.count+impl.b_count, impl.size+impl.b_size)+
-'  B    %6d %8d\n'%(impl.b_count, impl.b_size)+
-'  A-B  %6d %8d  = %s %% of B\n'%(impl.count, impl.size, self._percent_of_b(impl.size)))
+            'Summary of difference operation (A-B).\n' +
+            '        Count     Size\n' +
+            '  A    %6d %8d\n' % (impl.count+impl.b_count, impl.size+impl.b_size) +
+            '  B    %6d %8d\n' % (impl.b_count, impl.b_size) +
+            '  A-B  %6d %8d  = %s %% of B\n' % (impl.count, impl.size, self._percent_of_b(impl.size)))
 
         if impl.count or impl.size:
             x += '\nDifferences by kind, largest absolute size diffs first.'
         return x
 
     def get_rowdata(self, row):
-        return '%d %d %s'%(row.count, row.size, row.name)
+        return '%d %d %s' % (row.count, row.size, row.name)
 
     def get_stat_header(self):
         return (
-' Index  Count     Size  Cumulative  % of B ')
+            ' Index  Count     Size  Cumulative  % of B ')
 
     def get_stat_data(self, row):
         impl = self.impl
@@ -183,11 +189,12 @@ class DiffFormat(Format):
             row.size,
             row.cumulsize,
             self._percent_of_b(row.cumulsize),
-            )
+        )
         return fr
 
     def load_statrow(self, r):
         return self.load_statrow_csk(r)
+
 
 class StatRow(object):
     __slots__ = 'count', 'size', 'name', 'index', 'cumulsize'
@@ -198,6 +205,7 @@ class StatRow(object):
         self.name = name
         self.index = index
         self.cumulsize = cumulsize
+
 
 class PartRow(StatRow):
     __slots__ = 'set', 'kind'
@@ -210,6 +218,7 @@ class PartRow(StatRow):
         self.cumulsize = cumulsize
         self.set = set
         self.kind = kind
+
 
 class Stat:
     def __init__(self, mod, get_trows, firstheader=''):
@@ -242,7 +251,7 @@ class Stat:
         self.timemade = float(self.timemade)
 
     def __getitem__(self, idx):
-        if  isinstance(idx, int):
+        if isinstance(idx, int):
             if idx < 0:
                 idx = self.numrows + idx
             if not (0 <= idx < self.numrows):
@@ -262,19 +271,19 @@ class Stat:
 
         trows = [
             '.loader: _load_stat',
-            '.format: %s'%self.format_name,
-            '.timemade: %f'%self.timemade,
-            '.count: %d'%count,
-            '.size: %d'%size,
-            '.kindheader: %s'%self.kindheader,
-            '.kindname: %s'%self.kindname,
-            '.numrows: %d'%len(rows),
-            ]
+            '.format: %s' % self.format_name,
+            '.timemade: %f' % self.timemade,
+            '.count: %d' % count,
+            '.size: %d' % size,
+            '.kindheader: %s' % self.kindheader,
+            '.kindname: %s' % self.kindname,
+            '.numrows: %d' % len(rows),
+        ]
         if getattr(self, 'b_count', None) is not None:
-            trows.append('.b_count: %d'%self.b_count)
-            trows.append('.b_size: %d'%self.b_size)
+            trows.append('.b_count: %d' % self.b_count)
+            trows.append('.b_size: %d' % self.b_size)
         for r in rows:
-            trows.append('.r: %s'%self.format.get_rowdata(r))
+            trows.append('.r: %s' % self.format.get_rowdata(r))
         return self.mod.load(trows)
 
     def __len__(self):
@@ -287,9 +296,10 @@ class Stat:
 
     def __sub__(self, other):
         if not isinstance(other, Stat):
-            raise TypeError('Can only take difference with other Stat instance.')
+            raise TypeError(
+                'Can only take difference with other Stat instance.')
         if self.kindheader != other.kindheader:
-            raise ValueError('Mismatching table kind header, %r vs %r.'%(
+            raise ValueError('Mismatching table kind header, %r vs %r.' % (
                 self.kindheader, other.kindheader))
         rows = []
         otab = {}
@@ -297,7 +307,8 @@ class Stat:
         for r in other.get_rows():
             o = otab.get(r.name)
             if o:
-                otab[r.name] = StatRow(r.count+o.count, r.size+o.size, r.name, o.index,  None)
+                otab[r.name] = StatRow(
+                    r.count+o.count, r.size+o.size, r.name, o.index,  None)
             else:
                 otab[r.name] = r
         for r in self.get_rows():
@@ -320,12 +331,12 @@ class Stat:
                 stab[sr.name] = sr
                 rows.append(sr)
         rs = list(otab.values())
-        rs.sort(lambda x,y:cmp(x.index, y.index)) # Preserve orig. order
+        rs.sort(lambda x, y: cmp(x.index, y.index))  # Preserve orig. order
         for r in rs:
             sr = StatRow(-r.count, -r.size, r.name)
             assert sr.name not in stab
             rows.append(sr)
-        rows.sort(lambda x,y:cmp(abs(y.size), abs(x.size)))
+        rows.sort(lambda x, y: cmp(abs(y.size), abs(x.size)))
         cumulcount = 0
         cumulsize = 0
         for r in rows:
@@ -335,17 +346,17 @@ class Stat:
         trows = [
             '.loader: _load_stat',
             '.format: DiffFormat',
-            '.timemade: %f'%self.mod.time.time(),
-            '.b_count: %d'%other.count,
-            '.b_size: %d'%other.size,
-            '.count: %d'%cumulcount,
-            '.size: %d'%cumulsize,
-            '.kindheader: %s'%self.kindheader,
-            '.kindname: %s'%self.kindname,
-            '.numrows: %d'%len(rows),
-            ]
+            '.timemade: %f' % self.mod.time.time(),
+            '.b_count: %d' % other.count,
+            '.b_size: %d' % other.size,
+            '.count: %d' % cumulcount,
+            '.size: %d' % cumulsize,
+            '.kindheader: %s' % self.kindheader,
+            '.kindname: %s' % self.kindname,
+            '.numrows: %d' % len(rows),
+        ]
         for r in rows:
-            trows.append('.r: %d %d %s'%(r.count, r.size, r.name))
+            trows.append('.r: %d %d %s' % (r.count, r.size, r.name))
         return self.mod.load(trows)
 
     def dump(self, fn, mode='a'):
@@ -358,7 +369,7 @@ class Stat:
                 if not r[-1:] == '\n':
                     r += '\n'
                 f.write(r)
-            end = '.end: .loader: %s\n'%self.loader
+            end = '.end: .loader: %s\n' % self.loader
             if r != end:
                 f.write(end)
         finally:
@@ -388,7 +399,7 @@ class Stat:
             self.parse_next_row()
         return self.rows[idx]
 
-    def get_rows(self, idx = None):
+    def get_rows(self, idx=None):
         if idx is None:
             idx = 0
         while idx < self.numrows:
@@ -500,6 +511,7 @@ class Stat:
     def ppob(self, ob, idx=None):
         return self.format.ppob(ob, idx)
 
+
 class Partition:
     def __init__(self, mod, set, er):
         self.mod = mod
@@ -516,7 +528,7 @@ class Partition:
     def get_more_index(self, idx=None):
         return self.format.get_more_index(idx)
 
-    def get_rows(self, rowindex = None):
+    def get_rows(self, rowindex=None):
         # Iterator over rows
         if rowindex is None:
             rowindex = 0
@@ -546,21 +558,22 @@ class Partition:
     def get_stat(self):
         # Avoid any references into the set!
         trows = list(self.get_trows())
+
         def get_trows():
             return trows
         return self.mod._load_stat(get_trows)
 
     def get_trows(self):
         yield '.loader: _load_stat'
-        yield '.format: %s'%self.format.__class__.__name__
-        yield '.timemade: %f'%self.timemade
-        yield '.count: %d'%self.count
-        yield '.size: %d'%self.size
-        yield '.kindname: %s'%self.kindname
-        yield '.kindheader: %s'%self.kindheader
-        yield '.numrows: %d'%self.numrows
+        yield '.format: %s' % self.format.__class__.__name__
+        yield '.timemade: %f' % self.timemade
+        yield '.count: %d' % self.count
+        yield '.size: %d' % self.size
+        yield '.kindname: %s' % self.kindname
+        yield '.kindheader: %s' % self.kindheader
+        yield '.numrows: %d' % self.numrows
         for row in self.get_rows():
-            yield '.r: %s'%self.format.get_rowdata(row)
+            yield '.r: %s' % self.format.get_rowdata(row)
 
     def init_format(self, FormatClass):
         self.format = FormatClass(self)
@@ -568,12 +581,14 @@ class Partition:
     def ppob(self, ob, idx=None):
         return self.format.ppob(ob, idx)
 
+
 class IdentityPartitionCluster(object):
     # Contains objects of same size.
     # to speed up management of identity partition
     # - since otherwise we'd have to sort all the objects,
     #   on their string representation in worst case.
-    __slots__ = 'objects','locount','hicount','losize','obsize','issorted'
+    __slots__ = 'objects', 'locount', 'hicount', 'losize', 'obsize', 'issorted'
+
     def __init__(self, objects, locount, count, losize, obsize):
         self.objects = objects          # tuple of objects in this segment
         self.locount = locount          # count BEFORE objects in this cluster
@@ -659,7 +674,7 @@ class IdentityPartition(Partition):
                 objects = objects[start-clu.locount:stop-clu.locount:step]
 
             ns |= objects
-            self.cluidx = cluidx # memo till next call
+            self.cluidx = cluidx  # memo till next call
             start += len(objects)*step
             if start >= stop:
                 break
@@ -756,13 +771,12 @@ class _GLUECLAMP_:
         '_root.textwrap:wrap',
         '_root.textwrap:wrap',
         '_root:time',
-        )
+    )
 
     # 'Config'
 
     line_length = 100
     backup_suffix = '.old'
-
 
     # Factory method
 

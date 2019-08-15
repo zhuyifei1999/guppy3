@@ -1,14 +1,21 @@
-#._cv_part guppy.etc.Glue
-import new, re, sys, types
+# ._cv_part guppy.etc.Glue
+import new
+import re
+import sys
+import types
+
 
 class GlueError(Exception):
     pass
 
+
 class RecursionError(GlueError):
     pass
 
+
 class NoSuchAttributeError(GlueError):
     pass
+
 
 def ispackage(m):
     """ Determine if a module is a package - that means, sub-modules can be imported
@@ -22,11 +29,13 @@ def ispackage(m):
         return 0
     return re.match('.*__init__.py[co]?$', name)
 
+
 def dotname(first, last):
     if first and last:
-        return '%s.%s'%(first, last)
+        return '%s.%s' % (first, last)
     else:
         return first + last
+
 
 class Interface(object):
     def __init__(self, share, owner, name):
@@ -37,11 +46,10 @@ class Interface(object):
             getattr(self, name)
 
     def _import(self, *names):
-        return ','.join(names) + '=' + ','.join(['self._root.%s'%name for name in names])
-
+        return ','.join(names) + '=' + ','.join(['self._root.%s' % name for name in names])
 
     def __getattr__(self, name):
-        #print 'getattr', name
+        # print 'getattr', name
         return self._share.getattr(self, name)
 
     def __setattr__(self, name, value):
@@ -65,7 +73,7 @@ class Owner:
     def makeInterface(self, cache, share, name):
         name = dotname(cache['_name'], name)
         if share not in self.inters:
-            Clamp=share.Clamp
+            Clamp = share.Clamp
             if Clamp is not None and issubclass(Clamp, Interface):
                 NewInterface = Clamp
             else:
@@ -73,11 +81,11 @@ class Owner:
             self.inters[share] = NewInterface(share, self, name)
         return self.inters[share]
 
-    def pp(self, out=None,short=0):
+    def pp(self, out=None, short=0):
         if out is None:
             out = sys.stdout
         if not short:
-            print('Attributes used by %s:'%self.name, file=out)
+            print('Attributes used by %s:' % self.name, file=out)
             print(self.name[:self.name.rindex('.')+1], file=out)
         complete = []
         for a in self.galog:
@@ -88,11 +96,13 @@ class Owner:
                 complete.append(a)
         complete.sort()
         for a in complete:
-            print('    ',a)
+            print('    ', a)
+
 
 class Share:
     has_getattr_logging_enabled = False
-    Clamp=None
+    Clamp = None
+
     def __init__(self, module, parent, name, Clamp):
         if parent is None:
             parent = self
@@ -107,15 +117,18 @@ class Share:
 
         self.setable = getattr(Clamp, '_setable_', ())
         if not isinstance(self.setable, tuple):
-            raise TypeError(self.message('the _setable_ attribute must be a tuple'))
+            raise TypeError(self.message(
+                'the _setable_ attribute must be a tuple'))
 
         self.chgable = getattr(Clamp, '_chgable_', ())
         if not isinstance(self.chgable, tuple):
-            raise TypeError(self.message('the _chgable_ attribute must be a tuple'))
+            raise TypeError(self.message(
+                'the _chgable_ attribute must be a tuple'))
 
         imports = getattr(Clamp, '_imports_', ())
         if not isinstance(imports, tuple):
-            raise TypeError(self.message('the _imports_ attribute must be a tuple'))
+            raise TypeError(self.message(
+                'the _imports_ attribute must be a tuple'))
         self.importedfrom = {}
         pres = {}
         parent_inter = root_inter = None
@@ -126,7 +139,7 @@ class Share:
                     s = "Too many"
                 else:
                     s = "No"
-                raise SyntaxError("%s ':' in import directive %r."%(s, fi))
+                raise SyntaxError("%s ':' in import directive %r." % (s, fi))
             pre, suf = presuf
             pre = pre.strip()
             prepa = pres.get(pre)
@@ -135,14 +148,17 @@ class Share:
                 hd = hdta[0]
                 if hd == '_parent':
                     if parent_inter is None:
-                        parent_inter = Owner('').makeInterface({'_name':''}, parent, '')
+                        parent_inter = Owner('').makeInterface(
+                            {'_name': ''}, parent, '')
                     hdo = parent_inter
                 elif hd == '_root':
                     if root_inter is None:
-                        root_inter = Owner('').makeInterface({'_name':''}, root, '')
+                        root_inter = Owner('').makeInterface(
+                            {'_name': ''}, root, '')
                     hdo = root_inter
                 else:
-                    raise SyntaxError("Module must begin with _parent or _root")
+                    raise SyntaxError(
+                        "Module must begin with _parent or _root")
                 if len(hdta) == 2:
                     prepa = [hdo, hdta[1], None]
                 else:
@@ -152,20 +168,23 @@ class Share:
             sufs = suf.split(',')
             for su in sufs:
                 su = su.strip()
-                im = getattr(Clamp, '_get_%s'%su, None)
+                im = getattr(Clamp, '_get_%s' % su, None)
                 if im is not None:
-                    raise ValueError('Cant have both name (=%r) in boht importfrom  and _get'%su)
+                    raise ValueError(
+                        'Cant have both name (=%r) in boht importfrom  and _get' % su)
 
                 self.importedfrom[su] = prepa
 
         self.nowrap = getattr(Clamp, '_nowrap_', ())
         if not isinstance(self.nowrap, tuple):
-            raise TypeError(self.message('the _nowrap_ attribute must be a tuple'))
+            raise TypeError(self.message(
+                'the _nowrap_ attribute must be a tuple'))
         wrapattr = getattr(Clamp, '_wrapattr_', None)
         if isinstance(wrapattr, types.UnboundMethodType):
             wrapattr = wrapattr.__func__
         elif wrapattr is not None:
-            raise TypeError(self.message('the _wrapattr_ attribute must be a method'))
+            raise TypeError(self.message(
+                'the _wrapattr_ attribute must be a method'))
         self.wrapattr = wrapattr
         self.wrapping = 0
         self.data = {}
@@ -179,7 +198,7 @@ class Share:
         preload = getattr(Clamp, '_preload_', ())
         if preload:
             self.preload = ()
-            inter = Owner('').makeInterface({'_name':''}, self, '')
+            inter = Owner('').makeInterface({'_name': ''}, self, '')
             for name in preload:
                 getattr(inter, name)
         for name in preload:
@@ -187,7 +206,7 @@ class Share:
         self.preload = preload
 
     def message(self, msg):
-        return '%s: in %r: %s'%(self.__class__, self.name, msg)
+        return '%s: in %r: %s' % (self.__class__, self.name, msg)
 
     def getattr(self, inter, name):
         owner = inter._owner
@@ -215,15 +234,15 @@ class Share:
                         x = self.getattr3(inter, name)
                 except NoSuchAttributeError:
                     if name == '__repr__':
-                        return lambda : str(inter)
+                        return lambda: str(inter)
                     elif name == '__str__':
-                        return lambda : '<%s interface at %s>'%(inter._name,
-                                                                hex(id(self)))
+                        return lambda: '<%s interface at %s>' % (inter._name,
+                                                                 hex(id(self)))
                     else:
                         x = self.getattr_module(inter, name)
                 wrapattr = self.wrapattr
                 if wrapattr is not None and name not in self.nowrap:
-                    if not self.wrapping :
+                    if not self.wrapping:
                         try:
                             self.wrapping = 1
                             x = wrapattr(inter, x, name)
@@ -242,14 +261,15 @@ class Share:
         try:
             return getattr(self.module, name)
         except AttributeError:
-            raise AttributeError('Module %r or its _GLUECLAMP_ has no attribute %r'%(self.module.__name__, name))
+            raise AttributeError('Module %r or its _GLUECLAMP_ has no attribute %r' % (
+                self.module.__name__, name))
 
     def getattr_package(self, inter, name):
         try:
             x = __import__(self.makeName(name), globals(), locals())
         except ImportError as exc:
-            if (exc.args[0] != 'No module named %s'%name or
-                (not self.module and name not in ('__repr__', '__str__'))):
+            if (exc.args[0] != 'No module named %s' % name or
+                    (not self.module and name not in ('__repr__', '__str__'))):
                 raise
             x = self.getattr3(inter, name)
             # raise AttributeError, name
@@ -270,7 +290,7 @@ class Share:
             x = getattr(Clamp, name)
         except AttributeError:
             try:
-                im = getattr(Clamp, '_get_%s'%name)
+                im = getattr(Clamp, '_get_%s' % name)
             except AttributeError:
                 if name in self.importedfrom:
                     prepa = self.importedfrom[name]
@@ -321,7 +341,7 @@ class Share:
 
     def makeName(self, name):
         if self.name:
-            name = '%s.%s'%(self.name, name)
+            name = '%s.%s' % (self.name, name)
         return name
 
     def makeOwner(self, name):
@@ -330,11 +350,10 @@ class Share:
         self.owners[owner_name] = owner
         return owner
 
-
-    def pp(self,out=sys.stdout):
+    def pp(self, out=sys.stdout):
         if not self.owners:
             return
-        print('Dependencies found for %s'%self.name, file=out)
+        print('Dependencies found for %s' % self.name, file=out)
         print('-----------------------'+'-'*len(self.name), file=out)
         keys = list(self.owners.keys())
         keys.sort()
@@ -354,8 +373,9 @@ class Share:
     def setattr(self, inter, name, value):
         Clamp = self.Clamp
         if Clamp is None:
-            raise ValueError('Can not change attribute %r because no _GLUECLAMP_ defined.'%name)
-        im = getattr(Clamp, '_set_%s'%name, None)
+            raise ValueError(
+                'Can not change attribute %r because no _GLUECLAMP_ defined.' % name)
+        im = getattr(Clamp, '_set_%s' % name, None)
         if im is not None:
             im.__func__(inter, value)
             self.data[name] = value
@@ -364,21 +384,21 @@ class Share:
         setable = self.setable
         chgable = self.chgable
         if (name not in setable and name not in chgable and
-            (not (name in self.data and self.data[name] is value))):
+                (not (name in self.data and self.data[name] is value))):
             raise ValueError("""Can not change attribute %r,
-because it is not in _setable_ or _chgable_ and no _set_%s is defined."""%(name, name))
+because it is not in _setable_ or _chgable_ and no _set_%s is defined.""" % (name, name))
         if name in self.data and self.data[name] is not value and name not in chgable:
             raise ValueError("""Can not change attribute %r,
-because it is already set and not in _chgable_."""%name)
+because it is already set and not in _chgable_.""" % name)
         self.data[name] = value
-        if name not in chgable: # This is a pain, I suppose. Should we track interfaces?
+        if name not in chgable:  # This is a pain, I suppose. Should we track interfaces?
             inter.__dict__[name] = value
-
 
 
 class Test:
     def __init__(self, root):
         self.root = root
+
 
 class _GLUECLAMP_:
     pass
@@ -393,6 +413,6 @@ Modules are imported on demand when accessed. Other objects may be
 created or imported on demand using Guppy Glue+ directives.
 """
     share = Share(None, None, '', None)
-    r = Owner('').makeInterface({'_name':''}, share, '')
+    r = Owner('').makeInterface({'_name': ''}, share, '')
     share.root_interface = r
     return r

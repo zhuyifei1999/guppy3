@@ -1,4 +1,4 @@
-#._cv_part guppy.gsl.DottedTree
+# ._cv_part guppy.gsl.DottedTree
 
 """
 Handling of tree structures given in a special 'dotted' syntax.
@@ -23,8 +23,10 @@ Currently the following invariant has been tested for some strings:
 
 """
 
+
 class Node(object):
     __slots__ = 'tag', 'children', 'index',
+
     def __init__(self, tag, children, index):
         self.tag = tag
         self.children = children
@@ -34,20 +36,18 @@ class Node(object):
         return (self.tag,) + tuple([c.as_sexpr() for c in self.children])
 
     def __repr__(self):
-        return '%s(%r, %r, %r)'%(
+        return '%s(%r, %r, %r)' % (
             self.__class__.__name__,
             self.tag,
             self.children,
             self.index)
 
 
-
-
 class _GLUECLAMP_:
 
     _imports_ = (
         '_parent.FileIO:IO',
-        )
+    )
 
     ##
     # The name of attributes that are configurable in instances.
@@ -118,7 +118,7 @@ class _GLUECLAMP_:
                 break
         for (i, t) in enumerate(tag):
             if (t.startswith(quotechar+dotchar) or
-                t.startswith(quotechar+quotechar+dotchar)):
+                    t.startswith(quotechar+quotechar+dotchar)):
                 tag[i] = t[len(quotechar):]
         if tag == ['']:
             tag = '\n'
@@ -127,7 +127,7 @@ class _GLUECLAMP_:
         while 1:
             if (next is None or len(next) <= pos
                 or next[pos] != dotchar or
-                not next.startswith(dotchar*(pos+1))):
+                    not next.startswith(dotchar*(pos+1))):
                 return lineindex, next, self.node(tag, children, firstline)
             if len(next) > pos+1 and next[pos+1] == dotchar:
                 if src is None:
@@ -137,7 +137,6 @@ class _GLUECLAMP_:
             lineindex, next, child = self.parse_iter(pos+1, [next[pos+1:]],
                                                      lineindex, it, src)
             children.append(child)
-
 
     def parse_lines(self, lines, src=None):
         it = enumerate(lines)
@@ -152,9 +151,9 @@ class _GLUECLAMP_:
             lines = []
         return self.parse_lines(lines, src)
 
-
     ##
     # Unparse a tree given on Node form
+
     def unparse_node(self, node):
         return self.unparse_sexpr(node.as_sexpr())
 
@@ -177,11 +176,12 @@ class _GLUECLAMP_:
         tag = tag.split('\n')
         for (i, t) in enumerate(tag):
             if (t.startswith(dotchar) or
-                t.startswith(quotechar + dotchar)):
+                    t.startswith(quotechar + dotchar)):
                 tag[i] = quotechar + t
         tag = '\n'.join(tag)
         tag = dotchar*depth+tag
         return tag
+
 
 def test_1():
     # Test parsing to sexpr's and back
@@ -195,14 +195,15 @@ def test_1():
     for x, y in [
         ['', ('',)],
         ['a', ('a',)],
-        ['.a', ('',('a',))],
-        ['a\n.b', ('a',('b',))],
-        ['a\nb\n.c', ('a\nb',('c',))],
+        ['.a', ('', ('a',))],
+        ['a\n.b', ('a', ('b',))],
+        ['a\nb\n.c', ('a\nb', ('c',))],
         ["""\n.a\n..a""", ('\n', ('a', ('a',)))],
-        ["""hello\n.a\n.b\n..ba\nx\n..bb""", ('hello', ('a',), ('b', ('ba\nx',), ('bb',)))],
+        ["""hello\n.a\n.b\n..ba\nx\n..bb""",
+            ('hello', ('a',), ('b', ('ba\nx',), ('bb',)))],
         # Quoting dots
         [r'\.', ('.',)],
-        [r'.\.', ('',('.',))],
+        [r'.\.', ('', ('.',))],
         # Preserving quote
         ['\\', ('\\',)],
         ['.\n\\', ('', ('\n\\',))],
@@ -210,7 +211,7 @@ def test_1():
         [r'\\.', (r'\.',)],
         # Preserving whitespace starting a tag
         # Or should it be stripped? I think better not, it would complicate transparency.
-        [r'. tag', ('',(' tag', ))],
+        [r'. tag', ('', (' tag', ))],
 
         # Preserving initial whitespace
         [' ', (' ',)],
@@ -234,15 +235,15 @@ text
 ..contains DottedTree
 ''',
 
-('\ninitial\ntext',
- ('aspect for guppy.hsp',
-  ('returns',
-   ('type A',),
-   ('latex\n~\\\n..~|begincolorbox|~raw::~LaTeX~\\\n~\\\n~~~{\textbackslash}{\textbackslash}begin{\\{}center{\\}}~\\',))),
- ('aspect for guppy.gsl',
-  ('contains DottedTree\n',)))]
+         ('\ninitial\ntext',
+          ('aspect for guppy.hsp',
+           ('returns',
+            ('type A',),
+            ('latex\n~\\\n..~|begincolorbox|~raw::~LaTeX~\\\n~\\\n~~~{\textbackslash}{\textbackslash}begin{\\{}center{\\}}~\\',))),
+             ('aspect for guppy.gsl',
+              ('contains DottedTree\n',)))]
 
-        ]:
+    ]:
         z = parse(x)
         if y is not None:
             assert z == y
@@ -273,6 +274,7 @@ text
         z = parse(x)
         assert z == y
 
+
 def test_2():
     # Test parsing to Node
     # that the line lineindex are correct
@@ -294,20 +296,24 @@ line 3
 """)
 
     exp = Node('line 0', (
-                Node('line 1',
-                        (Node('line 2\nline 3', (), 2),), 1),
-                Node('line 4\n', (), 4)), 0)
+        Node('line 1',
+             (Node('line 2\nline 3', (), 2),), 1),
+        Node('line 4\n', (), 4)), 0)
     assert repr(node) == repr(exp)
     print(node)
 
+
 def test_doctest():
-    import doctest, guppy.gsl.DottedTree
+    import doctest
+    import guppy.gsl.DottedTree
     return doctest.testmod(guppy.gsl.DottedTree)
+
 
 def test_main():
     test_1()
     test_2()
-    #test_doctest()
+    # test_doctest()
+
 
 if 0 or __name__ == '__main__':
     test_main()

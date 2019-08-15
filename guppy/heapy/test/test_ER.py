@@ -1,4 +1,4 @@
-#._cv_part guppy.heapy.test.test_ER
+# ._cv_part guppy.heapy.test.test_ER
 
 # Tests of equivalence relations.
 
@@ -12,8 +12,10 @@
 
 from guppy.heapy.test import support
 
+
 class TestCase(support.TestCase):
     pass
+
 
 class FirstCase(TestCase):
     if 1:
@@ -22,12 +24,11 @@ class FirstCase(TestCase):
             hp = self.heapy.Use
             hp.reprefix = 'hp.'
 
-            a = hp.iso(1,'', 'asdf', 3.4, 3.7, 2)
+            a = hp.iso(1, '', 'asdf', 3.4, 3.7, 2)
 
             ts = (hp.Type & hp.Size)
             k = ts[a]
             # print  'k', k, 'ts', ts
-
 
             # From Sep 1-2 2005
             # (h&dict).by(hp.Id.dictof&hp.Size)._get_partition()
@@ -40,7 +41,7 @@ class FirstCase(TestCase):
 
             # How to construct RCS / refby
 
-            #self.aseq(hp.Type.refby(int, list) , hp.Type.refby(list, int)
+            # self.aseq(hp.Type.refby(int, list) , hp.Type.refby(list, int)
 
             class C:
                 pass
@@ -48,16 +49,15 @@ class FirstCase(TestCase):
             di = hp.iso(C.__dict__, [])
             import types
 
-            db =  di.by('Rcs')
+            db = di.by('Rcs')
             for i in (0, 1):
 
                 rk = repr(db[i].kind)
                 # print rk
                 ek = eval(rk)
-                self.aseq( ek, db[i].kind )
+                self.aseq(ek, db[i].kind)
                 # print db & ek
-                self.aseq( db & ek , db[i] )
-
+                self.aseq(db & ek, db[i])
 
         def test_2(self):
             ' Systematically test all kind constructors: '
@@ -98,7 +98,7 @@ class FirstCase(TestCase):
 
                 'hp.Via()',
                 # Via is also specially tested below
-                ):
+            ):
                 x = eval(s)
                 rx = repr(x)
                 self.aseq(eval(rx), x)
@@ -115,7 +115,7 @@ class FirstCase(TestCase):
                 "hp.Via('_.f_locals[\"abc\"]')",
                 "hp.Via('_.f_locals [\"abc\"]')",
                 "hp.Via('_->f_valuestack[0]')",
-                )):
+            )):
                 code = i + 1
                 x = eval(s)
                 rel = list(x.arg)[0]
@@ -137,14 +137,14 @@ class FirstCase(TestCase):
                 # At first test, T() was 4 bytes smaller than C().
                 # This might be brittle with different systems.
                 # This is to make sure this diff gets significantly bigger:
-                __slots__ = '__dict__', 'a','b','c','d','e','f','g','h'
+                __slots__ = '__dict__', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
 
             c = C()
             t = T()
             dn = {}
             isod = hp.iso(c.__dict__, t.__dict__, dn)
             for x in (
-                t, c):
+                    t, c):
                 X = x.__class__
                 for k in (
                     hp.Clodo(dictof=X),
@@ -153,14 +153,13 @@ class FirstCase(TestCase):
                     hp.iso(x).bysize.kind.dictof,
                     (hp.iso(x).bysize.kind & hp.Class(X)).dictof,
                     hp.iso(x.__dict__).kind,
-                    ):
+                ):
                     self.aseq(isod & k,  hp.iso(x.__dict__))
-
 
             # Test no-owner selection
             for k in (
                 hp.Nothing.dictof,
-                ):
+            ):
                 self.aseq(isod & k, hp.iso(dn))
 
         def test_4(self):
@@ -177,7 +176,7 @@ class FirstCase(TestCase):
 
             x = isod.by('Via').kind
             self.aseq(repr(x), "hpy().Via('.__dict__')")
-            #print repr(x)
+            # print repr(x)
 
         def test_5(self):
             ' Non-systematic tests that came up around Sep 14 2005 '
@@ -193,16 +192,18 @@ class FirstCase(TestCase):
             hp = self.heapy.Use
             hp.reprefix = 'hp.'
 
-
             # I thought these should be the same
-            a = hp.iso(C.__dict__, C, c, c.__dict__, d)&hp.Class.sokind(C).refdby
-            b = hp.iso(C.__dict__, C, c, c.__dict__, d)&hp.Clodo.sokind(C).refdby
+            a = hp.iso(C.__dict__, C, c, c.__dict__,
+                       d) & hp.Class.sokind(C).refdby
+            b = hp.iso(C.__dict__, C, c, c.__dict__,
+                       d) & hp.Clodo.sokind(C).refdby
             self.aseq(a, b)
 
             # This is a kind of nested refdby that has been a concern lately
             # -- how to represent it
 
-            s = hp.iso(C.__dict__, C, c, c.__dict__, d).by(hp.Clodo.refdby.refdby)
+            s = hp.iso(C.__dict__, C, c, c.__dict__,
+                       d).by(hp.Clodo.refdby.refdby)
             # print s
 
             for i in range(len(s)):
@@ -212,9 +213,8 @@ class FirstCase(TestCase):
                 era = eval(ra)
                 self.aseq(a, era)
 
-                self.aseq(s&era,
+                self.aseq(s & era,
                           s[i])
-
 
             import sys
 
@@ -223,7 +223,7 @@ class FirstCase(TestCase):
 
             s = hp.iso(p)
             x = s.by(hp.Module.dictof.refdby)
-            self.aseq(s&eval(repr(x.kind)), s)
+            self.aseq(s & eval(repr(x.kind)), s)
 
         def test_6(self):
             ' Test of .refdby on all others '
@@ -252,8 +252,7 @@ class FirstCase(TestCase):
                 ('Rcs', 0),
                 'Size',
                 'Type',
-                'Via')[:]:
-
+                    'Via')[:]:
 
                 if isinstance(pre, tuple):
                     pre, level = pre[:2]
@@ -295,7 +294,6 @@ class FirstCase(TestCase):
                 self.er_test(er_refdby, set, level - 1)
                 self.er_test(er_dictof, set, level - 1)
 
-
         def test_7(self):
             ' Test of alternative sets w. biper '
 
@@ -333,28 +331,27 @@ class FirstCase(TestCase):
                 hp.Class(D),
                 hp.Type(U),
                 hp.Class.sokind(D).refdby,
-                ):
+            ):
 
                 lt = k.alt('<')
                 le = k.alt('<=')
                 ge = k.alt('>=')
                 gt = k.alt('>=')
-                ne =  k.alt('!=')
+                ne = k.alt('!=')
                 assert (s & le) & (s & ge) == s & k
 
-                for a in ( lt, le, ge, gt, ne, le & ~k ):
+                for a in (lt, le, ge, gt, ne, le & ~k):
                     s & a
                     # print s.by(a.biper)
                     # print s.by(a.biper)[0].kind
                     # print s.by(a.biper)[1].kind
-                    #print s & a
-
+                    # print s & a
 
             # A bug specific for refdby
             # occured after gc when using biper
             # noted Sep 21 2005
 
-            k=hp.Class.sokind(D).refdby
+            k = hp.Class.sokind(D).refdby
 
             import gc
 
@@ -363,16 +360,16 @@ class FirstCase(TestCase):
             a = s.by(k.alt('>=').biper)
             b = s.by(k.alt('>=').biper)
             # print a
-            self.assertTrue( hp.iso(d.__dict__) <= a[1] )
-            self.assertTrue( a == b )
+            self.assertTrue(hp.iso(d.__dict__) <= a[1])
+            self.assertTrue(a == b)
 
             gc.collect()
 
             a = s.by(k.alt('<=').biper)
             b = s.by(k.alt('<=').biper)
             # print a
-            self.assertTrue( hp.iso(d.__dict__) <= a[0])
-            self.assertTrue( a == b )
+            self.assertTrue(hp.iso(d.__dict__) <= a[0])
+            self.assertTrue(a == b)
 
     def test_8(self):
         ' Test of findex and biper '
@@ -382,7 +379,7 @@ class FirstCase(TestCase):
 
         class C:
             pass
-        c=C()
+        c = C()
         li = []
         di = {}
 
@@ -394,24 +391,23 @@ class FirstCase(TestCase):
             (hp.iso(c), 1),
             (hp.iso(c, li), 1),
             (hp.Type(dict) | hp.Class(C), 0)
-            ):
+        ):
             p = s.by(k.biper)
             # print p
             self.aseq(p[i].kind.fam.classifier.kinds[0], k)
-
 
     def test_9(self):
         ' Test the subrelation relation '
 
         from guppy import hpy
         ernames = ['Class', 'Clodo', 'Id', 'Idset',
-               'Module', 'Rcs', 'Size', 'Type',
-               'Unity']
+                   'Module', 'Rcs', 'Size', 'Type',
+                   'Unity']
 
-        hp=hpy()
+        hp = hpy()
 
         ers = [(name, getattr(hp, name)) for name in ernames]
-        ers.append(('Size&Type', hp.Size&hp.Type))
+        ers.append(('Size&Type', hp.Size & hp.Type))
 
         from io import StringIO
         f = StringIO()
@@ -425,7 +421,7 @@ class FirstCase(TestCase):
             for b in ers:
                 print(str((a[1] < b[1]))[:1].ljust(7), end=' ', file=f)
             print(file=f)
-        self.aseq( f.getvalue(), """\
+        self.aseq(f.getvalue(), """\
            Class   Clodo   Id      Idset   Module  Rcs     Size    Type    Unity   Size&Type
 Class      F       F       F       F       F       F       F       T       T       F
 Clodo      T       F       F       F       F       F       F       T       T       F
@@ -439,8 +435,10 @@ Unity      F       F       F       F       F       F       F       F       F    
 Size&Type  F       F       F       F       F       F       T       T       T       F
 """)
 
-def test_main(debug = 0):
+
+def test_main(debug=0):
     support.run_unittest(FirstCase, debug)
+
 
 if __name__ == "__main__":
     from guppy.heapy.Remote import off

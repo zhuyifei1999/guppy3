@@ -1,4 +1,5 @@
-#._cv_part guppy.heapy.View
+# ._cv_part guppy.heapy.View
+
 
 class Horizon:
     def __init__(self, mod):
@@ -9,7 +10,7 @@ class Horizon:
         self.hv = mod.hv
         self.exc_info = self.mod._root.sys.exc_info
         self.iso = self.mod.iso
-        str(self.retset(self.iso(1,[],(),{}, self.__dict__)) -
+        str(self.retset(self.iso(1, [], (), {}, self.__dict__)) -
             self.iso(()))
         mod.hv.heap
         mod.enter
@@ -20,26 +21,34 @@ class Horizon:
         r = self.retset(self.hv_horizon.news(self.mod.enter(self.hv.heap)))
         return r
 
+
 class ClearCallback(object):
     __slots__ = 'callback',
+
     def __init__(self, callback):
         self.callback = callback
+
     def __call__(self, wr):
         if self.callback is not None:
             self.callback(wr)
         else:
             print('No callback')
 
+
 class Gchook_type(object):
     __slots__ = 'x', '__weakref__', 'cb'
+
     def __init__(g):
         g.x = g
 
+
 class ObservationList(list):
     __slots__ = '_hiding_tag_',
+
     def __init__(self, iterable, hiding_tag):
         list.__init__(self, iterable)
         self._hiding_tag_ = hiding_tag
+
 
 class _GLUECLAMP_:
     _imports_ = (
@@ -54,31 +63,29 @@ class _GLUECLAMP_:
         '_parent.Use:Type',
         '_root:gc',
         '_root:types',
-        )
+    )
 
+    _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled')
+    _setable_ = ('_hiding_tag_', 'target', 'is_hiding_calling_interpreter',
 
-    _chgable_ =  ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled')
-    _setable_ =  ('_hiding_tag_','target', 'is_hiding_calling_interpreter',
-
-                  )
+                 )
 
     is_hiding_calling_interpreter = False
     is_rg_update_all = False
-    _is_clear_drg_enabled = 1 # Flag mainly for test, Note Apr 19 2005
+    _is_clear_drg_enabled = 1  # Flag mainly for test, Note Apr 19 2005
     _hiding_tag_ = []
 
     #opt_rg_update_all = True
 
     _uniset_exports = (
-#       'dominos',
-#       'domisize',
+        #       'dominos',
+        #       'domisize',
         'imdom',
-#       'indisize',
-#       'referents',
-#       'referrers',
+        #       'indisize',
+        #       'referents',
+        #       'referrers',
         'referrers_gc',
-        )
-
+    )
 
     def _get__clear_hook(self):
         return self.mutnodeset()
@@ -108,7 +115,7 @@ class _GLUECLAMP_:
     def clear_setup(self):
         ch = self._clear_hook
         ch.clear()
-        c=self.gchook_type()
+        c = self.gchook_type()
         cb = self.ClearCallback(self.clear_callback)
         c.cb = cb
         ch.add(self._root.weakref.ref(c, cb))
@@ -120,9 +127,9 @@ class _GLUECLAMP_:
         self.clear_methods.append(m)
         self.clear_check()
 
-
     def _get_dict_ownership(self):
         drg = self.nodegraph()
+
         def clear_drg():
             # print 'clear_drg?'
             if drg.is_sorted and self._is_clear_drg_enabled:
@@ -153,11 +160,11 @@ class _GLUECLAMP_:
             heapdefs.append(hd)
         return tuple(heapdefs)
 
-    def _get_heapyc(self):      return self._parent.heapyc
+    def _get_heapyc(self): return self._parent.heapyc
 
     def _get_hv(self):
         hv = self.new_hv(_hiding_tag_=self._hiding_tag_,
-                         is_hiding_calling_interpreter = self.is_hiding_calling_interpreter)
+                         is_hiding_calling_interpreter=self.is_hiding_calling_interpreter)
         return hv
 
     def _get_norefer(self): return self.mutnodeset()
@@ -174,17 +181,17 @@ class _GLUECLAMP_:
             return
         rg = self.rg
         if rg.is_sorted:
-            #print 'clearing', rg
+            # print 'clearing', rg
             rg.clear()
             self.norefer.clear()
         else:
-            #print 'no clear', rg, len(rg), len(self.norefer)
+            # print 'no clear', rg, len(rg), len(self.norefer)
             pass
 
-    def _get_referrers_lock(self)       : return 0
+    def _get_referrers_lock(self): return 0
 
-    def _get_root(self):        return self.heapyc.RootState
-    def _get_target(self):      return self._parent.Target.Target()
+    def _get_root(self): return self.heapyc.RootState
+    def _get_target(self): return self._parent.Target.Target()
 
     def _set_root(self, root):
         self.clear_retainers()
@@ -215,7 +222,8 @@ deallocated, directly or indirectly, when the objects in X are deallocated."""
     def dominos_tuple(self, X):
         """V.dominos_tuple(X) -> tuple of idsets
 Return a tuple of dominos for the tuple of sets of objects X."""
-        D_ = [self.nodeset_adapt(x) for x in X] # Convert to naming like in the appendix
+        D_ = [self.nodeset_adapt(x)
+              for x in X]  # Convert to naming like in the appendix
         T = self.hv.reachable
         S = self.immnodeset([self.root])
         D = self.immnodeset_union(D_)
@@ -248,9 +256,9 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
             except:
                 type, value, traceback = sys.exc_info()
                 limitframe = traceback.tb_frame.f_back.f_back
-            sys.last_traceback=None
+            sys.last_traceback = None
             sys.exc_clear()
-            del type,value,traceback
+            del type, value, traceback
             self.hv.limitframe = limitframe
 
         try:
@@ -260,12 +268,13 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
         return retval
 
     def gchook(self, func):
-        c=self.gchook_type()
+        c = self.gchook_type()
         ho = self.mutnodeset()
+
         def cb(wr):
             func()
             ho.clear()
-            c=self.gchook_type()
+            c = self.gchook_type()
             ho.add(self._root.weakref.ref(c, cb))
 
         ho.add(self._root.weakref.ref(c, cb))
@@ -300,12 +309,11 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
             r = (r - self.idset(self.heapyc.HeapView(
                 self.heapyc.RootState,
                 self.heapdefs
-                ).reachable_x(
-                    self.immnodeset([self.heapyc.RootState]),
-                    self.observation_containers()
-                    ))
-                 )
-
+            ).reachable_x(
+                self.immnodeset([self.heapyc.RootState]),
+                self.observation_containers()
+            ))
+            )
 
         return r
 
@@ -319,15 +327,14 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
                    self.Type(ClearCallback)
                    )
 
-
         if rma:
             exclude |= self.idset(self.heapyc.HeapView(
                 self.heapyc.RootState,
                 self.heapdefs
-                ).reachable_x(
-                    self.immnodeset([self.heapyc.RootState]),
-                    self.immnodeset([r])
-                    ))
+            ).reachable_x(
+                self.immnodeset([self.heapyc.RootState]),
+                self.immnodeset([r])
+            ))
 
         r = self.retset(r) - exclude
         ref = r.referents - exclude
@@ -337,8 +344,7 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
 
         del ref, exclude
 
-
-        r = r.byclass # Avoid memoizing for complicated classification
+        r = r.byclass  # Avoid memoizing for complicated classification
         return r
 
     def heap(self):
@@ -352,14 +358,14 @@ Return the set of objects in the visible heap.
         if not heap_one_time_initialized:
             heap_one_time_initialized = 1
             repr(self.idset(self.hv.heap()))
-            x=[]
+            x = []
             repr(self.iso(x).shpaths)
             repr(self.iso(x).rp)
 
-        self.gc.collect() # Sealing a leak at particular usage ; Notes Apr 13 2005
+        self.gc.collect()  # Sealing a leak at particular usage ; Notes Apr 13 2005
         # Exclude current frame by encapsulting in enter(). Note Apr 20 2005
         return self.enter(lambda:
-            self.idset(self.hv.heap()))
+                          self.idset(self.hv.heap()))
 
     def horizon(self):
         return self.Horizon(self)
@@ -393,14 +399,14 @@ visible subobjects. See also: domisize."""
         hv._hiding_tag_ = _hiding_tag_
         hv.is_hiding_calling_interpreter = is_hiding_calling_interpreter
         hv.register_hidden_exact_type(gchook_type)
-        #hv.register__hiding_tag__type(self._parent.UniSet.UniSet)
+        # hv.register__hiding_tag__type(self._parent.UniSet.UniSet)
         hv.register__hiding_tag__type(self._parent.UniSet.Kind)
         hv.register__hiding_tag__type(self._parent.UniSet.IdentitySetMulti)
         hv.register__hiding_tag__type(self._parent.UniSet.IdentitySetSingleton)
 
         return hv
 
-    def nodegraph(self, iterable = None, is_mapping = False):
+    def nodegraph(self, iterable=None, is_mapping=False):
         ng = self.heapyc.NodeGraph(iterable, is_mapping)
         ng._hiding_tag_ = self._hiding_tag_
         return ng
@@ -417,7 +423,7 @@ visible subobjects. See also: domisize."""
         try:
             return self.immnodeset(self.hv.heap()).obj_at(addr)
         except ValueError:
-            raise ValueError('No object found at address %s'%hex(addr))
+            raise ValueError('No object found at address %s' % hex(addr))
 
     def observation_containers(self):
         # Return the current set of 'observation containers'
@@ -428,13 +434,13 @@ visible subobjects. See also: domisize."""
         cli = self.hv.cli_type()
         objs = (cli.select(objs, self.NodeSet, '<=') +
                 cli.select(objs, ObservationList, '<=') +
-                cli.select(objs, self._parent.UniSet.IdentitySetSingleton, '<=')
+                cli.select(
+                    objs, self._parent.UniSet.IdentitySetSingleton, '<=')
                 )
-        r = self.immnodeset([x for x in objs if getattr(x, '_hiding_tag_', None) is self._hiding_tag_])
+        r = self.immnodeset([x for x in objs if getattr(
+            x, '_hiding_tag_', None) is self._hiding_tag_])
         del x, cli, objs
         return r
-
-
 
     def observation_list(self, iterable=()):
         # Return an ObservationList object with our _hiding_tag_
@@ -462,9 +468,9 @@ any of the objects in the set X."""
                 gc.collect()
                 self.hv.update_referrers_completely(self.rg)
                 addnoref = X - self.rg.get_domain()
-                #print 'done 1', len(X), len(addnoref)
+                # print 'done 1', len(X), len(addnoref)
                 self.norefer |= addnoref
-                #print 'done 1a', len(self.rg)
+                # print 'done 1a', len(self.rg)
         else:
             # print 'X', X, len(X)
             # print self.idset(X)
@@ -525,6 +531,7 @@ mappings for the elements of X to their referrers, from them to their
 referrers and so on.
 """
         self.referrers(X)
+
 
 def prime_builtin_types():
     # Make sure builtin types have been completely allocated

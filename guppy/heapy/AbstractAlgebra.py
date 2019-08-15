@@ -1,4 +1,8 @@
-#._cv_part guppy.heapy.AbstractAlgebra
+# ._cv_part guppy.heapy.AbstractAlgebra
+
+import unittest
+from guppy.heapy.test import support
+
 
 class AA:
     def __mul__(self, other):
@@ -10,6 +14,7 @@ class AA:
     def __eq__(self, other):
         return BOAPP('eq', self, other)
 
+
 class ANAME(AA):
     def __init__(self, name):
         self.name = name
@@ -17,13 +22,15 @@ class ANAME(AA):
     def __str__(self):
         return self.name
 
+
 class BOAPP(AA):
     def __init__(self, funcname, *args):
         self.funcname = funcname
         self.args = args
 
     def __str__(self):
-        return '%s(%s)'%(self.funcname, ','.join([str(x) for x in self.args]))
+        return '%s(%s)' % (self.funcname, ','.join([str(x) for x in self.args]))
+
 
 class AlgebraicStructure:
     def __init__(self, mod, range, *ops, **kwds):
@@ -39,14 +46,13 @@ class AlgebraicStructure:
                     opkwds['identity'] = kwds['identity']
                 op = mod.binary_operation.new(range, op, **opkwds)
             else:
-                raise TypeError('%s is not a valid operation'%op)
+                raise TypeError('%s is not a valid operation' % op)
             self.ops.append(op)
-            setattr(self, 'op%d'%i, op)
+            setattr(self, 'op%d' % i, op)
         self.numops = len(self.ops)
 
         for k, v in list(kwds.items()):
             setattr(self, k, v)
-
 
     def eq(self, x, y, *more):
         if not x == y:
@@ -63,7 +69,7 @@ class BinaryOperation:
         self.arity = 2
         if isinstance(op, str):
             opname = op
-            func = eval('lambda x,y: x %s y'%opname)
+            func = eval('lambda x,y: x %s y' % opname)
         elif callable(op):
             func = op
             opname = str(func)
@@ -94,6 +100,7 @@ class BinaryOperation:
                 return False
         return True
 
+
 class BinaryAlgebraicStructureFamily:
     def __call__(self, names, cond):
         di = {}
@@ -103,29 +110,28 @@ class BinaryAlgebraicStructureFamily:
         assert isinstance(c, AA)
 
         def gentestfunc(binop):
-            d = {'op':binop}
-            expr = 'lambda %s:%s'%(','.join(names), c)
+            d = {'op': binop}
+            expr = 'lambda %s:%s' % (','.join(names), c)
 
+            d = {'op': binop,
+                 'eq': lambda x, y: x == y}
 
-            d = {'op':binop,
-                 'eq': lambda x,y: x==y}
-
-            f = eval (expr, d)
+            f = eval(expr, d)
 
             def testfunc(env, x, y):
                 if not f(x, y):
-                    return env.failed('not %s in %s'%((x, y), expr))
+                    return env.failed('not %s in %s' % ((x, y), expr))
                 return True
 
             return testfunc
         return self.Set(self, (gentestfunc, cond))
 
-
     def c_test_contains(self, a, b, env):
         f, name = a.arg
         return env.forall_pairs(b.range,
                                 f(b),
-                                'not in %s'%name)
+                                'not in %s' % name)
+
 
 class TernaryAlgebraicStructureFamily:
     def __call__(self, names, cond):
@@ -136,29 +142,28 @@ class TernaryAlgebraicStructureFamily:
         assert isinstance(c, AA)
 
         def gentestfunc(binop):
-            d = {'op':binop}
-            expr = 'lambda %s:%s'%(','.join(names), c)
+            d = {'op': binop}
+            expr = 'lambda %s:%s' % (','.join(names), c)
 
+            d = {'op': binop,
+                 'eq': lambda x, y: x == y}
 
-            d = {'op':binop,
-                 'eq': lambda x,y: x==y}
-
-            f = eval (expr, d)
+            f = eval(expr, d)
 
             def testfunc(env, x, y, z):
                 if not f(x, y, z):
-                    return env.failed('not %s in %s'%((x, y, z), expr))
+                    return env.failed('not %s in %s' % ((x, y, z), expr))
                 return True
 
             return testfunc
         return self.Set(self, (gentestfunc, cond))
 
-
     def c_test_contains(self, a, b, env):
         f, name = a.arg
         return env.forall_triples(b.range,
                                   f(b),
-                                  'not in %s'%name)
+                                  'not in %s' % name)
+
 
 class DistributiveAlgebraicStructureFamily:
     def __call__(self, names, cond):
@@ -169,24 +174,22 @@ class DistributiveAlgebraicStructureFamily:
         assert isinstance(c, AA)
 
         def gentestfunc(binop1, binop2):
-            d = {'op':binop1, 'op2': binop2}
-            expr = 'lambda %s:%s'%(','.join(names), c)
+            d = {'op': binop1, 'op2': binop2}
+            expr = 'lambda %s:%s' % (','.join(names), c)
 
+            d = {'op': binop1,
+                 'op2': binop2,
+                 'eq': lambda x, y: x == y}
 
-            d = {'op':binop1,
-                 'op2':binop2,
-                 'eq': lambda x,y: x==y}
-
-            f = eval (expr, d)
+            f = eval(expr, d)
 
             def testfunc(env, x, y, z):
                 if not f(x, y, z):
-                    return env.failed('not %s in %s'%((x, y, z), expr))
+                    return env.failed('not %s in %s' % ((x, y, z), expr))
                 return True
 
             return testfunc
         return self.Set(self, (gentestfunc, cond))
-
 
     def c_test_contains(self, a, b, env):
         f, name = a.arg
@@ -199,7 +202,7 @@ class DistributiveAlgebraicStructureFamily:
             return env.failed('Not the same range')
         return env.forall_triples(op1.range,
                                   f(op1, op2),
-                                  'not in %s'%name)
+                                  'not in %s' % name)
 
 
 class _GLUECLAMP_:
@@ -249,12 +252,14 @@ class _GLUECLAMP_:
     def _get_boolean_algebra(self):
         def boolalg(set, op0, op1, complement, id0, id1):
             if complement in ('~', '-', 'not'):
-                complement = eval('lambda x: %s x'%complement)
+                complement = eval('lambda x: %s x' % complement)
             return self.algestruct(
                 set,
-                self.binary_operation.new(set, op0, identity = id0, zero = id1, complement=complement),
-                self.binary_operation.new(set, op1, identity = id1, zero = id0, complement=complement)
-                )
+                self.binary_operation.new(
+                    set, op0, identity=id0, zero=id1, complement=complement),
+                self.binary_operation.new(
+                    set, op1, identity=id1, zero=id0, complement=complement)
+            )
 
         e = self.Spec
         return (e.adaptuple(
@@ -265,8 +270,7 @@ class _GLUECLAMP_:
             e.attr(('op1', 'op0'), e.AA.distributive) &
             e.attr(('op0.zero', 'op1.identity'), e.LE.eq) &
             e.attr(('op1.zero', 'op0.identity'), e.LE.eq)
-            ))
-
+        ))
 
     def _get_complemented(self):
         # Not a standard term: expresses for an op op, that
@@ -279,7 +283,6 @@ class _GLUECLAMP_:
             return env.forall(x.range, lambda env, y:
                               x.eq(f(y, complement(y)), zero), 'complemented')
         return self.Spec.predicate(p, 'complemented')
-
 
     def _get_commutative(self):
         return self.asuf('xy', 'x * y == y * x')
@@ -304,12 +307,13 @@ class _GLUECLAMP_:
 
         class Field:
             def __init__(self, S, add, mul, neg, invert, zero, one):
-                if neg in ('-','~','not'):
-                    neg = eval('lambda x: %s x'%neg)
+                if neg in ('-', '~', 'not'):
+                    neg = eval('lambda x: %s x' % neg)
 
                 self.range = S
                 self.ring = AA.ring.new(S, add, mul, neg, zero)
-                self.mulgroup = AA.group.new(S - e.equals(zero), mul, invert, one)
+                self.mulgroup = AA.group.new(
+                    S - e.equals(zero), mul, invert, one)
 
         return e.adaptuple(
             Field,
@@ -319,7 +323,7 @@ class _GLUECLAMP_:
     def _get_group(self):
         def mkgroup(S, op, invert, identity):
             if invert in ('-', '~', 'not'):
-                invert = eval('lambda x: %s x'%invert)
+                invert = eval('lambda x: %s x' % invert)
             return self.algestruct(S, op, identity=identity, invert=invert)
 
         def p(env, g):
@@ -335,7 +339,6 @@ class _GLUECLAMP_:
         return e.adaptuple(
             mkgroup,
             self.monoid & self.Spec.predicate(p, 'group'))
-
 
     def _get_latticeform(self):
         # latticeform is a representation category
@@ -361,7 +364,8 @@ class _GLUECLAMP_:
             def map_quadruple_to_struct(self, e, xxx_todo_changeme):
                 (S, LE, GLB, LUB) = xxx_todo_changeme
                 S = e.setcast(S)
-                LE = e.relation.paxa.fromuniversal((e.relation.defipair, (S, LE)))
+                LE = e.relation.paxa.fromuniversal(
+                    (e.relation.defipair, (S, LE)))
                 GLB = e.AA.binary_operation.new(S, GLB)
                 LUB = e.AA.binary_operation.new(S, LUB)
 
@@ -384,18 +388,18 @@ class _GLUECLAMP_:
                 def testlb(env, x, y):
                     lb = op(x, y)
                     if not (R(lb, x) and R(lb, y)):
-                        return env.failed('not an %s'%name)
-                    if R(x, lb) or R(y, lb):    return True # redundant fast way out
+                        return env.failed('not an %s' % name)
+                    if R(x, lb) or R(y, lb):
+                        return True  # redundant fast way out
 
                     return env.forall(lat.range,
-                               lambda env, lb2:
-                               (not (R(lb2, x) and R(lb2, y)) or
-                                R(lb2, lb)))
+                                      lambda env, lb2:
+                                      (not (R(lb2, x) and R(lb2, y)) or
+                                       R(lb2, lb)))
                 return env.forall_pairs(lat.range, testlb)
 
-            return (test( lambda x, y: env.contains(lat.LE, (x, y)), lat.GLB, 'lower bound') and
-                    test( lambda x, y: env.contains(lat.LE, (y, x)), lat.LUB, 'upper bound'))
-
+            return (test(lambda x, y: env.contains(lat.LE, (x, y)), lat.GLB, 'lower bound') and
+                    test(lambda x, y: env.contains(lat.LE, (y, x)), lat.LUB, 'upper bound'))
 
         return (
             e.abstractset(
@@ -405,8 +409,8 @@ class _GLUECLAMP_:
                 e.attr('GLB', e.AA.binary_operation) &
                 e.attr('LUB', e.AA.binary_operation) &
                 e.predicate(p, 'lattice')
-                )
             )
+        )
 
     def _get_LE(self):
         return self.Spec.LocalEnv(self.Spec, self._Specification_.LocalEnvExpr)
@@ -418,6 +422,7 @@ class _GLUECLAMP_:
             f = op
             return env.forall(x.range, lambda env, y:
                               x.eq(f(e, y), f(y, e), y))
+
         def mkmonoid(S, op, identity):
             return self.algestruct(S, op, identity=identity)
 
@@ -427,11 +432,10 @@ class _GLUECLAMP_:
             e.attr('op0', self.associative) &
             e.predicate(p, 'monoid'))
 
-
     def _get_ring(self):
         def mkring(S, add, mul, neg, zero):
-            if neg in ('-','~','not'):
-                neg = eval('lambda x: %s x'%neg)
+            if neg in ('-', '~', 'not'):
+                neg = eval('lambda x: %s x' % neg)
             return self.algestruct(
                 S,
                 self.binary_operation.new(S, add, identity=zero, invert=neg),
@@ -497,7 +501,6 @@ class _GLUECLAMP_:
                                       lambda env, x: env.test_contains_not(R, (x, x), 'irrreflexive')),
             'reflexive')
 
-
     def _get_partial_order(self):
         return (
             self.reflexive &
@@ -517,8 +520,6 @@ class _GLUECLAMP_:
                 lambda env, x, y:
                 (env.contains(R, (x, y)) or env.contains(R, (y, x)))),
             "total_relation: xRy or yRx for all x,y in A")
-
-
 
     def _get_reflexive(self):
         return self.relpropred(
@@ -546,7 +547,6 @@ class _GLUECLAMP_:
                             env.test_contains(R, (x, z), 'transitive')))),
             'transitive')
 
-
     def relprop(self, s):
         e = self.Spec
         return e.abstractset(
@@ -569,29 +569,29 @@ class _Specification_:
         LE = AA.LE
         env = te.mod
         S3 = [
-            [0,1,2,3,4,5],
-            [1,0,4,5,2,3],
-            [2,5,0,4,3,1],
-            [3,4,5,0,1,2],
-            [4,3,1,2,5,0],
-            [5,2,3,1,0,4]]
+            [0, 1, 2, 3, 4, 5],
+            [1, 0, 4, 5, 2, 3],
+            [2, 5, 0, 4, 3, 1],
+            [3, 4, 5, 0, 1, 2],
+            [4, 3, 1, 2, 5, 0],
+            [5, 2, 3, 1, 0, 4]]
 
         Type = env.Type
         asexs = [
-    # Too slow now with many examples, cubic complexity for associative etc.
-    # sets are tested more extensively elsewhere
-    #(env.set, env.set, env.empty, ~env.empty, env.equals(0), env.equals(0, 1), env.equals(1)),
+            # Too slow now with many examples, cubic complexity for associative etc.
+            # sets are tested more extensively elsewhere
+            #(env.set, env.set, env.empty, ~env.empty, env.equals(0), env.equals(0, 1), env.equals(1)),
             (env.set,           env.set, env.empty),
             (env.Type.Int,      -1, 0, 1),
             #(env.Type.Float,   -2.5,-1.0, 0.0, 1.3, 2.0),
             #(env.Type.Float,   -2.0,-1.0, 0.0, 1.0, 2.0),
             (env.Type.Float,    -1.0, 0.0),
             (env.Type.String,   '', '1234%^', 'asdf*&('),
-            (LE.algebraic_class,AA.binary_operation),
+            (LE.algebraic_class, AA.binary_operation),
             (AA.binary_operation,
-                                (int, '*')),
+             (int, '*')),
             (~AA.binary_operation,
-                                (env.equals(1), '+')),
+             (env.equals(1), '+')),
             (AA.commutative,    (int, '*')),
             (~AA.commutative,   (int, '-')),
             (AA.associative,    (int, '*')),
@@ -600,8 +600,8 @@ class _Specification_:
             (AA.distributive_1, ((int, '*'), (int, '-'))),
             (AA.distributive_2, ((int, '*'), (int, '-'))),
             (~AA.distributive,  ((int, '*'), (int, '|'))),
-            (~AA.distributive_1,((int, '*'), (int, '|'))),
-            (~AA.distributive_2,((int, '*'), (int, '|'))),
+            (~AA.distributive_1, ((int, '*'), (int, '|'))),
+            (~AA.distributive_2, ((int, '*'), (int, '|'))),
 
             (AA.semigroup,      (int, '*')),
             (AA.semigroup,      (str, '+')),
@@ -613,32 +613,37 @@ class _Specification_:
             (~AA.group,         (int, '*', '-', 1)),
             (AA.abelian_group,  (int, '+', '-', 0)),
             (AA.group & ~AA.abelian_group, (
-                                                env.equals(0,1,2,3,4,5),
-                                                lambda x,y : S3[x][y],
-                                                lambda x:[0,1,2,3,5,4][x],
-                                                0)),
+                env.equals(0, 1, 2, 3, 4, 5),
+                lambda x, y: S3[x][y],
+                lambda x:[0, 1, 2, 3, 5, 4][x],
+                0)),
             (AA.ring,           (int, '+', '*', '-', 0)),
             (~AA.ring,          (str, '+', '*', '-', 0),
-                                (int, '*', '*', '-', 0),
-                                (int, '+', '+', '-', 0),
-                                (int, '+', '*', '~', 0),
-                                (int, '+', '*', '-', 1)),
+             (int, '*', '*', '-', 0),
+             (int, '+', '+', '-', 0),
+             (int, '+', '*', '~', 0),
+             (int, '+', '*', '-', 1)),
             (AA.field,          (float, '+', '*', '-', lambda x:1.0/x, 0.0, 1.0)),
             (~AA.field,         (float, '+', '*', '-', lambda x:2.0/x, 0.0, 1.0)),
-            (AA.boolean_algebra,(env.equals(False, True), 'or', 'and', 'not', False, True),
-                                (int, '|', '&', '~', 0, ~0),
-                                (env.set, '|', '&', '~', env.empty, ~env.empty)
+            (AA.boolean_algebra, (env.equals(False, True), 'or', 'and', 'not', False, True),
+             (int, '|', '&', '~', 0, ~0),
+             (env.set, '|', '&', '~', env.empty, ~env.empty)
              ),
             (~AA.boolean_algebra,
              # Mutate each argument..
-                                (env.equals(True, True), 'or', 'or', 'not', False, True),
-                                (env.equals(False, True), 'and', 'and', 'not', False, True),
-                                (env.equals(False, True), 'or', 'or', 'not', False, True),
-                                (env.equals(False, True), 'or', 'and', '~', False, True),
-                                (env.equals(False, True), 'or', 'and', 'not', True, True),
-                                (env.equals(False, True), 'or', 'and', 'not', False, False),
+             (env.equals(True, True), 'or', 'or', 'not', False, True),
+             (env.equals(False, True), 'and',
+              'and', 'not', False, True),
+             (env.equals(False, True), 'or',
+              'or', 'not', False, True),
+             (env.equals(False, True), 'or',
+              'and', '~', False, True),
+             (env.equals(False, True), 'or',
+              'and', 'not', True, True),
+             (env.equals(False, True), 'or',
+              'and', 'not', False, False),
              )
-            ]
+        ]
 
         ex = []
         for a in asexs:
@@ -671,7 +676,7 @@ if 1:
     '<', '<=', '>', '>=', '==', '!=', 'in', 'not in', 'is', 'is not')
 """.replace('<is>', ' = lambda IS: '))
 
-    class    GlueTypeExpr:
+    class GlueTypeExpr:
         exec("""
 if 1:
     abelian_group       <in>     setof(AA.group)
@@ -703,6 +708,7 @@ The element in $S$ assigned to $(x, y)$ is denoted $x*y$.
         LE = AA.LE
         e = te.mod
         S = e.iso(0, 1, 2)
+
         def subsetof(x, y):
             # Subset relation treating ints as bitsets
             return x & y == x
@@ -714,7 +720,7 @@ The element in $S$ assigned to $(x, y)$ is denoted $x*y$.
             return (AA.latticeform.quadruple, args)
 
         asexs = [
-            (e.PyObject,                0), # why not ()?
+            (e.PyObject,                0),  # why not ()?
             #(AA.relation,              D(S, '==')),
             (AA.reflexive,              D(S, '==')),
             #(AA.reflexive,             AA.relation.new(S, '<=')),
@@ -746,10 +752,8 @@ The element in $S$ assigned to $(x, y)$ is denoted $x*y$.
 
             (AA.lattice.quadruple,      (int, '<=', min, max)),
 
-            ]
+        ]
         return asexs
-
-
 
     class GlueTypeExpr:
         exec("""\
@@ -806,17 +810,16 @@ attr('A', AA.LE.binary_operation_name | setcast(S)<<(S, S))
                         ))))
 """.replace('<in>', '=lambda IN:'))
 
-from guppy.heapy.test import support
-import sys, unittest
 
 class TestCase(support.TestCase):
     pass
+
 
 class FirstCase(TestCase):
     def test_1(self):
         Spec = self.heapy.Spec
         TestEnv = Spec.mkTestEnv(_Specification_)
-        #print SpecSpec.getstr(1000)
+        # print SpecSpec.getstr(1000)
 
         TestEnv.test(self.guppy.heapy.AbstractAlgebra)
 

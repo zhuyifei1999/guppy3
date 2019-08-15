@@ -1,11 +1,13 @@
-#._cv_part guppy.etc.Code
+# ._cv_part guppy.etc.Code
+
 
 def co_code_findloadednames(co):
     """Find in the code of a code object, all loaded names.
     (by LOAD_NAME, LOAD_GLOBAL or LOAD_FAST) """
 
     from opcode import HAVE_ARGUMENT, opmap
-    hasloadname = (opmap['LOAD_NAME'],opmap['LOAD_GLOBAL'],opmap['LOAD_FAST'])
+    hasloadname = (opmap['LOAD_NAME'],
+                   opmap['LOAD_GLOBAL'], opmap['LOAD_FAST'])
     code = co.co_code
     nargs = co.co_argcount
     len_co_names = len(co.co_names)
@@ -30,6 +32,7 @@ def co_code_findloadednames(co):
         except KeyError:
             pass
     return indexset
+
 
 def co_findloadednames(co):
     """Find all loaded names in a code object and all its consts of code type"""

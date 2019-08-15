@@ -1,3 +1,4 @@
+from distutils.core import setup, Extension
 import os
 
 from distutils.command.install import INSTALL_SCHEMES
@@ -5,22 +6,22 @@ from distutils.command.install import INSTALL_SCHEMES
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
-from distutils.core import setup, Extension
 
 setsc = Extension("guppy.sets.setsc",
                   [
                       "src/sets/sets.c",
                       "src/sets/bitset.c",
                       "src/sets/nodeset.c"
-                      ]
+                  ]
                   )
 
 heapyc = Extension("guppy.heapy.heapyc",
                    [
                        'src/heapy/heapyc.c',
                        'src/heapy/stdtypes.c'
-                       ]
+                   ]
                    )
+
 
 def doit():
     setup(name="guppy",
@@ -61,16 +62,17 @@ sets
           url="http://guppy-pe.sourceforge.net",
           license='MIT',
           packages=[
-            "guppy",
-            "guppy.doc",
-            "guppy.etc",
-            "guppy.gsl",
-            "guppy.heapy",
-            "guppy.heapy.test",
-            "guppy.sets",
-            ],
-          package_data={"guppy.doc" : ["*.html","*.jpg"]},
+              "guppy",
+              "guppy.doc",
+              "guppy.etc",
+              "guppy.gsl",
+              "guppy.heapy",
+              "guppy.heapy.test",
+              "guppy.sets",
+          ],
+          package_data={"guppy.doc": ["*.html", "*.jpg"]},
           ext_modules=[setsc, heapyc]
           )
+
 
 doit()

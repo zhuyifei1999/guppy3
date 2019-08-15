@@ -1,4 +1,5 @@
-#._cv_part guppy.etc.KanExtension
+# ._cv_part guppy.etc.KanExtension
+
 
 class LeftKanExtension:
 
@@ -35,7 +36,6 @@ class LeftKanExtension:
 
         self.general_procedure()
 
-
     def general_procedure(self):
         self.initialize_tables()
         self.make_confluent_system()
@@ -60,7 +60,7 @@ class LeftKanExtension:
             aw = self.make_word(a)
             bw = self.make_word(b)
             if aw != bw:
-                Re.append( ( aw, bw ))
+                Re.append((aw, bw))
 
         for a in self.A.arrows:
             srca = self.A.source(a)
@@ -75,18 +75,20 @@ class LeftKanExtension:
                 for b in Fa:
                     srcb = self.B.source(b)
                     if srcb != t:
-                        raise ValueError('Arrow [%s] with source %s does not compose with target %s'%(b, srcb, t))
+                        raise ValueError(
+                            'Arrow [%s] with source %s does not compose with target %s' % (b, srcb, t))
                     t = self.B.target(b)
                 if t != Ftgta:
-                    raise ValueError('Arrow %s with target %s does not compose with %s'%(Fa, t, Ftgta))
+                    raise ValueError(
+                        'Arrow %s with target %s does not compose with %s' % (Fa, t, Ftgta))
             else:
                 if Fsrca != Ftgta:
-                    raise ValueError('Source %s does not match target %s'%(Fsrca, Ftgta))
+                    raise ValueError(
+                        'Source %s does not match target %s' % (Fsrca, Ftgta))
             for x in XA:
-                add_rule(((srca, x),) + Fa , ((tgta, Xa(x)),) )
+                add_rule(((srca, x),) + Fa, ((tgta, Xa(x)),))
 
         Rk = [(self.make_word(x), self.make_word(y)) for (x, y) in self.R]
-
 
         self.Re = Re
         self.Rk = Rk
@@ -114,7 +116,8 @@ class LeftKanExtension:
         for b, (srcb, tgtb) in list(self.B.arrows.items()):
             follows[srcb].append((b, tgtb))
 
-        IR = dict([(self.make_term(u), self.make_term(v)) for u, v in self.Rconf])
+        IR = dict([(self.make_term(u), self.make_term(v))
+                   for u, v in self.Rconf])
 
         pplR = {}
         for l, r in self.Rconf:
@@ -157,7 +160,7 @@ class LeftKanExtension:
                 ub = u + bterm
                 if ub in pplR:
                     fsa.add_transition(u, b, ub, tgtb)
-                elif self.irreducible(ub): # ub not in IR:
+                elif self.irreducible(ub):  # ub not in IR:
                     fsa.add_transition(u, b, tgtb)
 
         def get_RS(Bi):
@@ -184,16 +187,15 @@ class LeftKanExtension:
         KB = self.Cat.Function(get_RS, self.B.objects, None)
 
         Kb = self.Cat.Function(
-                      lambda a:KanAction(self.B, KB, a, target, self.irreducible, self.reduce),
-                      self.B.arrows,
-                      KanAction,
-                      )
-
+            lambda a: KanAction(self.B, KB, a, target,
+                                self.irreducible, self.reduce),
+            self.B.arrows,
+            KanAction,
+        )
 
         self.KB = KB
         self.Kb = Kb
         self.K = self.Cat.Functor(KB, Kb)
-
 
     def make_catalogue(self):
         # Catalogue the elements of the sets pointed to by extension functor K,
@@ -229,8 +231,8 @@ class LeftKanExtension:
                 KB[target(e)].append(e)
             else:
                 pass
-                #print e, self
-                #pdb.set_trace()
+                # print e, self
+                # pdb.set_trace()
 
         KB = dict([(B, []) for B in self.B.objects])
         block = []
@@ -246,7 +248,7 @@ class LeftKanExtension:
                 tgt = target(e)
                 for a in self.B.arrows:
                     if self.B.source(a) == tgt:
-                        add_element( e + (a,) )
+                        add_element(e + (a,))
 
         Kb = {}
 
@@ -263,7 +265,6 @@ class LeftKanExtension:
         self.Kb = Kb
         self.K = self.Cat.Functor(KB, Kb)
 
-
     def make_natural_transformation(self):
 
         # Precondition:
@@ -275,20 +276,18 @@ class LeftKanExtension:
         # self.nat[A] for A in self.A.objects
 
         get_nat_memo = {}
+
         def get_nat(A):
             if A in get_nat_memo:
                 return get_nat_memo[A]
 
-
             src = self.X.fo(A)
             tgt = self.K.fo(self.F.fo(A))
-            tab = dict([(x, self.reduce( ((A, x),) )) for x in src])
+            tab = dict([(x, self.reduce(((A, x),))) for x in src])
             get_nat_memo[A] = self.Cat.Function(tab, src, tgt)
             return get_nat_memo[A]
 
         self.nat = self.Cat.Function(get_nat, self.A.objects, None)
-
-
 
     def make_word(self, x):
         ots = self.obj_to_str
@@ -320,7 +319,8 @@ class LeftKanExtension:
 
     def make_term(self, word):
         sto = self.str_to_obj_table
-        return tuple( [sto[s] for s in word.split('.') if s] )
+        return tuple([sto[s] for s in word.split('.') if s])
+
 
 class KanAction:
     def __init__(self, B, KB, a, targetof, irreducible, reduce):
@@ -337,12 +337,12 @@ class KanAction:
     def __call__(self, s):
         if self.targetof(s) != self.srca:
             raise TypeError('''\
-Target of %r (= %r) does not match source of %r (= %r)'''%(
-    s, self.targetof(s), self.a, self.srca))
+Target of %r (= %r) does not match source of %r (= %r)''' % (
+                s, self.targetof(s), self.a, self.srca))
         if not self.irreducible(s):
             raise TypeError('''\
-Argument %r is reducible to %r; and is thus not in the source set K.fo(%r)'''%(
-            s, self.reduce(s),self.srca))
+Argument %r is reducible to %r; and is thus not in the source set K.fo(%r)''' % (
+                s, self.reduce(s), self.srca))
         return self.reduce(s + (self.a,))
 
 
@@ -353,6 +353,7 @@ class RegularSet:
     #  [ o set inclusion ]
 
     is_simplified = 0
+
     def __init__(self, re):
         self.re = re
 
@@ -398,26 +399,26 @@ class ObjectTester:
 
     def get_python_test_source_code(self):
         cmap = {
-            'aseq':'assert e[%r] == e[%r]',
-            'evalfa':'e[%r] = fa[%r](e[%r])',
-            'asfo':'assert fo[%r](e[%r])'
-            }
+            'aseq': 'assert e[%r] == e[%r]',
+            'evalfa': 'e[%r] = fa[%r](e[%r])',
+            'asfo': 'assert fo[%r](e[%r])'
+        }
 
-        return '\n'.join([cmap[c[0]]%c[1:] for c in self.code])
+        return '\n'.join([cmap[c[0]] % c[1:] for c in self.code])
 
     def execode(self, arg):
         code = self.get_python_test_source_code()
 
-        e = {'arg':arg}
-        d = {'fa':self.functor.fa,
-             'fo':self.functor.fo,
-             'e':e,
+        e = {'arg': arg}
+        d = {'fa': self.functor.fa,
+             'fo': self.functor.fo,
+             'e': e,
              }
         exec(code, d)
         return e
 
     def intercode(self, arg):
-        e = {'arg':arg}
+        e = {'arg': arg}
         fa = self.functor.fa
         fo = self.functor.fo
         for c in self.code:
@@ -432,13 +433,13 @@ class ObjectTester:
             elif a == 'aseq':
                 na, nb = c[1:]
                 if e[na] != e[nb]:
-                    raise ValueError('e[%r] != e[%r]'%(na, nb))
+                    raise ValueError('e[%r] != e[%r]' % (na, nb))
             else:
-                raise ValueError('Invalid code: %r'%(a,))
-
+                raise ValueError('Invalid code: %r' % (a,))
 
     def test(self, arg):
         return self.intercode(arg)
+
 
 class CategoryTester:
     def __init__(self, mod, functor, arrows, get_arrow_name=None):
@@ -449,17 +450,15 @@ class CategoryTester:
         if get_arrow_name is not None:
             self.get_arrow_name = get_arrow_name
 
-
     def get_arrow_name(self, a):
         return '.'.join(a)
-
 
     def get_eval_arrows_code(self, object, argname):
         fa = self.functor.fa
 
         name = argname
-        memo = {():name}
-        memolist = [((),name)]
+        memo = {(): name}
+        memolist = [((), name)]
 
         codes = []
 
@@ -506,7 +505,6 @@ class CategoryTester:
         incodes = self.get_test_inclusion_code(object, memolist)
 
         return evalcodes+relcodes+incodes
-
 
     def get_test_relations_code(self, object, memolist):
         codes = []
@@ -561,17 +559,13 @@ class CategoryTester:
             raise Exception('Exception excepted')
 
 
-
-
-
-
 class _GLUECLAMP_:
     # 'imports'
 
-    def _get_KnuthBendix(self):         return self._parent.KnuthBendix.KnuthBendix
-    def _get_FiniteAutomaton(self):     return self._parent.FSA.FiniteAutomaton
-    def _get_SolveFSA(self):            return self._parent.RE.SolveFSA
-    def _get_Cat(self):                 return self._parent.Cat
+    def _get_KnuthBendix(self): return self._parent.KnuthBendix.KnuthBendix
+    def _get_FiniteAutomaton(self): return self._parent.FSA.FiniteAutomaton
+    def _get_SolveFSA(self): return self._parent.RE.SolveFSA
+    def _get_Cat(self): return self._parent.Cat
 
     # Main exported interface is the lke method
     # which provides a context for the LeftKanExtension class.
@@ -589,7 +583,7 @@ class _GLUECLAMP_:
         A = self.Cat.Graph(cat.graph.objects, [])
         B = cat.graph
         R = cat.relations
-        X = self.Cat.Functor(lambda x: [1], lambda x: lambda y:y)
+        X = self.Cat.Functor(lambda x: [1], lambda x: lambda y: y)
         F = self.Cat.Functor(lambda x: x, lambda x: [])
         ke = self.lke(A, B, R, X, F)
 
@@ -616,18 +610,19 @@ class _GLUECLAMP_:
 
         return self.Cat.Function(
             get_arrows,
-            src = ke.K.fo.src,
-            tgt = None
-            )
+            src=ke.K.fo.src,
+            tgt=None
+        )
 
     def category_tester(self, functor, arrows=None, coverage=1):
         if isinstance(functor, tuple):
             fo, fa, src = functor
             if fo is None:
-                fo = lambda x:lambda y:1
+                def fo(x): return lambda y: 1
             functor = self.Cat.Functor(fo, fa, src)
         if arrows is None:
-            arrows = self.arrows_map(functor.src, from_objects=1, coverage=coverage)
+            arrows = self.arrows_map(
+                functor.src, from_objects=1, coverage=coverage)
         return CategoryTester(self, functor, arrows)
 
     def coequalizer(self, S0, S1, f0, f1):
@@ -662,11 +657,11 @@ class _GLUECLAMP_:
         #   .asdict()           returns a dict representing the mapping
 
         objects = [0, 1]
-        arrows = {'a0':(0, 1), 'a1': (0, 1)}
+        arrows = {'a0': (0, 1), 'a1': (0, 1)}
         A = self.Cat.Graph(objects, arrows)
 
-        Xo = self.Cat.Function({0:S0, 1:S1}, objects, [S0,S1])
-        Xa = self.Cat.Function({'a0':f0, 'a1':f1}, arrows, [f0,f1])
+        Xo = self.Cat.Function({0: S0, 1: S1}, objects, [S0, S1])
+        Xa = self.Cat.Function({'a0': f0, 'a1': f1}, arrows, [f0, f1])
         X = self.Cat.Functor(Xo, Xa)
 
         colimit_object, colimit_functions = self.colimit(A, X)
@@ -699,10 +694,9 @@ class _GLUECLAMP_:
                       for (a, k) in list(cof.items())]),
                 cof.src,
                 colimit_object,
-                )
-             )
+            )
+            )
             for (A, cof) in list(colimit_functions.items())])
-
 
         return colimit_object, colimit_functions
 

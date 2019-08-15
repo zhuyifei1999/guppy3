@@ -1,4 +1,4 @@
-#._cv_part guppy.etc.KnuthBendix
+# ._cv_part guppy.etc.KnuthBendix
 
 """
     An implementation of the Knuth-Bendix algorithm,
@@ -63,8 +63,9 @@ year=1994
 
 """
 
+
 class KnuthBendix:
-    def __init__(self, E, delim = '', max_iterations = 100):
+    def __init__(self, E, delim='', max_iterations=100):
         self.reductions = []
         self.delim = delim
         for a, b in E:
@@ -97,7 +98,7 @@ class KnuthBendix:
     def make_confluent(self, max_iterations):
         def add_reduction(p, q):
             if p != q:
-                #pdb.set_trace()
+                # pdb.set_trace()
                 if self.gt(p, q):
                     self.reductions.append((p, q))
                 else:
@@ -106,7 +107,7 @@ class KnuthBendix:
 
         reds_tested = {}
         for i in range(max_iterations):
-            #print 'iter', i
+            # print 'iter', i
             self.confluent = 1
             reds = list(self.reductions)
             for u1, v1 in reds:
@@ -150,7 +151,7 @@ class KnuthBendix:
                     self.reductions[i] = urv
                 else:
                     pass
-                    #pdb.set_trace()
+                    # pdb.set_trace()
             if len(newr) != self.reductions:
                 assert ('', '') not in newr
                 self.reductions = newr
@@ -159,15 +160,12 @@ class KnuthBendix:
             if self.confluent:
                 break
 
-
-
         else:
             raise ValueError("""\
 KnuthBendix.make_confluent did not terminate in %d iterations.
 Check your equations or specify an higher max_iterations value.'
-"""%max_iterations)
-        #print len(reds_tested)
-
+""" % max_iterations)
+        # print len(reds_tested)
 
     def freduce(self, p):
         # This (internal) variant of reduce:
@@ -196,9 +194,10 @@ Check your equations or specify an higher max_iterations value.'
             p = p.strip(self.delim)
         return p
 
-    def sort(self, reds = None):
+    def sort(self, reds=None):
         if reds is None:
             reds = self.reductions
+
         def cmp(xxx_todo_changeme, xxx_todo_changeme1):
             (x, _) = xxx_todo_changeme
             (y, __) = xxx_todo_changeme1
@@ -219,9 +218,10 @@ Check your equations or specify an higher max_iterations value.'
             p = p + self.delim
         return p
 
+
 def printreds(reds):
     for i, uv in enumerate(reds):
-        print('%s\t'%(uv,), end=' ')
+        print('%s\t' % (uv,), end=' ')
         if (i + 1) % 4 == 0:
             print()
     if (i + 1) % 4 != 0:
@@ -232,12 +232,8 @@ def kb(E, *a, **k):
     return KnuthBendix(E, *a, **k)
 
 
-
 class _GLUECLAMP_:
     pass
-
-
-
 
 
 def test2():
@@ -252,7 +248,7 @@ def test2():
          ('i.i.i.i',     '1'),
          ]
     R = kb(E, delim='.')
-    T = [['.']+G] + [[y]+[R.reduce('%s.%s'%(y, x)) for x in G] for y in G]
+    T = [['.']+G] + [[y]+[R.reduce('%s.%s' % (y, x)) for x in G] for y in G]
 
     assert T == [
         ['.', '1', '-1', 'i', '-i'],
@@ -263,9 +259,10 @@ def test2():
 
     return R
 
+
 def test():
     E = [('.a.', '.b.')]
-    a = kb(E,delim='.')
+    a = kb(E, delim='.')
     assert a('.a.', '.b.')
     E = [('fhk', 'gh'), ('m', 'kkm')]
     a = kb(E)
@@ -299,7 +296,7 @@ def test():
     p = a.reduce('.f.f.f.ffff.ff.fff.fff.fff.fffff.')
     q = a.reduce('.f.f.ffff.ff.fff.fffff.')
 
-    #print p, q
+    # print p, q
     assert p == 'f.f.f.f.ff.fffff'
     assert q == 'f.f.f.ff.fffff'
 
@@ -307,23 +304,23 @@ def test():
 def test3():
     # From 9.3 in 251
     E = [('Hcc', 'H'),
-         ('aab','ba'),
-         ('aac','ca'),
-         ('cccb','abc'),
-         ('caca','b')]
+         ('aab', 'ba'),
+         ('aac', 'ca'),
+         ('cccb', 'abc'),
+         ('caca', 'b')]
 
     a = kb(E)
 
     canon = [
-        ('Hb','Ha'),    ('Haa','Ha'),   ('Hab','Ha'),   ('Hca','Hac'),
-        ('Hcb','Hac'),  ('Hcc','H'),    ('aab','ba'),   ('aac','ca'),
-        ('abb','bb'),   ('abc','cb'),   ('acb','cb'),   ('baa','ba'),
-        ('bab','bb'),   ('bac','cb'),   ('bba','bb'),   ('bca','cb'),
-        ('bcb','bbc'),  ('cab','cb'),   ('cba','cb'),   ('cbb','bbc'),
-        ('cbc','bb'),   ('ccb','bb'),   ('Haca','Hac'), ('Hacc','Ha'),
-        ('bbbb','bb'),  ('bbbc','cb'),  ('bbcc','bbb'), ('bcca','bb'),
-        ('caca','b'),   ('ccaa','ba'),  ('ccca','cb'),  ('cacca','cb')
-        ]
+        ('Hb', 'Ha'),    ('Haa', 'Ha'),   ('Hab', 'Ha'),   ('Hca', 'Hac'),
+        ('Hcb', 'Hac'),  ('Hcc', 'H'),    ('aab', 'ba'),   ('aac', 'ca'),
+        ('abb', 'bb'),   ('abc', 'cb'),   ('acb', 'cb'),   ('baa', 'ba'),
+        ('bab', 'bb'),   ('bac', 'cb'),   ('bba', 'bb'),   ('bca', 'cb'),
+        ('bcb', 'bbc'),  ('cab', 'cb'),   ('cba', 'cb'),   ('cbb', 'bbc'),
+        ('cbc', 'bb'),   ('ccb', 'bb'),   ('Haca', 'Hac'), ('Hacc', 'Ha'),
+        ('bbbb', 'bb'),  ('bbbc', 'cb'),  ('bbcc', 'bbb'), ('bcca', 'bb'),
+        ('caca', 'b'),   ('ccaa', 'ba'),  ('ccca', 'cb'),  ('cacca', 'cb')
+    ]
 
     a.canon = canon
 

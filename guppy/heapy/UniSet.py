@@ -1,7 +1,8 @@
-#._cv_part guppy.heapy.UniSet
+# ._cv_part guppy.heapy.UniSet
 
 import guppy
 from functools import reduce
+
 
 class UniSet(object):
     __slots__ = '_hiding_tag_', 'fam',  '_origin_'
@@ -14,7 +15,6 @@ The actual objects contained in x. These are called nodes because
 they are treated with equality based on address, and not on the
 generalized equality that is used by ordinary builtin sets or dicts."""
 
-
     def __and__(self, other):
         """
 Return the intersection of self and other.
@@ -23,7 +23,7 @@ Return the intersection of self and other.
 
     __rand__ = __and__
 
-    def __call__(self, *args, **kwds):  return self.fam.c_call(self, args, kwds)
+    def __call__(self, *args, **kwds): return self.fam.c_call(self, args, kwds)
 
     def __contains__(self, other):
         """
@@ -72,7 +72,7 @@ False otherwise.
         """
 Get family-specific attribute.
 """
-        return self.fam.mod.View.enter(lambda:self.fam.c_getattr(self, other))
+        return self.fam.mod.View.enter(lambda: self.fam.c_getattr(self, other))
 
     def __le__(self, other):
         """
@@ -117,6 +117,7 @@ Return True if self is a strict (may not be equal to) subset of other,
 False otherwise.
 """
         return self <= other and not self >= other
+
     def __mul__(self, other):
         """
 Return the cartesian product of self and other, which is the set of
@@ -210,7 +211,7 @@ that are in one of self or other, but not in both.
         return self.fam.c_xor(self, other)
     __rxor__ = __xor__
 
-    brief = property(lambda self:self.fam.c_get_brief(self),
+    brief = property(lambda self: self.fam.c_get_brief(self),
                      doc="""\
 A string representation of self, which is brief relative to the
 representation returned by __str__ and __repr__. (In many cases it is
@@ -229,7 +230,7 @@ representation is typically much shorter than the non-brief one.)"""
     #man = property(lambda self:self.fam.mod._root.guppy.doc.get_man(self))
     #man = property(guppy.getman)
 
-    doc = property(lambda self:self.fam.mod._root.guppy.etc.Help.dir(self))
+    doc = property(lambda self: self.fam.mod._root.guppy.etc.Help.dir(self))
 
     def get_ckc(self):
         # Get low-level classification information, where available.
@@ -298,8 +299,8 @@ be returned; though typically env.failed() would raise an exception.
          """
         return self.fam.c_test_contains(self, element, env)
 
-    biper = property(lambda self:self.fam.c_get_biper(self),
-                     doc = """\
+    biper = property(lambda self: self.fam.c_get_biper(self),
+                     doc="""\
 A bipartitioning equivalence relation based on x. This may be used to
 partition or classify sets into two equivalence classes:
 
@@ -309,8 +310,8 @@ x.biper(1) == ~x
     The set of elements that are not in x.
         """)
 
-    dictof = property(lambda self:self.fam.c_get_dictof(self),
-                      doc = """dictof: UniSet
+    dictof = property(lambda self: self.fam.c_get_dictof(self),
+                      doc="""dictof: UniSet
 
 If x represents a kind of objects with a builtin __dict__ attribute,
 x.dictof is the kind representing the set of all those dict
@@ -318,8 +319,10 @@ objects. In effect, x.dictof maps lambda e:getattr(e, '__dict__') for
 all objects e in x. But it is symbolically evaluated to generate a new
 symbolic set (a Kind).""")
 
+
 class Kind(UniSet):
     __slots__ = 'arg',
+
     def __init__(self, fam, arg):
         self.fam = fam
         self._hiding_tag_ = fam._hiding_tag_
@@ -329,13 +332,14 @@ class Kind(UniSet):
     def alt(self, cmp):
         return self.fam.c_alt(self, cmp)
 
+
 class IdentitySet(UniSet):
     __slots__ = '_er', '_partition'
     _help_url_ = 'heapy_UniSet.html#heapykinds.IdentitySet'
 
     def __getitem__(self, idx): return self.fam.c_getitem(self, idx)
-    def __len__(self):          return self.fam.c_len(self)
-    def __iter__(self):         return self.fam.c_iter(self)
+    def __len__(self): return self.fam.c_len(self)
+    def __iter__(self): return self.fam.c_iter(self)
 
     def __str__(self):
         """
@@ -347,7 +351,6 @@ attribute in that it is a tabular representation.
 """
 
         return self.fam.c_str(self)
-
 
     def get_rp(self, depth=None, er=None, imdom=0, bf=0, src=None,
                stopkind=None, nocyc=False, ref=None):
@@ -386,7 +389,6 @@ See also
         return self.fam.RefPat.rp(self, depth, er, imdom, bf, src, stopkind,
                                   nocyc, ref)
 
-
     def get_shpaths(self, src=None, avoid_nodes=None, avoid_edges=()):
         """x.get_shpaths(draw:[src, avoid_nodes, avoid_edges]) -> Paths
 
@@ -403,7 +405,6 @@ The optional arguments are:
     # 'Normal' methods
 
     def by(self, er):
-
         """ x.by(er) -> A copy of x, but using er for equiv. relation. """
         return self.fam.get_by(self, er)
 
@@ -415,13 +416,13 @@ The optional arguments are:
           Shorthand for .stat.dump """
         self.stat.dump(*args, **kwds)
 
-    byclass = property(lambda self:self.by('Class'), doc="""\
+    byclass = property(lambda self: self.by('Class'), doc="""\
 A copy of self, but with 'Class' as the equivalence relation.""")
 
-    byclodo = property(lambda self:self.by('Clodo'), doc="""\
+    byclodo = property(lambda self: self.by('Clodo'), doc="""\
 A copy of self, but with 'Clodo' as the equivalence relation.""")
 
-    byidset = property(lambda self:self.by('Idset'), doc="""\
+    byidset = property(lambda self: self.by('Idset'), doc="""\
 A copy of self, but with 'Idset' as the equivalence relation.
 
 Note
@@ -429,10 +430,10 @@ Note
 equivalence relation is more efficient when partitioning large
 sets.""")
 
-    byid = property(lambda self:self.by('Id'), doc="""\
+    byid = property(lambda self: self.by('Id'), doc="""\
 A copy of self, but with 'Id' as the equivalence relation.""")
 
-    bymodule = property(lambda self:self.by('Module'), doc="""\
+    bymodule = property(lambda self: self.by('Module'), doc="""\
 A copy of self, but with 'Module' as the equivalence relation.""")
 
     byrcs = property(lambda self: self.by('Rcs'), doc="""\
@@ -477,7 +478,7 @@ The immediate dominators of a set of objects. The immediate dominators
 is a subset of the referrers. It includes only those referrers that
 are reachable directly, avoiding any other referrer.""")
 
-    indisize = size = property(lambda self:self.fam.View.indisize(self),doc="""\
+    indisize = size = property(lambda self: self.fam.View.indisize(self), doc="""\
 The total 'individual' size of the set of objects.  The individual
 size of an object is the size of memory that is allocated directly in
 the object, not including any externally visible subobjects. See also:
@@ -516,7 +517,7 @@ Set of 2  objects. Total size = 40 bytes.
 <This is an experimental feature, so the name is intentionally made
 mystically-sounding, and is a shorthand for 'mapping proxy'.>""")
 
-    more = property(lambda self:self.fam.get_more(self), doc="""\
+    more = property(lambda self: self.fam.get_more(self), doc="""\
 An object that can be used to show more lines of the string
 representation of self. The object returned, a MorePrinter instance,
 has a string representation that continues after the end of the
@@ -545,7 +546,7 @@ has, in the table printed when partitioned.""")
     pathsin = property(lambda self: self.get_shpaths(self.referrers), doc="""\
 The paths from the direct referrers of the objects in self.""")
 
-    pathsout = property(lambda self:self.referents.get_shpaths(self), doc="""\
+    pathsout = property(lambda self: self.referents.get_shpaths(self), doc="""\
 The paths to the referents of the objects in self.""")
 
     referents = property(lambda self: self.fam.View.referents(self), doc="""\
@@ -590,8 +591,6 @@ Synonym
 See also
     get_shpaths""")
 
-
-
     stat = property(lambda self: self.partition.get_stat(), doc="""\
 x.stat: Stat
 
@@ -607,6 +606,7 @@ The one object in a singleton set. In case the set does not contain
 exactly one object, the exception ValueError will be raised.
 """)
 
+
 class IdentitySetMulti(IdentitySet):
     __slots__ = 'nodes',
 
@@ -615,6 +615,7 @@ class IdentitySetMulti(IdentitySet):
         self._hiding_tag_ = fam._hiding_tag_
         self.nodes = nodes
         self._origin_ = None
+
 
 class IdentitySetSingleton(IdentitySet):
     __slots__ = '_node',
@@ -683,8 +684,10 @@ equivalent with any element from a different class.
     def sokind(self, *args, **kwds):
         return self.classifier.get_sokind(self, *args, **kwds)
 
+
 class MappingProxy(object):
     __slots__ = '_set_',
+
     def __init__(self, set):
         self._set_ = set
 
@@ -731,17 +734,15 @@ class Family:
         r = self.Doc.add_origin(r, self.Doc.callfunc(self, *tup))
         return r
 
-
     def add_export(self, name, value):
         if self.export_dict is self.mod.export_dict:
             self.export_dict = self.mod.export_dict.copy()
         if name in self.export_dict and self.export_dict[name] is not value:
-            raise ValueError('Duplicate: %s'%name)
+            raise ValueError('Duplicate: %s' % name)
         self.export_dict[name] = value
 
     def c_alt(self, a, cmp):
-        raise ValueError('No alternative set for family %s.'%self)
-
+        raise ValueError('No alternative set for family %s.' % self)
 
     def c_binop(self, op, a, b):
         if not isinstance(b, UniSet):
@@ -779,10 +780,10 @@ class Family:
         # Given a and b factors, and not a <= b and not b <= a,
         # determine if they are disjoint
 
-        return getattr(self, '_factordisjoint_%s'%(b.fam.opname,)) (a, b)
+        return getattr(self, '_factordisjoint_%s' % (b.fam.opname,))(a, b)
 
     def c_get_brief_alt(self, a, alt):
-        return '[%s %s]'%(alt, self.c_get_brief(a))
+        return '[%s %s]' % (alt, self.c_get_brief(a))
 
     def c_uniset(self, X):
         return self.mod.uniset_from_setcastable(X)
@@ -817,7 +818,7 @@ class Family:
         return h
 
     def c_get_idpart_label(self, a):
-        return '<%s>'%a
+        return '<%s>' % a
 
     def c_get_idpart_render(self, a):
         return self.c_get_render(a)
@@ -867,7 +868,7 @@ class Family:
 
     def c_test_contains(self, a, b, env):
         if not self.c_contains(a, b):
-            return env.failed('%s: %s does not contain %s'%(self.__class__, env.name(a), env.name(b)))
+            return env.failed('%s: %s does not contain %s' % (self.__class__, env.name(a), env.name(b)))
         return True
 
     def c_xor(self, a, b):
@@ -878,6 +879,7 @@ class Family:
 
     def _rand_ATOM(self, a, b):
         return self._and_ATOM(a, b)
+
 
 class AtomFamily(Family):
     isatom = True
@@ -1026,7 +1028,6 @@ class AndFamily(Family):
                         ex.append(ei)
         return ex
 
-
     def c_and(self, a, b):
         return b.fam._and_AND(b, a)
 
@@ -1059,7 +1060,6 @@ class AndFamily(Family):
                 break
             b = a & b
         return b
-
 
     def c_le(self, a, b):
         return b.fam._ge_AND(b, a)
@@ -1155,6 +1155,7 @@ class AndFamily(Family):
             r = kind.get_render()
             if r:
                 return r
+
         def r(o):
             return hex(id(o))
         return r
@@ -1162,23 +1163,25 @@ class AndFamily(Family):
     def c_get_brief(self, c):
         names = [kind.brief for kind in c.arg]
         # names.sort() ?? I think now I want them in given order.
-        return '(%s)'%' & '.join(names) + ')'
+        return '(%s)' % ' & '.join(names) + ')'
 
     def c_get_ckc(self, a):
         return (
             self.mod.Classifiers.mker_and([x.biper for x in a.arg]).classifier,
             (0,)*len(a.arg),
             '=='
-            )
+        )
 
     def c_repr(self, a):
         reprs = [repr(k) for k in a.arg]
-        return '(%s)'%' & '.join(reprs)
+        return '(%s)' % ' & '.join(reprs)
+
 
 class OrFamily(Family):
     opname = 'OR'
     isatom = False
     isfactor = False
+
     def __call__(self, a, b):
         if b <= a:
             return a
@@ -1222,7 +1225,7 @@ class OrFamily(Family):
                 break
 
     def c_test_contains(self, a, b, env):
-        return env.forsome(a.arg, lambda x:env.test_contains(x, b, 'Some x'), 'or')
+        return env.forsome(a.arg, lambda x: env.test_contains(x, b, 'Some x'), 'or')
 
     def c_and(self, a, b):
         if self is b.fam:
@@ -1238,7 +1241,6 @@ class OrFamily(Family):
         return r
 
     _and_ATOM = _and_INVERT = _and_AND = _and_TERM
-
 
     def _and_OR(self, a, b):
         # (a0 | a1 ..) & (b0 | b1 ..) = a0 & b0 | a0 & b1 ... a1 & b0 | a1 & b1 ...
@@ -1256,7 +1258,7 @@ class OrFamily(Family):
         return r
 
     def _ge_TERM(self, a, b):
-        #pdb.set_trace()
+        # pdb.set_trace()
         a = a & b
         if a.fam is self:
             if b.fam is not a.fam or len(b.arg) != len(a.arg):
@@ -1319,7 +1321,7 @@ class OrFamily(Family):
             def r(o):
                 return hex(id(o))
             r._idpart_header = 'Address'
-            r._idpart_sortrender = lambda x:id(x)
+            r._idpart_sortrender = lambda x: id(x)
             return r
 
     def c_get_brief(self, c):
@@ -1352,7 +1354,7 @@ class OrFamily(Family):
                 brmemo[k] = br
             b, r = br
 
-            return '%s: %s'%(b, r(x))
+            return '%s: %s' % (b, r(x))
 
         return render
 
@@ -1382,13 +1384,14 @@ class OrFamily(Family):
     def c_repr(self, a):
         reprs = [repr(k) for k in a.arg]
         reprs.sort()
-        return '(%s)'%' | '.join(reprs)
+        return '(%s)' % ' | '.join(reprs)
 
 
 class InvertFamily(Family):
     opname = 'INVERT'
     isatom = False
     isfactor = True
+
     def __call__(self, a):
         assert a.fam.isatom
         if a is self.mod.Nothing:
@@ -1474,9 +1477,9 @@ class InvertFamily(Family):
     def c_get_brief(self, a):
         n = a.arg.brief
         if (not (n.startswith('(') or n.startswith('<')) and
-            ' ' in n):
-            n = '(%s)'%n
-        return '~%s'%n
+                ' ' in n):
+            n = '(%s)' % n
+        return '~%s' % n
 
     def c_get_ckc(self, a):
         # This uses only existing machinery for C-level classification.
@@ -1486,10 +1489,11 @@ class InvertFamily(Family):
             a.arg.biper.classifier,
             0,
             '!='
-            )
+        )
 
     def c_repr(self, a):
-        return '~%s'%repr(a.arg)
+        return '~%s' % repr(a.arg)
+
 
 class FamilyFamily(AtomFamily):
     def __init__(self, mod):
@@ -1500,7 +1504,8 @@ class FamilyFamily(AtomFamily):
         return isinstance(b, UniSet) and b.fam is a.arg
 
     def c_get_brief(self, c):
-        return '<Family: %s>'%c.arg.__class__
+        return '<Family: %s>' % c.arg.__class__
+
 
 class IdentitySetFamily(AtomFamily):
     def __init__(self, mod):
@@ -1510,7 +1515,8 @@ class IdentitySetFamily(AtomFamily):
         # It's not used?
         #
         if 0:
-            self.defdisjoint(mod.Anything.fam) # No overlap with sets of other families??
+            # No overlap with sets of other families??
+            self.defdisjoint(mod.Anything.fam)
 
         self.immnodeset = mod.immnodeset
         self.Part = mod.Part
@@ -1557,7 +1563,7 @@ class IdentitySetFamily(AtomFamily):
         return self._cons(a.nodes & b.nodes)
 
     def _and_INVERT(self, a, b):
-        if b.arg.fam  is self:
+        if b.arg.fam is self:
             return self._cons(a.nodes - b.arg.nodes)
         elif b is self.mod.NotNothing:
             return a
@@ -1575,7 +1581,6 @@ class IdentitySetFamily(AtomFamily):
         # and may be SO much slower than expected
         # they need to be explicit to iterate over elements or partition subset
         raise TypeError('iteration over non-sequence')
-
 
     def c_len(self, a):
         # The length corresponds to
@@ -1628,7 +1633,6 @@ class IdentitySetFamily(AtomFamily):
                 ns.add(v)
         return self._cons(self.mod.immnodeset(ns))
 
-
     def maprox_getitem(self, set, idx):
         ns = self.mod.mutnodeset()
         for x in set.nodes:
@@ -1661,7 +1665,8 @@ class IdentitySetFamily(AtomFamily):
             try:
                 ss = er.split('&')
             except:
-                raise TypeError('by(): Equivalence relation or string expected.')
+                raise TypeError(
+                    'by(): Equivalence relation or string expected.')
             if ss == ['']:
                 ss = []
             for s in ss:
@@ -1670,7 +1675,8 @@ class IdentitySetFamily(AtomFamily):
                         s = 'er_'+s
                     er = getattr(self.Use, s)
                 except AttributeError:
-                    raise ValueError('by(): No such equivalence relation defined in heapy.Use: %r'%s)
+                    raise ValueError(
+                        'by(): No such equivalence relation defined in heapy.Use: %r' % s)
                 ers.append(er)
 
         if not ers:
@@ -1706,23 +1712,20 @@ class IdentitySetFamily(AtomFamily):
             self._partition = p
         return p
 
-
-
-
     def get_str_idpart(self, set, cla):
         # Get the string that is used for the 'identity partition'
         # when the objects share a common classification (cla)
         s = cla.fam.c_get_str_for(cla, set)
         return s
 
-
     def get_str_refpat(self, set, cla, max_length):
         # Get the string that is used at the end of a reference pattern line
         strs = []
-        strs.append('%d '%set.count)
+        strs.append('%d ' % set.count)
         strs.append(cla.fam.c_get_str_for(cla, set))
         strs.append(': ')
-        strs.append(self.get_str_rendered(set, cla, max_length-len(''.join(strs))))
+        strs.append(self.get_str_rendered(
+            set, cla, max_length-len(''.join(strs))))
         s = ''.join(strs)
         if len(s) > max_length:
             s = s[:max_length - 3]+'...'
@@ -1737,13 +1740,12 @@ class IdentitySetFamily(AtomFamily):
         for p in set.nodes:
             rs = render(p)
             if lens and lens + len(rs) + 2 >= max_length:
-                strs[-1] +='...' # but what can be done in limited time
+                strs[-1] += '...'  # but what can be done in limited time
                 break
             lens += len(rs) + 2
             strs.append(rs)
         strs.sort()
         return ', '.join(strs)
-
 
     def get_str_summary(self, c, max_length=None, er=None):
         if max_length is None:
@@ -1754,7 +1756,7 @@ class IdentitySetFamily(AtomFamily):
         items = er.classifier.partition(set)
         keys = [k for k, v in items]
         cla = reduce(lambda x, y: x | y, keys)
-        s = '<%d %s'%(len(set), cla.fam.c_get_str_for(cla, c))
+        s = '<%d %s' % (len(set), cla.fam.c_get_str_for(cla, c))
         s += ': '
         bslen = len(s)
 
@@ -1762,14 +1764,15 @@ class IdentitySetFamily(AtomFamily):
         for cla, set in items:
             css = self.get_str_rendered(set, cla, max_length-bslen)
             if len(items) > 1:
-                css = '<%d %s: %s>'%(set.count, cla, css)
+                css = '<%d %s: %s>' % (set.count, cla, css)
             bstrs.append(css)
             bslen += len(css) + 3
             if bslen > max_length:
                 break
+
         def comp(a, b):
             # Don't use the initial count when comparing
-            return cmp(a[a.index(' '):],b[b.index(' '):])
+            return cmp(a[a.index(' '):], b[b.index(' '):])
         bstrs.sort(comp)
         s += ' | '.join(bstrs) + '>'
         if len(s) > max_length:
@@ -1783,6 +1786,7 @@ class IdentitySetFamily(AtomFamily):
         if len(set.nodes) == 1:
             return list(set.nodes)[0]
         raise ValueError('theone requires a singleton set')
+
 
 class EmptyFamily(IdentitySetFamily):
     # Inherits from IdentitySetFamily because the special exported methods
@@ -1814,7 +1818,7 @@ class EmptyFamily(IdentitySetFamily):
         return '<Nothing>'
 
     def c_repr(self, a):
-        return '%s%s'%(self.mod.Use.reprefix, 'Nothing')
+        return '%s%s' % (self.mod.Use.reprefix, 'Nothing')
 
     def c_iter(self, a):
         return iter(())
@@ -1843,6 +1847,7 @@ class EmptyFamily(IdentitySetFamily):
 
     def c_xor(self, a, b):
         return b
+
 
 class EquivalenceRelationFamily(AtomFamily):
     def __init__(self, mod):
@@ -1879,7 +1884,6 @@ class EquivalenceRelationFamily(AtomFamily):
             raise AttributeError(name)
         return g(name)
 
-
     def c_and(self, a, b):
         if b.fam is not self:
             return AtomFamily.c_and(self, a, b)
@@ -1901,7 +1905,6 @@ class EquivalenceRelationFamily(AtomFamily):
             return a.classifier in b.classifier.super_classifiers
         return False
 
-
     def _le_ATOM(self, a, b):
         if b.fam is self:
             return b.classifier in a.classifier.super_classifiers
@@ -1911,13 +1914,14 @@ class EquivalenceRelationFamily(AtomFamily):
         return a.classifier.get_userkind(*args, **kwds)
 
     def c_get_brief(self, a):
-        return 'Equiv. relation %s'%a.classifier
+        return 'Equiv. relation %s' % a.classifier
 
     def c_getitem(self, a, idx):
         return a.classifier.relimg(self.mod.nodeset_adapt(idx))
 
     def c_repr(self, a):
         return a.classifier.get_reprname()
+
 
 class Summary_str:
     def __init__(self, mod):
@@ -1926,7 +1930,7 @@ class Summary_str:
         self.invtypes = {}
         for k, v in list(types.__dict__.items()):
             if isinstance(v, type):
-                self.invtypes[v] = 'types.%s'%k
+                self.invtypes[v] = 'types.%s' % k
         for k, v in list(types.__builtins__.items()):
             if isinstance(v, type) and v in self.invtypes:
                 self.invtypes[v] = k
@@ -1942,35 +1946,36 @@ class Summary_str:
         #
 
         self.table = {
-                mod.NodeSet: self.str_address_len,
-                bool: self.str_repr,
-                types.BuiltinFunctionType: self.str_builtin_function,
-                type: self.str_class,
-                types.CodeType: self.str_code,
-                complex: self.str_repr,
-                dict: self.str_address_len,
-                float: self.str_repr,
-                types.FrameType: self.str_frame,
-                types.FunctionType: self.str_function,
-                types.InstanceType: self.str_instance,
-                int: self.str_repr,
-                list: self.str_address_len,
-                int: self.str_repr,
-                type(None): self.str_repr,
-                types.MethodType: self.str_method,
-                types.ModuleType: self.str_module,
-                types.TracebackType: self.str_traceback,
-                bytes: self.str_limrepr,
-                str: self.str_limrepr,
-                tuple: self.str_address_len,
-                type: self.str_type,
-                }
+            mod.NodeSet: self.str_address_len,
+            bool: self.str_repr,
+            types.BuiltinFunctionType: self.str_builtin_function,
+            type: self.str_class,
+            types.CodeType: self.str_code,
+            complex: self.str_repr,
+            dict: self.str_address_len,
+            float: self.str_repr,
+            types.FrameType: self.str_frame,
+            types.FunctionType: self.str_function,
+            types.InstanceType: self.str_instance,
+            int: self.str_repr,
+            list: self.str_address_len,
+            int: self.str_repr,
+            type(None): self.str_repr,
+            types.MethodType: self.str_method,
+            types.ModuleType: self.str_module,
+            types.TracebackType: self.str_traceback,
+            bytes: self.str_limrepr,
+            str: self.str_limrepr,
+            tuple: self.str_address_len,
+            type: self.str_type,
+        }
+
     def __call__(self, key, longer=False):
         x = self.table.get(key)
         if x is None:
             x = self.str_address
         if longer and 'longer' in x.__func__.__code__.co_varnames:
-            return lambda k:x(k, longer=longer)
+            return lambda k: x(k, longer=longer)
         else:
             return x
 
@@ -1981,74 +1986,88 @@ class Summary_str:
         return hex(id(x))
     str_address._idpart_header = 'Address'
     str_address._idpart_sortrender = id
+
     def str_address_len(self, x):
         return self.str_address(x)+self.str_len(x)
     str_address_len._idpart_header = 'Address*Length'
     str_address_len._idpart_sortrender = id
+
     def str_builtin_function(self, x):
         n = x.__name__
         m = x.__module__
         if m != '__builtin__':
-            n = '%s.%s'%(m, n)
+            n = '%s.%s' % (m, n)
         return n
     str_builtin_function._idpart_header = 'Name'
+
     def str_class(self, x):
         return str(x)
     str_class._idpart_header = 'Name'
+
     def str_code(self, x):
-        return '%s:%d:%s'%(self.mod._root.os.path.basename(x.co_filename),
-                           x.co_firstlineno,
-                           x.co_name)
+        return '%s:%d:%s' % (self.mod._root.os.path.basename(x.co_filename),
+                             x.co_firstlineno,
+                             x.co_name)
     str_code._idpart_header = 'File:Line:Name'
+
     def str_frame(self, x):
-        return '<%s at %s>'%(x.f_code.co_name, self.str_address(x))
+        return '<%s at %s>' % (x.f_code.co_name, self.str_address(x))
     str_frame._idpart_header = 'Name at Address'
+
     def str_function(self, x):
-        return '%s.%s'%(x.__module__, x.__name__)
+        return '%s.%s' % (x.__module__, x.__name__)
     str_function._idpart_header = 'Name'
+
     def str_instance(self, x):
-        return '<%s at %s>' %(self.str_class(x.__class__), self.str_address(x))
+        return '<%s at %s>' % (self.str_class(x.__class__), self.str_address(x))
     str_instance._idpart_header = 'Name at Address'
+
     def str_len(self, x):
-        return '*%d'%len(x)
+        return '*%d' % len(x)
     str_len._idpart_header = 'Length'
+
     def str_method(self, x):
         cn = self.str_type(x.__self__.__class__)
         if x.__self__ is not None:
-            cn = '<%s at %s>'%(cn, self.str_address(x.__self__))
+            cn = '<%s at %s>' % (cn, self.str_address(x.__self__))
         func = x.__func__
         try:
             func_name = func.__func__
         except AttributeError:
             func_name = func.__name__
-        return '%s.%s'%(cn, func_name)
+        return '%s.%s' % (cn, func_name)
     str_method._idpart_header = 'Class/<Class at address> . method'
+
     def str_module(self, x):
         return x.__name__
     str_module._idpart_header = 'Name'
+
     def str_limrepr(self, x):
         return self.mod._root.repr.repr(x)
     str_limrepr._idpart_header = 'Representation (limited)'
     str_limrepr._idpart_sortrender = 'IDENTITY'
     str_repr = repr
+
     def str_traceback(self, x):
-        return '<in frame %s at %s>'%(self.str_frame(x.tb_frame), self.str_address(x))
+        return '<in frame %s at %s>' % (self.str_frame(x.tb_frame), self.str_address(x))
     str_traceback._idpart_header = 'Frame at Address'
+
     def str_type(self, x, longer=False):
         if x in self.shorter_invtypes and not longer:
             return self.shorter_invtypes[x]
         if x in self.invtypes:
             return self.invtypes[x]
-        return '%s.%s'%(x.__module__, x.__name__)
+        return '%s.%s' % (x.__module__, x.__name__)
     str_type._idpart_header = 'Name'
+
     def str_type_longer(self, x):
         if x in self.invtypes:
             return self.invtypes[x]
-        return '%s.%s'%(x.__module__, x.__name__)
-    str_type._longer_method = lambda x:str_type
+        return '%s.%s' % (x.__module__, x.__name__)
+    str_type._longer_method = lambda x: str_type
 
 
-def maximals(A, le=lambda x,y:x<=y):
+def maximals(A, le=lambda x, y: x <= y):
     " Find the maximal element(s) of a partially ordered sequence"
     r = []
     for x in A:
@@ -2063,7 +2082,8 @@ def maximals(A, le=lambda x,y:x<=y):
                 r.append(x)
     return r
 
-def minimals(A, le=lambda x,y:x<=y):
+
+def minimals(A, le=lambda x, y: x <= y):
     " Find the minimal element(s) of a sequence of partially ordered elements"
     r = []
     for x in A:
@@ -2086,7 +2106,7 @@ class _GLUECLAMP_:
     auto_convert_iter = False   # Can give problems if enabled; notes 22/11-04
     out_reach_module_names = ('UniSet', 'View', 'Path', 'RefPat')
 
-    _chgable_ = ('max_summary_length','out_reach_module_names',
+    _chgable_ = ('max_summary_length', 'out_reach_module_names',
                  'auto_convert_type', 'auto_convert_class', 'auto_convert_iter', 'output')
 
     # _preload_ = ('_hiding_tag_',)
@@ -2109,13 +2129,15 @@ class _GLUECLAMP_:
         '_parent.View:hv',
         '_parent:Use',
         '_root:types',
-        )
+    )
 
     #
 
-    def _get_Anything(self):    return self.Use.Unity.classifier.get_kind(None)
-    def _get_Nothing(self):     return IdentitySetMulti(EmptyFamily(self), self.emptynodeset)
-    def _get_NotNothing(self):  return Family.__call__(self.fam_Invert, self.Nothing)
+    def _get_Anything(self): return self.Use.Unity.classifier.get_kind(None)
+    def _get_Nothing(self): return IdentitySetMulti(
+        EmptyFamily(self), self.emptynodeset)
+    def _get_NotNothing(self): return Family.__call__(
+        self.fam_Invert, self.Nothing)
 
     def _get_export_dict(self):
         d = {}
@@ -2124,7 +2146,8 @@ class _GLUECLAMP_:
             for sc in sc:
                 x = getattr(v, sc)
                 if sc in d and d[sc] is not x:
-                    raise RuntimeError('Duplicate export: %r defined in: %r'%(sc, k))
+                    raise RuntimeError(
+                        'Duplicate export: %r defined in: %r' % (sc, k))
                 d[sc] = x
         return d
 
@@ -2136,16 +2159,18 @@ class _GLUECLAMP_:
 
     def _get_summary_str(self): return self.Summary_str(self)
 
-    def _get_fam_And(self):     return self.AndFamily(self)
-    def _get_fam_EquivalenceRelation(self): return EquivalenceRelationFamily(self)
-    def _get_fam_Or(self):      return self.OrFamily(self)
-    def _get_fam_IdentitySet(self):return self.IdentitySetFamily(self)
-    def _get_fam_Invert(self):  return self.InvertFamily(self)
-    def _get_fam_Family(self):  return self.FamilyFamily(self)
+    def _get_fam_And(self): return self.AndFamily(self)
+    def _get_fam_EquivalenceRelation(
+        self): return EquivalenceRelationFamily(self)
 
+    def _get_fam_Or(self): return self.OrFamily(self)
+    def _get_fam_IdentitySet(self): return self.IdentitySetFamily(self)
+    def _get_fam_Invert(self): return self.InvertFamily(self)
+    def _get_fam_Family(self): return self.FamilyFamily(self)
 
     def _get_fam_mixin_argatom(self):
         memo = {}
+
         def f(Mixin, *args, **kwds):
             C = memo.get(Mixin)
             if C is None:
@@ -2165,9 +2190,11 @@ class _GLUECLAMP_:
         elif isinstance(X, self.NodeSet):
             ids = self.idset(X)
         else:
-            raise TypeError('IdentitySet or NodeSet expected, got %r.'%type(X))
+            raise TypeError(
+                'IdentitySet or NodeSet expected, got %r.' % type(X))
         if X._hiding_tag_ is not self._hiding_tag_:
-            raise ValueError("The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
+            raise ValueError(
+                "The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
         return ids
 
     def idset(self, iterable, er=None):
@@ -2186,9 +2213,11 @@ class _GLUECLAMP_:
         elif isinstance(X, self.IdentitySet):
             ns = X.nodes
         else:
-            raise TypeError('IdentitySet or NodeSet expected, got %r.'%type(X))
+            raise TypeError(
+                'IdentitySet or NodeSet expected, got %r.' % type(X))
         if X._hiding_tag_ is not self._hiding_tag_:
-            raise ValueError("The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
+            raise ValueError(
+                "The argument has wrong _hiding_tag_, you may convert it by Use.idset or Use.iso.")
         return ns
 
     def retset(self, X):
@@ -2226,7 +2255,8 @@ class _GLUECLAMP_:
             try:
                 it = iter(X)
             except TypeError:
-                pass # Will raise a 'more informative' exception below
+                pass  # Will raise a 'more informative' exception below
             else:
                 return self.idset(it)
-        raise TypeError("Argument is not automatically convertible to a UniSet with correct _hiding_tag_.")
+        raise TypeError(
+            "Argument is not automatically convertible to a UniSet with correct _hiding_tag_.")

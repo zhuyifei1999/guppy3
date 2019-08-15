@@ -1,6 +1,7 @@
-#._cv_part guppy.etc.etc
+# ._cv_part guppy.etc.etc
 
 from io import StringIO
+
 
 def reptable(tb):
     if not tb:
@@ -19,7 +20,7 @@ def reptable(tb):
     out = []
     for r in tb:
         if r == '-':
-            out.append( '-'*min(sumlens, 75) )
+            out.append('-'*min(sumlens, 75))
         else:
             so = ''
             for i, e in enumerate(r):
@@ -32,7 +33,7 @@ def reptable(tb):
                 else:
                     fillright = 0
                 ml = maxlens[i]-1
-                fill = ' '*(ml -len(s))
+                fill = ' '*(ml - len(s))
                 if fillright:
                     s = fill + s
                 else:
@@ -58,11 +59,12 @@ def strtable(tb):
     ptable(tb, f)
     return f.getvalue()
 
-def str2int(s, msg = 'Hexadecimal literal in the form [-]0x... expected'):
+
+def str2int(s, msg='Hexadecimal literal in the form [-]0x... expected'):
     # xxx clumsy -- there should be a builtin function for this !
     if s.startswith('-'):
         sign = -1
-        s = s [1:]
+        s = s[1:]
     else:
         sign = 1
     if not s.startswith('0x'):

@@ -1,8 +1,11 @@
 from guppy.heapy.test import support
+
+
 class TestCase(support.TestCase):
     def setUp(self):
         support.TestCase.setUp(self)
         self.types = self.heapy.UniSet.types
+
 
 class FirstCase(TestCase):
     def test_cal_hiding(self):
@@ -27,12 +30,13 @@ class FirstCase(TestCase):
         c = []
         chold = self.guppy.sets.immnodeset(
             [c],
-            hiding_tag = []     # Make sure we see it whether or not View uses default or not
-            )
+            hiding_tag=[]     # Make sure we see it whether or not View uses default or not
+        )
         cs = iso(c)
         del c
 
-        self.assertTrue(cs.referrers.kind == type(self.guppy.sets.immnodeset()))
+        self.assertTrue(cs.referrers.kind == type(
+            self.guppy.sets.immnodeset()))
 
     def test_dominos(self):
         # Test dominos and domisize
@@ -81,12 +85,10 @@ class FirstCase(TestCase):
         x = []
         y = [x, []]
         z = [y]
-        self.aseq( iso(x).referents, iso())
-        self.aseq( iso(y).referents, iso(x, y[1]))
-        self.aseq( iso(z).referents, iso(y))
-        self.aseq( iso(y, z).referents, iso(x, y, y[1]))
-
-
+        self.aseq(iso(x).referents, iso())
+        self.aseq(iso(y).referents, iso(x, y[1]))
+        self.aseq(iso(z).referents, iso(y))
+        self.aseq(iso(y, z).referents, iso(x, y, y[1]))
 
 
 class GCCase(TestCase):
@@ -98,11 +100,13 @@ class GCCase(TestCase):
 
         from weakref import ref
         import gc
+
         class C:
             pass
 
         c = C()
         cbs = []
+
         def cb(wr):
             cbs.append(wr)
 
@@ -113,7 +117,7 @@ class GCCase(TestCase):
         strc = str(c)
         self.aseq(str(wr()), strc)
         self.asis(wr(), c)
-        c=None
+        c = None
         self.aseq(str(wr()), strc)
         self.aseq(cbs, [])
         gc.collect()
@@ -124,6 +128,7 @@ class GCCase(TestCase):
         # Test the GC hook as implemented in View
 
         hos = []
+
         def ho():
             hos.append(1)
 
@@ -148,12 +153,13 @@ class GCCase(TestCase):
         View = self.View
         hv = View.hv
         drg = View.nodegraph()
+
         def clear_drg():
             if drg.is_sorted:
-                #print 'yes'
+                # print 'yes'
                 drg.clear()
             else:
-                #print 'no'
+                # print 'no'
                 pass
         _clear_drg_hook = View.gchook(clear_drg)
 
@@ -169,7 +175,7 @@ class GCCase(TestCase):
 
         class C:
             pass
-        c=C()
+        c = C()
 
         byclodo.partition([c.__dict__])
         self.assertTrue(len(drg) > 0)
@@ -188,7 +194,7 @@ class GCCase(TestCase):
         dst = []
 
         gc.collect()
-        self.assertTrue( len(self.View.rg) == 0)
+        self.assertTrue(len(self.View.rg) == 0)
 
         # Test that rg is automatically updated with the set target(s)
 
@@ -238,7 +244,7 @@ class AltHeapCase(TestCase):
         idset = self.idset
 
         # These are to be included
-        a = iso([],{})
+        a = iso([], {})
         b = self.ImpSet.mutnodeset()
         c = self.View.observation_list()
 
@@ -252,8 +258,8 @@ class AltHeapCase(TestCase):
         oc = idset(self.View.observation_containers())
         # print oc
 
-        self.assertTrue( iso(a.nodes, b, c) <= oc )
-        self.assertTrue( not (iso(excla, exclb) & oc) )
+        self.assertTrue(iso(a.nodes, b, c) <= oc)
+        self.assertTrue(not (iso(excla, exclb) & oc))
 
 
 class SpecialTypesCase(TestCase):
@@ -262,17 +268,18 @@ class SpecialTypesCase(TestCase):
     def test_array(self):
         iso = self.iso
         import array
-        a=array.array('b','asdf')
+        a = array.array('b', 'asdf')
         iso(a).size
 
 
-
-def test_main(debug = 0):
-    from guppy.heapy.Remote import off; off()
+def test_main(debug=0):
+    from guppy.heapy.Remote import off
+    off()
     support.run_unittest(FirstCase, debug)
     support.run_unittest(GCCase, debug)
     support.run_unittest(AltHeapCase, debug)
     support.run_unittest(SpecialTypesCase, debug)
+
 
 if __name__ == "__main__":
     test_main()

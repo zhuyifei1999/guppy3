@@ -1,4 +1,4 @@
-#._cv_part guppy.gsl.Text
+# ._cv_part guppy.gsl.Text
 
 # Convert a node representation to text
 # in some different forms
@@ -45,6 +45,7 @@
 
 # In any case there may be default here..
 
+
 class Node2Inter:
     def __init__(self, mod, node, out, cnf, width=None):
         self.mod = mod
@@ -71,7 +72,7 @@ class Node2Inter:
         for k, v in attrs:
             k = k.strip()
             v = v.strip()
-            setattr(self.out, '_gsl_%s'%k, v)
+            setattr(self.out, '_gsl_%s' % k, v)
         node.accept(self)
         self.span_end()
 
@@ -79,7 +80,6 @@ class Node2Inter:
         node, attrs = node.split_attrs()
         if attrs:
             self.attrs_stack
-
 
     def append(self, x):
         self.out.insert('end', x, self.tags)
@@ -128,7 +128,7 @@ class Node2Inter:
 
     def set_default_tag(self):
         if self.span_stack:
-            tag = 't%s'%self.mod._root.pickle.dumps(self.span_stack[-1])
+            tag = 't%s' % self.mod._root.pickle.dumps(self.span_stack[-1])
         else:
             tag = 'tag'
         self.tag = tag
@@ -175,7 +175,7 @@ class Node2Inter:
                 else:
                     if font[2]:
                         font[2] += ' '
-                    font[2]+= k
+                    font[2] += k
             if not font[2]:
                 font.pop()
             okwds['font'] = tuple(font)
@@ -233,7 +233,7 @@ class Node2Inter:
                  font_size=font_size,
                  font_bold=1,
                  margin_top=margin_top,
-                 margin_bottom=margin_bottom )
+                 margin_bottom=margin_bottom)
 
     def visit_big(self, node):
         self.span(node, font_size=self.getopt('font_size') + 1)
@@ -256,14 +256,15 @@ class Node2Inter:
             self.append('x')
             self.span_end()
         else:
-            self.error('I do not know how to render this character code: %r.'%code, node)
-
+            self.error(
+                'I do not know how to render this character code: %r.' % code, node)
 
     def visit_code(self, node):
         self.span(node, font_family=self.cnf.codefamily)
 
     def visit_comment(self, node):
         pass
+
     def visit_dl(self, node):
         self.div(node)
 
@@ -327,35 +328,32 @@ class Node2Inter:
     def visit_li(self, node):
         indent = self.getopt('lmargin1') + 18
         self.div_begin(
-                 lmargin1=indent,
-                 lmargin2=indent
-                 )
+            lmargin1=indent,
+            lmargin2=indent
+        )
 
+        mode = ['disc', 'square', 'circle'][self.ul_level % 3]
 
-
-        mode = ['disc', 'square', 'circle'][self.ul_level%3]
-
-        char = {'disc':'*', 'circle':'O', 'square':'[]'}[mode]
-
+        char = {'disc': '*', 'circle': 'O', 'square': '[]'}[mode]
 
         self.span_begin()
-        self.text('%s '%char)
+        self.text('%s ' % char)
         self.span_end()
         self.span_begin(
-                 lmargin1=indent,
-                 lmargin2=indent+12
-                 )
+            lmargin1=indent,
+            lmargin2=indent+12
+        )
         node.arg_accept(self)
         self.span_end()
         self.div_end()
-
 
     def visit_p(self, node):
         self.div(node, margin_top=6, margin_bottom=6)
 
     def visit_pre(self, node):
         self.inpre += 1
-        self.div(node, font_family=self.cnf.codefamily, margin_top=6, margin_bottom=6)
+        self.div(node, font_family=self.cnf.codefamily,
+                 margin_top=6, margin_bottom=6)
         self.inpre -= 1
 
     def visit_small(self, node):
@@ -372,15 +370,15 @@ class Node2Inter:
 
     def visit_sub(self, node):
         self.span(node,
-                   font_size = self.getopt('font_size') - 1,
-                   offset=self.getopt('offset') - 2
-                   )
+                  font_size=self.getopt('font_size') - 1,
+                  offset=self.getopt('offset') - 2
+                  )
 
     def visit_sup(self, node):
         self.span(node,
-                   font_size = self.getopt('font_size') - 1,
-                   offset=self.getopt('offset') + 2
-                   )
+                  font_size=self.getopt('font_size') - 1,
+                  offset=self.getopt('offset') + 2
+                  )
 
     def visit_table(self, node):
         Table(self, node)
@@ -409,6 +407,7 @@ class Node2Inter:
 
     def visit_var(self, node):
         self.span(node, font_italic=1)
+
 
 class SimulText:
     def __init__(self, mod, width=None):
@@ -457,6 +456,7 @@ class SimulText:
             out.insert('end', ch, tags)
             for tag in tags:
                 out.tag_config(tag, **self.tags[tag])
+
     def split_word(self, line):
         words = [[]]
         for text, tags in line:
@@ -543,7 +543,8 @@ class SimulText:
                 # Allow at least one character
                 k = 2
                 while k <= len(pre[j][0]):
-                    w = self.text_width(pre[:j-1] + [(pre[j][0][:k], pre[j][1])])
+                    w = self.text_width(
+                        pre[:j-1] + [(pre[j][0][:k], pre[j][1])])
                     if w > self.width:
                         break
                     k += 1
@@ -579,12 +580,10 @@ class TableCell:
         self.cnf = self.parent.cnf
         self.mod = self.parent.mod
 
-
         self.attrs = {}
         self.node = self.set_attributes(node)
 
         self.gen_out()
-
 
     def align(self, pos, width):
         align = self.attrs['align']
@@ -602,7 +601,7 @@ class TableCell:
             # XXX I don't know how this works
             self.tabstop = (pos + 0.5*width, 'center')
         else:
-            raise ValueError('Invalid align: %s'%align)
+            raise ValueError('Invalid align: %s' % align)
 
     def get_edges(self, width):
         align = self.attrs['align']
@@ -622,9 +621,8 @@ class TableCell:
             # XXX I don't know how this works
             l, r = 0, width
         else:
-            raise ValueError('Invalid align: %s'%align)
+            raise ValueError('Invalid align: %s' % align)
         return l, r
-
 
     def get_width(self):
         self.width = self.out.get_width()
@@ -665,11 +663,10 @@ class TableCell:
         self.get_width()
 
     def wrap_to_width(self, width):
-        #print 'wrap', width
+        # print 'wrap', width
         if width >= self.width:
             return
         self.gen_out(width)
-
 
 
 class TableRow:
@@ -748,7 +745,6 @@ class Table:
                     col += 1
                     row.numlines = max(row.numlines, cell.numlines)
 
-
         for row in self.rows:
             for i in range(row.numlines):
                 tabstops = []
@@ -769,7 +765,6 @@ class Table:
                 parent.nl()
         parent.div_end()
 
-
     def columnify(self):
         # Make the cells aligned in columns
 
@@ -787,7 +782,8 @@ class Table:
 
                 col += 1
 
-        spacings = self.spacings = [0] * len(widths) # Extra spacing after column i
+        # Extra spacing after column i
+        spacings = self.spacings = [0] * len(widths)
 
         MINSPACING = 10
 
@@ -817,7 +813,6 @@ class Table:
         self.width = width
         return width
 
-
     def visit_tfoot(self, node):
         node.children_accept(self)
 
@@ -827,9 +822,6 @@ class Table:
     def visit_tr(self, node):
         row = TableRow(self, node)
         self.rows.append(row)
-
-
-
 
 
 class RecordingInter:
@@ -845,7 +837,7 @@ class RecordingInter:
         self.clearmemo()
 
     def __str__(self):
-        return 'APPENDS: %s TAG_CONFIGS: %s'%(self.appends, self.tag_configs)
+        return 'APPENDS: %s TAG_CONFIGS: %s' % (self.appends, self.tag_configs)
 
     def clearmemo(self):
         self.memo = {}          # Maps any value to it self
@@ -931,6 +923,7 @@ class RecordingInter:
         else:
             self.tag_configs[tag] = kwdlist
 
+
 class TextInter:
 
     def __init__(self, mod, wid):
@@ -941,23 +934,24 @@ class TextInter:
             'config',
             'insert',
             'tag_delete',
-            ):
+        ):
             setattr(self, name, getattr(wid, name))
 
     def tag_config(self, tag, **kwds):
         if 'invisible' in kwds:
             del kwds['invisible']
-            kwds['foreground'] = kwds['background'] = kwds.get('background', self.wid['background'])
-
+            kwds['foreground'] = kwds['background'] = kwds.get(
+                'background', self.wid['background'])
 
         self.wid.tag_config(tag, **kwds)
 
+
 class TkConfig:
     sizeindex = 3
-    sizescale = (6,8,10,12,16,20,24,28)
+    sizescale = (6, 8, 10, 12, 16, 20, 24, 28)
     textfamily = 'times'
     codefamily = 'courier'
-    decimal_point = '.' # default CHAR attribute
+    decimal_point = '.'  # default CHAR attribute
 
 
 class _GLUECLAMP_:
@@ -974,7 +968,7 @@ class _GLUECLAMP_:
         '_root:string',
         '_root:Tkinter',
         '_root:tkFont',
-        )
+    )
 
     def _get_makefont(self):
         fonts = {}
@@ -985,15 +979,15 @@ class _GLUECLAMP_:
 
             if font in fonts:
                 return fonts[font]
-            weight='normal'
-            slant='roman'
+            weight = 'normal'
+            slant = 'roman'
             if len(font) > 2:
                 if 'bold' in font[2]:
-                    weight='bold'
+                    weight = 'bold'
                 if 'italic' in font[2]:
-                    slant='italic'
+                    slant = 'italic'
             f = self.tkFont.Font(family=font[0], size=font[1],
-                            weight=weight, slant=slant)
+                                 weight=weight, slant=slant)
             fonts[font] = f
             return f
         return makefont
@@ -1006,12 +1000,11 @@ class _GLUECLAMP_:
             tkconfig = self.tkconfig
         Node2Inter(self, node, inter, tkconfig)
 
-    def gsltextviewer(self, parent=None, filename = None, text=None, node=None, htmloutfile=None,
+    def gsltextviewer(self, parent=None, filename=None, text=None, node=None, htmloutfile=None,
                       inpickle=0,
                       inrecorder=0,
                       outrecorder=0
                       ):
-
 
         # It seems they dont want we mix data and py files in the dist sigh
         # so these are last minute hacks
@@ -1044,12 +1037,12 @@ class _GLUECLAMP_:
             if sp[1] == '.gsl':
                 cache = sp[0] + '.gsc'
 
-        m = self._root.guppy.etc.textView.TextViewer(parent, 'Untitled', data='')
+        m = self._root.guppy.etc.textView.TextViewer(
+            parent, 'Untitled', data='')
         v = m.textView
-        v['state']='normal'
+        v['state'] = 'normal'
         v['font'] = 'Times -12'
-        v.bind('<Destroy>', lambda event:m.quit())
-
+        v.bind('<Destroy>', lambda event: m.quit())
 
         if cache or inrecorder:
             if inrecorder:
@@ -1075,7 +1068,7 @@ class _GLUECLAMP_:
                         try:
                             f.write(textdigest)
                         except IOError:
-                            pass # maybe write protected just ignore for now XXX
+                            pass  # maybe write protected just ignore for now XXX
                         else:
                             pickle.dump(r, f, 0)
                     finally:
@@ -1094,8 +1087,9 @@ class _GLUECLAMP_:
         if geometry:
             m.geometry(geometry)
 
-        v['state']='disabled'
+        v['state'] = 'disabled'
         return m
+
 
 def test_string(s=None, name=None):
     from guppy import Root
@@ -1112,26 +1106,27 @@ def test_string(s=None, name=None):
     t = RecordingInter()
     me.node2inter(node, t)
 
-
     import pickle as pickle
     t.prepare_for_pickle()
 
     root = T.Tk()
     root.withdraw()
-    text = me._root.guppy.etc.textView.TextViewer(root, 'test', data='').textView
-    text['state']='normal'
+    text = me._root.guppy.etc.textView.TextViewer(
+        root, 'test', data='').textView
+    text['state'] = 'normal'
     text['font'] = 'Times -12'
-    text.bind('<Destroy>', lambda event:root.quit())
+    text.bind('<Destroy>', lambda event: root.quit())
     ti = TextInter(me, text)
 
     t.play(ti)
 
     text.mainloop()
 
+
 def test():
-    name='long_wrapping_tables'
-    name='html_tables'
+    name = 'long_wrapping_tables'
+    name = 'html_tables'
     test_string(name=name)
 
 
-#test()
+# test()

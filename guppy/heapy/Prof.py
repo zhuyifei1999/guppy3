@@ -1,15 +1,18 @@
-#._cv_part guppy.heapy.Prof
+# ._cv_part guppy.heapy.Prof
 
 from tkinter import *
 import tkinter.filedialog
 import tkinter.messagebox
 
+
 class MyVar(StringVar):
     _default = 0.0
-    def set(self, value):
-        StringVar.set(self, '%.2g'%value)
 
-suffixes = ('','K','M','G','T')
+    def set(self, value):
+        StringVar.set(self, '%.2g' % value)
+
+
+suffixes = ('', 'K', 'M', 'G', 'T')
 
 
 def sizestring(value):
@@ -29,16 +32,17 @@ def sizestring(value):
         s = '-' + s
     return s
 
+
 def percentstring(value):
     a = abs(value)
-    if 10 <=  a <= 9999:
-        return '%d'%round(value)
+    if 10 <= a <= 9999:
+        return '%d' % round(value)
     elif 0.01 <= a <= 10:
-        return '%.2g'%value
+        return '%.2g' % value
     elif a <= 1e-10:
         return '0'
     else:
-        return '%.0e'%value
+        return '%.0e' % value
 
 
 def stringsize(s):
@@ -53,7 +57,6 @@ def stringsize(s):
     else:
         raise ValueError
     return int(s[:-1])*mult
-
 
 
 class Menu(Menu):
@@ -80,9 +83,9 @@ class Menu(Menu):
             self.deletecommand(c)
 
 
-
 class SizeVar(StringVar):
     _default = 0.0
+
     def set(self, value):
         self._value = value
         s = sizestring(value)
@@ -91,13 +94,14 @@ class SizeVar(StringVar):
 
 class ValueLabel(Label):
     def __init__(self, *args, **kwds):
-        kwds['width']=10
+        kwds['width'] = 10
         Label.__init__(self, *args, **kwds)
+
 
 class ClickButton(Button):
     # Button that runs the command directly at the click, not at release.
     # And has auto-repeat.
-    def __init__(self, master, command, firstdelay=500,thendelay=150, **kwds):
+    def __init__(self, master, command, firstdelay=500, thendelay=150, **kwds):
         Button.__init__(self, master, **kwds)
         self._command = command
         self._firstdelay = firstdelay
@@ -116,8 +120,6 @@ class ClickButton(Button):
     def _event_release(self, event):
         self.after_cancel(self._after)
         del self._after
-
-
 
 
 class Stats:
@@ -141,7 +143,7 @@ class Stats:
 
     def collect(self):
         if not self.fn:
-            return 0,0
+            return 0, 0
 
         stat = self.os.stat(self.fn)
         if stat == self.laststat:
@@ -217,7 +219,6 @@ class Stats:
         self.stats.extend(stats)
         self.len_stats = len(self.stats)
 
-
     def __getitem__(self, idx):
         return self.stats[idx]
 
@@ -234,31 +235,38 @@ class Stats:
 
 class ProfileRow:
     kindwidth = 30
+
     def __init__(self, master, row, usecolor=1):
         self.master = master
         self.row = row
         if usecolor:
-            colbg = Frame(master=master,bg='black',width=1, borderwidth=1, relief=GROOVE)
-            self.color = Label(master=colbg,bg='white',width=1, borderwidth=1, relief=GROOVE)
+            colbg = Frame(master=master, bg='black', width=1,
+                          borderwidth=1, relief=GROOVE)
+            self.color = Label(master=colbg, bg='white',
+                               width=1, borderwidth=1, relief=GROOVE)
             self.color.grid(row=0, column=0)
-            colbg.grid(row=row,column=0, sticky=NW)
+            colbg.grid(row=row, column=0, sticky=NW)
 
         self.rsizevar = SizeVar()
-        self.rsize = Label(master=master, textvariable=self.rsizevar, width=6,anchor=E)
-        self.rpercentvar = StringVar() #BBIntVar()
-        self.rpercent = Label(master=master,textvariable=self.rpercentvar, width=3,anchor=E)
+        self.rsize = Label(
+            master=master, textvariable=self.rsizevar, width=6, anchor=E)
+        self.rpercentvar = StringVar()  # BBIntVar()
+        self.rpercent = Label(
+            master=master, textvariable=self.rpercentvar, width=3, anchor=E)
         self.dsizevar = SizeVar()
-        self.dsize = Label(master=master, textvariable=self.dsizevar, width=6,anchor=E)
-        self.dpercentvar = StringVar() #BBIntVar()
-        self.dpercent = Label(master=master,textvariable=self.dpercentvar, width=3,anchor=E)
+        self.dsize = Label(
+            master=master, textvariable=self.dsizevar, width=6, anchor=E)
+        self.dpercentvar = StringVar()  # BBIntVar()
+        self.dpercent = Label(
+            master=master, textvariable=self.dpercentvar, width=3, anchor=E)
         self.kindvar = StringVar()
         self.kind = Label(master=master, textvariable=self.kindvar, anchor=NW,
-                          width=self.kindwidth ,justify=LEFT)
+                          width=self.kindwidth, justify=LEFT)
 
         self.rsize.grid(row=row, column=1, sticky=NE)
-        self.rpercent.grid(row=row,column=2,sticky=NE)
-        self.dsize.grid(row=row,column=3,sticky=NE)
-        self.dpercent.grid(row=row,column=4,sticky=NE)
+        self.rpercent.grid(row=row, column=2, sticky=NE)
+        self.dsize.grid(row=row, column=3, sticky=NE)
+        self.dpercent.grid(row=row, column=4, sticky=NE)
         self.kind.grid(row=row, column=5, sticky=NW)
 
     def set_color_size_percent_kind(self, color, rsize, rpercent, dsize, dpercent, kind):
@@ -309,13 +317,12 @@ class AxisControl:
                  ):
         small = 0
 
-
         self.name = name
         self.unit = unit
         self.range = range
         self.rangecommand = rangecommand
 
-        self.frame = frame = Frame(master,borderwidth=2,relief=GROOVE)
+        self.frame = frame = Frame(master, borderwidth=2, relief=GROOVE)
 
         self.rangevar = SizeVar()
         self.rangevar.set(range)
@@ -328,19 +335,19 @@ class AxisControl:
                              #font=('terminal', '16', 'bold'),
                              #font=('terminal', '14'),
                              font=('fixed', '14'),
-                             #bg='black',fg='yellow'
+                             # bg='black',fg='yellow'
                              bg='#fdd'
                              )
-            rangeval.bind('<KeyPress-Return>',self.event_range_enter)
+            rangeval.bind('<KeyPress-Return>', self.event_range_enter)
 
         elif 1:
             rangeval = Button(master=self.frame,
-                             anchor=E,
-                             width=4,
-                             textvar=self.rangevar,
-                             #font=('fixed', '16', 'bold'),
-                             font=('terminal', '16', 'bold'),
-                             bg='black',fg='yellow')
+                              anchor=E,
+                              width=4,
+                              textvar=self.rangevar,
+                              #font=('fixed', '16', 'bold'),
+                              font=('terminal', '16', 'bold'),
+                              bg='black', fg='yellow')
 
         else:
             rangeval = Listbox(
@@ -348,35 +355,32 @@ class AxisControl:
                 height=1,
                 width=4,
                 font=('terminal', '16', 'bold'),
-                bg='black',fg='yellow')
+                bg='black', fg='yellow')
             for scale in self.scale_table:
                 s = sizestring(scale)
                 rangeval.insert(0, s)
 
-
         namelabel = Menubutton(frame, text=name, relief='raised', anchor=W)
 
         namemenu = Menu(namelabel)
-        namelabel['menu']=namemenu
+        namelabel['menu'] = namemenu
 
         if autocommand:
             self.autovar = BooleanVar()
             self.autovar.set(True)
             namemenu.add_checkbutton(
-                #autobutton = Checkbutton(frame,
-                               label='Auto',
-                               variable=self.autovar,
-                               command = autocommand,
-                               #relief=RAISED
-                               )
+                # autobutton = Checkbutton(frame,
+                label='Auto',
+                variable=self.autovar,
+                command=autocommand,
+                # relief=RAISED
+            )
             autobutton = Checkbutton(frame,
                                      text='Auto',
                                      variable=self.autovar,
-                                     command = autocommand,
+                                     command=autocommand,
                                      relief=RAISED
-                               )
-
-
+                                     )
 
         else:
             self.autovar = None
@@ -385,21 +389,18 @@ class AxisControl:
             self.gridvar = BooleanVar()
             self.gridvar.set(grid)
             namemenu.add_checkbutton(
-                               label='Grid',
-                               variable=self.gridvar,
-                               command = lambda: gridcommand(self.gridvar.get()),
-                               )
-
+                label='Grid',
+                variable=self.gridvar,
+                command=lambda: gridcommand(self.gridvar.get()),
+            )
 
             gridbutton = Checkbutton(frame,
                                      text='Grid',
                                      variable=self.gridvar,
-                                     command = lambda: gridcommand(self.gridvar.get()),
+                                     command=lambda: gridcommand(
+                                         self.gridvar.get()),
                                      relief=RAISED
-                               )
-
-
-
+                                     )
 
         rangelabel = Label(frame, text='Range')
 
@@ -411,38 +412,40 @@ class AxisControl:
             pady = 3
         ud = Frame(frame)
         rangeup = ClickButton(ud, text='+',
-                         pady=pady,padx=padx,
-                         font=('fixed',8),
-                         command=lambda:self.range_button(1))
+                              pady=pady, padx=padx,
+                              font=('fixed', 8),
+                              command=lambda: self.range_button(1))
 
         rangedown = ClickButton(ud, text='-',
-                         pady=pady,padx=padx,
-                         font=('fixed',8),
-                         command=lambda:self.range_button(-1))
+                                pady=pady, padx=padx,
+                                font=('fixed', 8),
+                                command=lambda: self.range_button(-1))
 
-        rangedown.grid(row=0,column=0)
-        rangeup.grid(row=0,column=1)
-        row=0
+        rangedown.grid(row=0, column=0)
+        rangeup.grid(row=0, column=1)
+        row = 0
 
         if small and name == 'Y':
-            namelabel.grid(row=0, rowspan=1,column=0)
+            namelabel.grid(row=0, rowspan=1, column=0)
             rangeup.grid(row=0, column=1, sticky=W)
 
-            autobutton.grid(row=1,column=0)
+            autobutton.grid(row=1, column=0)
 
             rangedown.grid(row=1, column=1, sticky=W)
-            rangeval.grid(row=2, column=0, columnspan=2,sticky=W,padx=3, pady=3)
+            rangeval.grid(row=2, column=0, columnspan=2,
+                          sticky=W, padx=3, pady=3)
 
         elif small and name == 'X':
             namelabel.grid(row=0, column=0)
-            rangeval.grid(row=0, column=1,sticky=W,padx=3, pady=3)
+            rangeval.grid(row=0, column=1, sticky=W, padx=3, pady=3)
             rangedown.grid(row=0, column=2, sticky=W)
             rangeup.grid(row=0, column=3, sticky=W)
 
         else:
-            namelabel.grid(row=row, column=0, sticky=N+W,ipadx=0,ipady=0,padx=2,pady=2)
+            namelabel.grid(row=row, column=0, sticky=N+W,
+                           ipadx=0, ipady=0, padx=2, pady=2)
             rangelabel.grid(row=row, column=1, sticky=W)
-            ud.grid(row=row,column=2, padx=2)
+            ud.grid(row=row, column=2, padx=2)
             row += 1
 
             if gridcommand:
@@ -451,8 +454,7 @@ class AxisControl:
             rangeval.grid(row=row, column=1, padx=3, pady=3)
             if autocommand:
                 pass
-                autobutton.grid(row=row,column=2)
-
+                autobutton.grid(row=row, column=2)
 
     def cmd_range(self):
         pass
@@ -522,7 +524,9 @@ Maximum range is 1T.""")
                 return ts
         return self.scale_table[-1]
 
+
 WM = 1
+
 
 class Marker:
     def __init__(self, d, tag, name, pos, poscommand=None):
@@ -552,11 +556,10 @@ class Marker:
 
     def coords(self, canx):
         self.d.drawingarea.coords(self.tag,
-                                canx, 0,
-                                canx,-int(self.d.boty))
+                                  canx, 0,
+                                  canx, -int(self.d.boty))
 
         self.d.xmarks.coords(self.tag, canx, 10)
-
 
     def create(self):
         tag = self.tag
@@ -565,9 +568,10 @@ class Marker:
 
         if 1:
             self.d.drawingarea.create_line(pos, 0, pos, 20-self.d.boty, stipple='gray12',
-                          width=4,tags=(tag,))
+                                           width=4, tags=(tag,))
         if WM:
-            label = self.xlabel = Label(self.d.xmarks, text=text, padx=2,pady=2,relief=RAISED)
+            label = self.xlabel = Label(
+                self.d.xmarks, text=text, padx=2, pady=2, relief=RAISED)
             self.d.xmarks.create_window(pos, 0, window=label, tags=(tag,))
         else:
             self.d.xmarks.create_text(pos, 0, text=text, tags=(tag,))
@@ -578,7 +582,8 @@ class Marker:
         self.bind('<Leave>', self.event_leave)
 
         self.d.drawingarea.bind('<Enter>', self.event_enter_movearea, add='+')
-        self.d.drawingarea.bind('<Button-1>', self.event_button_1_movearea, add='+')
+        self.d.drawingarea.bind(
+            '<Button-1>', self.event_button_1_movearea, add='+')
 
     def event_button_1(self, event):
         self.butdown = 1
@@ -588,7 +593,6 @@ class Marker:
                 self.event_stop_move(event)
         else:
             self.butdownselected = 0
-
 
         self.has_moved = 0
         self.event_selected(event)
@@ -638,7 +642,7 @@ class Marker:
 
     def event_motion(self, event):
         self.has_moved = 1
-        if 0: # Simple variant - get back
+        if 0:  # Simple variant - get back
             if not (self.fraloy <= event.y_root < self.frahiy):
                 self.event_button_1_release(self.down_event)
                 return
@@ -738,7 +742,8 @@ class Marker:
         elif prevx < self.dislox and curx > self.dislox:
             prevx = self.dislox
 
-        markx = self.d.canxscaled(self.xmarker) - self.d.drawingarea.canvasx(0) + self.dislox
+        markx = self.d.canxscaled(self.xmarker) - \
+            self.d.drawingarea.canvasx(0) + self.dislox
 
         dx = curx - prevx
         l = r = 1
@@ -816,21 +821,23 @@ class Marker:
                 self.intpos = intpos
                 self.poscommand(intpos)
 
+
 class Display:
     orgwidth = 300
     orgheight = 300
     minwidth = 30
     minheight = 30
+
     def __init__(self, master,
                  scale_table,
                  numkindrows,
                  getkindcolor,
                  xrange=100,
                  yrange=100,
-                 xgrid = False,
-                 ygrid = False,
-                 graphtype = 'Bars',
-                 statype = 'Size',
+                 xgrid=False,
+                 ygrid=False,
+                 graphtype='Bars',
+                 statype='Size',
                  ):
         self.master = master
         self.scale_table = scale_table
@@ -847,12 +854,10 @@ class Display:
         self.graphtype = graphtype
         self.statype = statype
 
-
         self.numstats = 0
         self.ymaxs = []
         self.ymins = []
         self.ymax = 1
-
 
         # To get around problems with dynamic unbinding / unbinding of motion,
         # I handle it myself. in the bind_motion method using the following.
@@ -860,12 +865,11 @@ class Display:
         self.event_motion_id = None
         #
 
-
         self.frame = frame = Frame(master,
                                    borderwidth=3,
                                    relief=SUNKEN,
-                                   #relief=GROOVE,
-                                   #background='green'
+                                   # relief=GROOVE,
+                                   # background='green'
                                    )
         #self.frame = frame = Frame(master,background='green')
 
@@ -873,25 +877,25 @@ class Display:
         screencolor = '#e0e0e0'
         xscrollincrement = 1
         frame = Frame(self.frame)
-        frame.grid(row=0,column=0)
+        frame.grid(row=0, column=0)
         #move = Frame(frame, height=10,width=10,background='red', relief=RAISED)
         #move = Button(self.frame, height=10,width=10,background='red')
         self.drawingarea = C = Canvas(frame,
                                       width=self.orgwidth,
                                       height=self.orgheight,
                                       xscrollincrement=xscrollincrement,
-                                      #background='black',
-                                      background = screencolor,
+                                      # background='black',
+                                      background=screencolor,
                                       bd=0,
-                                      xscrollcommand = self.xscrollbar_set,
-                                      #confine=False,
+                                      xscrollcommand=self.xscrollbar_set,
+                                      # confine=False,
                                       )
 
         #self.yctrlframe = Frame(frame, borderwidth=2,relief=GROOVE)
-        self.yscrollbar = Scrollbar(frame, orient = VERTICAL, width=10)
-        #self.yscrollbar['command']=self.drawingarea.yview
+        self.yscrollbar = Scrollbar(frame, orient=VERTICAL, width=10)
+        # self.yscrollbar['command']=self.drawingarea.yview
         #self.drawingarea['yscrollcommand'] = self.yscrollbar_set
-        #self.yscrollbar.pack(side=RIGHT,fill=Y)
+        # self.yscrollbar.pack(side=RIGHT,fill=Y)
         #self.yctrlframe.grid(row = 0, column = 0,sticky=N+S,padx=3,pady=3)
 
         self.xaxis = Canvas(frame,
@@ -899,49 +903,46 @@ class Display:
                             height=20,
                             xscrollincrement=xscrollincrement,
                             bd=0,
-                            background = bordercolor,
+                            background=bordercolor,
                             #xscrollcommand = self.xscrollbar_set
-                            #confine=False,
+                            # confine=False,
                             )
         self.xmarks = Canvas(frame,
                              width=C['width'],
                              height=20,
                              xscrollincrement=xscrollincrement,
                              bd=0,
-                             background = bordercolor,
+                             background=bordercolor,
                              #xscrollcommand = self.xscrollbar_set
-                             #confine=False,
-                            )
-        self.yaxis = Canvas(frame, height=C['height'],width=50,
+                             # confine=False,
+                             )
+        self.yaxis = Canvas(frame, height=C['height'], width=50,
                             bd=0,
-                            background = bordercolor,
+                            background=bordercolor,
                             )
-
 
         self.xscrollbar = Scrollbar(frame, orient=HORIZONTAL,
                                     command=self.drawingarea_xview,
                                     width=12,
-                            background = bordercolor,
+                                    background=bordercolor,
 
                                     )
 
-
-        xy = Canvas(frame, width=50,height=20,bd=0,
-                    background = bordercolor,
+        xy = Canvas(frame, width=50, height=20, bd=0,
+                    background=bordercolor,
                     )
-
 
         #
 
         if 0:
-            self.yaxis.grid(row = 0, column = 0)
-            self.yscrollbar.grid(row=0,column=2, sticky=N+S)
-            C.grid(row = 0, column = 1, sticky=W+E )
-            xy.grid(row=1,column=0)
-            self.xaxis.grid(row = 1, column = 1)
+            self.yaxis.grid(row=0, column=0)
+            self.yscrollbar.grid(row=0, column=2, sticky=N+S)
+            C.grid(row=0, column=1, sticky=W+E)
+            xy.grid(row=1, column=0)
+            self.xaxis.grid(row=1, column=1)
 
-            self.xscrollbar.grid(row=2,column=1,sticky=E+W)
-            self.rsbut.grid(row=2,column=2)
+            self.xscrollbar.grid(row=2, column=1, sticky=E+W)
+            self.rsbut.grid(row=2, column=2)
         else:
             var_yrange = SizeVar()
             self.var_yrange = var_yrange
@@ -957,33 +958,31 @@ class Display:
                       column=0,
                       sticky=W+E+N+S)
 
-
-            self.xscrollbar.grid(row=row,column=1,sticky=E+W)
+            self.xscrollbar.grid(row=row, column=1, sticky=E+W)
 
             row += 1
 
             self.yunit = Label(frame,
-                  text='Bytes',
-                  bd=0,
-                  relief=FLAT,
-                  background=bordercolor)
+                               text='Bytes',
+                               bd=0,
+                               relief=FLAT,
+                               background=bordercolor)
             self.yunit.grid(
-                      row=row,
-                      column=0,
-                      sticky=W+E+N+S)
+                row=row,
+                column=0,
+                sticky=W+E+N+S)
 
-
-            self.xmarks.grid(row=row, column=1,sticky=W+E+N)
-
-            row += 1
-
-            self.yaxis.grid(row = row, column = 0)
-            C.grid(row = row, column = 1, sticky=W+E )
+            self.xmarks.grid(row=row, column=1, sticky=W+E+N)
 
             row += 1
 
-            xy.grid(row=row,column=0)
-            self.xaxis.grid(row = row, column = 1,sticky=W+E+N)
+            self.yaxis.grid(row=row, column=0)
+            C.grid(row=row, column=1, sticky=W+E)
+
+            row += 1
+
+            xy.grid(row=row, column=0)
+            self.xaxis.grid(row=row, column=1, sticky=W+E+N)
 
         #
 
@@ -996,9 +995,8 @@ class Display:
         self.yscale = self.boty / self.yrange
         self.xi0 = None
 
-
-        xy.create_line(0,2,44,2)
-        xy.create_line(49, 6,49,22)
+        xy.create_line(0, 2, 44, 2)
+        xy.create_line(49, 6, 49, 22)
         xy.create_text(25, 14, text='Sample')
 
         self.setscrollregion()
@@ -1010,7 +1008,8 @@ class Display:
 
     def bind_motion(self, function):
         if self.event_motion_id == None:
-            self.event_motion_id = self.frame.bind_all('<Motion>', self.event_motion, add='+')
+            self.event_motion_id = self.frame.bind_all(
+                '<Motion>', self.event_motion, add='+')
         self.bound_motions[function] = self.bound_motions.get(function, 0) + 1
         return function
 
@@ -1025,15 +1024,13 @@ class Display:
         else:
             self.bound_motions[funcid] = n
 
-
-    def new_xmarker(self, name = None, pos=0):
-        tag = 'M%d'%len(self.marks)
+    def new_xmarker(self, name=None, pos=0):
+        tag = 'M%d' % len(self.marks)
         if name is None:
             name = tag
         m = Marker(self, tag, name, pos)
         self.marks.append(m)
         return m
-
 
     def canxscaled(self, x):
         return x * self.xscale + self.canx0
@@ -1063,15 +1060,14 @@ class Display:
         return x
 
     def resize(self, dx, dy):
-        x =  self.botx + dx
+        x = self.botx + dx
         y = self.boty + dy
         if x < self.minwidth:
             x = self.minwidth
             dx = x - self.botx
-        if  y < self.minheight:
+        if y < self.minheight:
             y = self.minheight
             dy = y - self.boty
-
 
         xv = self.drawingarea.xview()
         yv = self.drawingarea.yview()
@@ -1090,7 +1086,7 @@ class Display:
         xq = xscale / self.xscale
         yq = yscale / self.yscale
 
-        self.drawingarea.scale("all",xscaleorg, yscaleorg, xq, yq)
+        self.drawingarea.scale("all", xscaleorg, yscaleorg, xq, yq)
         #self.drawingarea.scale("barsep",xscaleorg, yscaleorg, xq, yq)
         #self.drawingarea.scale("xmarker",xscaleorg, yscaleorg, xq, yq)
 
@@ -1121,7 +1117,6 @@ class Display:
     def draw():
         self.drawxaxis()
         self.drawyaxis()
-
 
     def draw_stat(self, idx, stat):
         graphtype = self.graphtype
@@ -1165,7 +1160,7 @@ class Display:
                                           x1-bw, -(y+dy)*yscale,
                                           fill=color,
                                           outline=color,
-                                          width = 0,
+                                          width=0,
                                           tags=("a",))
                 if color == ocolor:
                     C.create_line(x0, -(y)*yscale,
@@ -1178,7 +1173,7 @@ class Display:
                 if dy > ymax:
                     ymax = dy
                 elif dy < ymin:
-                    ymin =  dy
+                    ymin = dy
                 y0 = lastkindval.get(k)
                 if y0 is None:
                     y0 = dy
@@ -1194,19 +1189,16 @@ class Display:
                     C.create_line(x1 - 0.6 * xscale,  - dy * yscale,
                                   x1 - 0.4 * xscale,  - dy * yscale,
                                   fill=color,
-                                  width = 4,
+                                  width=4,
                                   tags=('a',))
 
                 else:
                     C.create_rectangle(x1 - 0.6 * xscale,  - dy * yscale,
-                                  x1 - 0.4 * xscale,  - dy * yscale,
-                                  fill=color,
-                                  outline=color,
-                                  width = 2,
-                                  tags=('a',))
-
-
-
+                                       x1 - 0.4 * xscale,  - dy * yscale,
+                                       fill=color,
+                                       outline=color,
+                                       width=2,
+                                       tags=('a',))
 
         if graphtype == 'Bars':
             if y > ymax:
@@ -1218,17 +1210,14 @@ class Display:
         self.ymaxs.append(ymax)
         self.ymins.append(ymin)
 
-
         if idx > self.tmax:
             self.tmax = idx
-
 
     def drawingarea_xview(self, cmd, what, unit=None):
         if cmd == 'scroll' and unit == 'units':
             what = int(max(2, self.xscale)*int(what))
 
         self.xview(cmd, what, unit)
-
 
     def setcursor(self, cursor):
         if cursor != self.cursor:
@@ -1250,7 +1239,7 @@ class Display:
     def xview_moveto(self, fraction):
         self.xview(MOVETO, fraction)
 
-    def xview_pos(self, pos, fraction=None, leftmargin = 5, rightmargin = 5):
+    def xview_pos(self, pos, fraction=None, leftmargin=5, rightmargin=5):
         # Scroll canvas view, if necessary, so that something
         # (eg an x marker) at canvas position pos will be visible
         # with minimum specified margin at left and right.
@@ -1291,9 +1280,8 @@ class Display:
         i = 0
         while (scale_table[i] * self.xscale <
                min(5, len(str(scale_table[i] * self.tmax))) * chdx):
-            i+=1
+            i += 1
         self.xstep = scale_table[i]
-
 
         divisuf = (
             (1000000000000, '%dT'),
@@ -1301,15 +1289,14 @@ class Display:
             (1000000,  '%dM'),
             (1000,  '%dK'),
             (1, '%d')
-            )
+        )
 
         for divi, form in divisuf:
-            if self.xstep >=divi:
+            if self.xstep >= divi:
                 break
 
         self.xdivi = divi
         self.xform = form
-
 
         self.xi0 = 0
         self.updatexaxis()
@@ -1321,21 +1308,20 @@ class Display:
 
         gridon = self.xgrid
 
-
         for i in range(self.xi0, self.tmax+step, step):
             x = self.canx0 + i*self.xscale
             self.xaxis.create_line(x, 0, x, 4)
             if gridon:
                 self.drawingarea.create_line(x, 0, x, -self.boty,
-                                             tags=('xgrid',),width=2,stipple="gray25")
-            text = self.xform%(i / self.xdivi)
+                                             tags=('xgrid',), width=2, stipple="gray25")
+            text = self.xform % (i / self.xdivi)
             self.xaxis.create_text(x, chdy,  text=text)
 
-        self.xaxis.create_line(self.canx0 + self.xi0*self.xscale, 1, x+self.xscale, 1)
+        self.xaxis.create_line(self.canx0 + self.xi0 *
+                               self.xscale, 1, x+self.xscale, 1)
 
         self.xi0 = i
         self.xmarkers_set()
-
 
     def drawyaxis(self):
 
@@ -1351,7 +1337,7 @@ class Display:
         maxval = self.yrange
 
         while (self.scale_table[i] * self.yscale < 1.5 * chdy):
-            i+=1
+            i += 1
         step = self.scale_table[i]
 
         divisuf = (
@@ -1360,14 +1346,14 @@ class Display:
             (1000000,  '%4dM'),
             (1000,  '%4dK'),
             (1, '%5d')
-            )
+        )
 
         for divi, form in divisuf:
-            if step >=divi:
+            if step >= divi:
                 break
 
         for i in range(0, maxval+step, step):
-            y =  - i*self.yscale
+            y = - i*self.yscale
             self.yaxis.create_line(width-3, y, width-1, y)
             if gridon:
                 self.drawingarea.create_line(self.scrollregion[0], y,
@@ -1384,8 +1370,6 @@ class Display:
 
         self.yaxis.create_line(width-1, 0, width-1, -self.boty)
         self.xmarkers_set()
-
-
 
     def getchdim(self):
         ch = self.xaxis.create_text(0, 0, text='0')
@@ -1416,14 +1400,13 @@ class Display:
             C.delete('barsep')
             C.delete('a')
 
-
             for (i, st) in enumerate(stats):
                 self.draw_stat(i, st)
 
             try:
                 self.drawingarea.tag_raise('barsep', 'a')
             except TclError:
-                pass # May be 'tagOrId "a" doesn't match any items' if empty!
+                pass  # May be 'tagOrId "a" doesn't match any items' if empty!
 
             self.drawxaxis()
             self.drawyaxis()
@@ -1469,8 +1452,8 @@ class Display:
             x1extra = botx
             x2extra = botx
         if 1:
-            x1extra = botx / 2 + 2 #max(5, self.xscale*0.5)
-            x2extra = botx / 2 + 2 #max(5, self.xscale*0.5)
+            x1extra = botx / 2 + 2  # max(5, self.xscale*0.5)
+            x2extra = botx / 2 + 2  # max(5, self.xscale*0.5)
         if 0:
             x1extra = x2extra = max(5, self.xscale * 0.5)
 
@@ -1487,17 +1470,16 @@ class Display:
                 pass
             else:
                 if (abs(_x2 - x2) < x2extra / 2 and
-                    abs(_x1 - x1) < x1extra / 2
+                        abs(_x1 - x1) < x1extra / 2
                     ):
                     return
 
         self.scrollregion = (x1, y1, x2, y2)
-        C.configure(scrollregion = self.scrollregion)
+        C.configure(scrollregion=self.scrollregion)
 
-        self.xaxis.configure(scrollregion = (x1, 0, x2, 10))
-        self.xmarks.configure(scrollregion = (x1, 0, x2, 20))
-        self.yaxis.configure(scrollregion = (0, y1, 20, y2))
-
+        self.xaxis.configure(scrollregion=(x1, 0, x2, 10))
+        self.xmarks.configure(scrollregion=(x1, 0, x2, 20))
+        self.yaxis.configure(scrollregion=(0, y1, 20, y2))
 
         self.drawingarea.yview(MOVETO, 0.0)
 
@@ -1505,8 +1487,8 @@ class Display:
         dxrange = self.xrange / float(xrange)
         self.xrange = xrange
         xscaleorg = self.drawingarea.canvasx(self.botx/2)
-        self.drawingarea.scale("a",xscaleorg, 0, dxrange, 1.0)
-        self.drawingarea.scale("barsep",xscaleorg, 0, dxrange, 1.0)
+        self.drawingarea.scale("a", xscaleorg, 0, dxrange, 1.0)
+        self.drawingarea.scale("barsep", xscaleorg, 0, dxrange, 1.0)
         self.canx0 = xscaleorg + (self.canx0 - xscaleorg) * dxrange
         self.xscale = self.botx / float(self.xrange)
         self.setxscrollincrement(max(2, self.xscale))
@@ -1519,19 +1501,17 @@ class Display:
         self.xaxis.configure(xscrollincrement=dx)
         self.xmarks.configure(xscrollincrement=dx)
 
-
     def setyrange(self, yrange):
 
         dyrange = float(self.yrange) / yrange
         self.yrange = yrange
         self.var_yrange.set(yrange)
 
-        self.drawingarea.scale("a",0, 0, 1.0, dyrange)
-        self.drawingarea.scale("barsep",0, 0, 1.0, dyrange)
+        self.drawingarea.scale("a", 0, 0, 1.0, dyrange)
+        self.drawingarea.scale("barsep", 0, 0, 1.0, dyrange)
         self.yscale = float(self.boty) / self.yrange
         self.drawingarea.yview(MOVETO, 0.0)
         self.drawyaxis()
-
 
     def xscrollbar_set(self, first, last):
         self.xscrollbar.set(first, last)
@@ -1552,42 +1532,41 @@ class Display:
                 self.ycontrol.fit(ymax)
 
 
-
 class MarkerControl:
     def __init__(self, master,
                  marker,
-                 setcommand = lambda:0
+                 setcommand=lambda: 0
                  ):
         self.sample = 0
         self.numsamples = 0
         self.setcommand = setcommand
         self.marker = marker
         self.name = marker.name
-        sf = self.frame = Frame(master, borderwidth=2,relief=GROOVE)
+        sf = self.frame = Frame(master, borderwidth=2, relief=GROOVE)
         self.samplevar = SizeVar()
-        Label(sf, text='%s sample'%marker.name).grid(row = 0, column = 0)
+        Label(sf, text='%s sample' % marker.name).grid(row=0, column=0)
         Label(sf,
               textvariable=self.samplevar,
               font=('terminal', '16', 'bold'),
-              bg='black',fg='yellow'
-              ).grid(row = 1, column = 0, padx=3,pady=3)
+              bg='black', fg='yellow'
+              ).grid(row=1, column=0, padx=3, pady=3)
         ClickButton(sf, text='-',
-               pady=0,padx=5,
-               command=lambda:self.changesample(-1)).grid(row=0,column=1, sticky=E)
+                    pady=0, padx=5,
+                    command=lambda: self.changesample(-1)).grid(row=0, column=1, sticky=E)
         ClickButton(sf, text='+',
-               pady=0,padx=5,
-               command=lambda:self.changesample(1)).grid(row=0,column=2, sticky=W)
+                    pady=0, padx=5,
+                    command=lambda: self.changesample(1)).grid(row=0, column=2, sticky=W)
         self.trackingvar = BooleanVar()
         self.trackbutton = Checkbutton(
             sf, text='Track',
             padx=5,
 
-            variable = self.trackingvar,
+            variable=self.trackingvar,
             relief=RAISED,
             command=self.settracking,
             indicatoron=1,
-            )
-        self.trackbutton.grid(row=1,column=1,columnspan=2)
+        )
+        self.trackbutton.grid(row=1, column=1, columnspan=2)
 
     def changesample(self, d):
         sample = self.sample + d
@@ -1615,6 +1594,7 @@ class MarkerControl:
             tracking = self.trackingvar.get()
         if tracking:
             self.setmarker(max(0, self.numsamples-1))
+
 
 class Window:
     def __init__(self, app, frame, windowmenu=None):
@@ -1655,7 +1635,7 @@ class Window:
                 frame.wm_deiconify()
             frame.tkraise()
             # I don't think I want .focus_set: it behaved strange in X at least.
-            #frame.focus_set()
+            # frame.focus_set()
         except TclError:
             # This can happen when the window menu was torn off.
             # Simply ignore it.
@@ -1672,8 +1652,8 @@ class WindowMenu:
 
     def add_window(self, window):
         self.menu.add_radiobutton(
-            command = window.wakeup,
-            label='%d %s'%(window.wid, window.wtitle),
+            command=window.wakeup,
+            label='%d %s' % (window.wid, window.wtitle),
             value=window.wid,
             variable=self.variable)
         self.wmap[window.wid] = self.menu.index(END)
@@ -1682,8 +1662,8 @@ class WindowMenu:
         self.menu.delete(self.wmap[window.wid])
         self.menu.insert_radiobutton(
             self.wmap[window.wid],
-            command = window.wakeup,
-            label='%d %s'%(window.wid, window.wtitle),
+            command=window.wakeup,
+            label='%d %s' % (window.wid, window.wtitle),
             value=window.wid,
             variable=self.variable)
 
@@ -1724,9 +1704,9 @@ class ProfileApp:
             wm.add_window(window)
         self.var_window.set(window.wid)
         window.frame.bind('<FocusIn>',
-                          lambda event:self.var_window.set(window.wid), add='+')
+                          lambda event: self.var_window.set(window.wid), add='+')
         window.frame.bind('<Deactivate>',
-                          lambda event:self.var_window.set(0), add='+')
+                          lambda event: self.var_window.set(0), add='+')
 
     def add_window_frame(self, frame, windowmenu=None):
         w = Window(self, frame, windowmenu)
@@ -1760,6 +1740,7 @@ class ProfileApp:
     def new_profile_browser(self, filename):
         return ProfileBrowser(self, filename)
 
+
 class PaneDiv:
     def __init__(self, master, movecommand):
         self.frame = frame = Frame(master)
@@ -1772,12 +1753,12 @@ class PaneDiv:
             frame,
             width=10,
             height=h,
-            )
+        )
 
         self.top.create_line(
-            bc,0,bc,h,fill='#808080', width=1)
+            bc, 0, bc, h, fill='#808080', width=1)
         self.top.create_line(
-            bc+1,0,bc+1,h,fill='white', width=1)
+            bc+1, 0, bc+1, h, fill='white', width=1)
 
         self.rsbut = Canvas(
             frame,
@@ -1786,20 +1767,20 @@ class PaneDiv:
             height=self.butsize,
             relief=RAISED,
             bd=2
-            )
+        )
 
         self.bot = Canvas(
             frame,
             width=10,
             height=300,
             bd=0
-            )
+        )
 
-        self.top.grid(row=0,column=0, sticky=N)
-        self.rsbut.grid(row=1,column=0, sticky=N)
-        self.bot.grid(row=2,column=0, sticky=N)
+        self.top.grid(row=0, column=0, sticky=N)
+        self.rsbut.grid(row=1, column=0, sticky=N)
+        self.bot.grid(row=2, column=0, sticky=N)
 
-        self.rsbut.bind('<Button-1>',self.but_down)
+        self.rsbut.bind('<Button-1>', self.but_down)
         self.rsbut.bind('<ButtonRelease-1>', self.but_up)
 
     def but_down(self, event):
@@ -1811,7 +1792,6 @@ class PaneDiv:
         dx = event.x - self.down_event.x
         self.movecommand(dx)
 
-
     def setheight(self, height):
         h = height - 18
         self.bot['height'] = h
@@ -1819,17 +1799,16 @@ class PaneDiv:
         bc = self.butcent
 
         self.bot.create_line(
-                bc,0,bc,h,fill='#808080', width=1)
+            bc, 0, bc, h, fill='#808080', width=1)
         self.bot.create_line(
-            bc+1,0,bc+1,h,fill='white', width=1)
-
+            bc+1, 0, bc+1, h, fill='white', width=1)
 
 
 class TableFrame:
     def __init__(self, graph, master, numkindrows, samplevar):
         self.graph = graph
         self.mod = graph.mod
-        frame = self.frame = Frame(master,borderwidth=2,relief=GROOVE)
+        frame = self.frame = Frame(master, borderwidth=2, relief=GROOVE)
         row = 0
         self.marktime = StringVar()
         self.totsizevar = SizeVar()
@@ -1837,16 +1816,19 @@ class TableFrame:
         self.sampler.set('R')
 
         if 1:
-            fr = Frame(frame) # For header
+            fr = Frame(frame)  # For header
             om = OptionMenu(fr, self.sampler, 'R', 'L', 'R-L')
-            om.grid(row=0,column=0,sticky=W)
-            Label(fr, text='Sample').grid(row=0,column=1,sticky=W)
-            Label(fr, textvariable=samplevar,background='black',foreground='yellow',
-                  ).grid(row=0,column=2,sticky=W, pady=3)
-            Label(fr, text='at').grid(row=0,column=3,sticky=W)
-            Label(fr, textvariable=self.marktime).grid(row = 0, column = 4, sticky=W)
-            Label(fr, text='Total size = ').grid(row=1,column=0,columnspan=3,sticky=W)
-            Label(fr, textvar=self.totsizevar).grid(row=1,column=3,columnspan=2,sticky=W)
+            om.grid(row=0, column=0, sticky=W)
+            Label(fr, text='Sample').grid(row=0, column=1, sticky=W)
+            Label(fr, textvariable=samplevar, background='black', foreground='yellow',
+                  ).grid(row=0, column=2, sticky=W, pady=3)
+            Label(fr, text='at').grid(row=0, column=3, sticky=W)
+            Label(fr, textvariable=self.marktime).grid(
+                row=0, column=4, sticky=W)
+            Label(fr, text='Total size = ').grid(
+                row=1, column=0, columnspan=3, sticky=W)
+            Label(fr, textvar=self.totsizevar).grid(
+                row=1, column=3, columnspan=2, sticky=W)
             fr.grid(row=row, column=0, sticky=W)
             row += 1
 
@@ -1876,7 +1858,6 @@ class TableFrame:
         row = orow
         tb.grid(row=row, column=0, sticky=W)
 
-
         # for next..
         row += 1
 
@@ -1900,12 +1881,12 @@ class TableFrame:
             kindtext = textwrap.fill(pr.kindtext, width=pr.kindwidth)
             pr.set_kind(pr.kindtext)
 
-
         return dx, dy
 
     def update(self, lsamp, rsamp):
 
-        self.marktime.set(self.mod.time.asctime(self.mod.time.localtime(rsamp.stat.timemade)))
+        self.marktime.set(self.mod.time.asctime(
+            self.mod.time.localtime(rsamp.stat.timemade)))
 
         return
 
@@ -1922,7 +1903,7 @@ class TableFrame:
             rsamp.stat.size - lsamp.stat.size,
             (rsamp.stat.size - lsamp.stat.size) * 100.0 / ldiv,
             '<Total>'
-            )
+        )
 
         for i, r in enumerate(rsamp.rows):
             l = lsamp.kindrows[r.name]
@@ -1966,12 +1947,12 @@ class TableFrame:
             master,
             borderwidth=3,
             relief=SUNKEN
-            )
+        )
 
         self.colspecs = {}
         self.colwidths = []
 
-        def defcol(names, width, pos, put, idxfunc = lambda x:()):
+        def defcol(names, width, pos, put, idxfunc=lambda x: ()):
             if callable(put):
                 put = [put]*len(names)
             self.colwidths.append(width)
@@ -1979,15 +1960,15 @@ class TableFrame:
                 spec = ColSpec(self, name, width, pos, put, idxfunc(name))
                 self.colspecs[name] = spec
 
-
-        defcol(('A', 'B'), 2, LEFT, self.putcolor, lambda x:x)
+        defcol(('A', 'B'), 2, LEFT, self.putcolor, lambda x: x)
         defcol(('Size', 'Count'), 7, RIGHT, [self.putsize, self.putcount])
-        defcol(('%A:Tot', '%B:Tot'), 7, RIGHT, self.putpercent, lambda name:name[1])
+        defcol(('%A:Tot', '%B:Tot'), 7, RIGHT,
+               self.putpercent, lambda name: name[1])
         defcol(('B-A', 'A-B', 'Cumul'), 7, RIGHT, [self.putdiff, self.putdiff, self.putcumul],
-               lambda name:[(),name.split('-')]['-' in name])
-        defcol(('%A:Tot', '%B:Tot'), 7, RIGHT, self.putpercent, lambda name:name[1])
+               lambda name: [(), name.split('-')]['-' in name])
+        defcol(('%A:Tot', '%B:Tot'), 7, RIGHT,
+               self.putpercent, lambda name: name[1])
         defcol(('Kind',), 20, LEFT, self.putkind)
-
 
         width = 0
         for w in self.colwidths:
@@ -2015,7 +1996,7 @@ class TableFrame:
             padx=self.minpadx,
             relief=relief,
             cursor=cursor,
-            )
+        )
 
         self.rowhead = Text(
             frame,
@@ -2026,7 +2007,7 @@ class TableFrame:
             padx=self.minpadx,
             relief=relief,
             cursor=cursor,
-            )
+        )
 
         self.tsframe = Frame(frame)
 
@@ -2042,19 +2023,19 @@ class TableFrame:
             cursor=cursor,
             padx=self.minpadx,
             pady=self.textminpady,
-            )
+        )
 
         self.scrollbar = Scrollbar(
             self.tsframe,
             width=10,
             orient=VERTICAL,
             command=self.text.yview
-            )
-        self.scrollbar_totwidth = int(self.scrollbar['width']) + 6 # width + padding
+        )
+        self.scrollbar_totwidth = int(
+            self.scrollbar['width']) + 6  # width + padding
 
         self.uses_scrollbar = 0
         self.auto_scrollbar = 1
-
 
         self.orgtextheight = int(self.text['height'])
 
@@ -2062,9 +2043,8 @@ class TableFrame:
         pady = 0
         self.tothead.pack(anchor=N+W, padx=padx, pady=pady)
         self.rowhead.pack(anchor=N+W, padx=padx, pady=pady)
-        self.text.pack(side=LEFT,anchor=N+W, padx=padx, pady=pady)
+        self.text.pack(side=LEFT, anchor=N+W, padx=padx, pady=pady)
         self.tsframe.pack(anchor=N+W, padx=padx, pady=pady)
-
 
     def setchdim(self):
         self.text.update()
@@ -2075,7 +2055,6 @@ class TableFrame:
         self.pixwidth = self.width * self.chdx
         self.pixheight = self.width * self.chdy
 
-
     def putcolor(self, col):
         if self.colorow.name == '<Total>':
             text = col.align(' ')
@@ -2084,7 +2063,7 @@ class TableFrame:
             color = self.graph.getkindcolor(self.colorow.name),
             text = col.align('@')
         self.text.insert('end', text, (color,))
-        self.text.tag_config(color,foreground=color, background='#e0e0e0',
+        self.text.tag_config(color, foreground=color, background='#e0e0e0',
                              font=('terminal', '12', 'bold'),)
 
     def putcount(self, col):
@@ -2145,7 +2124,8 @@ class TableFrame:
         self.numkindrows = numkindrows
         self.mcontrols = self.graph.mcontrolbyname
         self.stats = self.graph.stats
-        self.cols = [self.colspecs[x.strip()] for x in mode.split(' ') if x.strip()]
+        self.cols = [self.colspecs[x.strip()]
+                     for x in mode.split(' ') if x.strip()]
         self.controlnames = {}
         name = self.cols[0].idx
         self.colorcontrol = self.mcontrols[name]
@@ -2176,8 +2156,6 @@ class TableFrame:
             self.scrollbar.pack_forget()
             self.text['yscrollcommand'] = None
 
-
-
     def update_simple(self, lsamp, rsamp):
         t = self.text
         t.delete('1.0', '100.0')
@@ -2187,7 +2165,8 @@ class TableFrame:
 
         stats = self.stats
 
-        idxs = [max(0, min(control.sample, len(stats)-1)) for control in self.controls]
+        idxs = [max(0, min(control.sample, len(stats)-1))
+                for control in self.controls]
         if (idxs == self.lastidxs) and not force:
             return
 
@@ -2204,7 +2183,6 @@ class TableFrame:
             self.text['state'] = self.tothead['state'] = self.rowhead['state'] = DISABLED
             return
 
-
         self.statbyname = {}
         statbyidx = []
         for i, control in enumerate(self.controls):
@@ -2212,11 +2190,10 @@ class TableFrame:
             statbyidx.append(stat)
             self.statbyname[control.name] = stat
 
-
         samps = self.samps = [
             Sample(self.mod, statbyidx[0], self.controls[0].marker.name, idxs[0],
                    numkindrows=self.numkindrows,
-                   statype = self.graph.display.statype
+                   statype=self.graph.display.statype
                    )]
 
         self.colorsamp = samps[0]
@@ -2226,14 +2203,12 @@ class TableFrame:
 
             self.relsamp = samps[1]
 
-
-
         t = self.tothead
 
         n = max([len(str(samp.index)) for samp in samps])
         for samp in samps:
-            t.insert('end', 'Sample %s: '%samp.name)
-            t.insert('end', ('%%%dd'%n)%samp.index, ('index',))
+            t.insert('end', 'Sample %s: ' % samp.name)
+            t.insert('end', ('%%%dd' % n) % samp.index, ('index',))
             t.insert('end', ' at %s\n' % (samp.datetime))
 
         t.tag_configure('index', background='#e0e0e0')
@@ -2248,7 +2223,7 @@ class TableFrame:
 
         t = self.text
 
-        self.ap = lambda text:t.insert('end', text)
+        self.ap = lambda text: t.insert('end', text)
 
         self.colorow = Row(samps[0].count, samps[0].size, '<Total>')
         self.rowbyname = self.statbyname
@@ -2262,9 +2237,9 @@ class TableFrame:
             self.colorow = a
             if len(samps) > 1:
                 self.rowbyname = {
-                    samps[0].name:a,
-                    samps[1].name:samps[1].kindrows[a.name]
-                    }
+                    samps[0].name: a,
+                    samps[1].name: samps[1].kindrows[a.name]
+                }
             for col in self.cols:
                 col.render(col)
             self.ap('\n')
@@ -2290,13 +2265,13 @@ class TableFrame:
 
         charwidth, extra = divmod(newwidth, self.chdx)
 
-        self.kindcol.width = max(charwidth - self.widthbeforekind - 1, self.minkindwidth)
+        self.kindcol.width = max(
+            charwidth - self.widthbeforekind - 1, self.minkindwidth)
 
         self.totxresize += dx
         for t in (self.tothead, self.rowhead, self.text):
             t['width'] = charwidth
-            t['padx'] =  self.minpadx + extra / 2
-
+            t['padx'] = self.minpadx + extra / 2
 
         dy = int(dy)
 
@@ -2316,24 +2291,22 @@ class TableFrame:
         return dx, dy
 
 
-
-
 class Filler:
     def __init__(self, master):
         self.frame = self.can = Canvas(
             master,
-            #background='blue',
+            # background='blue',
             width=0,
             height=0)
 
     def getsize(self):
-        return int(self.can['width']),int(self.can['height']),
+        return int(self.can['width']), int(self.can['height']),
 
     def setsize(self, w, h):
         self.can.configure(
-            width = w,
-            height = h
-            )
+            width=w,
+            height=h
+        )
 
     def resize(self, dw, dh):
         w, h = self.getsize()
@@ -2345,6 +2318,7 @@ class Row:
         self.count = count
         self.size = size
         self.name = name
+
 
 class Sample:
     def __init__(self, mod, stat, name, index, numkindrows=None, statype='Size', relative=None):
@@ -2408,20 +2382,22 @@ class ProfileBrowser:
 
         self.frame = frame = Toplevel(
             master,
-            #background='#bbb'
-            )
+            # background='#bbb'
+        )
         #frame['cursor'] = 'umbrella'
-        #frame.resizable(True,True)
+        # frame.resizable(True,True)
 
         self.menubar = Frame(self.frame, relief=RAISED, bd=2)
 
         self.filebutton = Menubutton(self.menubar, text='File')
         self.filemenu = Menu(self.filebutton)
         self.filebutton['menu'] = self.filemenu
-        self.filemenu.add_command(label='New Profile Browser', command=self.cmd_new)
+        self.filemenu.add_command(
+            label='New Profile Browser', command=self.cmd_new)
         self.filemenu.add_command(label='Open Profile', command=self.cmd_open)
         self.filemenu.add_command(label='Close Window', command=self.cmd_close)
-        self.filemenu.add_command(label='Clear Cache', command=self.cmd_clear_cache)
+        self.filemenu.add_command(
+            label='Clear Cache', command=self.cmd_clear_cache)
         self.filemenu.add_command(label='Exit', command=self.cmd_exit)
         self.panebutton = Menubutton(self.menubar, text='Pane')
         self.panemenu = Menu(self.panebutton)
@@ -2430,7 +2406,7 @@ class ProfileBrowser:
         choices = [
             ('Bars', 'Lines'),
             ('Size', 'Count'),
-            ]
+        ]
 
         self.graphtypevar = StringVar()
         self.graphbutton = self.modechooser(
@@ -2444,9 +2420,9 @@ class ProfileBrowser:
             ('Cumul', 'A-B', 'B-A'),
             ('%A:Tot', '%B:Tot'),
             ('Kind',),
-            ]
+        ]
 
-        self.var_tablemode=StringVar()
+        self.var_tablemode = StringVar()
         self.tablebutton = Menubutton(self.menubar, text='Table')
         self.tablemenu = Menu(self.tablebutton)
         self.tablebutton['menu'] = self.tablemenu
@@ -2456,21 +2432,22 @@ class ProfileBrowser:
             choices,
             self.var_tablemode,
             self.cmd_tablemode
-            )
-        self.tablemenu.add_cascade(label='Header',menu=self.headermenu)
+        )
+        self.tablemenu.add_cascade(label='Header', menu=self.headermenu)
         self.var_tablescrollbar = StringVar()
-        self.tablescrollbarmenu = Menu(self.tablebutton, title = 'Table scrollbar')
+        self.tablescrollbarmenu = Menu(
+            self.tablebutton, title='Table scrollbar')
 
         self.addmodechooser(
             self.tablescrollbarmenu,
             [('Auto', 'On', 'Off')],
             self.var_tablescrollbar,
             self.cmd_tablescrollbar
-            )
+        )
 
         self.tablemenu.add_cascade(
             label='Scrollbar',
-            menu = self.tablescrollbarmenu)
+            menu=self.tablescrollbarmenu)
 
         self.windowmenu = WindowMenu(self.menubar, self.app.var_window)
         self.window = app.add_window_frame(self.frame, self.windowmenu)
@@ -2481,67 +2458,59 @@ class ProfileBrowser:
         self.helpmenu.add_command(label='About', command=self.cmd_about)
         self.helpmenu.add_command(label='Help', command=self.cmd_help)
 
-
         self.ctrlframe = Frame(
             self.frame,
             bd=2,
             relief=GROOVE,
-            #background='#999',
+            # background='#999',
 
 
-            )
-
+        )
 
         self.exitbutton = Button(self.ctrlframe, text='Exit', command=self.cmd_exit,
                                  background='red')
 
-
-
         self.set_filename(filename)
-
 
         self.id_collect = None
         self.collecting = IntVar()
         self.collecting.set(0)
         self.collectbutton = Checkbutton(self.ctrlframe, text='Collect',
-                                       variable = self.collecting,
+                                         variable=self.collecting,
                                          command=self.cmd_collect,
                                          relief=RAISED)
-
 
         self.stats = Stats(self.mod)
 
         self.disptab = Frame(self.frame,
-                             #relief=SUNKEN,
-                             #bd=3
+                             # relief=SUNKEN,
+                             # bd=3
                              )
 
         self.display = Display(self.disptab,
-                               scale_table = AxisControl.scale_table,
-                               numkindrows = self.numkindrows,
-                               getkindcolor = self.getkindcolor,
+                               scale_table=AxisControl.scale_table,
+                               numkindrows=self.numkindrows,
+                               getkindcolor=self.getkindcolor,
                                )
 
         self.xcontrol = AxisControl(self.ctrlframe,
-                                    name = 'X',
-                                    range = self.display.xrange,
-                                    grid = self.display.xgrid,
-                                    unit = 'samples',
-                                    rangecommand = self.display.setxrange,
-                                    gridcommand = self.display.setxgrid
+                                    name='X',
+                                    range=self.display.xrange,
+                                    grid=self.display.xgrid,
+                                    unit='samples',
+                                    rangecommand=self.display.setxrange,
+                                    gridcommand=self.display.setxgrid
                                     )
-
 
         self.ycontrol = AxisControl(self.ctrlframe,
-                                    name = 'Y',
-                                    range = self.display.yrange,
-                                    grid = self.display.ygrid,
-                                    unit = 'bytes',
-                                    rangecommand = self.display.setyrange,
-                                    gridcommand = self.display.setygrid,
-                                    autocommand = self.display.cmd_yrange_auto
+                                    name='Y',
+                                    range=self.display.yrange,
+                                    grid=self.display.ygrid,
+                                    unit='bytes',
+                                    rangecommand=self.display.setyrange,
+                                    gridcommand=self.display.setygrid,
+                                    autocommand=self.display.cmd_yrange_auto
                                     )
-
 
         self.display.xcontrol = self.xcontrol
         self.display.ycontrol = self.ycontrol
@@ -2550,7 +2519,8 @@ class ProfileBrowser:
         self.mcontrolbyname = {}
         for name in ('A', 'B'):
             marker = self.display.new_xmarker(name)
-            control = MarkerControl(self.ctrlframe, marker, self.update_tableframe)
+            control = MarkerControl(
+                self.ctrlframe, marker, self.update_tableframe)
             marker.set_poscommand(control.setsample)
             self.mcontrols.append(control)
             self.mcontrolbyname[name] = control
@@ -2559,55 +2529,53 @@ class ProfileBrowser:
 
             self.optionsmenu.add_checkbutton(
                 label='X grid',
-                variable = self.display.var_xgrid,
-                command = self.display.cmd_xgrid)
+                variable=self.display.var_xgrid,
+                command=self.display.cmd_xgrid)
 
             self.optionsmenu.add_checkbutton(
                 label='Y grid',
-                variable = self.display.var_ygrid,
-                command = self.display.cmd_ygrid)
+                variable=self.display.var_ygrid,
+                command=self.display.cmd_ygrid)
 
-
-        self.var_showcontrol=BooleanVar()
+        self.var_showcontrol = BooleanVar()
         self.var_showcontrol.set(1)
         self.panemenu.add_checkbutton(
             label='Show Control Panel',
-            variable = self.var_showcontrol,
-            command = self.cmd_showcontrol)
+            variable=self.var_showcontrol,
+            command=self.cmd_showcontrol)
 
-        self.var_showgraph=BooleanVar()
+        self.var_showgraph = BooleanVar()
         self.var_showgraph.set(1)
         self.panemenu.add_checkbutton(
             label='Show Graph',
-            variable = self.var_showgraph,
-            command = self.cmd_showgraph)
+            variable=self.var_showgraph,
+            command=self.cmd_showgraph)
 
-        self.var_showtable=BooleanVar()
+        self.var_showtable = BooleanVar()
         self.var_showtable.set(1)
         self.panemenu.add_checkbutton(
             label='Show Table',
-            variable = self.var_showtable,
-            command = self.cmd_showtable)
-
-
+            variable=self.var_showtable,
+            command=self.cmd_showtable)
 
         tf = self.tf = TableFrame(self, self.disptab)
         d_t = self.d_t = PaneDiv(self.disptab, movecommand=self.cmd_dt_moved)
 
-
         if 0:
-            self.ycontrol.frame.pack(side=LEFT, padx=3,pady=3)
-            self.xcontrol.frame.pack(side=LEFT, padx=3,pady=3)
+            self.ycontrol.frame.pack(side=LEFT, padx=3, pady=3)
+            self.xcontrol.frame.pack(side=LEFT, padx=3, pady=3)
             self.scontrol.frame.pack(side=LEFT, padx=3, pady=3)
-            self.graphtypeframe.pack(side=LEFT, padx=3,pady=3)
-            self.collectbutton.pack(side=LEFT, padx=3,pady=3)
+            self.graphtypeframe.pack(side=LEFT, padx=3, pady=3)
+            self.collectbutton.pack(side=LEFT, padx=3, pady=3)
         else:
-            self.xcontrol.frame.grid(row=0,column=0, padx=3,pady=3, sticky=W)
-            self.ycontrol.frame.grid(row=1,column=0, padx=3,pady=3)
-            self.mcontrols[0].frame.grid(row=0,column=1, columnspan=1,sticky=W,padx=3,pady=3)
-            self.mcontrols[1].frame.grid(row=1,column=1, columnspan=1,sticky=W,padx=3,pady=3)
-            self.exitbutton.grid(row=0,column=2, padx=3,pady=3)
-            self.collectbutton.grid(row=0,column=3, padx=3,pady=3)
+            self.xcontrol.frame.grid(row=0, column=0, padx=3, pady=3, sticky=W)
+            self.ycontrol.frame.grid(row=1, column=0, padx=3, pady=3)
+            self.mcontrols[0].frame.grid(
+                row=0, column=1, columnspan=1, sticky=W, padx=3, pady=3)
+            self.mcontrols[1].frame.grid(
+                row=1, column=1, columnspan=1, sticky=W, padx=3, pady=3)
+            self.exitbutton.grid(row=0, column=2, padx=3, pady=3)
+            self.collectbutton.grid(row=0, column=3, padx=3, pady=3)
 
         self.filler = Filler(self.frame)
 
@@ -2619,18 +2587,16 @@ class ProfileBrowser:
             self.windowmenu.button.pack(side=LEFT)
             self.helpbutton.pack(side=LEFT)
 
-            self.menubar.grid(column=0,columnspan=4, sticky=N+W+E)
+            self.menubar.grid(column=0, columnspan=4, sticky=N+W+E)
             self.gridmain()
 
-
         if 0:
-            self.display.frame.grid(row = 0, column = 0, sticky=N+W, padx=3,pady=3)
+            self.display.frame.grid(
+                row=0, column=0, sticky=N+W, padx=3, pady=3)
 
-            tf.frame.grid(row=0, column=1, sticky=S+E, padx=3,pady=3)
+            tf.frame.grid(row=0, column=1, sticky=S+E, padx=3, pady=3)
 
-            self.ctrlframe.grid(row=1,column=0, columnspan=2, sticky=W)
-
-
+            self.ctrlframe.grid(row=1, column=0, columnspan=2, sticky=W)
 
         frame.bind('<Map>', self.event_map)
 
@@ -2640,21 +2606,19 @@ class ProfileBrowser:
 
         d_t.frame.update_idletasks()
         d_t.setheight(max(self.display.frame.winfo_height(),
-                              tf.frame.winfo_height()))
-
-
+                          tf.frame.winfo_height()))
 
         d_t.frame.update_idletasks()
-        self.minsize = (500,400)
-        self.maxsize = (self.frame.winfo_screenwidth(), self.frame.winfo_screenheight())
+        self.minsize = (500, 400)
+        self.maxsize = (self.frame.winfo_screenwidth(),
+                        self.frame.winfo_screenheight())
         minsizes = {
             # (ctrl, disp, tab) : (width, height)
-            (0,0,0): (270, 25),
-            (1,0,0): (363, 61),
-            (0,1,0): (270, 131),
-            (1,1,0): (270, 131),
-            }
-
+            (0, 0, 0): (270, 25),
+            (1, 0, 0): (363, 61),
+            (0, 1, 0): (270, 131),
+            (1, 1, 0): (270, 131),
+        }
 
         self.setusergeometry()
 
@@ -2662,7 +2626,8 @@ class ProfileBrowser:
             self.tf.setchdim()
 
             rx = self.frame.winfo_rootx() + self.frame.winfo_width()
-            self.tf_wanted_margin =  rx - (self.tf.frame.winfo_rootx() +  self.tf.frame.winfo_width())
+            self.tf_wanted_margin = rx - \
+                (self.tf.frame.winfo_rootx() + self.tf.frame.winfo_width())
 
             self.lastw = self.frame.winfo_width()
             self.lasth = self.frame.winfo_height()
@@ -2671,7 +2636,7 @@ class ProfileBrowser:
             self.inited = 1
 
         initfinal()
-        #self.frame.after_idle(initfinal)
+        # self.frame.after_idle(initfinal)
 
     def cmd_about(self):
         self.cmd_help('about')
@@ -2684,9 +2649,9 @@ class ProfileBrowser:
             self.frame.update()
             m = self.mod.Text.gsltextviewer(
                 self.frame,
-                inpickle = getattr(self.mod.pbhelp, pickname)
-                #htmloutfile='/tmp/x.html',
-                )
+                inpickle=getattr(self.mod.pbhelp, pickname)
+                # htmloutfile='/tmp/x.html',
+            )
 
             self.app.add_window_frame(m)
         finally:
@@ -2699,8 +2664,8 @@ class ProfileBrowser:
         self.frame.destroy()
 
     def cmd_collect(self, *args):
-        #self.afterfunc()
-        #self.frame.after(1, self.afterfunc) # Turn on button first.??
+        # self.afterfunc()
+        # self.frame.after(1, self.afterfunc) # Turn on button first.??
 
         if self.collecting.get():
             self.event_collect()
@@ -2722,8 +2687,6 @@ class ProfileBrowser:
 
         self.id_collect = self.frame.after(1000, self.event_collect)
 
-
-
     def cmd_dt_moved(self, dx):
         # The division between display and table panes moved.
 
@@ -2743,7 +2706,7 @@ class ProfileBrowser:
 
         # Right margin between table and enclosing window
         # before resizing
-        mx =  rx - (self.tf.frame.winfo_rootx() +  self.tf.frame.winfo_width())
+        mx = rx - (self.tf.frame.winfo_rootx() + self.tf.frame.winfo_width())
 
         dx, _ = self.display.resize(dx, 0)
 
@@ -2769,13 +2732,13 @@ class ProfileBrowser:
 
     def cmd_open(self):
         op = tkinter.filedialog.Open(self.frame,
-                               # ? Should we have default extension or not??
-                               # defaultextension='.hpy',
-                               initialdir = self.initialdir,
-                               filetypes=[('Heapy data files','.hpy'),
-                                          ('All files', '*')
-                                          ]
-                               )
+                                     # ? Should we have default extension or not??
+                                     # defaultextension='.hpy',
+                                     initialdir=self.initialdir,
+                                     filetypes=[('Heapy data files', '.hpy'),
+                                                ('All files', '*')
+                                                ]
+                                     )
         filename = op.show()
         if filename:
             self.load_filename(filename)
@@ -2822,13 +2785,12 @@ class ProfileBrowser:
         # this works for all systems .. Notes  26 Oct 2005.
 
         self.frame.update()
-        g = '%dx%d+%d+%d'%(
+        g = '%dx%d+%d+%d' % (
             self.frame.winfo_width(),
             self.frame.winfo_height(),
             self.frame.winfo_rootx(),
             self.frame.winfo_rooty())
         self.frame.geometry(g)
-
 
     def modechooser(self, frame, name, choices, cmdvar, command):
 
@@ -2855,23 +2817,20 @@ class ProfileBrowser:
             var.set(ch[0])
             for a in ch:
                 menu.add_radiobutton(
-                    command = cmd,
-                    label = a,
+                    command=cmd,
+                    label=a,
                     value=a,
                     variable=var,
                     #font=('Courier','12', 'bold'),
                     #font=('Helvetica','12', 'bold'),
-                    columnbreak = (a == ch[0])
-                    )
+                    columnbreak=(a == ch[0])
+                )
 
         setcmdvar()
-
 
     def grid_things(self):
         ow = self.frame.winfo_width()
         oh = self.frame.winfo_height()
-
-
 
         self.ctrlframe.grid_forget()
         self.display.frame.grid_forget()
@@ -2885,14 +2844,14 @@ class ProfileBrowser:
         self.frame.update_idletasks()
         self.sizewidgets()
 
-
     def gridmain(self):
 
         row = 1
 
         c = self.var_showcontrol.get()
         if c:
-            self.ctrlframe.grid(row=row,column=0, columnspan=3, padx=3,pady=3,sticky=W)
+            self.ctrlframe.grid(row=row, column=0,
+                                columnspan=3, padx=3, pady=3, sticky=W)
             row += 1
 
         column = 0
@@ -2901,8 +2860,8 @@ class ProfileBrowser:
         t = self.var_showtable.get()
         gt = (g, t)
         if g:
-            self.display.frame.grid(row=0, column = column, sticky=N+W,
-                                    padx=3,pady=3
+            self.display.frame.grid(row=0, column=column, sticky=N+W,
+                                    padx=3, pady=3
                                     )
             column += 1
 
@@ -2910,25 +2869,21 @@ class ProfileBrowser:
             self.d_t.frame.grid(row=0, column=column, sticky=N+W)
             column += 1
         if t:
-            self.tf.frame.grid(row=0, column=column, sticky=N+W
-                               , padx=3,pady=3
+            self.tf.frame.grid(row=0, column=column, sticky=N+W, padx=3, pady=3
                                )
         if g or t:
             self.disptab.grid(row=row, column=0,
                               sticky=N+W,
-                              #padx=3,pady=3,
+                              # padx=3,pady=3,
                               )
             row += 1
         self.filler.setsize(0, 0)
-        self.filler.frame.grid(row=row,column=3, sticky=N+W)
+        self.filler.frame.grid(row=row, column=3, sticky=N+W)
 
         if 0 and not (g or t):
-            self.frame.resizable(0,0)
+            self.frame.resizable(0, 0)
         else:
-            self.frame.resizable(1,1)
-
-
-
+            self.frame.resizable(1, 1)
 
     def event_configure(self, event):
         if event.widget is not self.frame:
@@ -2962,7 +2917,6 @@ class ProfileBrowser:
         mbx = self.menubar.winfo_rootx()
         mby = self.menubar.winfo_rooty()
 
-
         sfs = []
         if self.var_showgraph.get():
             sfs.append(self.display)
@@ -2983,7 +2937,6 @@ class ProfileBrowser:
             dy = curh - ch - 7
             didh = didh or dy
             dys[sf] = dy
-
 
         if self.var_showtable.get():
             f = self.tf.frame
@@ -3012,25 +2965,21 @@ class ProfileBrowser:
                 self.d_t.setheight(max(self.display.frame.winfo_height(),
                                        self.tf.frame.winfo_height()))
 
-
-
             elif self.var_showgraph.get():
                 self.display.resize(fdw, dys[self.display])
             elif self.var_showtable.get():
                 self.tf.resize(fdw, dys[self.tf])
             else:
                 self.filler.resize(fdw, dys[self.filler])
-                self.filler.setsize(self.filler.getsize()[0],1000)
+                self.filler.setsize(self.filler.getsize()[0], 1000)
             if self.var_showgraph.get():
                 self.display.moveback()
 
         #self.resize(dw, dh)
 
-
     def resize(self, dw, dh):
         self.display.resize(dw, dh)
-        #self.frame.wm_geometry('')
-
+        # self.frame.wm_geometry('')
 
     def event_map(self, event):
         self.frame.unbind('<Map>')
@@ -3040,7 +2989,6 @@ class ProfileBrowser:
     def event_unmap(self, event):
         self.frame.unbind('<Unmap>')
         self.frame.bind('<Map>', self.event_map)
-
 
     def load_filename(self, filename):
         ocursor = self.frame.winfo_toplevel()['cursor']
@@ -3055,17 +3003,17 @@ class ProfileBrowser:
                 etype, value, tb = self.mod._root.sys.exc_info()
                 tkinter.messagebox.showerror(
                     master=self.frame,
-                    message = (
-                        "Error when loading\n%r:\n"%filename+
-                        "%s"%''.join(self.mod._root.traceback.format_exception_only(
+                    message=(
+                        "Error when loading\n%r:\n" % filename +
+                        "%s" % ''.join(self.mod._root.traceback.format_exception_only(
                             etype, value)))
-                    )
+                )
             else:
                 self.display.load_stats(self.stats)
 
                 for c in self.mcontrols:
                     c.setnumsamples(len(self.stats))
-                #self.scontrol.trackcommand(1)
+                # self.scontrol.trackcommand(1)
                 self.set_filename(filename)
 
                 self.xrange_fit()
@@ -3087,14 +3035,13 @@ class ProfileBrowser:
         if kind == '<Other>':
             return 'black'
         else:
-            return self.colors[abs(hash(kind))%len(self.colors)]
-
+            return self.colors[abs(hash(kind)) % len(self.colors)]
 
     def set_filename(self, filename):
         self.filename = filename
         if not filename:
             filename = '<No File>'
-        title = 'Heapy Profile Browser: %s'%filename
+        title = 'Heapy Profile Browser: %s' % filename
         self.window.title(title)
 
     def setnormpos(self):
@@ -3120,6 +3067,7 @@ class ProfileBrowser:
     def yrange_fit(self):
         self.display.yrange_auto(force=1)
 
+
 class _GLUECLAMP_:
     _imports_ = (
         '_parent:Use',
@@ -3131,8 +3079,7 @@ class _GLUECLAMP_:
         '_root.os:path',
         '_root:time',
         '_root.guppy.gsl:Text',
-        )
-
+    )
 
     def pb(self, filename=None):
         """pb( [filename: profilefilename+])
@@ -3153,7 +3100,6 @@ References
         pa = ProfileApp(self)
         pa.new_profile_browser(filename)
         pa.mainloop()
-
 
     def tpg(self):
         self('/tmp/x.hpy')

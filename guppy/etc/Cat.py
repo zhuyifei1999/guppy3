@@ -1,4 +1,5 @@
-#._cv_part guppy.etc.Cat
+# ._cv_part guppy.etc.Cat
+
 
 class Graph:
     def __init__(self, objects, arrows):
@@ -11,11 +12,12 @@ class Graph:
     def target(self, x):
         return self.arrows[x][1]
 
-
     def get_dual(self):
         objects = self.objects
-        arrows = dict([(arrow, (tgt, src)) for (arrow, (src, tgt)) in list(self.arrows.items())])
+        arrows = dict([(arrow, (tgt, src))
+                       for (arrow, (src, tgt)) in list(self.arrows.items())])
         return self.__class__(objects, arrows)
+
 
 class Cat:
     # Category presented by a graph (with objects and generators) and relations.
@@ -34,11 +36,12 @@ class Cat:
 
 
 class Functor:
-    def __init__(self, fo, fa, src = None, tgt = None):
+    def __init__(self, fo, fa, src=None, tgt=None):
         self.fo = adapt_function(fo)
         self.fa = adapt_function(fa)
         self.src = src
         self.tgt = tgt
+
 
 class Function:
     def __init__(self, map, src, tgt):
@@ -48,13 +51,14 @@ class Function:
         else:
             f = map
             if not callable(f):
-                raise TypeError('Function: map is neither callable or indexable')
+                raise TypeError(
+                    'Function: map is neither callable or indexable')
         self.__getitem__ = self.__call__ = f
         self.src = src
         self.tgt = tgt
 
     def __str__(self):
-        return '%s(%s, %s, %s)'%(self.__class__, self.src, self.tgt, self.__call__)
+        return '%s(%s, %s, %s)' % (self.__class__, self.src, self.tgt, self.__call__)
 
     def asdict(self):
         return dict([(x, self[x]) for x in self.src])
@@ -71,7 +75,8 @@ class Function:
 
 class Identity(Function):
     def __init__(self, src):
-        Function.__init__(lambda x:x, src, src)
+        Function.__init__(lambda x: x, src, src)
+
 
 def check_graph(G):
     # Check that G is a valid graph object
@@ -80,9 +85,12 @@ def check_graph(G):
     Gob = G.objects
     for a in G.arrows:
         if not G.source(a) in Gob:
-            raise ValueError('Arrow %r has source %r not in graph objects'%(a, G.source(a)))
+            raise ValueError(
+                'Arrow %r has source %r not in graph objects' % (a, G.source(a)))
         if not G.target(a) in Gob:
-            raise ValueError('Arrow %r has target %r not in graph objects'%(a, G.target(a)))
+            raise ValueError(
+                'Arrow %r has target %r not in graph objects' % (a, G.target(a)))
+
 
 def check_rules(R, G):
     # Check that the rules in R contain valid composing arrows in graph G
@@ -96,12 +104,13 @@ def check_rules(R, G):
         a0 = None
         for a in com:
             if a not in G.arrows:
-                raise ValueError('Arrow %r, used in a rule, is not a valid arrow'%(a,))
+                raise ValueError(
+                    'Arrow %r, used in a rule, is not a valid arrow' % (a,))
             if a0 is not None:
                 if G.source(a) != G.target(a0):
                     raise ValueError('''\
-Source of arrow %r (%r) does not match target of arrow %r (%r)'''%(
-                a, G.source(a), a0, G.target(a0)))
+Source of arrow %r (%r) does not match target of arrow %r (%r)''' % (
+                        a, G.source(a), a0, G.target(a0)))
             a0 = a
 
 
@@ -113,6 +122,7 @@ def check_cat(C):
 def oarcat(objects, arrows, relations):
     return Cat(Graph(objects, arrows), relations)
 
+
 def adapt_function(f):
     if not isinstance(f, Function):
         if isinstance(f, dict):
@@ -123,6 +133,7 @@ def adapt_function(f):
             tgt = None
         f = Function(f, src, tgt)
     return f
+
 
 def dual_relations(relations):
     dual = []

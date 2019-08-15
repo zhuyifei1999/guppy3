@@ -1,10 +1,12 @@
-#._cv_part guppy.etc.RE
+# ._cv_part guppy.etc.RE
 
 from guppy.etc.RE_Rect import chooserects
 from guppy.etc.IterPermute import iterpermute
 
+
 class InfiniteError(Exception):
     pass
+
 
 class WordsMemo:
     def __init__(self, re, ch):
@@ -19,7 +21,6 @@ class WordsMemo:
             self.xs[N] = self.re.get_words_of_length_memoized(N, self)
         return self.xs[N]
 
-
     def get_words_of_length_upto(self, N):
         # Return all words of length up to N, in the form
         # [(0, <list of words of length 0>),
@@ -32,7 +33,9 @@ class WordsMemo:
                 xsu.append((i, xs))
         return xsu
 
+
 REBASE = tuple
+
 
 class RE(REBASE):
     # Regular expression nodes
@@ -58,6 +61,7 @@ class RE(REBASE):
     #   x('?')          x?
 
     _re_special = r'.^$*+?{}\[]|()'
+
     def __add__(a, b):
         if isinstance(b, RE):
             return concat(a, b)
@@ -72,7 +76,8 @@ class RE(REBASE):
                 return PositiveClosure(a)
             elif args == ('?',):
                 return EpsilonOrOne(a)
-        raise ValueError("Argument to regular expression must be '*' or '+' or '?'")
+        raise ValueError(
+            "Argument to regular expression must be '*' or '+' or '?'")
 
     def __eq__(a, b):
         return (a._name == b._name and
@@ -120,7 +125,7 @@ class RE(REBASE):
         return self.mappedrepr(regexpname)
 
     def reversed(self):
-        return self.mapchildren(lambda x:x.reversed())
+        return self.mapchildren(lambda x: x.reversed())
 
     def rempretup(self):
         def f(x):
@@ -142,6 +147,7 @@ class RE(REBASE):
     def sequni(self):
         d = {}
         us = []
+
         def ap(x):
             if x not in d:
                 d[x] = 1
@@ -149,7 +155,7 @@ class RE(REBASE):
         self.apseq(ap)
         return Union(*us)
 
-    def shform(self, conc = ' '):
+    def shform(self, conc=' '):
         r = self.mappedrepr(regexpname)
         if conc != ' ':
             r = conc.join(r.split(' '))
@@ -182,6 +188,7 @@ def regexpname(s):
 def re_compare(a, b):
     return a.__cmp__(b)
 
+
 class Seq(RE):
     _priority = 0
     _name = 'Seq'
@@ -192,7 +199,7 @@ class Seq(RE):
         return REBASE.__new__(clas, symbols)
 
     def __repr__(self):
-        return '%s(%s)'%(self.__class__.__name__, ', '.join(['%r'%(x,) for x in self]))
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(['%r' % (x,) for x in self]))
 
     def __hash__(self):
         return hash(repr(self))
@@ -231,7 +238,7 @@ class Seq(RE):
     def mappedrepr(self, f):
         if not self:
             return f('')
-        return ' '.join(['%s'%(f(x),) for x in self])
+        return ' '.join(['%s' % (f(x),) for x in self])
 
     def reversed(self):
         r = list(self)
@@ -241,10 +248,13 @@ class Seq(RE):
     def unionsplitted(self):
         return [self]
 
+
 def Single(symbol):
     return REBASE.__new__(Seq, (symbol,))
 
+
 Epsilon = REBASE.__new__(Seq, ())
+
 
 def concat(*args):
     args = [x for x in args if x is not Epsilon]
@@ -270,9 +280,9 @@ class Concatenation(RE):
     def __repr__(self):
         rs = []
         for ch in self:
-            r = '%r'%(ch,)
+            r = '%r' % (ch,)
             if ch._priority > self._priority:
-                r = '(%s)'%(r,)
+                r = '(%s)' % (r,)
             rs.append(r)
         return ' + '.join(rs)
 
@@ -324,7 +334,6 @@ class Concatenation(RE):
         ads([], 0, 0)
         return xs
 
-
     def limited(self, N):
         return Concatenation(*[x.limited(N) for x in self])
 
@@ -333,7 +342,7 @@ class Concatenation(RE):
         for ch in self:
             r = ch.mappedrepr(f)
             if ch._priority > self._priority:
-                r = '(%s)'%(r,)
+                r = '(%s)' % (r,)
             rs.append(r)
         return ' '.join(rs)
 
@@ -370,7 +379,7 @@ class Concatenation(RE):
                 xs.append(us[ix])
                 i0 = i + 1
             xs.extend(ch[i0:])
-            runs.append( concat(*xs) )
+            runs.append(concat(*xs))
 
             j = 0
             for j, ix in enumerate(ixs):
@@ -401,7 +410,7 @@ def conclosure(conc):
     for w in conc:
         if w0 is not None:
             if (w._name == '*' and      # Not isinstance(KleeneClosure), would catch PositiveClosure
-                w[0] == w0):
+                    w[0] == w0):
                 w = PositiveClosure(w0)
             elif (w0._name == '*' and
                   w0[0] == w):
@@ -449,11 +458,12 @@ def simple_Concatenation(conc):
     else:
         return Epsilon
 
+
 gauges = [
     lambda x:x.get_num_syms(),
     lambda x:x.get_num_closures(),
     lambda x:x.get_sum_sym_lengths()
-    ]
+]
 
 
 def simpleunion(lines, trace=''):
@@ -502,7 +512,6 @@ def simpleunion(lines, trace=''):
     return u
 
 
-
 class Union(RE):
     _priority = 3
     _name = 'Union'
@@ -513,9 +522,9 @@ class Union(RE):
     def __repr__(self):
         rs = []
         for ch in self:
-            r = '%r'%(ch,)
+            r = '%r' % (ch,)
             if ch._priority > self._priority:
-                r = '(%s)'%r
+                r = '(%s)' % r
             rs.append(r)
         return ' | '.join(rs)
 
@@ -547,9 +556,9 @@ class Union(RE):
     def mappedrepr(self, f):
         rs = []
         for ch in self:
-            r = '%s'%(ch.mappedrepr(f),)
+            r = '%s' % (ch.mappedrepr(f),)
             if ch._priority > self._priority:
-                r = '(%s)'%r
+                r = '(%s)' % r
             rs.append(r)
         return ' | '.join(rs)
 
@@ -570,9 +579,11 @@ class Union(RE):
             us.extend(list(x.unionsplitted()))
         return us
 
+
 class SimplifiedUnion(Union):
     def simplified(self, *a, **k):
         return self
+
 
 class Called(RE):
     _priority = 1
@@ -582,10 +593,10 @@ class Called(RE):
 
     def __repr__(self):
         ch = self[0]
-        r = '%r'%(ch,)
+        r = '%r' % (ch,)
         if ch._priority > self._priority:
-            r = '(%s)'%r
-        return "%s(%r)"%(r, self._name)
+            r = '(%s)' % r
+        return "%s(%r)" % (r, self._name)
 
     def apseqatoms(self, ap):
         ap(self)
@@ -597,12 +608,13 @@ class Called(RE):
         ch = self[0]
         r = ch.mappedrepr(f)
         if (ch._priority > self._priority
-            or isinstance(ch, Seq) and len(ch) > 1):
-            r = '(%s)'%r
-        return "%s%s"%(r, self._name)
+                or isinstance(ch, Seq) and len(ch) > 1):
+            r = '(%s)' % r
+        return "%s%s" % (r, self._name)
 
     def simplified(self, *a, **k):
         return self.__class__(self[0].simplified(*a, **k))
+
 
 class Closure(Called):
     def get_words_of_length_memoized(self, N, memo):
@@ -630,11 +642,13 @@ class Closure(Called):
     def unionsplitted(self):
         return [self]
 
+
 class KleeneClosure(Closure):
     _name = '*'
 
     def apseq(self, ap):
-        raise InfiniteError('apseq: Regular expression is infinite: contains a Kleene Closure')
+        raise InfiniteError(
+            'apseq: Regular expression is infinite: contains a Kleene Closure')
 
     def limited(self, N):
         if N == 0:
@@ -656,11 +670,13 @@ def simple_KleeneClosure(x):
         return simple_KleeneClosure(x[0])
     return KleeneClosure(x)
 
+
 class PositiveClosure(Closure):
     _name = '+'
 
     def apseq(self, ap):
-        raise InfiniteError('apseq: Regular expression is infinite: contains a Positive Closure')
+        raise InfiniteError(
+            'apseq: Regular expression is infinite: contains a Positive Closure')
 
     def apseqatoms(self, ap):
         self[0].apseqatoms(ap)
@@ -701,6 +717,7 @@ class EpsilonOrOne(Called):
     def unionsplitted(self):
         return [Epsilon] + list(self[0].unionsplitted())
 
+
 def simple_EpsilonOrOne(x):
     # (a+)? -> a*
 
@@ -712,6 +729,7 @@ def simple_EpsilonOrOne(x):
         return x
 
     return EpsilonOrOne(x)
+
 
 class RegularSystem:
 
@@ -733,7 +751,7 @@ class RegularSystem:
         def transname(trans):
             name = trans.simulform()
             if trans._priority > 1:
-                name = '(%s)'%(name,)
+                name = '(%s)' % (name,)
             return name
 
         self.setup_names()
@@ -745,12 +763,12 @@ class RegularSystem:
         for Xk in xs:
             if Xk not in X:
                 continue
-            print('%3s = '%(statename(Xk),), end=' ')
+            print('%3s = ' % (statename(Xk),), end=' ')
             Tk = X[Xk]
             es = []
             for Xj in xs:
                 if Xj in Tk:
-                    es.append('%s %s'%(transname(Tk[Xj]), statename(Xj)))
+                    es.append('%s %s' % (transname(Tk[Xj]), statename(Xj)))
             if es:
                 print(' | '.join(es))
             else:
@@ -760,7 +778,7 @@ class RegularSystem:
         table = self.table
         final_states = self.final_states
         Final = self.Final
-        self.X = X = {Final:{}}
+        self.X = X = {Final: {}}
         for Xi, transitions in list(table.items()):
             X[Xi] = Ti = {}
             for (symbol, Xj) in list(transitions.items()):
@@ -778,7 +796,7 @@ class RegularSystem:
     def setup_order(self):
         def dists(X, start):
             i = 0
-            S = {start:i}
+            S = {start: i}
             news = [start]
             while news:
                 oldnews = news
@@ -798,6 +816,7 @@ class RegularSystem:
 
         def sumt(f):
             memo = {}
+
             def g(x):
                 if x in memo:
                     return memo[x]
@@ -815,13 +834,14 @@ class RegularSystem:
             if x is y:
                 return 0
 
-            c = cmp(len(X[y]), len(X[x])) # Equations with more terms are resolved later
+            # Equations with more terms are resolved later
+            c = cmp(len(X[y]), len(X[x]))
             if c:
                 return c
 
             # The equations with terms more distant from start node will be resolved earlier
             i = 0
-            while i < 10: # 4 was enough with tests so far at Feb 24 2005
+            while i < 10:  # 4 was enough with tests so far at Feb 24 2005
                 try:
                     f = sumdists[i]
                 except:
@@ -832,7 +852,7 @@ class RegularSystem:
                     return c
                 i += 1
 
-            #pdb.set_trace()
+            # pdb.set_trace()
             return cmp(x, y)
 
         sumdists = [start_distance]
@@ -853,9 +873,8 @@ class RegularSystem:
         self.names[self.Start] = 'X0'
 
         for i, s in enumerate(self.order):
-            self.names[s] = 'X%d'%(i+1)
+            self.names[s] = 'X%d' % (i+1)
         self.names[self.Final] = 'Final'
-
 
     def solve(self):
         # Set up equation system
@@ -894,7 +913,6 @@ class RegularSystem:
                     Bki = AkkStar + Aki
                     Tk[Xi] = Bki
 
-
             # Substitute Xk in each other equation in X
             # containing Xk, except eqv. Xk itself, which will not be used any more..
 
@@ -917,7 +935,9 @@ class RegularSystem:
 
         return X[Start][Final]
 
+
 Nothing = Union()
+
 
 def SolveFSA(fsa):
     RS = RegularSystem(fsa.table, fsa.start_state, fsa.final_states)

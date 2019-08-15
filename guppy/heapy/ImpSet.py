@@ -1,4 +1,5 @@
-#._cv_part guppy.heapy.ImpSet
+# ._cv_part guppy.heapy.ImpSet
+
 
 class _GLUECLAMP_:
     _imports_ = (
@@ -13,7 +14,7 @@ class _GLUECLAMP_:
         '_root.guppy.sets:immbitrange',
         '_root.guppy.sets:immbitset',
         '_root.guppy.sets:mutbitset',
-        )
+    )
 
     def _get_emptynodeset(self):
         return self.immnodeset()

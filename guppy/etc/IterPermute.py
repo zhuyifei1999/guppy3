@@ -1,5 +1,6 @@
 from functools import reduce
-#._cv_part guppy.etc.IterPermute
+# ._cv_part guppy.etc.IterPermute
+
 
 def iterpermute(*args):
     args = [iter(a) for a in args]
@@ -13,7 +14,7 @@ def iterpermute(*args):
         anynew = 0
         for i in range(la):
             if stopped[i]:
-                next = bufs[i][n%lens[i]]
+                next = bufs[i][n % lens[i]]
             else:
                 try:
                     next = next(args[i])
@@ -22,7 +23,7 @@ def iterpermute(*args):
                         # raise ValueError, 'The iterator passed in arg %d did not return any item'%i
                         return
                     stopped[i] = 1
-                    next = bufs[i][n%lens[i]]
+                    next = bufs[i][n % lens[i]]
                 else:
                     anynew = 1
                     bufs[i].append(next)
@@ -39,10 +40,10 @@ def iterpermute(*args):
         assert n == wanted
         return
     ixs = list(enumerate(lens))
-    ixs.sort(lambda (ixa, lna), (ixb, lnb) : cmp(lna, lnb))
-    ixs = [ix for (ix,ln) in ixs]
+    ixs.sort(lambda (ixa, lna), (ixb, lnb): cmp(lna, lnb))
+    ixs = [ix for (ix, ln) in ixs]
     jxs = [0] * la
-    seen = dict([(tuple([j%lens[i] for i in ixs]), 1)
+    seen = dict([(tuple([j % lens[i] for i in ixs]), 1)
                  for j in range(n)])
 
     while n < wanted:
@@ -53,11 +54,10 @@ def iterpermute(*args):
 
         for i in ixs:
             j = jxs[i]
-            j = (j + 1)%lens[i]
+            j = (j + 1) % lens[i]
             jxs[i] = j
             if j != 0:
                 break
-
 
 
 def test_iterpermute():
@@ -65,11 +65,13 @@ def test_iterpermute():
     repeat = itertools.repeat
     assert list(iterpermute()) == [()]
     assert list(iterpermute(repeat(1, 2))) == [(1,), (1,)]
-    assert list(iterpermute(repeat(1, 1), repeat(2, 1))) == [(1,2)]
-    assert list(iterpermute(list(range(0,2)), list(range(2,3)))) == [(0, 2), (1, 2)]
-    assert list(iterpermute(list(range(0,2)), list(range(2,4)))) == [(0, 2), (1, 3), (1, 2), (0, 3)]
-    print(list(iterpermute(list(range(0,2)), list(range(0,3)))))
-    print(list(iterpermute(list(range(0,3)), list(range(0,2)))))
+    assert list(iterpermute(repeat(1, 1), repeat(2, 1))) == [(1, 2)]
+    assert list(iterpermute(list(range(0, 2)), list(range(2, 3)))) == [
+        (0, 2), (1, 2)]
+    assert list(iterpermute(list(range(0, 2)), list(range(2, 4)))) == [
+        (0, 2), (1, 3), (1, 2), (0, 3)]
+    print(list(iterpermute(list(range(0, 2)), list(range(0, 3)))))
+    print(list(iterpermute(list(range(0, 3)), list(range(0, 2)))))
 
 
 if __name__ == '__main__':
