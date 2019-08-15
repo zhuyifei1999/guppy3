@@ -39,8 +39,8 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj) {
 }
 
 int NyNodeSet_iterate(NyNodeSetObject *ns,
-		      int (*visit)(PyObject *, void *),
-		      void *arg) {
+                      int (*visit)(PyObject *, void *),
+                      void *arg) {
     return NODESET_EXPORTS->iterate(ns, visit, arg);;
 }
 
@@ -61,14 +61,12 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp) {
 }
 
 static int
-import_sets(void) 
+import_sets(void)
 {
     if (!nodeset_exports) {
-	nodeset_exports= PyCObject_Import("guppy.sets.setsc",
-					  "NyNodeSet_Exports");
-	if (!nodeset_exports)
-	  return -1;
+        nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
+        if (!nodeset_exports)
+            return -1;
     }
     return 0;
 }
-

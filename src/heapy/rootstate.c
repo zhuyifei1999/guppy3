@@ -104,9 +104,9 @@ char rootstate_doc[] =
 
 
 #if PY_VERSION_HEX >= 0x020303f0
-#define THREAD_ID(ts)	(ts->thread_id)
+#define THREAD_ID(ts)    (ts->thread_id)
 #else
-#define THREAD_ID(ts)	((unsigned long)(ts))
+#define THREAD_ID(ts)    ((unsigned long)(ts))
 #endif
 
 
@@ -114,78 +114,80 @@ char rootstate_doc[] =
 static PyObject *
 rootstate_repr(PyObject *op)
 {
-	return PyString_FromString("RootState");
+    return PyUnicode_FromString("RootState");
 }
 
 static void
 rootstate_dealloc(void *arg)
 {
-	/* This should never get called, but we also don't want to SEGV if
-	 * we accidently decref RootState out of existance.
-	 */
-	abort();
+    /* This should never get called, but we also don't want to SEGV if
+     * we accidently decref RootState out of existance.
+     */
+    abort();
 }
 
 
 
 #define MEMBER(name) {#name, T_OBJECT, offsetof(PyInterpreterState, name)}
 
-static struct memberlist is_members[] = {
+static struct PyMemberDef is_members[] = {
     MEMBER(modules),
     MEMBER(sysdict),
     MEMBER(builtins),
-#if PY_VERSION_HEX >= 0x020303f0
     MEMBER(codec_search_path),
     MEMBER(codec_search_cache),
     MEMBER(codec_error_registry),
-#endif	
-    {NULL} /* Sentinel */
+    {0} /* Sentinel */
 };
 
 #undef MEMBER
 
 #define MEMBER(name) {#name, T_OBJECT, offsetof(PyThreadState, name)}
 
-static struct memberlist ts_members[] = {
+static struct PyMemberDef ts_members[] = {
     MEMBER(frame),
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
     MEMBER(curexc_type),
     MEMBER(curexc_value),
     MEMBER(curexc_traceback),
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+    MEMBER(exc_state.exc_type),
+    MEMBER(exc_state.exc_value),
+    MEMBER(exc_state.exc_traceback),
+#else
     MEMBER(exc_type),
     MEMBER(exc_value),
     MEMBER(exc_traceback),
-    MEMBER(dict),
-#if PY_VERSION_HEX >= 0x020303f0
-    MEMBER(async_exc),
 #endif
-    {NULL} /* Sentinel */
+    MEMBER(dict),
+    MEMBER(async_exc),
+    {0} /* Sentinel */
 };
 
 #undef MEMBER
 
 
-#define VISIT(SLOT) \
-	if (SLOT) { \
-		err = visit((PyObject *)(SLOT), arg); \
-		if (err) \
-			return err; \
-	}
+#define VISIT(SLOT)                           \
+    if (SLOT) {                               \
+        err = visit((PyObject *)(SLOT), arg); \
+        if (err)                              \
+            return err;                       \
+    }
 
-#define ISATTR(name) \
-	if ((PyObject *)is->name == r->tgt) { \
-	    sprintf(buf, "i%d_%s", isno, #name); \
-	    if (r->visit(NYHR_ATTRIBUTE, PyString_FromString(buf), r)) \
-	        return 1; \
-	}
+#define ISATTR(name)                                                \
+    if ((PyObject *)is->name == r->tgt) {                           \
+        sprintf(buf, "i%d_%s", isno, #name);                        \
+        if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(buf), r)) \
+            return 1;                                               \
+    }
 
-#define TSATTR(v, name) \
-	if ((PyObject *)v->name == r->tgt) { \
-	        sprintf(buf,"t%lu_%s", THREAD_ID(ts), #name); \
-		if (r->visit(NYHR_ATTRIBUTE, PyString_FromString(buf), r)) \
-			return 1; \
-	}
+#define TSATTR(v, name)                                             \
+    if ((PyObject *)v->name == r->tgt) {                            \
+        sprintf(buf,"t%lu_%s", THREAD_ID(ts), #name);               \
+        if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(buf), r)) \
+            return 1;                                               \
+    }
 
 
 static int
@@ -197,55 +199,55 @@ rootstate_relate(NyHeapRelate *r)
     int isframe = PyFrame_Check(r->tgt);
     int isno;
     for (is = PyInterpreterState_Head(), isno = 0;
-	 is;
-	 is = PyInterpreterState_Next(is), isno++)
-      ;
+         is;
+         is = PyInterpreterState_Next(is), isno++);
     for (is = PyInterpreterState_Head(), isno--;
-	 is;
-	 is = PyInterpreterState_Next(is), isno--) {
-	char buf[100];
-	ISATTR(modules);
-	ISATTR(sysdict);
-	ISATTR(builtins);
-#if PY_VERSION_HEX >= 0x020303f0
-	ISATTR(codec_search_path);
-	ISATTR(codec_search_cache);
-	ISATTR(codec_error_registry);
-#endif	
+         is;
+         is = PyInterpreterState_Next(is), isno--) {
+        char buf[100];
+        ISATTR(modules);
+        ISATTR(sysdict);
+        ISATTR(builtins);
+        ISATTR(codec_search_path);
+        ISATTR(codec_search_cache);
+        ISATTR(codec_error_registry);
 
-	for (ts = is->tstate_head; ts; ts = ts->next) {
-	    if ((ts == bts && r->tgt == hv->limitframe) ||
-		(!hv->limitframe && isframe)) {
-		int frameno = -1;
-		int numframes = 0;
-		PyFrameObject *frame;
-		for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-		    numframes ++;
-		    if (r->tgt == (PyObject *)frame)
-		      frameno = numframes;
-		}
-		if (frameno != -1) {
-		    frameno = numframes - frameno;
-		    sprintf(buf,"t%lu_f%d", THREAD_ID(ts), frameno);
-		    if (r->visit(NYHR_ATTRIBUTE, PyString_FromString(buf), r))
-		      return 1;
-		}
-	    }
-	    TSATTR(ts, c_profileobj);
-	    TSATTR(ts, c_traceobj);
-	    TSATTR(ts, curexc_type);
-	    TSATTR(ts, curexc_value);
-	    TSATTR(ts, curexc_traceback);
-	    TSATTR(ts, exc_type);
-	    TSATTR(ts, exc_value);
-	    TSATTR(ts, exc_traceback);
-	    
-	    TSATTR(ts, dict);
-#if PY_VERSION_HEX >= 0x020303f0
-	    TSATTR(ts, async_exc);
+        for (ts = is->tstate_head; ts; ts = ts->next) {
+            if ((ts == bts && r->tgt == hv->limitframe) ||
+                (!hv->limitframe && isframe)) {
+                int frameno = -1;
+                int numframes = 0;
+                PyFrameObject *frame;
+                for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
+                    numframes ++;
+                    if (r->tgt == (PyObject *)frame)
+                        frameno = numframes;
+                }
+                if (frameno != -1) {
+                    frameno = numframes - frameno;
+                    sprintf(buf,"t%lu_f%d", THREAD_ID(ts), frameno);
+                    if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(buf), r))
+                        return 1;
+                }
+            }
+            TSATTR(ts, c_profileobj);
+            TSATTR(ts, c_traceobj);
+            TSATTR(ts, curexc_type);
+            TSATTR(ts, curexc_value);
+            TSATTR(ts, curexc_traceback);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+            TSATTR(ts, exc_state.exc_type);
+            TSATTR(ts, exc_state.exc_value);
+            TSATTR(ts, exc_state.exc_traceback);
+#else
+            TSATTR(ts, exc_type);
+            TSATTR(ts, exc_value);
+            TSATTR(ts, exc_traceback);
 #endif
-	      
-	}
+            TSATTR(ts, dict);
+            TSATTR(ts, async_exc);
+
+        }
     }
     return 0;
 }
@@ -262,116 +264,130 @@ rootstate_traverse(NyHeapTraverse *ta)
     int err;
 
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
-	if (hv->is_hiding_calling_interpreter && is == bts->interp)
-	  continue;
-	VISIT(is->modules);
-	VISIT(is->sysdict);
-	VISIT(is->builtins);
-	
-#if PY_VERSION_HEX >= 0x020303f0
-	VISIT(is->codec_search_path);
-	VISIT(is->codec_search_cache);
-	VISIT(is->codec_error_registry);
-#endif	
-	
-	for (ts = is->tstate_head; ts; ts = ts->next) {
-	    if (ts == bts && hv->limitframe) {
-		VISIT(hv->limitframe);
-	    } else if (!hv->limitframe) {
-		VISIT(ts->frame);
-	    }
-	    VISIT(ts->c_profileobj);
-	    VISIT(ts->c_traceobj);
-	    VISIT(ts->curexc_type);
-	    VISIT(ts->curexc_value);
-	    VISIT(ts->curexc_traceback);
-	    VISIT(ts->exc_type);
-	    VISIT(ts->exc_value);
-	    VISIT(ts->exc_traceback);
-	    
-	    VISIT(ts->dict);
+        if (hv->is_hiding_calling_interpreter && is == bts->interp)
+            continue;
+        VISIT(is->modules);
+        VISIT(is->sysdict);
+        VISIT(is->builtins);
 
 #if PY_VERSION_HEX >= 0x020303f0
-	    VISIT(ts->async_exc);
-#endif	    
+        VISIT(is->codec_search_path);
+        VISIT(is->codec_search_cache);
+        VISIT(is->codec_error_registry);
+#endif
 
-	      
-	}
+        for (ts = is->tstate_head; ts; ts = ts->next) {
+            if (ts == bts && hv->limitframe) {
+                VISIT(hv->limitframe);
+            } else if (!hv->limitframe) {
+                VISIT(ts->frame);
+            }
+            VISIT(ts->c_profileobj);
+            VISIT(ts->c_traceobj);
+            VISIT(ts->curexc_type);
+            VISIT(ts->curexc_value);
+            VISIT(ts->curexc_traceback);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+            VISIT(ts->exc_state.exc_type);
+            VISIT(ts->exc_state.exc_value);
+            VISIT(ts->exc_state.exc_traceback);
+#else
+            VISIT(ts->exc_type);
+            VISIT(ts->exc_value);
+            VISIT(ts->exc_traceback);
+#endif
+            VISIT(ts->dict);
+            VISIT(ts->async_exc);
+        }
     }
     return 0;
+}
+
+// Ported from py2
+static PyObject *
+_shim_PyMember_Get(const char *addr, struct PyMemberDef *mlist, const char *name)
+{
+    struct PyMemberDef *l;
+
+    for (l = mlist; l->name != NULL; l++) {
+        if (strcmp(l->name, name) == 0) {
+            return PyMember_GetOne(addr, l);
+        }
+    }
+    PyErr_SetString(PyExc_AttributeError, name);
+    return NULL;
 }
 
 
 static PyObject *
 rootstate_getattr(PyObject *obj, PyObject *name)
 {
-    char *s = PyString_AsString(name);
+    const char *s = PyUnicode_AsUTF8(name);
     PyInterpreterState *is;
     int ino;
     unsigned long tno;
     char buf[100];
     if (!s)
-      return 0;
+        return 0;
     if (sscanf(s, "i%d_%50s", &ino, buf) == 2) {
-	int countis;
-	int numis;
-	for (is = PyInterpreterState_Head(), numis = 0;
-	     is;
-	     is = PyInterpreterState_Next(is), numis++)
-	  ;
-	for (is = PyInterpreterState_Head(), countis = 0;
-	     is;
-	     is = PyInterpreterState_Next(is), countis++) {
-	    int isno = numis - countis - 1;
-	    if (isno == ino) {
-		PyObject *ret = PyMember_Get((char *)is, is_members, buf);
-		if (!ret)
-		  PyErr_Format(PyExc_AttributeError,
-			       "interpreter state has no attribute '%s'",
-			       buf);
-		return ret;
-	    }
-	}
-	PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
-	return 0;
+        int countis;
+        int numis;
+        for (is = PyInterpreterState_Head(), numis = 0;
+             is;
+             is = PyInterpreterState_Next(is), numis++);
+        for (is = PyInterpreterState_Head(), countis = 0;
+             is;
+             is = PyInterpreterState_Next(is), countis++) {
+            int isno = numis - countis - 1;
+            if (isno == ino) {
+                PyObject *ret = _shim_PyMember_Get((char *)is, is_members, buf);
+                if (!ret)
+                    PyErr_Format(PyExc_AttributeError,
+                                 "interpreter state has no attribute '%s'",
+                                 buf);
+                return ret;
+            }
+        }
+        PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
+        return 0;
     }
     if (sscanf(s, "t%lu_%50s", &tno, buf) == 2) {
-	for (is = PyInterpreterState_Head();
-	     is;
-	     is = PyInterpreterState_Next(is)) {
-	    PyThreadState *ts;
-	    for (ts = is->tstate_head; ts; ts = ts->next) {
-		if (THREAD_ID(ts) == tno) {
-		    int frameno = 0;
-		    if (sscanf(buf, "f%d", &frameno) == 1) {
-			PyFrameObject *frame;
-			int numframes = 0;
-			for (frame = ts->frame; frame; frame = frame->f_back) {
-			    numframes ++;
-			}
-			for (frame = ts->frame; frame; frame = frame->f_back) {
-			    numframes --;
-			    if (numframes == frameno) {
-				Py_INCREF(frame);
-				return (PyObject *)frame;
-			    }
-			}
-			PyErr_Format(PyExc_AttributeError,
-				     "thread state has no frame numbered %d from bottom",
-				     frameno);
-			return 0;
-		    } else {
-			PyObject *ret = PyMember_Get((char *)ts, ts_members, buf);
-			if (!ret)
-			  PyErr_Format(PyExc_AttributeError,
-				       "thread state has no attribute '%s'",
-				       buf);
-			return ret;
-		    }
-		}
-	    }
-	}
-		
+        for (is = PyInterpreterState_Head();
+             is;
+             is = PyInterpreterState_Next(is)) {
+            PyThreadState *ts;
+            for (ts = is->tstate_head; ts; ts = ts->next) {
+                if (THREAD_ID(ts) == tno) {
+                    int frameno = 0;
+                    if (sscanf(buf, "f%d", &frameno) == 1) {
+                        PyFrameObject *frame;
+                        int numframes = 0;
+                        for (frame = ts->frame; frame; frame = frame->f_back) {
+                            numframes ++;
+                        }
+                        for (frame = ts->frame; frame; frame = frame->f_back) {
+                            numframes --;
+                            if (numframes == frameno) {
+                                Py_INCREF(frame);
+                                return (PyObject *)frame;
+                            }
+                        }
+                        PyErr_Format(PyExc_AttributeError,
+                                     "thread state has no frame numbered %d from bottom",
+                                     frameno);
+                        return 0;
+                    } else {
+                        PyObject *ret = _shim_PyMember_Get((char *)ts, ts_members, buf);
+                        if (!ret)
+                            PyErr_Format(PyExc_AttributeError,
+                                         "thread state has no attribute '%s'",
+                                         buf);
+                        return ret;
+                    }
+                }
+            }
+        }
+
     }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute '%.200s'", s);
     return 0;
@@ -387,51 +403,20 @@ rootstate_gc_traverse(PyObject *self, visitproc visit, void *arg)
 
 
 PyTypeObject NyRootState_Type = {
-	PyObject_HEAD_INIT(NULL)
-	0,					/* ob_size */
-	"guppy.heapy.heapyc.RootStateType",	/* tp_name */
-	sizeof(PyObject),			/* tp_basicsize */
-	0,					/* tp_itemsize */
-	/* methods */
-	(destructor)rootstate_dealloc,	/* tp_dealloc */
-	0,					/* tp_print */
-	0,					/* tp_getattr */
-	0,					/* tp_setattr */
-	0,					/* tp_compare */
-	rootstate_repr,				/* tp_repr */
-	0,					/* tp_as_number */
-	0,					/* tp_as_sequence */
-	0,					/* tp_as_mapping */
-	(hashfunc)0,				/* tp_hash */
-	0,					/* tp_call */
-	0,					/* tp_str */
-	rootstate_getattr,			/* tp_getattro */
-	0,					/* tp_setattro */
-	0,					/* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT,			/* tp_flags */
- 	rootstate_doc,				/* tp_doc */
-	(traverseproc)rootstate_gc_traverse,	/* tp_traverse */ /* DUMMY */
- 	0,					/* tp_clear */
-	(richcmpfunc)0,				/* tp_richcompare */
-	0,					/* tp_weaklistoffset */
-	(getiterfunc)0,				/* tp_iter */
-	0,					/* tp_iternext */
-	0,					/* tp_methods */
-	0,					/* tp_members */
-	0,					/* tp_getset */
-	0,					/* tp_base */
-	0,					/* tp_dict */
-	0,					/* tp_descr_get */
-	0,					/* tp_descr_set */
-	0,					/* tp_dictoffset */
-	(initproc)0,				/* tp_init */
-	PyType_GenericAlloc,			/* tp_alloc */
-	0,					/* tp_new */
-	_PyObject_Del,				/* tp_free */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name      = "guppy.heapy.heapyc.RootStateType",
+    .tp_basicsize = sizeof(PyObject),
+    .tp_dealloc   = (destructor)rootstate_dealloc,
+    .tp_repr      = rootstate_repr,
+    .tp_getattro  = rootstate_getattr,
+    .tp_flags     = Py_TPFLAGS_DEFAULT,
+    .tp_doc       = rootstate_doc,
+    .tp_traverse  = (traverseproc)rootstate_gc_traverse, /* DUMMY */
+    .tp_alloc     = PyType_GenericAlloc,
+    .tp_free      = PyObject_Del,
 };
 
 PyObject _Ny_RootStateStruct = {
-    PyObject_HEAD_INIT(NULL)
+    _PyObject_EXTRA_INIT
+    1, &NyRootState_Type
 };
-
-

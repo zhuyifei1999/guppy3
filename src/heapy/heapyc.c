@@ -8,8 +8,8 @@ char heapyc_doc[] =
 "Summary of module content.\n"
 "\n"
 "Classes\n"
-"    HeapView		Gives a parameterized view of the heap.\n"
-"    Horizon		Limits the view back to some moment in time.\n"
+"    HeapView        Gives a parameterized view of the heap.\n"
+"    Horizon        Limits the view back to some moment in time.\n"
 "    NodeGraph           Graph of nodes (address-treated objects).\n"
 "    ObjectClassifier    Classifies objects on various criteria.\n"
 "    RootStateType       Root of heap traversal using Python internals.\n"
@@ -37,7 +37,7 @@ char heapyc_doc[] =
 #include "nodegraph.h"
 #include "relation.h"
 
-#define INITFUNC initheapyc
+#define INITFUNC PyInit_heapyc
 #define MODNAME "heapyc"
 
 /* Extern decls - maybe put in .h file but not in heapy.h */
@@ -63,7 +63,7 @@ NyHeapDef NyHvTypes_HeapDef[];
 
 PyObject * NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
 int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
-		       void *arg);
+                       void *arg);
 
 static int roundupsize(int n);
 
@@ -76,60 +76,60 @@ PyObject *_hiding_tag__name;
 
 #include "impsets.c"
 
-#define VISIT(SLOT) \
-	if (SLOT) { \
-		err = visit((PyObject *)(SLOT), arg); \
-		if (err) \
-			return err; \
-	}
+#define VISIT(SLOT)                           \
+    if (SLOT) {                               \
+        err = visit((PyObject *)(SLOT), arg); \
+        if (err)                              \
+            return err;                       \
+    }
 
 static int
 iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
-		void *arg)
+                void *arg)
 {
     if (NyNodeSet_Check(v)) {
-	return NyNodeSet_iterate((NyNodeSetObject *)v, visit, arg);
+        return NyNodeSet_iterate((NyNodeSetObject *)v, visit, arg);
     } else if (NyHeapView_Check(v)) {
-	return NyHeapView_iterate((NyHeapViewObject *)v, visit, arg);
+        return NyHeapView_iterate((NyHeapViewObject *)v, visit, arg);
     } else if (PyList_Check(v)) { /* A bit faster than general iterator?? */
-	int i, r;
-	PyObject *item;
-	for (i = 0; i < PyList_GET_SIZE(v); i++) {
-	    item = PyList_GET_ITEM(v, i);
-	    Py_INCREF(item);
-	    r = visit(item, arg);
-	    Py_DECREF(item);
-	    if (r == -1)
-	      return -1;
-	    if (r == 1)
-	      break;
-	}
-	return 0;
+        int i, r;
+        PyObject *item;
+        for (i = 0; i < PyList_GET_SIZE(v); i++) {
+            item = PyList_GET_ITEM(v, i);
+            Py_INCREF(item);
+            r = visit(item, arg);
+            Py_DECREF(item);
+            if (r == -1)
+                return -1;
+            if (r == 1)
+                break;
+        }
+        return 0;
     } else { /* Do the general case. */
-	PyObject *it = PyObject_GetIter(v);
-	int r;
-	if (it == NULL)
-	  goto Err;
-	/* Run iterator to exhaustion. */
-	for (;;) {
-	    PyObject *item = PyIter_Next(it);
-	    if (item == NULL) {
-		if (PyErr_Occurred())
-		  goto Err;
-		break;
-	    }
-	    r = visit(item, arg);
-	    Py_DECREF(item);
-	    if (r == -1)
-	      goto Err;
-	    if (r == 1)
-	      break;
-	}
-	Py_DECREF(it);
-	return 0;
-      Err:
-	Py_XDECREF(it);
-	return -1;
+        PyObject *it = PyObject_GetIter(v);
+        int r;
+        if (it == NULL)
+            goto Err;
+        /* Run iterator to exhaustion. */
+        for (;;) {
+            PyObject *item = PyIter_Next(it);
+            if (item == NULL) {
+                if (PyErr_Occurred())
+                    goto Err;
+                break;
+            }
+            r = visit(item, arg);
+            Py_DECREF(item);
+            if (r == -1)
+                goto Err;
+            if (r == 1)
+                break;
+        }
+        Py_DECREF(it);
+        return 0;
+Err:
+        Py_XDECREF(it);
+        return -1;
     }
 }
 
@@ -139,9 +139,9 @@ gc_get_objects(void)
     PyObject *gc=0, *objects=0;
     gc = PyImport_ImportModule("gc");
     if (!gc)
-      goto err;
+        goto err;
     objects = PyObject_CallMethod(gc, "get_objects", "");
-  err:
+err:
     Py_XDECREF(gc);
     return objects;
 }
@@ -163,55 +163,52 @@ gc_get_objects(void)
 
 static PyMethodDef module_methods[] =
 {
-    {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
-    {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
+    // {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
+    // {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
     {"xmemstats", (PyCFunction)hp_xmemstats, METH_NOARGS, hp_xmemstats_doc},
-    {0,0}
+    {0}
 };
 
 
 NyHeapDef NyHvTypes_HeapDef[] = {
     {
-	0,			/* flags */
-	&NyNodeGraph_Type,	/* type */
-	nodegraph_size,		/* size */
-	nodegraph_traverse,	/* traverse */
-	nodegraph_relate	/* relate */
+        0,                  /* flags */
+        &NyNodeGraph_Type,  /* type */
+        nodegraph_size,     /* size */
+        nodegraph_traverse, /* traverse */
+        nodegraph_relate    /* relate */
     },
     {
-	0,			/* flags */
-	&NyRootState_Type,	/* type */
-	0,			/* size */
-	rootstate_traverse,	/* traverse */
-	rootstate_relate	/* relate */
+        0,                  /* flags */
+        &NyRootState_Type,  /* type */
+        0,                  /* size */
+        rootstate_traverse, /* traverse */
+        rootstate_relate    /* relate */
     },
     {
-	0,			/* flags */
-	&NyHorizon_Type,	/* type */
-	0,			/* size */
-	0,			/* traverse */
-	0			/* relate */
+        0,                  /* flags */
+        &NyHorizon_Type,    /* type */
+        0,                  /* size */
+        0,                  /* traverse */
+        0                   /* relate */
     },
-/* End mark */
-    {
-	0,			/* flags */
-	0,			/* type */
-	0,			/* size */
-	0,			/* traverse */
-	0			/* relate */
-    }
+    /* End mark */
+    {0}
 };
 
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    MODNAME,
+    NULL,
+    0,
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-DL_EXPORT (int)
-INITFUNC (void)
-{
-    PyObject *m;
-    PyObject *d;
-
-    _Ny_RootStateStruct.ob_type = &NyRootState_Type;
-
-    NyNodeTuple_Type.tp_base = &PyTuple_Type;
+static int nyfills() {
     NYFILL(NyNodeTuple_Type);
     NYFILL(NyRelation_Type);
     NYFILL(NyHeapView_Type);
@@ -221,35 +218,54 @@ INITFUNC (void)
     NYFILL(NyNodeGraphIter_Type);
     NYFILL(NyRootState_Type);
 
-    m = Py_InitModule(MODNAME, module_methods);
+    return 0;
+}
+
+PyMODINIT_FUNC
+INITFUNC (void)
+{
+    PyObject *m;
+    PyObject *d;
+
+    _Ny_RootStateStruct.ob_type = &NyRootState_Type;
+
+    NyNodeTuple_Type.tp_base = &PyTuple_Type;
+    if (nyfills() == -1)
+        goto error;
+
+    m = PyModule_Create(&moduledef);
     if (!m)
-      goto error;
+        goto error;
     if (import_sets() == -1)
-      goto error;
+        goto error;
     this_module = m;
     d = PyModule_GetDict(m);
-    PyDict_SetItemString(d, "__doc__", PyString_FromString(heapyc_doc));
+    PyDict_SetItemString(d, "__doc__", PyUnicode_FromString(heapyc_doc));
     PyDict_SetItemString(d, "HeapView",
-			 (PyObject *)&NyHeapView_Type);
+                         (PyObject *)&NyHeapView_Type);
     PyDict_SetItemString(d, "Horizon",
-			 (PyObject *)&NyHorizon_Type);
+                         (PyObject *)&NyHorizon_Type);
     PyDict_SetItemString(d, "ObjectClassifier",
-			 (PyObject *)&NyObjectClassifier_Type);
+                         (PyObject *)&NyObjectClassifier_Type);
     PyDict_SetItemString(d, "NodeGraph",
-			 (PyObject *)&NyNodeGraph_Type);
+                         (PyObject *)&NyNodeGraph_Type);
     PyDict_SetItemString(d, "Relation",
-			 (PyObject *)&NyRelation_Type);
+                         (PyObject *)&NyRelation_Type);
     PyDict_SetItemString(d, "RootState", Ny_RootState);
     PyDict_SetItemString(d, "RootStateType", (PyObject *)&NyRootState_Type);
-    _hiding_tag__name = PyString_FromString("_hiding_tag_");
+    _hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
     NyStdTypes_init();
     if (NyNodeGraph_init() == -1)
-      goto error;
+        goto error;
 #ifdef WITH_MALLOC_HOOKS
     sethooks();
 #endif
-    return 0;
-  error:
+    return m;
+error:
     fprintf(stderr, "Error at initialization of module heapyc");
-    return -1;
+    if (PyErr_Occurred() == NULL)
+        PyErr_SetString(PyExc_ImportError, "module initialization failed");
+    if (m)
+        Py_DECREF(m);
+    return NULL;
 }
