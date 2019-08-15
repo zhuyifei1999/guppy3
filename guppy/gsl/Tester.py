@@ -712,7 +712,7 @@ class _GLUECLAMP_:
         '_parent:Main',
         '_parent.Main:ReportedError',
         '_root:doctest',
-        '_root.StringIO:StringIO',
+        '_root.io:StringIO',
         '_root.sys:stdout',
         '_root:sys',
         '_root.traceback:format_exception',

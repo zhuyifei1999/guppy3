@@ -1,5 +1,4 @@
 # ._cv_part guppy.etc.Glue
-import new
 import re
 import sys
 import types
@@ -180,9 +179,7 @@ class Share:
             raise TypeError(self.message(
                 'the _nowrap_ attribute must be a tuple'))
         wrapattr = getattr(Clamp, '_wrapattr_', None)
-        if isinstance(wrapattr, types.UnboundMethodType):
-            wrapattr = wrapattr.__func__
-        elif wrapattr is not None:
+        if not isinstance(wrapattr, types.FunctionType) and wrapattr is not None:
             raise TypeError(self.message(
                 'the _wrapattr_ attribute must be a method'))
         self.wrapattr = wrapattr
@@ -268,7 +265,7 @@ class Share:
         try:
             x = __import__(self.makeName(name), globals(), locals())
         except ImportError as exc:
-            if (exc.args[0] != 'No module named %s' % name or
+            if (exc.args[0] != 'No module named \'%s\'' % self.makeName(name) or
                     (not self.module and name not in ('__repr__', '__str__'))):
                 raise
             x = self.getattr3(inter, name)
@@ -326,13 +323,13 @@ class Share:
             else:
                 owner = self.makeOwner(name)
                 inter = Interface(self, owner, '')
-                f = new.instancemethod(im.__func__, inter, inter.__class__)
+                f = types.MethodType(im, inter)
                 x = f()
                 if isinstance(x, Interface):
                     x = x.__dict__['_share']
         else:
-            if isinstance(x, types.UnboundMethodType):
-                x = new.instancemethod(x.__func__, inter, inter.__class__)
+            if isinstance(x, types.FunctionType):
+                x = types.MethodType(x, inter)
         return x
 
     def makeModule(self, module, name):
@@ -377,7 +374,7 @@ class Share:
                 'Can not change attribute %r because no _GLUECLAMP_ defined.' % name)
         im = getattr(Clamp, '_set_%s' % name, None)
         if im is not None:
-            im.__func__(inter, value)
+            im(inter, value)
             self.data[name] = value
             inter.__dict__[name] = value
             return

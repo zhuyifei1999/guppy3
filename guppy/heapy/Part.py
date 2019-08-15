@@ -331,12 +331,12 @@ class Stat:
                 stab[sr.name] = sr
                 rows.append(sr)
         rs = list(otab.values())
-        rs.sort(lambda x, y: cmp(x.index, y.index))  # Preserve orig. order
+        rs.sort(key=lambda x: x.index)  # Preserve orig. order
         for r in rs:
             sr = StatRow(-r.count, -r.size, r.name)
             assert sr.name not in stab
             rows.append(sr)
-        rows.sort(lambda x, y: cmp(abs(y.size), abs(x.size)))
+        rows.sort(key=lambda x: abs(x.size), reverse=True)
         cumulcount = 0
         cumulsize = 0
         for r in rows:
@@ -449,7 +449,7 @@ class Stat:
 
         if sortby == 'Count':
             rows = list(rows)
-            rows.sort(lambda x, y: cmp(y.count, x.count))
+            rows.sort(key=lambda x: x.count, reverse=True)
 
         retrows = []
         cumulcount = 0

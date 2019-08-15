@@ -10,7 +10,7 @@ class OutputHandler:
 class OutputBuffer:
     def __init__(self, mod, opts=None):
         self.mod = mod
-        self.strio = mod._root.cStringIO.StringIO()
+        self.strio = mod._root.io.StringIO()
 
         if opts == None:
             opts = {}
@@ -60,6 +60,12 @@ class MorePrinter:
 
     def _oh_get_start_lineno(self):
         return self._oh_previous._oh_get_next_lineno()
+
+    def __repr__(self):
+        return self._oh_printer.getattr(self, '__repr__')()
+
+    def __str__(self):
+        return self._oh_printer.getattr(self, '__str__')()
 
 
 class Printer:
@@ -266,8 +272,8 @@ class _GLUECLAMP_:
         printer = more._oh_printer
         client.more = more
         client.printer = printer
-        client.__str__ = client.__repr__ = (lambda:
-                                            printer.get_str_of_top())
+        client.__class__.__str__ = client.__class__.__repr__ = (
+            lambda self: self.printer.get_str_of_top())
 
     def basic_more_printer(self, top, handler, startindex=None):
         return BasicMorePrinter(self, top, handler, startindex)

@@ -1209,7 +1209,7 @@ int fsb_dx_nynodeset_init(PyObject *m)
                          "NyNodeSet_Exports",
                          PyCapsule_New(
                             &nynodeset_exports,
-                            "NyNodeSet_Exports v1.0",
+                            "guppy.sets.setsc.NyNodeSet_Exports",
                             0)
                          ) == -1) goto Error;
 

@@ -33,20 +33,6 @@
 
 extern PyObject *_hiding_tag__name;
 
-static int
-dict_size(PyObject *obj) {
-    /*
-    int z = Py_TYPE(obj)->tp_basicsize;
-    PyDictObject *v = (void *)obj;
-    if (v->ma_table != v->ma_smalltable)
-        z += sizeof(PyDictEntry) * (v->ma_mask + 1);
-    if (PyObject_IS_GC(obj))
-        z += sizeof(PyGC_Head);
-    return z;
-    */
-    return _PySys_GetSizeOf(obj);
-}
-
 int
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
 {
@@ -80,12 +66,12 @@ dict_relate(NyHeapRelate *r)
 static int
 dictproxy_relate(NyHeapRelate *r)
 {
-    proxyobject *v = (void *)r->src;
-    if (v->dict == r->tgt) {
-        if (r->visit(NYHR_INTERATTR, PyUnicode_FromString("dict"), r))
+    mappingproxyobject *v = (void *)r->src;
+    if (v->mapping == r->tgt) {
+        if (r->visit(NYHR_INTERATTR, PyUnicode_FromString("mapping"), r))
             return 1;
     }
-    return dict_relate_kv(r, v->dict, NYHR_INDEXKEY, NYHR_INDEXVAL);
+    return dict_relate_kv(r, v->mapping, NYHR_INDEXKEY, NYHR_INDEXVAL);
 }
 
 
@@ -124,22 +110,8 @@ roundupsize(int n)
             nbits += 3;
     } while (n2);
     return ((n >> nbits) + 1) << nbits;
- }
-
-static int
-list_size(PyObject *obj) {
-    /*
-    PyListObject *v = (void *)obj;
-    int z = Py_TYPE(v)->tp_basicsize;
-    if (v->ob_item) {
-        z += sizeof(void *) * roundupsize(Py_SIZE(v));
-    }
-    if (PyObject_IS_GC(obj))
-        z += sizeof(PyGC_Head);
-    return z;
-    */
-    return _PySys_GetSizeOf(obj);
 }
+
 
 static int
 list_relate(NyHeapRelate *r)
@@ -198,11 +170,12 @@ function_relate(NyHeapRelate *r)
 static int
 module_relate(NyHeapRelate *r)
 {
-    PyModuleObject *v = (void *)r->src;
-    if (v->md_dict == r->tgt &&
+    PyObject *v = (void *)r->src;
+    PyObject *dct = PyModule_GetDict(v);
+    if (dct == r->tgt &&
         (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString("__dict__"), r)))
         return 1;
-    return dict_relate_kv(r, v->md_dict, NYHR_HASATTR, NYHR_ATTRIBUTE);
+    return dict_relate_kv(r, dct, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
 static int
@@ -294,7 +267,7 @@ frame_traverse(NyHeapTraverse *ta) {
 static int
 traceback_relate(NyHeapRelate *r)
 {
-    PyTraceBackObject *v = (void *)r->src;
+    PyTracebackObject *v = (void *)r->src;
     ATTR(tb_next)
     ATTR(tb_frame)
     return 0;
@@ -309,29 +282,6 @@ cell_relate(NyHeapRelate *r)
         return 1;
     return 0;
 }
-
-static int
-array_size_23(PyObject *obj) {
-    int z = Py_TYPE(obj)->tp_basicsize;
-    PyArrayObject_23 *v = (void *)obj;
-    if (v->ob_item) {
-        z += v->ob_descr->itemsize * Py_SIZE(v);
-        z = ALIGN(z);
-    }
-    return z;
-}
-
-static int
-array_size_24(PyObject *obj) {
-    int z = Py_TYPE(obj)->tp_basicsize;
-    PyArrayObject_24 *v = (void *)obj;
-    if (v->ob_item) {
-        z += v->ob_descr->itemsize * Py_SIZE(v);
-        z = ALIGN(z);
-    }
-    return z;
-}
-
 
 static int
 meth_relate(NyHeapRelate *r)
@@ -414,34 +364,23 @@ type_relate(NyHeapRelate *r)
 }
 
 static int
-unicode_size(PyObject *obj) {
-    /*
-    PyUnicodeObject *uc = (PyUnicodeObject *)obj;
-    int size =  Py_TYPE(uc)->tp_basicsize + (uc->length + 1) * sizeof(PY_UNICODE_TYPE);
-    size = ALIGN(size);
-    if (uc->defenc) {
-        size += Py_TYPE(uc->defenc)->tp_basicsize;
-        size += ((PyStringObject *)uc->defenc)->ob_size * Py_TYPE(uc->defenc)->tp_itemsize;
-        size = ALIGN(size);
-    }
-    return size;
-    */
+wrapper_PySys_GetSizeOf(PyObject *obj) {
     return _PySys_GetSizeOf(obj);
 }
 
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
-        0,          /* flags */
-        0,          /* type */
-        dict_size,  /* size */
-        0,          /* traverse */
-        dict_relate /* relate */
+        0,                       /* flags */
+        0,                       /* type */
+        wrapper_PySys_GetSizeOf, /* size */
+        0,                       /* traverse */
+        dict_relate              /* relate */
     }, {
-        0,          /* flags */
-        0,          /* type */
-        list_size,  /* size */
-        0,          /* traverse */
-        list_relate /* relate */
+        0,                       /* flags */
+        0,                       /* type */
+        wrapper_PySys_GetSizeOf, /* size */
+        0,                       /* traverse */
+        list_relate              /* relate */
     }, {
         0,           /* flags */
         0,           /* type */
@@ -479,11 +418,11 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,          /* traverse */
         cell_relate /* relate */
     }, {
-        0,             /* flags */
-        0,             /* type */ /* To be patched-in from an array ! */
-        array_size_23, /* size */
-        0,             /* traverse */
-        0              /* relate */
+        0,                       /* flags */
+        0,                       /* type */
+        wrapper_PySys_GetSizeOf, /* size */
+        0,                       /* traverse */
+        0                        /* relate */
     }, {
         0,          /* flags */
         0,          /* type */
@@ -503,11 +442,11 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         type_traverse, /* traverse */
         type_relate    /* relate */
     }, {
-        0,            /* flags */
-        0,            /* type */
-        unicode_size, /* size */
-        0,            /* traverse */
-        0,            /* relate */
+        0,                       /* flags */
+        0,                       /* type */
+        wrapper_PySys_GetSizeOf, /* size */
+        0,                       /* traverse */
+        0,                       /* relate */
     }, {
         0,               /* flags */
         0,               /* type */ /* To be patched-in from a dictproxy ! */
@@ -536,42 +475,27 @@ NyStdTypes_init(void)
     NyStdTypes_HeapDef[x++].type = &PyFrame_Type;
     NyStdTypes_HeapDef[x++].type = &PyTraceBack_Type;
     NyStdTypes_HeapDef[x++].type = &PyCell_Type;
-    NyStdTypes_HeapDef[x++].type = (void *)1;
+    NyHeapDef *array_def = &NyStdTypes_HeapDef[x++];
     NyStdTypes_HeapDef[x++].type = &PyCFunction_Type;
     NyStdTypes_HeapDef[x++].type = &PyCode_Type;
     NyStdTypes_HeapDef[x++].type = &PyType_Type;
     NyStdTypes_HeapDef[x++].type = &PyUnicode_Type;
-    NyStdTypes_HeapDef[x++].type = (void *)1;
+    NyHeapDef *dictproxy_def = &NyStdTypes_HeapDef[x++];
 
-    for (;hd->type;hd++) {
-        if (hd->size == array_size_23) {
-            /* Patch up array type - it is not statically accessible, may be optional */
-            if ((m = PyImport_ImportModule("array"))) {
-                if ((c = PyObject_GetAttrString(m, "ArrayType"))) {
-                    hd->type = (PyTypeObject *)c;
-                    if (hd->type->tp_basicsize != sizeof(PyArrayObject_23)) {
-                        if (hd->type->tp_basicsize == sizeof(PyArrayObject_24)) {
-                            hd->size = array_size_24;
-                        } else {
-                            hd->size = NULL;
-                            PyErr_Warn(PyExc_Warning,
-"heapyc.NyStdtTypes_init: Can not size array objects in this Python version");
-                        }
-                    }
-                }
-            }
+    /* Patch up array type - it is not statically accessible, may be optional */
+    if ((m = PyImport_ImportModule("array"))) {
+        if ((c = PyObject_GetAttrString(m, "ArrayType"))) {
+            array_def->type = (PyTypeObject *)c;
         }
-        if (hd->relate == dictproxy_relate) {
-            PyObject *d = PyDict_New();
-            if (d) {
-                PyObject *dp = PyDictProxy_New(d);
-                if (dp) {
-                    hd->type = (PyTypeObject *)Py_TYPE(dp);
-                    Py_DECREF(dp);
-                }
-                Py_DECREF(d);
-            }
+    }
+
+    PyObject *d = PyDict_New();
+    if (d) {
+        PyObject *dp = PyDictProxy_New(d);
+        if (dp) {
+            dictproxy_def->type = (PyTypeObject *)Py_TYPE(dp);
+            Py_DECREF(dp);
         }
-        /* Patch up other such types */
+        Py_DECREF(d);
     }
 }

@@ -1,26 +1,17 @@
 # ._cv_part guppy.sets
 
-from setsc import BitSet        # base bitset type
-from setsc import ImmBitSet     # immutable bitset type
-from setsc import immbit        # immutable bitset singleton constructor
-from setsc import immbitrange   # immutable bitset range constructor
-from setsc import immbitset     # immutable bitset constructor
-from setsc import MutBitSet     # mutable bitset
-from setsc import NodeSet       # base nodeset type
-from setsc import ImmNodeSet    # immmutable nodeset type
-from setsc import MutNodeSet    # mutable nodeset type
+from .setsc import BitSet        # base bitset type
+from .setsc import ImmBitSet     # immutable bitset type
+from .setsc import immbit        # immutable bitset singleton constructor
+from .setsc import immbitrange   # immutable bitset range constructor
+from .setsc import immbitset     # immutable bitset constructor
+from .setsc import MutBitSet     # mutable bitset
+from .setsc import NodeSet       # base nodeset type
+from .setsc import ImmNodeSet    # immmutable nodeset type
+from .setsc import MutNodeSet    # mutable nodeset type
 
-import copyreg
-from setsc import _bs
-if hasattr(copy_reg, 'safe_constructors'):      # < 2.3 version
-    copyreg.safe_constructors[_bs] = 1
-else:
-    # In at least Python 2.3.3, we have to set __module__;
-    # it didn't find it otherwise.
-    # Due to bug in Python version 2.3.3, we have to read it first..
-    _bs.__module__
-    _bs.__module__ = 'guppy.sets'  # ..to be able to set it.
-del copy_reg
+from .setsc import _bs
+_bs.__module__ = 'guppy.sets'  # ..to be able to set it.
 
 
 # Define some constructors.

@@ -5,7 +5,7 @@
 
 from guppy.sets import *
 import pickle
-from time import clock
+from time import process_time as clock
 import gc
 import random
 import sys
@@ -610,21 +610,22 @@ ImmBitSet([-1, 4])
         f = io.StringIO()
 
         a = bitsmut(0)
-        print(a, file=f)
+        print(str(a), file=f)
         a.append(1)
-        print(a, a.pop(), a, file=f)
+        print(str(a), a.pop(), str(a), file=f)
         a.append(1)
-        print(a, a.pop(-1), a, file=f)
+        print(str(a), a.pop(-1), str(a), file=f)
         a.append(1)
-        print(a, a.pop(0), a, file=f)
+        print(str(a), a.pop(0), str(a), file=f)
         a.append(1)
         a.append(2)
         a.append(3)
-        print(a, a.pop(), a, file=f)
-        print(a, a.pop(0), a, file=f)
+        print(str(a), a.pop(), str(a), file=f)
+        print(str(a), a.pop(0), str(a), file=f)
         a.remove(2)
-        print(a, file=f)
+        print(str(a), file=f)
 
+        print(f.getvalue())
         assert f.getvalue() == """\
 MutBitSet([])
 MutBitSet([1]) 1 MutBitSet([])
@@ -1056,10 +1057,10 @@ MutBitSet([])
             (0, maxint, maxint),
             (1, maxint, maxint),
             (minint, maxint, maxint),
-            (minint, maxint, maxint/32),
-            (minint, maxint, maxint/320),
-            (minint, maxint, -(minint/32)),
-            (minint, maxint, -(minint/320)),
+            (minint, maxint, maxint//32),
+            (minint, maxint, maxint//320),
+            (minint, maxint, -(minint//32)),
+            (minint, maxint, -(minint//320)),
         ):
             br = bitrange(*a)
             # print br
@@ -1109,13 +1110,12 @@ MutBitSet([])
         any = any + [~x for x in any]
         any = any + [bitsmut(x) for x in any]
         for a in any:
-            for p in pickle, cPickle:
-                for bin in (0, 1):
-                    da = p.dumps(a, bin)
-                    # print len(da), len(bitset(a))
-                    aa = p.loads(da)
-                    assert aa == a
-                    assert type(aa) is type(a)
+            for bin in (0, 1):
+                da = pickle.dumps(a, bin)
+                # print len(da), len(bitset(a))
+                aa = pickle.loads(da)
+                assert aa == a
+                assert type(aa) is type(a)
 
     def test23(self):
         # bitset from general sequence with iterator
@@ -1262,12 +1262,12 @@ MutBitSet([])
         # (Assuming 'standard' 2-complement int representation)
 
         bs = bitset(int(sys.maxsize)+1)
-        try:
-            a = int(bs)
-        except OverflowError:
-            pass
-        else:
-            raise AssertionError('expected OverflowError')
+        # try:
+        #     a = int(bs)
+        # except OverflowError:
+        #     pass
+        # else:
+        #     raise AssertionError('expected OverflowError')
 
         assert int(bs) == int(sys.maxsize)+1
 

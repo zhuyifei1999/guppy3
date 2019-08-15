@@ -1,5 +1,6 @@
 # ._cv_part guppy.etc.Unpack
 
+import dis
 from opcode import *
 import sys
 
@@ -10,7 +11,7 @@ STORE_NAME = opmap['STORE_NAME']
 STORE_GLOBAL = opmap['STORE_GLOBAL']
 STORE_ATTR = opmap['STORE_ATTR']
 STORE_SUBSCR = opmap['STORE_SUBSCR']
-STORE_SLICE = opmap['STORE_SLICE+0']
+# STORE_SLICE = opmap['STORE_SLICE']
 
 
 def unpack(x):
@@ -22,34 +23,39 @@ def unpack(x):
         f = traceback.tb_frame.f_back
         co = f.f_code
         i = f.f_lasti
-        code = co.co_code
-        if ord(code[i]) == CALL_FUNCTION and ord(code[i+3]) == UNPACK_SEQUENCE:
-            i += 3
-            n = ord(code[i+1]) + ord(code[i+2])*256
-            i += 3
-            names = []
-            while len(names) < n and i < len(code):
-                op = ord(code[i])
-                i += 1
-                if op >= HAVE_ARGUMENT:
-                    oparg = ord(code[i]) + ord(code[i+1])*256
-                    i += 2
-                    if op == STORE_FAST:
-                        names.append(co.co_varnames[oparg])
-                    elif op in (STORE_NAME, STORE_ATTR, STORE_GLOBAL):
-                        names.append(co.co_names[oparg])
-                if op == STORE_SUBSCR or STORE_SLICE <= op <= STORE_SLICE+3:
-                    break
-            if len(names) == n:
-                r = []
-                for name in names:
-                    try:
-                        v = getattr(x, name)
-                    except AttributeError:
-                        v = x[name]
-                    r.append(v)
-                return r
-        raise SyntaxError
+        insns = dis.get_instructions(co)
+        while True:
+            insn = next(insns)
+            if insn.offset == i:
+                break
+
+        if insn.opcode != CALL_FUNCTION:
+            raise SyntaxError
+
+        insn = next(insns)
+        if insn.opcode != UNPACK_SEQUENCE:
+            raise SyntaxError
+        n = insn.argval
+
+        names = []
+        while len(names) < n:
+            insn = next(insns)
+            if insn.opcode in (STORE_FAST, STORE_NAME, STORE_ATTR, STORE_GLOBAL):
+                names.append(insn.argval)
+            if insn.opcode == STORE_SUBSCR:  # or STORE_SLICE <= op <= STORE_SLICE+3
+                break
+
+        if len(names) != n:
+            raise SyntaxError
+
+        r = []
+        for name in names:
+            try:
+                v = getattr(x, name)
+            except AttributeError:
+                v = x[name]
+            r.append(v)
+        return r
 
 
 def test_unpack():

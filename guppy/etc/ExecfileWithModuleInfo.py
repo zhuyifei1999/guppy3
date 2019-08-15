@@ -2,8 +2,7 @@
 
 import sys
 import os
-import imp
-import md5
+import hashlib
 
 _VERBOSE = True
 _RELOAD_ALWAYS = True  # False
@@ -21,7 +20,7 @@ def pyname(m):
 
 
 def calc_stringsum(s):
-    return md5.md5(s).digest()
+    return hashlib.md5(s).digest()
 
 
 def calc_modsum(m):

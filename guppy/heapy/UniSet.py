@@ -1770,10 +1770,9 @@ class IdentitySetFamily(AtomFamily):
             if bslen > max_length:
                 break
 
-        def comp(a, b):
-            # Don't use the initial count when comparing
-            return cmp(a[a.index(' '):], b[b.index(' '):])
-        bstrs.sort(comp)
+        # Don't use the initial count when comparing
+        if len(bstrs) > 1:
+            bstrs.sort(key=lambda x: x[x.index(' '):])
         s += ' | '.join(bstrs) + '>'
         if len(s) > max_length:
             s = s[:max_length-4]+'...>'
@@ -1932,14 +1931,14 @@ class Summary_str:
             if isinstance(v, type):
                 self.invtypes[v] = 'types.%s' % k
         for k, v in list(types.__builtins__.items()):
-            if isinstance(v, type) and v in self.invtypes:
+            if isinstance(v, type):
                 self.invtypes[v] = k
 
         # This is to make common printouts prettier / shorter (: and clearer ? :)
         # but may be disabled for clearer repr()
 
         self.shorter_invtypes = {}
-        for name in ('module', 'class', 'function'):
+        for name in ('module', 'function'):
             t = getattr(types, name.capitalize()+'Type')
             self.shorter_invtypes[t] = name
 
@@ -1956,7 +1955,6 @@ class Summary_str:
             float: self.str_repr,
             types.FrameType: self.str_frame,
             types.FunctionType: self.str_function,
-            types.InstanceType: self.str_instance,
             int: self.str_repr,
             list: self.str_address_len,
             int: self.str_repr,
@@ -2018,10 +2016,6 @@ class Summary_str:
         return '%s.%s' % (x.__module__, x.__name__)
     str_function._idpart_header = 'Name'
 
-    def str_instance(self, x):
-        return '<%s at %s>' % (self.str_class(x.__class__), self.str_address(x))
-    str_instance._idpart_header = 'Name at Address'
-
     def str_len(self, x):
         return '*%d' % len(x)
     str_len._idpart_header = 'Length'
@@ -2043,7 +2037,7 @@ class Summary_str:
     str_module._idpart_header = 'Name'
 
     def str_limrepr(self, x):
-        return self.mod._root.repr.repr(x)
+        return self.mod._root.builtins.repr(x)
     str_limrepr._idpart_header = 'Representation (limited)'
     str_limrepr._idpart_sortrender = 'IDENTITY'
     str_repr = repr

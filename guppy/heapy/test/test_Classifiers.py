@@ -229,7 +229,7 @@ class SpecialCases(TestCase):
         c1 = self.c1
         iso = self.iso
 
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
 
         # Create a dict hidden from view
         d1 = self.View.immnodeset([{}])
@@ -381,7 +381,7 @@ dict (no owner)
         iso = self.iso
         rcC1 = grc(C1)
 
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
         print(iso(C1).byrcs.kind, file=o)
 
         s = iso(c1).byrcs.kind
@@ -514,7 +514,7 @@ class RenderCase(TestCase):
         e2 = {}
         e3 = []
 
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
         # str'ing of homogenous & inhoumogenous values
 
         self.US.summary_str.str_address = lambda x: '<address>'
@@ -588,7 +588,7 @@ class RenderCase(TestCase):
         if PORTABLE_TEST:
             return
 
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
 
         # The following is nonportable, sizes may change
         # In particular, the list size changed from 2.3 to 2.4

@@ -49,15 +49,15 @@ class FirstCase(TestCase):
             di = hp.iso(C.__dict__, [])
             import types
 
-            db = di.by('Rcs')
-            for i in (0, 1):
-
-                rk = repr(db[i].kind)
-                # print rk
-                ek = eval(rk)
-                self.aseq(ek, db[i].kind)
-                # print db & ek
-                self.aseq(db & ek, db[i])
+            # db = di.by('Rcs')
+            # for i in (0, 1):
+            #
+            #     rk = repr(db[i].kind)
+            #     # print rk
+            #     ek = eval(rk)
+            #     self.aseq(ek, db[i].kind)
+            #     # print db & ek
+            #     self.aseq(db & ek, db[i])
 
         def test_2(self):
             ' Systematically test all kind constructors: '
@@ -77,9 +77,6 @@ class FirstCase(TestCase):
             import sys
 
             for s in (
-                'hp.Class(C)',
-                'hp.Class(C).dictof',
-
                 'hp.Clodo(dictof=C)',
                 'hp.Clodo(dictof=T)',
                 'hp.Clodo(dictof=())',
@@ -148,10 +145,8 @@ class FirstCase(TestCase):
                 X = x.__class__
                 for k in (
                     hp.Clodo(dictof=X),
-                    hp.Class(X).dictof,
                     hp.Size(hp.iso(x).indisize).dictof,
                     hp.iso(x).bysize.kind.dictof,
-                    (hp.iso(x).bysize.kind & hp.Class(X)).dictof,
                     hp.iso(x.__dict__).kind,
                 ):
                     self.aseq(isod & k,  hp.iso(x.__dict__))
@@ -194,9 +189,9 @@ class FirstCase(TestCase):
 
             # I thought these should be the same
             a = hp.iso(C.__dict__, C, c, c.__dict__,
-                       d) & hp.Class.sokind(C).refdby
+                       d)
             b = hp.iso(C.__dict__, C, c, c.__dict__,
-                       d) & hp.Clodo.sokind(C).refdby
+                       d)
             self.aseq(a, b)
 
             # This is a kind of nested refdby that has been a concern lately
@@ -245,7 +240,6 @@ class FirstCase(TestCase):
 
             for pre in (
                 'Unity',
-                'Class',
                 'Clodo',
                 'Id',
                 'Module',
@@ -328,9 +322,7 @@ class FirstCase(TestCase):
 
             for k in (
                 hp.Size(32),
-                hp.Class(D),
                 hp.Type(U),
-                hp.Class.sokind(D).refdby,
             ):
 
                 lt = k.alt('<')
@@ -346,12 +338,6 @@ class FirstCase(TestCase):
                     # print s.by(a.biper)[0].kind
                     # print s.by(a.biper)[1].kind
                     # print s & a
-
-            # A bug specific for refdby
-            # occured after gc when using biper
-            # noted Sep 21 2005
-
-            k = hp.Class.sokind(D).refdby
 
             import gc
 
@@ -386,11 +372,9 @@ class FirstCase(TestCase):
         s = hp.iso(li, di, c, 1)
 
         for k, i in (
-            (hp.Class(C), 1),
             (hp.Type(dict), 0),
             (hp.iso(c), 1),
             (hp.iso(c, li), 1),
-            (hp.Type(dict) | hp.Class(C), 0)
         ):
             p = s.by(k.biper)
             # print p
@@ -400,7 +384,7 @@ class FirstCase(TestCase):
         ' Test the subrelation relation '
 
         from guppy import hpy
-        ernames = ['Class', 'Clodo', 'Id', 'Idset',
+        ernames = ['Clodo', 'Id', 'Idset',
                    'Module', 'Rcs', 'Size', 'Type',
                    'Unity']
 
@@ -422,17 +406,16 @@ class FirstCase(TestCase):
                 print(str((a[1] < b[1]))[:1].ljust(7), end=' ', file=f)
             print(file=f)
         self.aseq(f.getvalue(), """\
-           Class   Clodo   Id      Idset   Module  Rcs     Size    Type    Unity   Size&Type
-Class      F       F       F       F       F       F       F       T       T       F
-Clodo      T       F       F       F       F       F       F       T       T       F
-Id         F       F       F       F       F       F       F       F       T       F
-Idset      F       F       F       F       F       F       F       F       T       F
-Module     F       F       F       F       F       F       F       F       T       F
-Rcs        F       F       F       F       F       F       F       F       T       F
-Size       F       F       F       F       F       F       F       F       T       F
-Type       F       F       F       F       F       F       F       F       T       F
-Unity      F       F       F       F       F       F       F       F       F       F
-Size&Type  F       F       F       F       F       F       T       T       T       F
+           Clodo   Id      Idset   Module  Rcs     Size    Type    Unity   Size&Type \n\
+Clodo      F       F       F       F       F       F       T       T       F       \n\
+Id         F       F       F       F       F       F       F       T       F       \n\
+Idset      F       F       F       F       F       F       F       T       F       \n\
+Module     F       F       F       F       F       F       F       T       F       \n\
+Rcs        F       F       F       F       F       F       F       T       F       \n\
+Size       F       F       F       F       F       F       F       T       F       \n\
+Type       F       F       F       F       F       F       F       T       F       \n\
+Unity      F       F       F       F       F       F       F       F       F       \n\
+Size&Type  F       F       F       F       F       T       T       T       F       \n\
 """)
 
 

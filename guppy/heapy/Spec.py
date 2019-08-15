@@ -928,7 +928,7 @@ class LocalEnv:
         f = getattr(self._spec, attribute_name)
         d = self._mod._load_names(
             mod._root.guppy.etc.Code.co_findloadednames(f.__code__))
-        nf = mod._root.new.function(
+        nf = mod._root.types.FunctionType(
             f.__code__,
             d,
             f.__name__,
@@ -988,7 +988,7 @@ class TestEnv:
                     mod._root.guppy.etc.Code.co_findloadednames(co))
                 #d = mod._load_names()
 
-                nf = mod._root.new.function(
+                nf = mod._root.types.FunctionType(
                     f.__code__,
                     d,
                     f.__name__,
@@ -1257,6 +1257,7 @@ class _GLUECLAMP_:
         try:
             obj = Doc.wrap(obj, Doc.attribute(self._origin_, name))
         except Doc.DocError:
+            __import__('traceback').print_exc()
             print('no wrap:', name)
         return obj
 
@@ -1591,14 +1592,9 @@ class _GLUECLAMP_:
 
             map_2_to_1 = id
             def map_3_to_4(self, e, fuop): return (e.Anything, fuop)
-            def map_3_to_2(self, e, fuop): return self._relop(
-                e.Anything, fuop)  # redundant
-            def map_4_to_2(self, e, xxx_todo_changeme1): (
-                A, fuop) = xxx_todo_changeme1
-            return self._relop(A, fuop)
-            def map_5_to_1(self, e, xxx_todo_changeme2): (
-                A, fuop, B) = xxx_todo_changeme2
-            return self._relop(A, fuop, B)
+            def map_3_to_2(self, e, fuop): return self._relop(e.Anything, fuop)  # redundant
+            def map_4_to_2(self, e, args): return self._relop(*args)
+            def map_5_to_1(self, e, args): return self._relop(*args)
 
         return self.repcat(RelationSpec)
 

@@ -92,12 +92,6 @@ def fcmp(x, y):  # fuzzy comparison function
     return cmp(x, y)
 
 
-try:
-    str
-    have_unicode = 1
-except NameError:
-    have_unicode = 0
-
 # Filename used for testing
 if os.name == 'java':
     # Jython disallows @ in module names
@@ -105,11 +99,10 @@ if os.name == 'java':
 elif os.name != 'riscos':
     TESTFN = '@test'
     # Unicode name only used if TEST_FN_ENCODING exists for the platform.
-    if have_unicode:
-        # 2 latin characters.
-        TESTFN_UNICODE = str("@test-\xe0\xf2", "latin-1")
-        if os.name == "nt":
-            TESTFN_ENCODING = "mbcs"
+    # 2 latin characters.
+    TESTFN_UNICODE = str(b"@test-\xe0\xf2", "latin-1")
+    if os.name == "nt":
+        TESTFN_ENCODING = "mbcs"
 else:
     TESTFN = 'test'
 del os

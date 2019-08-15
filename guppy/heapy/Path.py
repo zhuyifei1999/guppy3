@@ -245,7 +245,7 @@ class MorePrinter:
 
     def __repr__(self):
         it = self.iter(self.firstpath)
-        output = self.top.mod._root.StringIO.StringIO()
+        output = self.top.mod._root.io.StringIO()
         self.printiter(it, output)
         x = output.getvalue().rstrip()
         if not x:
@@ -306,7 +306,7 @@ class ShortestPaths:
         return self.iter()
 
     def __repr__(self):
-        f = self.mod._root.StringIO.StringIO()
+        f = self.mod._root.io.StringIO()
         self.pp(output=f)
         return f.getvalue().rstrip()
 
@@ -382,7 +382,7 @@ class ShortestPaths:
 
     def _get_numpaths(self):
         num = self.numpaths_from(self.Src)
-        self.numpaths = num
+        # self.numpaths = num
         return num
 
     numpaths = property(fget=_get_numpaths)
@@ -440,7 +440,7 @@ class ShortestGraph:
         return len(self.DstSets)
 
     def __str__(self):
-        f = self.mod._root.StringIO.StringIO()
+        f = self.mod._root.io.StringIO()
         self.pp(f)
         return f.getvalue()
 
@@ -488,7 +488,7 @@ class _GLUECLAMP_:
     def _get_identity(self): return R_IDENTITY()
     def _get_norelation(self): return R_NORELATION()
     def _get_output(self): return self._parent.OutputHandling.stdout
-    def _get_saferepr(self): return self._root.repr.repr
+    def _get_saferepr(self): return self._root.builtins.repr
     def _get_shpathstep(self): return self.hv.shpathstep
 
     def sortedrels(self, IG, Src):
@@ -499,7 +499,7 @@ class _GLUECLAMP_:
                 Dst = iso(dst)
                 for rel in self.relations(src, dst):
                     t.append((rel, Dst))
-        t.sort(lambda (rel1, dst1), (rel2, dst2): cmp(rel1, rel2))
+        t.sort(key=lambda x: x[0])
         return t
 
     def prunedinverted(self, G, Y):

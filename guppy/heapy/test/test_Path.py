@@ -254,7 +254,7 @@ class RelationTestCase(TestCase):
             # This is hard to get to work accross different architectures
             # Noted Jan 17 2006
             x = [0, 1, 'a', 'b']
-            x.sort(lambda a, b: cmp(id(a), id(b)))
+            x.sort(key=lambda x: id(x))
         else:
             # This is a relaxed variant, still tests SOME thing!
             x = ['a']
@@ -691,7 +691,7 @@ class PathTestCase(TestCase):
 class MultiTestCase(TestCase):
     def test_pp(self):
         # Test printing of multi relations
-        self.Path.output = self.Path._root.StringIO.StringIO()
+        self.Path.output = self.Path._root.io.StringIO()
         iso = self.iso
         dst = [[], []]
         src = iso(dst[:]*2)
@@ -767,7 +767,7 @@ class AvoidTestCase(TestCase):
 class NewTestCase(TestCase):
     def test_1(self):
         import sys
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
         iso = self.iso
         x = iso(sys.__dict__)
         print(x.shpaths, file=o)
@@ -906,7 +906,7 @@ class NewTestCase(TestCase):
         # the repr() of gives more lines; and has a similar more attribute.
         # Testing this functionality here.
 
-        o = self.python.StringIO.StringIO()
+        o = self.python.io.StringIO()
         iso = self.iso
         dst = []
         src = [dst]*20

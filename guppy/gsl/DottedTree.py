@@ -95,9 +95,9 @@ class _GLUECLAMP_:
     # @param tag     list with first line of tag, if any
     # @param lineindex line index of tag
     # @param it      iterator yielding remaining lines
-    # @return a triple (index, next, node) where
-    # index is the index of line 'next',
-    # next is the first line of next node to parse, and
+    # @return a triple (index, nextvar, node) where
+    # index is the index of line 'nextvar',
+    # nextvar is the first line of next node to parse, and
     # node is the resulting node of this parse.
 
     def parse_iter(self, pos, tag, lineindex, it, src=None):
@@ -108,12 +108,12 @@ class _GLUECLAMP_:
 
         while 1:
             try:
-                lineindex, next = next(it)
+                lineindex, nextvar = next(it)
             except StopIteration:
-                next = None
+                nextvar = None
                 break
-            if not next.startswith(dotchar):
-                tag.append(next)
+            if not nextvar.startswith(dotchar):
+                tag.append(nextvar)
             else:
                 break
         for (i, t) in enumerate(tag):
@@ -125,23 +125,23 @@ class _GLUECLAMP_:
         else:
             tag = '\n'.join(tag)
         while 1:
-            if (next is None or len(next) <= pos
-                or next[pos] != dotchar or
-                    not next.startswith(dotchar*(pos+1))):
-                return lineindex, next, self.node(tag, children, firstline)
-            if len(next) > pos+1 and next[pos+1] == dotchar:
+            if (nextvar is None or len(nextvar) <= pos
+                or nextvar[pos] != dotchar or
+                    not nextvar.startswith(dotchar*(pos+1))):
+                return lineindex, nextvar, self.node(tag, children, firstline)
+            if len(nextvar) > pos+1 and nextvar[pos+1] == dotchar:
                 if src is None:
                     raise SyntaxError('Level must increase with 1 max')
                 else:
                     src.error('Level must increase with 1 max', lineindex)
-            lineindex, next, child = self.parse_iter(pos+1, [next[pos+1:]],
-                                                     lineindex, it, src)
+            lineindex, nextvar, child = self.parse_iter(pos+1, [nextvar[pos+1:]],
+                                                        lineindex, it, src)
             children.append(child)
 
     def parse_lines(self, lines, src=None):
         it = enumerate(lines)
-        lineindex, next, node = self.parse_iter(0, [], 0, it, src)
-        assert next is None
+        lineindex, nextvar, node = self.parse_iter(0, [], 0, it, src)
+        assert nextvar is None
         return node
 
     def parse_string(self, string, src=None):

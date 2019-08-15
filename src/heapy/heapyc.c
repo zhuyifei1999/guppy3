@@ -230,8 +230,9 @@ INITFUNC (void)
     _Ny_RootStateStruct.ob_type = &NyRootState_Type;
 
     NyNodeTuple_Type.tp_base = &PyTuple_Type;
-    if (nyfills() == -1)
+    if (nyfills() == -1) {
         goto error;
+    }
 
     m = PyModule_Create(&moduledef);
     if (!m)

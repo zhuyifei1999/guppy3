@@ -9,7 +9,7 @@
 
 import os
 import sys
-import FCNTL
+import fcntl
 
 # We couldnt find termios
 
@@ -26,7 +26,7 @@ def master_open():
         pass
     else:
         try:
-            tty_name, master_fd = sgi._getpty(FCNTL.O_RDWR, 0o666, 0)
+            tty_name, master_fd = sgi._getpty(fcntl.O_RDWR, 0o666, 0)
         except IOError as msg:
             raise os.error(msg)
         return master_fd, tty_name
@@ -34,7 +34,7 @@ def master_open():
         for y in '0123456789abcdef':
             pty_name = '/dev/pty' + x + y
             try:
-                fd = os.open(pty_name, FCNTL.O_RDWR)
+                fd = os.open(pty_name, fcntl.O_RDWR)
             except os.error:
                 continue
             return (fd, '/dev/tty' + x + y)
@@ -46,7 +46,7 @@ def master_open():
 
 
 def slave_open(tty_name):
-    return os.open(tty_name, FCNTL.O_RDWR)
+    return os.open(tty_name, fcntl.O_RDWR)
 
 
 def xterm(prog=None, options=''):

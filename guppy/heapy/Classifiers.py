@@ -5,8 +5,7 @@ class Classifier:
     def __init__(self, mod, name, cli=None, supers=(), depends=(), with_referrers=False):
         self.mod = mod
         self.name = name
-        if cli is not None:
-            self.cli = cli
+        self._cli = cli
         # Set of all super-classifiers (including self).
         # The partial order is defined in Notes Aug 30 2005.
         self.super_classifiers = mod.ImpSet.immnodeset([self])
@@ -37,7 +36,7 @@ class Classifier:
     # This is not redefined by subclass unless they set cli property.
     def _get_cli(self):
         # This may be defined by subclass w/o setting cli property.
-        return self.get_cli()
+        return self.get_cli() if self._cli is None else self._cli
 
     cli = property(_get_cli)
 
@@ -47,7 +46,6 @@ class Classifier:
         return self.mod.alt(kind, alt)
 
     def get_dictof(self, kind):
-
         name = '%s.dictof' % self.name
         er = self.mod.mker_memoized(
             name,
@@ -398,10 +396,9 @@ class TypeFamily:
         self.defrefining(mod.Use.Anything)
         self.classifier = classifier
         self.range = mod.fam_Family(self)
-        self.TypeType = mod.types.TypeType
 
     def __call__(self, a):
-        if not isinstance(a, self.TypeType):
+        if not isinstance(a, type):
             raise TypeError("Argument should be a type.")
         return self.Set(self, a)
 
@@ -440,7 +437,11 @@ The classification will be the type of the object."""
         self.family = mod.fam_mixin_argatom(TypeFamily, self)
 
     def get_attr_for_er(self, name):
-        return self.get_userkind(getattr(self.mod.types, name+'Type'))
+        try:
+            ty = getattr(self.mod.types, name+'Type')
+        except AttributeError:
+            ty = getattr(self.mod.builtins, name.lower())
+        return self.get_userkind(ty)
 
     def get_byname(self):
         return 'type'
@@ -465,93 +466,9 @@ The classification will be the type of the object."""
         return self.mod.Use.tc_repr(kind.arg)
 
 
-class ClassFamily:
-    def __init__(self, mod, classifier):
-        self.classifier = classifier
-        self.InstanceType = mod.types.InstanceType
-        self.ClassType = mod.types.ClassType
-        self.defrefidis(mod.Use.Type(self.InstanceType))
-
-    def __call__(self, a):
-        if not isinstance(a, self.ClassType):
-            raise TypeError(
-                "Argument should be a class (of type types.ClassType).")
-        return self.mod.AtomFamily.__call__(self, a)
-
-    def c_alt(self, a, alt):
-        return self.classifier.get_alt(a, alt)
-
-    def c_contains(self, a, b):
-        return type(b) is self.InstanceType and b.__class__ is a.arg
-
-    def c_get_brief(self, a):
-        return '%s.%s' % (a.arg.__module__, a.arg.__name__)
-
-    def c_get_brief_alt(self, a, alt):
-        x = {
-            '<': 'strict subclass',
-            '<=': 'subclass',
-            '>=': 'superclass',
-            '>': 'strict superclass'
-        }[alt]
-        return '<%s of %s>' % (x, self.c_get_brief(a))
-
-    def c_repr(self, a):
-        return '%s(%r)' % (self.classifier.get_reprname(), self.mod.Use.tc_repr(a.arg))
-
-
-class ByClass(Classifier):
-    """byclass
-Classify by 'class', in the following sense.
-An object is classified as follows:
-1.      If the object is of type InstanceType, the
-        classification will be its class.
-2.      The classification will be the type of the object.
-
-This is like the __class__ attribute in newer Python, except it
-doesn't change if some type redefines the __class__ attribute.
-"""
-
-    def __init__(self, mod, name):
-        sup = mod.Use.Type.classifier
-        Classifier.__init__(self, mod, name, mod.hv.cli_class(), supers=[sup])
-        self.fam_Class = mod.fam_mixin_argatom(ClassFamily, self)
-        self.ClassType = self.fam_Class.ClassType
-        self.TypeType = mod.types.TypeType
-        self.type_get_kind = sup.get_kind
-
-    def get_byname(self):
-        return 'class'
-
-    def get_kind(self, kind):
-        if isinstance(kind, self.ClassType):
-            return self.fam_Class(kind)
-        else:
-            return self.type_get_kind(kind)
-
-    def get_kindarg(self, kind):
-        if kind.fam is self.fam_Class:
-            return kind.arg
-        else:
-            return self.mod.Use.Type.classifier.get_kindarg(kind)
-
-    def get_tabheader(self, ctx=''):
-        return 'Class'
-
-    def get_userkind(self, kind):
-        kind = self.mod.tc_adapt(kind)
-        try:
-            return self.get_kind(kind)
-        except TypeError:
-            raise TypeError('Argument should be a class or type.')
-
-    def get_userkindarg(self, kind):
-        return self.mod.Use.tc_repr(kind.arg)
-
-
 class OwnedDictFamily:
     def __init__(self, mod):
-        self.defrefidis(mod.Use.Type(self.types.DictType))
+        self.defrefidis(mod.Use.Type(dict))
 
     def _get_ownerkind(self, a):
         return a.arg
@@ -717,13 +634,11 @@ class ByDictOwner(Classifier):
 
 class ByClassOrDictOwner(Classifier):
     """byclodo
-Classify by <type, class or dict owner>.
+Classify by <type or dict owner>.
 The classification is performed as follows:
-1.      If the object is an instance of a class, the
-        classification will be the class.
-2.      If the object is not a dictionary,
+1.      If the object is not a dictionary,
         the classification will be the type of the object.
-3.      The object is a dictionary. The referrers of the
+2.      The object is a dictionary. The referrers of the
         object are searched to find one that 'owns' the
         dictionary. That is, typically, that the dict is
         the __dict__ attribute of the owner. If no such
@@ -734,9 +649,9 @@ The classification is performed as follows:
         will be done by class. (As byclass.)"""
 
     def __init__(self, mod, name):
-
-        a = mod.Class
+        a = mod.Type
         d = a.dictof
+        # ad = (a & d).classifier
         ad = (a & d).classifier
         sup = a.classifier
         Classifier.__init__(self, mod, name, cli=None,
@@ -1270,16 +1185,14 @@ class _GLUECLAMP_:
         '_parent:Use',
         '_root.guppy.etc.etc:str2int',
         '_root:re',
-        '_root:types,'
+        '_root:types',
+        '_root:builtins',
     )
 
     def _er_by_(self, constructor, *args, **kwds):
         return self.UniSet.fam_EquivalenceRelation(constructor, *args, **kwds)
 
     # Exported equivalence relations
-
-    def _get_Class(self):
-        return self._er_by_(ByClass, self, name='Class')
 
     def _get_Clodo(self):
         return self._er_by_(ByClassOrDictOwner, self, name='Clodo')
@@ -1362,8 +1275,7 @@ the object.
         # Accepts a type or class object, or a string representation
         # (at least as) by tc_repr.
 
-        if (isinstance(k, self.types.TypeType) or
-                isinstance(k, self.types.ClassType)):
+        if isinstance(k, type):
             return k
         if not isinstance(k, str):
             raise TypeError('type, class or basestring expected')
@@ -1392,7 +1304,10 @@ the object.
                 raise ValueError(err)
             if t not in ('type', 'class'):
                 raise ValueError(err)
-            ty = getattr(self.types, t.capitalize()+'Type')
+            try:
+                ty = getattr(self.types, t.capitalize()+'Type')
+            except AttributeError:
+                ty = getattr(self.builtins, t.lower())
             if not isinstance(kind, ty):
                 raise TypeError('%s object expected' % t)
             if not s[2] == 'at':
@@ -1419,12 +1334,10 @@ the object.
         # but I hope it will work well enough in practice.
         # See also Notes Sep 7 2005.
 
-        if isinstance(k, self.types.TypeType):
+        if isinstance(k, type):
             t = 'type'
-        elif isinstance(k, self.types.ClassType):
-            t = 'class'
         else:
-            raise TypeError('type or class expected')
+            raise TypeError('type expected')
         return '<%s %s.%s at %s>' % (t, k.__module__, k.__name__, hex(id(k)))
 
     # Convenience interfaces

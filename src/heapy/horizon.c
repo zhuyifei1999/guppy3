@@ -78,7 +78,8 @@ horizon_base(PyObject *v)
     PyTypeObject *t = Py_TYPE(v);
     while (t->tp_flags & Py_TPFLAGS_HEAPTYPE) {
         assert(t->tp_base);
-        assert(Py_TYPE(t) == Py_TYPE(t->tp_base));
+        assert(Py_TYPE(t) == Py_TYPE(t->tp_base) ||
+            PyObject_IsSubclass((PyObject *)Py_TYPE(t), (PyObject *)Py_TYPE(t->tp_base)));
         t = t->tp_base;
     }
     return t;

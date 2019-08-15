@@ -3821,8 +3821,8 @@ immbitset_reduce_flags(NyImmBitSetObject *self, int flags)
     PyObject *a = PyTuple_New(2);
     PyObject *b = PyTuple_New(2);
     PyObject *c = PyLong_FromLong(flags);
-    PyObject *d = PyUnicode_FromStringAndSize((char *)self->ob_field,
-                                             Py_SIZE(self) * sizeof(self->ob_field[0]));
+    PyObject *d = PyBytes_FromStringAndSize((char *)self->ob_field,
+                                            Py_SIZE(self) * sizeof(self->ob_field[0]));
     if (!(a && b && c && d)) {
         Py_XDECREF(a);
         Py_XDECREF(b);
@@ -4426,7 +4426,7 @@ static PyMethodDef nybitset_methods[] =
 {
     {"immbit",(PyCFunction)_NyImmBitSet_Singleton, METH_O, bitsingle_doc},
     {"immbitrange",(PyCFunction)_NyImmBitSet_Range, METH_VARARGS, bitrange_doc},
-    {"immbitset",(PyCFunction)immbitset, METH_KEYWORDS, immbitset_doc},
+    {"immbitset",(PyCFunction)immbitset, METH_VARARGS|METH_KEYWORDS, immbitset_doc},
     {"_bs",(PyCFunction)_NyBitSet_Form, METH_VARARGS, bitform_doc},
     {0}
 };
@@ -4470,7 +4470,7 @@ int fsb_dx_nybitset_init(PyObject *m)
                          "NyBitSet_Exports",
                          PyCapsule_New(
                              &nybitset_exports,
-                             "NybitSet_Exports v1.0",
+                             "guppy.sets.setsc.NybitSet_Exports",
                              0)
                          );
 

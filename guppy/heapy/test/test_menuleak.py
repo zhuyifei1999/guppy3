@@ -75,7 +75,6 @@ def test2(M):
         menu.delete(END)
         root.quit()
     rc = [sys.getrefcount(x) for x in (command0, command1, command0)]
-    del x
     button.pack()
     # or add_radiobutton etc
     menu.add_command(command=command0, label='press first')
@@ -90,7 +89,6 @@ def test2(M):
 
     gc.collect()
     rc1 = [sys.getrefcount(x) for x in (command0, command1, command0)]
-    del x
     print('leak test with class', M, end=' ')
     if rc1 != rc:
         print('failed: command is now hold by',
