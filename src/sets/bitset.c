@@ -3513,26 +3513,7 @@ cplbitset_nonzero(NyImmBitSetObject *v)
 static PyObject *
 cplbitset_repr(NyCplBitSetObject *a)
 {
-    char buf[256];
-    PyObject *s, *sn, *f, *t;
-    PyOS_snprintf(buf, sizeof(buf), "(~");
-    s = PyUnicode_FromString(buf);
-    t = PyObject_Repr((PyObject *)a->ob_val);
-    if (!(s && t))
-        goto Fail;
-    sn = PyUnicode_Concat(s, t);
-    Py_XDECREF(s);
-    Py_XDECREF(t);
-    s = sn;
-    f = PyUnicode_FromString(")");
-    sn = PyUnicode_Concat(s, f);
-    Py_XDECREF(s);
-    Py_XDECREF(f);
-    return sn;
-Fail:
-    Py_XDECREF(s);
-    Py_XDECREF(t);
-    return 0;
+    return PyUnicode_FromFormat("(~%R)", (PyObject *)a->ob_val);
 }
 
 static PyObject *
