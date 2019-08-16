@@ -9,6 +9,27 @@ import weakref
 class _MetaAttrProxy(type):
     def __init__(self, name, bases, dct):
         self._proxied_classes = weakref.WeakSet({type, object})
+        self._add_proxy_attr('__str__')
+        self._add_proxy_attr('__repr__')
+
+    def _add_proxy_attr(self, attr):
+        if not attr.startswith('__') or not attr.endswith('__'):
+            return
+        if attr in self.__dict__:
+            return
+        if attr in ('__new__', '__init__', '__getattr__',
+                    '__getattribute__', '__setattr__', '__delattr__',
+                    ):
+            return
+
+        def closure(attr):
+            def generated_function(self, *args, **kwargs):
+                func = self.__getattr__(attr)
+                return func(*args, **kwargs)
+
+            return generated_function
+
+        setattr(self, attr, closure(attr))
 
     def _add_proxy_class(self, base):
         if base in self._proxied_classes:
@@ -17,26 +38,10 @@ class _MetaAttrProxy(type):
         for cls in base.__mro__:
             self._proxied_classes.add(cls)
             for attr, val in cls.__dict__.items():
-                if not attr.startswith('__') or not attr.endswith('__'):
-                    continue
-                if attr in self.__dict__:
-                    continue
-                if attr in ('__new__', '__init__', '__getattr__',
-                            '__getattribute__', '__setattr__', '__delattr__',
-                            ):
-                    continue
                 if not isinstance(val, types.FunctionType):
                     continue
 
-                def closure(attr):
-                    def generated_function(self, *args, **kwargs):
-                        func = type.__getattribute__(base, attr)
-                        func = func.__get__(self)
-                        return func(*args, **kwargs)
-
-                    return generated_function
-
-                setattr(self, attr, closure(attr))
+                self._add_proxy_attr(attr)
 
 
 class OutputHandler:
