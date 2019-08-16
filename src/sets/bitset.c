@@ -2168,58 +2168,28 @@ mutbitset_nonzero(NyMutBitSetObject *v)
 static PyObject *
 mutbitset_repr(NyMutBitSetObject *a)
 {
-    char buf[256];
-    PyObject *s, *sn, *f, *t, *comma, *v, *iter;
+    char *fmt;
+    PyObject *s, *iter;
     int i;
     if (a->cpl) {
-        PyOS_snprintf(buf, sizeof(buf), "MutBitSet(~ImmBitSet([");
+        fmt = "MutBitSet(~ImmBitSet(%R))";
         /* Subtle:
            Get around that mutbitset doesnt allow iteration when complemented -
            this getaround assumes iter copies it to an immutable bitset. */
         a->cpl = 0;
-        iter = PyObject_GetIter((PyObject *)a);
+        iter = PySequence_List((PyObject *)a);
         a->cpl = 1;
     }
     else {
-        PyOS_snprintf(buf, sizeof(buf), "MutBitSet([");
-        iter = PyObject_GetIter((PyObject *)a);
+        fmt = "MutBitSet(%R)";
+        iter = PySequence_List((PyObject *)a);
     }
-    s = PyUnicode_FromString(buf);
-    comma = PyUnicode_FromString(", ");
-    if (!(iter && s && comma)) goto Fail;
-    for (i = 0; ; i++) {
-        v = PyIter_Next(iter);
-        if (!v) {
-            if (PyErr_Occurred())
-                goto Fail;
-            break;
-        }
-        if (i > 0) {
-            sn = PyUnicode_Concat(s, comma);
-            Py_XDECREF(s);
-            s = sn;
-        }
-        t = PyObject_Repr(v);
-        Py_XDECREF(v);
-        sn = PyUnicode_Concat(s, t);
-        Py_XDECREF(s);
-        Py_XDECREF(t);
-        s = sn;
-    }
+    if (!iter) goto Fail;
+    s = PyUnicode_FromFormat(fmt, iter);
     Py_XDECREF(iter);
-    Py_XDECREF(comma);
-    if (a->cpl)
-        f = PyUnicode_FromString("]))");
-    else
-        f = PyUnicode_FromString("])");
-    sn = PyUnicode_Concat(s, f);
-    Py_XDECREF(s);
-    Py_XDECREF(f);
-    return sn;
+    return s;
 Fail:
     Py_XDECREF(iter);
-    Py_XDECREF(comma);
-    Py_XDECREF(s);
     return 0;
 }
 
@@ -3357,50 +3327,18 @@ immbitset_or(NyImmBitSetObject *v, PyObject *w, int wt)
 static PyObject *
 immbitset_repr(NyImmBitSetObject *a)
 {
-    char buf[256];
-    PyObject *s, *sn, *f, *t, *comma, *v, *iter;
+    PyObject *s, *iter;
     NyBit i, len;
     len = Py_SIZE(a);
     if (len == 0) {
-            PyOS_snprintf(buf, sizeof(buf), "ImmBitSet([])");
-            return PyUnicode_FromString(buf);
+        return PyUnicode_FromString("ImmBitSet([])");
     }
-    PyOS_snprintf(buf, sizeof(buf), "ImmBitSet([");
-    s = PyUnicode_FromString(buf);
-    comma = PyUnicode_FromString(", ");
-    iter = PyObject_GetIter((PyObject *)a);
-    if (!(iter && s && comma)) goto Fail;
-    for (i = 0; ; i++) {
-        v = PyIter_Next(iter);
-        if (!v) {
-            if (PyErr_Occurred())
-                goto Fail;
-            break;
-        }
-
-        if (i > 0) {
-            sn = PyUnicode_Concat(s, comma);
-            Py_XDECREF(s);
-            s = sn;
-        }
-        t = PyObject_Repr(v);
-        Py_XDECREF(v);
-        sn = PyUnicode_Concat(s, t);
-        Py_XDECREF(s);
-        Py_XDECREF(t);
-        s = sn;
-    }
-    Py_XDECREF(iter);
-    Py_XDECREF(comma);
-    f = PyUnicode_FromString("])");
-    sn = PyUnicode_Concat(s, f);
-    Py_XDECREF(s);
-    Py_XDECREF(f);
-    return sn;
+    iter = PySequence_List((PyObject *)a);
+    if (!iter) goto Fail;
+    s = PyUnicode_FromFormat("ImmBitSet(%R)", iter);
+    return s;
 Fail:
     Py_XDECREF(iter);
-    Py_XDECREF(comma);
-    Py_XDECREF(s);
     return 0;
 }
 

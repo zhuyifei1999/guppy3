@@ -636,7 +636,7 @@ hv_add_heapdefs_tuple(NyHeapViewObject *hv, PyTupleObject *heapdefs)
     int i;
     for (i = 0; i < PyTuple_Size((PyObject *)heapdefs); i++) {
         PyObject *obj = PyTuple_GetItem((PyObject *)heapdefs, i);
-        NyHeapDef *hd = PyCapsule_GetPointer(obj, PyCapsule_GetName(obj));
+        NyHeapDef *hd = PyCapsule_GetPointer(obj, "guppy.sets.setsc._NyHeapDefs_");
         if (!hd)
             return -1;
         if (hv_add_heapdefs_array(hv, hd) == -1)
