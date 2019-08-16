@@ -200,12 +200,8 @@ static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     MODNAME,
     NULL,
-    0,
-    module_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    -1,
+    module_methods
 };
 
 static int nyfills() {
