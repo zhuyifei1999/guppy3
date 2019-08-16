@@ -143,6 +143,7 @@ static struct PyMemberDef is_members[] = {
 #undef MEMBER
 
 #define MEMBER(name) {#name, T_OBJECT, offsetof(PyThreadState, name)}
+#define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyThreadState, name)}
 
 static struct PyMemberDef ts_members[] = {
     MEMBER(frame),
@@ -152,9 +153,9 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(curexc_value),
     MEMBER(curexc_traceback),
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-    MEMBER(exc_state.exc_type),
-    MEMBER(exc_state.exc_value),
-    MEMBER(exc_state.exc_traceback),
+    RENAMEMEMBER(exc_state.exc_type, exc_type),
+    RENAMEMEMBER(exc_state.exc_value, exc_value),
+    RENAMEMEMBER(exc_state.exc_traceback, exc_traceback),
 #else
     MEMBER(exc_type),
     MEMBER(exc_value),
@@ -189,6 +190,13 @@ static struct PyMemberDef ts_members[] = {
             return 1;                                               \
     }
 
+#define RENAMETSATTR(v, name, newname)                                             \
+    if ((PyObject *)v->name == r->tgt) {                            \
+        sprintf(buf,"t%lu_%s", THREAD_ID(ts), #newname);               \
+        if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(buf), r)) \
+            return 1;                                               \
+    }
+
 
 static int
 rootstate_relate(NyHeapRelate *r)
@@ -214,12 +222,12 @@ rootstate_relate(NyHeapRelate *r)
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
             if ((ts == bts && r->tgt == hv->limitframe) ||
-                (!hv->limitframe && isframe)) {
+                    (!hv->limitframe && isframe)) {
                 int frameno = -1;
                 int numframes = 0;
                 PyFrameObject *frame;
                 for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-                    numframes ++;
+                    numframes++;
                     if (r->tgt == (PyObject *)frame)
                         frameno = numframes;
                 }
@@ -236,9 +244,9 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(ts, curexc_value);
             TSATTR(ts, curexc_traceback);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-            TSATTR(ts, exc_state.exc_type);
-            TSATTR(ts, exc_state.exc_value);
-            TSATTR(ts, exc_state.exc_traceback);
+            RENAMETSATTR(ts, exc_state.exc_type, exc_type);
+            RENAMETSATTR(ts, exc_state.exc_value, exc_value);
+            RENAMETSATTR(ts, exc_state.exc_traceback, exc_traceback);
 #else
             TSATTR(ts, exc_type);
             TSATTR(ts, exc_value);

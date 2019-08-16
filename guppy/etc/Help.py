@@ -65,8 +65,8 @@ class Lister:
 
     def list(self, items, columns=4, width=80):
         items = items[:]
-        colw = width / columns
-        rows = (len(items) + columns - 1) / columns
+        colw = width // columns
+        rows = (len(items) + columns - 1) // columns
         for row in range(rows):
             for col in range(columns):
                 if 1:

@@ -188,10 +188,8 @@ class FirstCase(TestCase):
             hp.reprefix = 'hp.'
 
             # I thought these should be the same
-            a = hp.iso(C.__dict__, C, c, c.__dict__,
-                       d)
-            b = hp.iso(C.__dict__, C, c, c.__dict__,
-                       d)
+            a = hp.iso(C, c, c.__dict__, d)
+            b = hp.iso(C, c, c.__dict__, d)
             self.aseq(a, b)
 
             # This is a kind of nested refdby that has been a concern lately
@@ -246,10 +244,10 @@ class FirstCase(TestCase):
                 ('Rcs', 0),
                 'Size',
                 'Type',
-                    'Via')[:]:
-
+                'Via'
+            ):
                 if isinstance(pre, tuple):
-                    pre, level = pre[:2]
+                    pre, level = pre
                 else:
                     level = 1
                 er = getattr(hp, pre)
@@ -257,7 +255,6 @@ class FirstCase(TestCase):
 
         def er_test(self, er, set, level=1):
             # Tests what any eqv. rel. er should do
-
             hp = self.heapy.Use
 
             rer = repr(er)
@@ -265,16 +262,15 @@ class FirstCase(TestCase):
             self.aseq(eval(rer), er)
 
             for s in (set,):
-
                 sby = s.by(er)
                 sk = sby.kind
                 rsk = repr(sk)
                 # print rsk
                 ske = eval(rsk)
 
-                self.aseq(ske, sk)
-                self.aseq(s & sk, s)
-                self.aseq(s & ske, s)
+                self.aseq(ske, sk, -1)
+                self.aseq(s & sk, s, -1)
+                self.aseq(s & ske, s, -1)
 
             # That it can do .refdby
 
@@ -346,7 +342,7 @@ class FirstCase(TestCase):
             a = s.by(k.alt('>=').biper)
             b = s.by(k.alt('>=').biper)
             # print a
-            self.assertTrue(hp.iso(d.__dict__) <= a[1])
+            self.assertTrue(hp.iso(d.__dict__) <= a[0])
             self.assertTrue(a == b)
 
             gc.collect()

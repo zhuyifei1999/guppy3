@@ -268,7 +268,7 @@ class SpecialTypesCase(TestCase):
     def test_array(self):
         iso = self.iso
         import array
-        a = array.array('b', 'asdf')
+        a = array.array('b', b'asdf')
         iso(a).size
 
 

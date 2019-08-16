@@ -416,9 +416,6 @@ The optional arguments are:
           Shorthand for .stat.dump """
         self.stat.dump(*args, **kwds)
 
-    byclass = property(lambda self: self.by('Class'), doc="""\
-A copy of self, but with 'Class' as the equivalence relation.""")
-
     byclodo = property(lambda self: self.by('Clodo'), doc="""\
 A copy of self, but with 'Clodo' as the equivalence relation.""")
 
@@ -1947,8 +1944,7 @@ class Summary_str:
         self.table = {
             mod.NodeSet: self.str_address_len,
             bool: self.str_repr,
-            types.BuiltinFunctionType: self.str_builtin_function,
-            type: self.str_class,
+            types.BuiltinMethodType: self.str_builtin_function,
             types.CodeType: self.str_code,
             complex: self.str_repr,
             dict: self.str_address_len,
@@ -1957,7 +1953,6 @@ class Summary_str:
             types.FunctionType: self.str_function,
             int: self.str_repr,
             list: self.str_address_len,
-            int: self.str_repr,
             type(None): self.str_repr,
             types.MethodType: self.str_method,
             types.ModuleType: self.str_module,
@@ -1993,14 +1988,10 @@ class Summary_str:
     def str_builtin_function(self, x):
         n = x.__name__
         m = x.__module__
-        if m != '__builtin__':
+        if m != 'builtins':
             n = '%s.%s' % (m, n)
         return n
     str_builtin_function._idpart_header = 'Name'
-
-    def str_class(self, x):
-        return str(x)
-    str_class._idpart_header = 'Name'
 
     def str_code(self, x):
         return '%s:%d:%s' % (self.mod._root.os.path.basename(x.co_filename),
@@ -2037,7 +2028,7 @@ class Summary_str:
     str_module._idpart_header = 'Name'
 
     def str_limrepr(self, x):
-        return self.mod._root.builtins.repr(x)
+        return self.mod._root.reprlib.repr(x)
     str_limrepr._idpart_header = 'Representation (limited)'
     str_limrepr._idpart_sortrender = 'IDENTITY'
     str_repr = repr
