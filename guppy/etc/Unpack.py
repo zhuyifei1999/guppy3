@@ -17,7 +17,7 @@ STORE_SUBSCR = opmap['STORE_SUBSCR']
 def unpack(x):
     try:
         1/0
-    except:
+    except ZeroDivisionError:
         typ, value, traceback = sys.exc_info()
 
         f = traceback.tb_frame.f_back

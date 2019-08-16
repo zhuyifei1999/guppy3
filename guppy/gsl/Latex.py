@@ -693,7 +693,7 @@ class Encoder:
               }
         if docutils_encoding.lower() in tr:
             return tr[docutils_encoding.lower()]
-        return docutils_encoding.translate(self.mod.string.maketrans("", ""), "_-").lower()
+        return docutils_encoding.translate(str.maketrans("", "", "_-")).lower()
 
     def unicode_to_latex(self, text):
         # see LaTeX codec
@@ -803,7 +803,6 @@ class _GLUECLAMP_:
         '_parent.SpecNodes:node_of_taci',
         '_parent.Main:ReportedError',
         '_root:re',
-        '_root:string',
     )
 
     font_encoding = ''

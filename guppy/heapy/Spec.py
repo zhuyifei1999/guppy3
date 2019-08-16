@@ -43,7 +43,7 @@ class SpecFamily:
         for bi in b.nodes:
             try:
                 env.test_contains(a, bi, 'select contains')
-            except:  # TestError
+            except Exception:  # TestError
                 pass
             else:
                 res.add(bi)
@@ -166,7 +166,7 @@ class AdaptupleFamily(SpecFamily):
         if isinstance(b, tuple):
             try:
                 x = func(*b)
-            except:
+            except Exception:
                 return env.failed_exc_info('calling func failed')
         else:
             x = b
@@ -288,7 +288,7 @@ class MappingFamily(SpecFamily):
         def g(env, args):
             try:
                 r = f(*args)
-            except:  # TypeError, ValueError, AttributeError ... - what not
+            except Exception:  # TypeError, ValueError, AttributeError ... - what not
                 raise
                 #env.failed('Call exception')
             else:
@@ -328,7 +328,7 @@ class PowersetFamily(SpecFamily):
         x = [self.specmod.Nothing, a.arg]
         try:
             y = env.get_examples(a.arg)
-        except:
+        except Exception:
             # xxx complain? We can always generate 2 examples..
             return x
         # xxx should we make all permutations?..
@@ -484,10 +484,7 @@ class ExpressionPredicateFamily(SpecFamily):
         for name in names:
             x = env.getattr(b, name)
             d[name] = x
-        try:
-            x = func(**d)
-        except:
-            raise
+        x = func(**d)
         if not x:
             env.failed('False expression: %s' % expression)
         return True
@@ -506,10 +503,7 @@ class ExpressionSetFamily(SpecFamily):
         for name in names:
             x = env.getattr(b, name)
             d[name] = x
-        try:
-            x = func(**d)
-        except:
-            raise
+        x = func(**d)
         return env.test_contains(x, b, 'expset(%s, %s)' % (expression, ','.join(names)))
 
 
@@ -555,7 +549,7 @@ class RecurSelfFamily(SpecFamily):
             tf = env.test_contains(s, b, 'recur with Nothing, ok to fail')
             if not tf:
                 raise TestError
-        except:  # TestError: eg for match, we got a TypeError..
+        except Exception:  # TestError: eg for match, we got a TypeError..
             s = func(a)
             rl = a.recursion_level
             try:
@@ -745,7 +739,7 @@ class RepresentationObjectFamily(SpecFamily):
         def p(env, e):
             try:
                 O, A = e
-            except:
+            except Exception:
                 return env.failed('Not a sequence with length 2')
             fam = getattr(O, 'fam', None)
             if fam is not self:
@@ -1039,13 +1033,13 @@ class TestEnv:
             for subname in name.split('.'):
                 try:
                     x = getattr(x, subname)
-                except:
+                except Exception:
                     return self.failed('getattr: %s has no attribute %r' % (self.name(obj), name) +
                                        ',\nbecause %s has no attribute %r' % (self.name(x), subname))
         else:
             try:
                 x = getattr(obj, name)
-            except:
+            except Exception:
                 if DEBUG:
                     raise
                 return self.failed('attr: %s has no attribute %r' % (self.name(obj), name))
@@ -1078,7 +1072,7 @@ class TestEnv:
         self.get_obj_examples(obj)
         try:
             self.test_contains(self.topspec, obj, 'Top spec')
-        except:
+        except Exception:
             tvt = self.mod._root.sys.exc_info()
             self.dump_failure(tvt)
 
@@ -1117,7 +1111,7 @@ class TestEnv:
             x = self.test_contains(a, b, 'contains')
         except CoverageError:
             raise
-        except:
+        except Exception:
             return False
         return x
 
@@ -1137,7 +1131,7 @@ class TestEnv:
             a.test_contains(b, self)
         except CoverageError:
             raise
-        except:  # TestError: # well we axcept anything.. ok?
+        except Exception:  # TestError: # well we axcept anything.. ok?
             return True
         else:
             return self.failed('test_contains_not, from: %s' % message)
@@ -1175,7 +1169,7 @@ class TestEnv:
                 if a > 0:
                     raise CoverageError
                 # Otherwise ok, it was really an Nothing collection.
-            except:
+            except Exception:
                 self.failed_coverage('forall', collection, func, message)
 
         return True
@@ -1212,7 +1206,7 @@ class TestEnv:
         for i, x in enumerate(collection):
             try:
                 b = func(x)
-            except:  # TestError:
+            except Exception:  # TestError:
                 failures.append((i, self.mod._root.sys.exc_info()))
                 continue
             if b:
@@ -1290,7 +1284,7 @@ class _GLUECLAMP_:
             try:
                 if x:
                     pass
-            except:
+            except Exception:
                 env.failed("boolean: 'if x' raised an exception")
             return True
         return self.predicate(p, 'boolean')

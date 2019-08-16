@@ -1624,7 +1624,7 @@ class IdentitySetFamily(AtomFamily):
         for x in set.nodes:
             try:
                 v = getattr(x, name)
-            except:
+            except AttributeError:
                 pass
             else:
                 ns.add(v)
@@ -1635,7 +1635,7 @@ class IdentitySetFamily(AtomFamily):
         for x in set.nodes:
             try:
                 v = x[idx]
-            except:
+            except (KeyError, IndexError):
                 pass
             else:
                 ns.add(v)
@@ -1661,7 +1661,7 @@ class IdentitySetFamily(AtomFamily):
         else:
             try:
                 ss = er.split('&')
-            except:
+            except Exception:
                 raise TypeError(
                     'by(): Equivalence relation or string expected.')
             if ss == ['']:
@@ -1867,7 +1867,7 @@ class EquivalenceRelationFamily(AtomFamily):
         except AttributeError:
             try:
                 ckc = b.get_ckc()
-            except:
+            except Exception:
                 return False
             else:
                 return ckc[0].er <= a and ckc[2] == '=='

@@ -225,7 +225,7 @@ class Share:
                     if self.ispackage:
                         try:
                             x = self.getattr3(inter, name)
-                        except:
+                        except NoSuchAttributeError:
                             x = self.getattr_package(inter, name)
                     else:
                         x = self.getattr3(inter, name)

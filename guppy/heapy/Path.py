@@ -114,6 +114,7 @@ class MultiRelation(RelationBase):
         return '<'+','.join([x.stra(a, safe=safe) for x in self.rels])+'>'
 
 
+@functools.total_ordering
 class Path:
     def __init__(self, mod, path, index, output, srcname):
         self.mod = mod
@@ -129,8 +130,11 @@ class Path:
             srcname = srcname(self)
         self.srcname = srcname
 
-    def __cmp__(self, other):
-        return cmp(str(self), str(other))
+    def __lt__(self, other):
+        return str(self) < str(other)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
     def __len__(self):
         return int((len(self.path) - 1) / 2)

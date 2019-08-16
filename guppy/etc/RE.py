@@ -1,5 +1,7 @@
 # ._cv_part guppy.etc.RE
 
+import functools
+
 from guppy.etc.RE_Rect import chooserects
 from guppy.etc.IterPermute import iterpermute
 
@@ -183,10 +185,6 @@ def regexpname(s):
             c = ''
         ren.append(c)
     return ''.join(ren)
-
-
-def re_compare(a, b):
-    return a.__cmp__(b)
 
 
 class Seq(RE):
@@ -835,7 +833,7 @@ class RegularSystem:
                 return 0
 
             # Equations with more terms are resolved later
-            c = cmp(len(X[y]), len(X[x]))
+            c = len(X[y]) - len(X[x])
             if c:
                 return c
 
@@ -844,16 +842,16 @@ class RegularSystem:
             while i < 10:  # 4 was enough with tests so far at Feb 24 2005
                 try:
                     f = sumdists[i]
-                except:
+                except IndexError:
                     f = sumt(sumdists[i-1])
                     sumdists.append(f)
-                c = cmp(f(x), f(y))
+                c = f(x) - f(y)
                 if c:
                     return c
                 i += 1
 
             # pdb.set_trace()
-            return cmp(x, y)
+            return (x > y) - (x < y)
 
         sumdists = [start_distance]
         X = self.X
@@ -861,7 +859,7 @@ class RegularSystem:
         Final = self.Final
         start_dists = dists(X, Start)
         order = [x for x in start_dists if x is not Start and x is not Final]
-        order.sort(cmp3)
+        order.sort(key=functools.cmp_to_key(cmp3))
         self.order = order
 
     def setup_names(self):

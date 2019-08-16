@@ -155,7 +155,7 @@ class _GLUECLAMP_:
         for n, m in self.heapdef_modules:
             try:
                 hd = getattr(m, '_NyHeapDefs_')
-            except:
+            except AttributeError:
                 continue
             heapdefs.append(hd)
         return tuple(heapdefs)
@@ -253,7 +253,7 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
             import sys
             try:
                 1/0
-            except:
+            except ZeroDivisionError:
                 type, value, traceback = sys.exc_info()
                 limitframe = traceback.tb_frame.f_back.f_back
             sys.last_traceback = None

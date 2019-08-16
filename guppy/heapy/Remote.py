@@ -178,11 +178,11 @@ class Annex(cmd.Cmd):
         self.socket = None
         try:
             socket.send(DONE)
-        except:
+        except Exception:
             pass
         try:
             socket.close()
-        except:
+        except Exception:
             pass
         sys.last_traceback = None
         sys.exc_clear()
@@ -401,10 +401,10 @@ target.pid is the process id of the target interpreter.
                             self.cmdloop()
                         except SocketClosed:
                             break
-                        except:
+                        except Exception:
                             try:
                                 traceback.print_exc(file=self.stdout)
-                            except:
+                            except Exception:
                                 traceback.print_exc(file=sys.stdout)
                                 break
                             continue

@@ -519,7 +519,7 @@ class RenderCase(TestCase):
 
         try:
             1/0
-        except:
+        except ZeroDivisionError:
             typ, value, traceback = sys.exc_info()
 
         ps(iso(traceback))
@@ -956,8 +956,6 @@ class ClassificationCase(TestCase):
 
     def test_selection(self):
         # Test classifications operations via selection invariant
-        # REMOVE
-        return
 
         Use = self.Use
 

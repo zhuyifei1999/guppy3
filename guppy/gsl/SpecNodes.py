@@ -114,8 +114,9 @@ class FileEnv:
 
     def get_line(self, index):
         try:
-            text = list(open(self.filename).readlines())[index].rstrip()
-        except:
+            with open(self.filename) as f:
+                text = list(f.readlines())[index].rstrip()
+        except Exception:
             text = None
         return text
 
@@ -424,8 +425,9 @@ class Source:
             if self.string is None:
                 if self.filename:
                     try:
-                        self.string = open(self.filename).read()
-                    except:
+                        with open(self.filename) as f:
+                            self.string = f.read()
+                    except Exception:
                         return ''
                 else:
                     return ''

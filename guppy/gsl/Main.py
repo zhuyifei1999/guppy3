@@ -152,9 +152,9 @@ class SpecEnv:
         else:
             data = mod.IO.read_file(filename)
         md5 = mod.md5()
-        md5.update('.filename: %s\n' % filename)
-        md5.update('.packname: : %s\n' % packname)
-        md5.update(data)
+        md5.update(b'.filename: %s\n' % filename.encode('utf-8'))
+        md5.update(b'.packname: : %s\n' % packname.encode('utf-8'))
+        md5.update(data.encode('utf-8'))
         digest = md5.digest()
         if digest in mod.package_cache:
             return mod.package_cache[digest]
@@ -1236,7 +1236,6 @@ class Condition(Description):
 
     def get_def_name(self):
         dn = self.src.lastname
-        self.def_name = dn
         return dn
 
     def_name = property(get_def_name)
@@ -1259,7 +1258,6 @@ class ConditionRef(Description):
         cond_id = self.cond_definition.tgtfullname
         if self.is_not:
             cond_id = 'not ' + cond_id
-        self.cond_id = cond_id
         return cond_id
 
     cond_id = property(get_cond_id)
@@ -1417,18 +1415,18 @@ class Repeat(Description):
             lo, hi = [x.strip() for x in args]
             try:
                 lo = int(lo)
-            except:
+            except ValueError:
                 self.error('Expected int in lower bound.', self.src.node)
             if hi != '*':
                 try:
                     hi = int(hi)
-                except:
+                except ValueError:
                     self.error('Expected int or * in upper bound.',
                                self.src.node)
         else:
             try:
                 lo = int(arg)
-            except:
+            except ValueError:
                 self.error(
                     'Expected int, int..int or int..* in argument.', self.src.node)
             hi = lo
@@ -1799,8 +1797,9 @@ class Subject:
 
     def get_line(self, index):
         try:
-            text = list(open(self.filename).readlines())[index].rstrip()
-        except:
+            with open(self.filename) as f:
+                text = list(f.readlines())[index].rstrip()
+        except Exception:
             text = None
         return text
 
@@ -2164,7 +2163,7 @@ class _GLUECLAMP_:
         '_parent:SpecNodes',
         '_parent.SpecNodes:node_of_taci',
         '_parent:Tester',
-        '_root.md5:md5',
+        '_root.hashlib:md5',
         '_root.guppy.etc:iterpermute',
         '_root.guppy.etc:RE',
     )
