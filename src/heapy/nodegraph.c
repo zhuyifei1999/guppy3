@@ -748,16 +748,13 @@ nodegraph_relate(NyHeapRelate *r)
 {
     NyNodeGraphObject *ng = (void *)r->src;
     int i;
-    char buf[100];
     for (i = 0; i < ng->used_size; i++) {
         if (r->tgt == ng->edges[i].src) {
-            sprintf(buf, "edges[%d].src",i);
-            if (r->visit(NYHR_INTERATTR, PyUnicode_FromString(buf), r))
+            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].src", i), r))
                 return 0;
         }
         if (r->tgt == ng->edges[i].tgt) {
-            sprintf(buf, "edges[%d].tgt",i);
-            if (r->visit(NYHR_INTERATTR, PyUnicode_FromString(buf), r))
+            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].tgt", i), r))
                 return 0;
         }
     }

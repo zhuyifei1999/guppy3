@@ -426,9 +426,7 @@ nodeset_relate_visit(PyObject *obj, RelateTravArg *ta)
     NyHeapRelate *r = ta->r;
 
     if (r->tgt == obj) {
-        char buf[100];
-        sprintf(buf, "list(%%s)[%d]",ta->i);
-        r->visit(NYHR_RELSRC, PyUnicode_FromString(buf), r);
+        r->visit(NYHR_RELSRC, PyUnicode_FromFormat("list(%%s)[%d]", ta->i), r);
         return 1;
     }
     ta->i++;
