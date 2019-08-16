@@ -1,18 +1,19 @@
 # ._cv_part guppy.heapy.Path
+import functools
 
 
 class R_NORELATION:
     code = -1
     r = None
 
-    def stra(self, a):
+    def stra(self, a, safe=True):
         return '%s.??' % a
 
 
 class R_IDENTITY:
     code = 0
 
-    def stra(self, a):
+    def stra(self, a, safe=True):
         return a
 
 
@@ -24,8 +25,11 @@ class R_ATTRIBUTE:
 class R_INDEXVAL:
     code = 2
 
-    def stra(self, a):
-        return '%s[%s]' % (a, self.saferepr(self.r))
+    def stra(self, a, safe=True):
+        if safe:
+            return '%s[%s]' % (a, self.saferepr(self.r))
+        else:
+            return '%s[%r]' % (a, self.r)
 
 
 class R_INDEXKEY:
@@ -60,13 +64,15 @@ class R_STACK:
 
 class R_RELSRC:
     code = 9
-    def stra(self, a): return self.r % (a,)
+    def stra(self, a, safe=True):
+        return self.r % (a,)
 
 
 class R_LIMIT:
     code = 10
 
 
+@functools.total_ordering
 class RelationBase(object):
     __slots__ = 'r', 'isinverted'
 
@@ -74,13 +80,21 @@ class RelationBase(object):
         self.r = r
         self.isinverted = isinverted
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, RelationBase):
             if self.code != other.code:
-                return cmp(self.code, other.code)
-            return cmp(self.r, other.r)
+                return self.code < other.code
+            return self.r < other.r
         else:
-            return cmp(type(self), type(other))
+            return type(self) < type(other)
+
+    def __eq__(self, other):
+        if isinstance(other, RelationBase):
+            if self.code != other.code:
+                return False
+            return self.r == other.r
+        else:
+            return False
 
     def __str__(self):
         return self.stra('%s')
@@ -88,7 +102,7 @@ class RelationBase(object):
     def inverted(self):
         x = self.__class__(self.r, not self.isinverted)
 
-    def stra(self, a):
+    def stra(self, a, safe=True):
         return self.strpat % (a, self.r)
 
 
@@ -96,8 +110,8 @@ class MultiRelation(RelationBase):
     def __init__(self, rels):
         self.rels = rels
 
-    def stra(self, a):
-        return '<'+','.join([x.stra(a) for x in self.rels])+'>'
+    def stra(self, a, safe=True):
+        return '<'+','.join([x.stra(a, safe=safe) for x in self.rels])+'>'
 
 
 class Path:
@@ -479,6 +493,7 @@ class _GLUECLAMP_:
                 c = getattr(self, name)
 
                 class r(c, self.RelationBase):
+                    repr = self.saferepr
                     saferepr = self.saferepr
                 r.__name__ = 'Based_'+name
                 table[c.code] = r
@@ -488,7 +503,7 @@ class _GLUECLAMP_:
     def _get_identity(self): return R_IDENTITY()
     def _get_norelation(self): return R_NORELATION()
     def _get_output(self): return self._parent.OutputHandling.stdout
-    def _get_saferepr(self): return self._root.builtins.repr
+    def _get_saferepr(self): return self._root.reprlib.repr
     def _get_shpathstep(self): return self.hv.shpathstep
 
     def sortedrels(self, IG, Src):

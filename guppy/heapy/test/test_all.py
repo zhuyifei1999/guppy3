@@ -1,3 +1,4 @@
+import importlib
 import sys
 
 autotests = (
@@ -28,7 +29,7 @@ def test_main(debug=False):
             del sys.modules[testname]
         except KeyError:
             pass
-        exec('import %s as x' % testname)
+        x = importlib.import_module(testname)
         print('imported:', testname)
         f = x.test_main
         f(debug=debug)

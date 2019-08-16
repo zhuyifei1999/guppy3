@@ -62,6 +62,14 @@ dict_relate(NyHeapRelate *r)
     return dict_relate_kv(r, r->src, NYHR_INDEXKEY, NYHR_INDEXVAL);
 }
 
+static int
+dict_traverse(NyHeapTraverse *ta) {
+    PyObject *v = (void *)ta->obj;
+    if (PyDict_GetItem(v, _hiding_tag__name) == ta->_hiding_tag_)
+        return 0;
+    return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
+}
+
 
 static int
 dictproxy_relate(NyHeapRelate *r)
@@ -157,13 +165,13 @@ static int
 function_relate(NyHeapRelate *r)
 {
     PyFunctionObject *v = (void *)r->src;
-    ATTR(func_code)
-    ATTR(func_globals)
-    ATTR(func_defaults)
-    ATTR(func_closure)
-    ATTR(func_doc)
-    ATTR(func_name)
-    ATTR(func_dict)
+    RENAMEATTR(func_code, __code__)
+    RENAMEATTR(func_globals, __globals__)
+    RENAMEATTR(func_defaults, __defaults__)
+    RENAMEATTR(func_closure, __closure__)
+    RENAMEATTR(func_doc, __doc__)
+    RENAMEATTR(func_name, __name__)
+    RENAMEATTR(func_dict, __dict__)
     return dict_relate_kv(r, v->func_dict, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
@@ -373,7 +381,7 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,                       /* flags */
         0,                       /* type */
         wrapper_PySys_GetSizeOf, /* size */
-        0,                       /* traverse */
+        dict_traverse,           /* traverse */
         dict_relate              /* relate */
     }, {
         0,                       /* flags */

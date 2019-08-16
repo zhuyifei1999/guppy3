@@ -442,7 +442,7 @@ visible subobjects. See also: domisize."""
                 )
         r = self.immnodeset([x for x in objs if getattr(
             x, '_hiding_tag_', None) is self._hiding_tag_])
-        del x, cli, objs
+        del cli, objs
         return r
 
     def observation_list(self, iterable=()):
