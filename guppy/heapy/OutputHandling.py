@@ -1,5 +1,43 @@
 # ._cv_part guppy.heapy.OutputHandling
 
+import types
+import weakref
+
+
+# To restore the old-style class behavior that __getattr__ also affects special
+# methods.
+class _MetaAttrProxy(type):
+    def __init__(self, name, bases, dct):
+        self._proxied_classes = weakref.WeakSet({type, object})
+
+    def _add_proxy_class(self, base):
+        if base in self._proxied_classes:
+            return
+
+        for cls in base.__mro__:
+            self._proxied_classes.add(cls)
+            for attr, val in cls.__dict__.items():
+                if not attr.startswith('__') or not attr.endswith('__'):
+                    continue
+                if attr in self.__dict__:
+                    continue
+                if attr in ('__new__', '__init__', '__getattr__',
+                            '__getattribute__', '__setattr__', '__delattr__',
+                            ):
+                    continue
+                if not isinstance(val, types.FunctionType):
+                    continue
+
+                def closure(attr):
+                    def generated_function(self, *args, **kwargs):
+                        func = type.__getattribute__(base, attr)
+                        func = func.__get__(self)
+                        return func(*args, **kwargs)
+
+                    return generated_function
+
+                setattr(self, attr, closure(attr))
+
 
 class OutputHandler:
     def __init__(self, mod, output_file):
@@ -40,7 +78,7 @@ class OutputBuffer:
         self.lines[self.line_no] += s
 
 
-class MorePrinter:
+class MorePrinter(metaclass=_MetaAttrProxy):
     _oh_next_lineno = None
 
     def __init__(self, printer, previous):
@@ -60,12 +98,6 @@ class MorePrinter:
 
     def _oh_get_start_lineno(self):
         return self._oh_previous._oh_get_next_lineno()
-
-    def __repr__(self):
-        return self._oh_printer.getattr(self, '__repr__')()
-
-    def __str__(self):
-        return self._oh_printer.getattr(self, '__str__')()
 
 
 class Printer:
@@ -213,7 +245,7 @@ class Printer:
         self.line_iter = None
 
 
-class BasicMorePrinter:
+class BasicMorePrinter(metaclass=_MetaAttrProxy):
     def __init__(self, mod, top, handler, startindex=None):
         self.mod = mod
         self.top = top
@@ -255,8 +287,8 @@ class _GLUECLAMP_:
     def _get_output_file(self): return self._root.sys.stdout
 
     def more_printer(self, client, **kwds):
-
         printer = Printer(self, client, **kwds)
+        MorePrinter._add_proxy_class(client.__class__)
         return MorePrinter(printer, printer)
 
     def output_buffer(self):
@@ -276,6 +308,7 @@ class _GLUECLAMP_:
             lambda self: self.printer.get_str_of_top())
 
     def basic_more_printer(self, top, handler, startindex=None):
+        BasicMorePrinter._add_proxy_class(top.__class__)
         return BasicMorePrinter(self, top, handler, startindex)
 
     def _get_stdout(self): return self._root.sys.stdout
