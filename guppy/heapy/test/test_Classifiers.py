@@ -498,6 +498,7 @@ class RenderCase(TestCase):
         ps(iso(e1, e3))
 
         ps(iso(self.python.builtins.TypeError()))
+        # ps(iso(type('MetaType', (type,), {})('MetaTypeIns', (), {})))
         ps(iso(None))
         ps(iso(sys, support, types))
         ps(iso(int, type, C3))

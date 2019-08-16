@@ -1964,7 +1964,7 @@ class Summary_str:
     def __call__(self, key, longer=False):
         x = self.table.get(key)
         if x is None:
-            if isinstance(key, type):
+            if issubclass(key, type):
                 x = self.str_type
             else:
                 x = self.str_address
