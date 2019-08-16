@@ -1491,7 +1491,7 @@ rg_traverec(PyObject *obj, RetaTravArg *ta)
     int r;
     if (obj == (PyObject *)ta->rg)
         return 0;
-    assert(obj->ob_refcnt < 0xa000000 && (Py_uintptr_t)obj->ob_type > 0x1000);
+    assert((obj == Py_None || obj->ob_refcnt < 0xa000000) && (Py_uintptr_t)obj->ob_type > 0x1000);
     ta->retainer = obj;
     r = hv_std_traverse(ta->hv, obj, (visitproc)rg_retarec, ta);
     ta->retainer = oretainer;
