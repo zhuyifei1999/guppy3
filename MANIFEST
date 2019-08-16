@@ -34,7 +34,6 @@ guppy/etc/Help.py
 guppy/etc/IterPermute.py
 guppy/etc/KanExtension.py
 guppy/etc/KnuthBendix.py
-guppy/etc/OutputHandling.py
 guppy/etc/RE.py
 guppy/etc/RE_Rect.py
 guppy/etc/Unpack.py
