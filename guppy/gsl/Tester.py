@@ -325,7 +325,7 @@ class TestOf(Doc2Tester):
                 else:
                     try:
                         coverage = int(node.arg.strip())
-                    except:
+                    except ValueError:
                         coverage = node.arg.strip()
                     self.coverage = coverage
             else:

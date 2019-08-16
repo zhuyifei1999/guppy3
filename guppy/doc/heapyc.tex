@@ -1,0 +1,1019 @@
+{\par \pagebreak[3] \vskip 10 pt \noindent
+{\LARGE {\bf .tgt.heapyc.module heapyc\/}}\par \vskip 10 pt
+} \noindent
+{\par \noindent
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Name\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf module heapyc\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Synopsis\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Methods\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em HeapView\/}}({\em root\/}~{\bf :}  {\em Any+\/}, {\em heapdefs\/}~{\bf :}  {\em HeapDefs+\/}) \(\mapsto \)  {\em HeapView\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em interpreter\/}}({\em command\/}~{\bf :}  {\em command+\/}  {[}{\em locals\/}~{\bf :}  {\em dict+\/}]) \(\mapsto \)  {\em thread{\_}id\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em NodeGraph\/}}( {[}{\em edges\/}~{\bf :}  {\em iterable+\/}  {[}{\em is{\_}mapping\/}~{\bf :}  {\em boolean+\/}]]) \(\mapsto \)  {\em NodeGraph\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em set{\_}async{\_}exc\/}}({\em thread{\_}id\/}~{\bf :}  {\em thread{\_}id+\/}, {\em exception\/}~{\bf :}  {\em Exception+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em xmemstats\/}}()\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Attribute\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\large  {\em RootState\/}}~{\bf :} {\bf  anything\/}\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Description\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt  The heapyc module.\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Methods\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf HeapView\/}}\/}({\em root\/}~{\bf :}  {\em Any+\/}, {\em heapdefs\/}~{\bf :}  {\em HeapDefs+\/}) \(\mapsto \)  {\em HeapView\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a new HeapView object.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em root\/}~{\bf :}  {\em Any+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  The initial value of the root member.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em heapdefs\/}~{\bf :}  {\em HeapDefs+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Definitions of specially treated extension types.
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf interpreter\/}}\/}({\em command\/}~{\bf :}  {\em command+\/}  {[}{\em locals\/}~{\bf :}  {\em dict+\/}]) \(\mapsto \)  {\em thread{\_}id\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Create a new interpreter structure with a new thread.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em command\/}~{\bf :}  {\em command+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  A command that will be exec'd in the new environment.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em locals\/}~{\bf :}  {\em dict+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Local variables passed to the command when exec'd.\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the thread identity number.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt The new interpreter and thread is started in a new environment.  This
+environment consists of a new '{\_}{\_}main{\_}{\_}' module, with the optional
+locals dict as local variables.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt The site-specific initializations are not automatically made. To do
+that, 'import site' could be used as the first statement in the
+command string.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt The interpreter() function will return after the new thread structure
+has been created. The command will execute sooner or later.  The
+thread will terminate, and the interpreter structure be deallocated,
+when the command has been executed, and dependent threads have
+terminated.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf NodeGraph\/}}\/}( {[}{\em edges\/}~{\bf :}  {\em iterable+\/}  {[}{\em is{\_}mapping\/}~{\bf :}  {\em boolean+\/}]]) \(\mapsto \)  {\em NodeGraph\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Construct a new NodeGraph object.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em edges\/}~{\bf :}  {\em iterable+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  The edges that will be used to
+         initialize the new nodegraph. It should yield a
+         sequence of pairs being edges of the form (source, target).\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt {\par \noindent
+{\par \pagebreak[2.900000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Default: \/}()\par}
+{\par \noindent  \leftskip = 120 pt  \leftmargini = 144 pt  \leftmarginii = 168 pt  \leftmarginiii = 192 pt  \leftmarginiv = 216 pt  \leftmarginv = 240 pt  \leftmarginvi = 264 pt \par}
+\par}
+\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em is{\_}mapping\/}~{\bf :}  {\em boolean+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  If True, will cause the nodegraph
+         to be treated like a 'mapping'. It will then, for the
+         purpose of indexing, be expected to contain a single
+         target for each source node.\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt {\par \noindent
+{\par \pagebreak[2.900000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Default: \/}False\par}
+{\par \noindent  \leftskip = 120 pt  \leftmargini = 144 pt  \leftmarginii = 168 pt  \leftmarginiii = 192 pt  \leftmarginiv = 216 pt  \leftmarginv = 240 pt  \leftmarginvi = 264 pt \par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf set{\_}async{\_}exc\/}}\/}({\em thread{\_}id\/}~{\bf :}  {\em thread{\_}id+\/}, {\em exception\/}~{\bf :}  {\em Exception+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Set an exception to be raised asynchronously in a thread.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf xmemstats\/}}\/}(){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Print system-dependent memory statistics.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  What is printed depends on the system configuration.
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Attribute\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\bf {\large {\bf RootState\/}}\/}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The single instance of RootStateType.
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3] \vskip 10 pt \noindent
+{\LARGE {\bf .tgt.kindnames.HeapView\/}}\par \vskip 10 pt
+} \noindent
+{\par \noindent
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Name\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf HeapView\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Synopsis\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\large {\bf Constructor\/}}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+ {\em module heapyc\/}{\large {\tt .\/} {\em HeapView\/}}({\em root\/}~{\bf :}  {\em Any+\/}, {\em heapdefs\/}~{\bf :}  {\em HeapDefs+\/}) \(\mapsto \)  {\em HeapView\/}\par}
+\par}
+\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[2] \vskip 6 pt \noindent
+{\large {\bf For any object {\em HV\/} of kind  {\em HeapView\/}:\/}}\par \vskip 6 pt
+} \noindent
+\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Methods\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}class\/}}() \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}clodo\/}}({\em owners\/}~{\bf :}  {\em NodeGraph+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}indisize\/}}({\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}none\/}}() \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}rcs\/}}({\em referrers\/}~{\bf :}  {\em NodeGraph+\/}, {\em classifier\/}~{\bf :}  {\em ObjectClassifier+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}type\/}}() \(\mapsto \)  {\em ObjectClassifier\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em heap\/}}() \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em indisize{\_}sum\/}}({\em S\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em int\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em numedges\/}}({\em src\/}~{\bf :}  {\em Any+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/}) \(\mapsto \)  {\em int\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em reachable\/}}({\em X\/}~{\bf :}  {\em NodeSet+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/}) \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em reachable{\_}x\/}}({\em X\/}~{\bf :}  {\em NodeSet+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/}) \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em register{\_}{\_}hiding{\_}tag{\_}{\_}type\/}}( {\em type{\_}with{\_}hiding{\_}tag+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em register{\_}hidden{\_}exact{\_}type\/}}( {\em type+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em relate\/}}({\em src\/}~{\bf :}  {\em Any+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/}) \(\mapsto \)  {\em RelationStructure\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em relimg\/}}({\em S\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em shpathstep\/}}({\em G\/}~{\bf :}  {\em NodeGraph+\/}, {\em U\/}~{\bf :}  {\em NodeSet+\/}, {\em S\/}~{\bf :}  {\em NodeSet+\/}  {[}{\em AvoidEdges\/}~{\bf :}  {\em NodeGraph+\/}  {[}{\em find{\_}one\/}~{\bf :}  {\em boolean+\/}]]) \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em update{\_}dictowners\/}}({\em owners\/}~{\bf :}  {\em NodeGraph+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em update{\_}referrers\/}}({\em X\/}~{\bf :}  {\em NodeGraph+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em update{\_}referrers{\_}completely\/}}({\em X\/}~{\bf :}  {\em NodeGraph+\/})\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Attributes\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em {\_}hiding{\_}tag{\_}\/}}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em delete{\_}extra{\_}type\/}}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em is{\_}hiding{\_}calling{\_}interpreter\/}}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em is{\_}using{\_}traversing{\_}owner{\_}update\/}}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em limitframe\/}}~{\bf :}  ({\par \noindent
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\bf \raisebox{.6ex}{{\small {\bf  either:\/}}}\/}{[} {\em None\/}{\bf \raisebox{.6ex}{{\small {\bf  or \/}}}\/} {\em frame\/}]\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  )\par}
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Description\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \parindent = 0 pt 
+A HeapView object provides methods to get memory related information
+about the system heap and about individual objects. 
+ \par}
+{\par 
+It implements much of the low-level functionality for the Heapy
+system. It is intended to provide what can not be done at all or would
+be much slower if programmed directly in Python. It is not intended to
+be used directly by a user, but to be wrapped in higher level objects.
+ \par}
+{\par 
+Some terms that are referred to in the method descriptions:
+ \par}
+{\par \pagebreak[2] \vskip 6 pt \noindent
+{\large {\bf  Visible objects.\/}}\par \vskip 6 pt
+} \noindent
+{\par \parindent = 0 pt 
+The HeapView object attempts to restrict its view of the heap to only
+the 'visible objects'. This is to make it possible to analyse the heap
+via a Python library that inevitably itself is continually allocating
+and deallocating objects. These should be hidden from the heap view
+presented. This is primarily done via a special tag attribute, see  {\em {\_}hiding{\_}tag{\_}\/} and  {\em register{\_}{\_}hiding{\_}tag{\_}{\_}type\/}. Frames can be hidden
+with another mechanism, see  {\em limitframe\/}. For hiding all objects of a special type,  {\em register{\_}hidden{\_}exact{\_}type\/} may be used. It is also
+possible to use a separate interpreter and hide its root objects, see  {\em is{\_}hiding{\_}calling{\_}interpreter\/}.
+ \par}
+{\par \pagebreak[2] \vskip 6 pt \noindent
+{\large {\bf  Classifiers.\/}}\par \vskip 6 pt
+} \noindent
+The methods named cli{\_}* are factory methods that create objects of
+type ObjectClassifier. The principal difference between classifiers is
+how a single object is classified. The single-object classification
+function is available in classifier objects; it is the classify
+method. There are also methods that operate on collections of objects,
+namely partition and select. These eliminate the per-object
+Python-level function call overhead that would occur if the classify
+method were to be called from Python for each object in a collection.
+See also the ObjectClassifier type.
+{\par \pagebreak[2] \vskip 6 pt \noindent
+{\large {\bf  Individual size.\/}}\par \vskip 6 pt
+} \noindent
+{\par \parindent = 0 pt 
+The individual size of an object is its individually allocated memory size. 
+ \par}
+{\par 
+It includes:
+ \par}
+\begin{itemize}
+\item  The basic object size, as can be found out in a standard way.\item  The extra memory for variable size objects.\item  For GC collected objects, the size of the GC information.\item  An alignment to the next highest multiple of a pointer size.\item  The size of any other memory allocated that belongs to the object.\end{itemize}
+{\par 
+
+Some types of objects have extra memory allocated that can not be
+accounted for in the standard way. This memory should nevertheless be
+included in the individual size. To determine the size of these
+objects, special functions are needed. These are defined for standard
+builtin types, such as lists and dicts. Other types should be defined
+via the heapdefs argument to the HeapView constructor.
+ \par}
+{\par 
+ The individual size does not include: \par}
+\begin{itemize}
+\item  Subobjects that are accounted for separately.\item  Overhead for the memory allocation system. This varies depending
+  on the kind of memory allocator, the requested size, etc.
+\end{itemize}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Methods\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}class\/}}\/}() \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier that classifies by ``class''.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt 
+If an object is of instance type, its classification will be its
+class, as given in its C-level member 'in{\_}class', otherwise it will
+be its type, as given in 'ob{\_}type'.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Note\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt This is like classifying by the Python-level '{\_}{\_}class{\_}{\_}' attribute
+in newer versions of Python, except that even though the '{\_}{\_}class{\_}{\_}'
+attribute may be redefined via the class definition, the classification
+as made by cli{\_}class isn't affected.\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}clodo\/}}\/}({\em owners\/}~{\bf :}  {\em NodeGraph+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier, that classifies by ``Class Or Dict Owner''.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt The classification of an object is its class (as by cli{\_}class),
+unless the object is a dict object that is 'owned' by some owner.
+If the object is such an owned dict, the classification will be a
+1-tuple containing the class (as by cli{\_}class) of its owner.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em owners\/}~{\bf :}  {\em NodeGraph+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt 
+Used to map each dict object to its owner, or to None if it has no
+owner. The graph will be automatically updated, from heap information
+defined by HV, whenever an attempt is made to classify a dict that
+maps to nothing.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em memo\/}~{\bf :}  {\em dict+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to memoize the 1-tuples  generated when classifying owned dicts.
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}indisize\/}}\/}({\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier that classifies by ``individual size''.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  The classification of each object is an int, containing the
+object's individual memory size.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Argument\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em memo\/}~{\bf :}  {\em dict+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to memoize the classification objects.
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}none\/}}\/}() \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier that classifies all objects the same.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  The classification of each object is None.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}rcs\/}}\/}({\em referrers\/}~{\bf :}  {\em NodeGraph+\/}, {\em classifier\/}~{\bf :}  {\em ObjectClassifier+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier that classifies by Referrer Classification Set.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  The classification of an object is the classifications of its
+referrers, collected in an immutable NodeSet object. 
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em referrers\/}~{\bf :}  {\em NodeGraph+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to map each object to its referrers.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em classifier\/}~{\bf :}  {\em ObjectClassifier+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to classify each referrer.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em memo\/}~{\bf :}  {\em dict+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to memoize the classification sets.
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}type\/}}\/}() \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a classifier that classifies by type.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt 
+The classification of each object is the type, as given by its
+C-level member 'ob{\_}type'. (This is the same as the type returned
+by the Python-level builtin 'type'.)
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf heap\/}}\/}() \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a set containing all 'visible objects' in the heap view
+defined by HV.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf See also\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt   {\em  Visible objects
+\/}\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf indisize{\_}sum\/}}\/}({\em S\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em int\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the sum of the 'individual size' of the objects in S.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf See also\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt   {\em  Individual size
+\/}\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf numedges\/}}\/}({\em src\/}~{\bf :}  {\em Any+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/}) \(\mapsto \)  {\em int\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the number of edges from src to tgt.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf reachable\/}}\/}({\em X\/}~{\bf :}  {\em NodeSet+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/}) \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the set of objects reached via a path in the visible heap as
+defined by HV, from some object in X, avoiding any object in Y.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf reachable{\_}x\/}}\/}({\em X\/}~{\bf :}  {\em NodeSet+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/}) \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the set of objects reached via a path in the visible heap as
+defined by HV, from some object in X, avoiding any object in Y except
+at the end of the path.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf register{\_}{\_}hiding{\_}tag{\_}{\_}type\/}}\/}( {\em type{\_}with{\_}hiding{\_}tag+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt 
+Register a type of objects that may be hidden from the heap view
+defined by HV. The type must have a slot named {\_}hiding{\_}tag{\_}. An object
+that is an instance of the type, or of a subtype, is hidden when its
+{\_}hiding{\_}tag{\_} is HV.{\_}hiding{\_}tag{\_}.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf register{\_}hidden{\_}exact{\_}type\/}}\/}( {\em type+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt 
+Register a type of objects that should be hidden from the heap view
+defined by HV. Objects of the exact type registered -{}- not including
+subtypes -{}- will be hidden.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf relate\/}}\/}({\em src\/}~{\bf :}  {\em Any+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/}) \(\mapsto \)  {\em RelationStructure\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a description of the relation between src and tgt.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  This is used for descriptions of edges in paths.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  {[}The result is in a special format that I choose to not define here
+since it is for special low-level use and subject to change.]
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf relimg\/}}\/}({\em S\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the 'relational image of HV wrt S'.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  That is, the set of nodes
+that are directly referred to from the nodes in S via the visible heap
+reachability relation as defined by HV.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf shpathstep\/}}\/}({\em G\/}~{\bf :}  {\em NodeGraph+\/}, {\em U\/}~{\bf :}  {\em NodeSet+\/}, {\em S\/}~{\bf :}  {\em NodeSet+\/}  {[}{\em AvoidEdges\/}~{\bf :}  {\em NodeGraph+\/}  {[}{\em find{\_}one\/}~{\bf :}  {\em boolean+\/}]]) \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  This method implements one step of a shortest path algorithm.
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Arguments\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em G\/}~{\bf :}  {\em NodeGraph+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt          Updated by the method, with the edges from nodes in the
+                source set to the new nodes visited.
+\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em U\/}~{\bf :}  {\em NodeSet+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  The source set for this step.
+\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em S\/}~{\bf :}  {\em NodeSet+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  The set of already visited nodes.
+\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em AvoidEdges\/}~{\bf :}  {\em NodeGraph+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Edges to avoid.
+\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\em find{\_}one\/}~{\bf :}  {\em boolean+\/}\par}
+{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  If True, at most one edge will be found from each node
+         in the source set. Normally, all edges will be found.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the new nodes visited.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  This may be used for the U argument the next time the method is called.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf See also\/}\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  shpgraph{\_}algorithm in Path.py.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf update{\_}dictowners\/}}\/}({\em owners\/}~{\bf :}  {\em NodeGraph+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Update owners with ownership edges.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The dict owners graph will be updated with an edge from each dict
+object in the heap, to either its owner or to None.
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf update{\_}referrers\/}}\/}({\em X\/}~{\bf :}  {\em NodeGraph+\/}, {\em Y\/}~{\bf :}  {\em NodeSet+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Update referrer graph X for Y.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The visible heap defined by HV will be traversed from the root of HV
+so that the edges of every path from the root to nodes in Y will be
+represented, inverted, in X.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf update{\_}referrers{\_}completely\/}}\/}({\em X\/}~{\bf :}  {\em NodeGraph+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Update referrer graph X 'completely'.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  {[}Experimental algorithm that updates X with the referrers to all
+objects in the heap (of visible nodes as defined in HV). It is not
+normally used.]
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Attributes\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf {\_}hiding{\_}tag{\_}\/}}\/}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The hiding tag defining what objects are hidden from the view defined
+by HV. Objects that contain a {\_}hiding{\_}tag{\_} object which is identical
+to HV.{\_}hiding{\_}tag{\_}, will be hidden from view, in the following cases:\begin{itemize}
+\item  The object is of a type that has been registered for hiding via  {\em register{\_}{\_}hiding{\_}tag{\_}{\_}type\/}, or is of a subtype of such a type.\item  The object is of instance type. Such an object will be checked
+  for a {\_}hiding{\_}tag{\_} item in its {\_}{\_}dict{\_}{\_}.
+\end{itemize}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf delete{\_}extra{\_}type\/}}\/}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  For Internal Use
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf is{\_}hiding{\_}calling{\_}interpreter\/}}\/}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt 
+If True, the data of the interpreter using the HV will be hidden from
+the heap view as seen from RootState.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt This is used when multiple Python interpreters are used. One
+interpreter will be monitoring the operation of the other
+interpreter(s). It would set is{\_}hiding{\_}calling{\_}interpreter to True in
+the HV it is using. Its own data will then be hidden from view, making
+memory leak detection more practical.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf is{\_}using{\_}traversing{\_}owner{\_}update\/}}\/}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt 
+True if update{\_}dictowners is using a recursive traversal algorithm to
+find the dicts in the heap. When False, the normal case, it will use the
+dicts found in the gc collection structure, by gc.get{\_}objects(). This was
+found to be much faster in usual cases, but the old version is available
+by setting this flag. -{}- It may be removed in a later release!
+
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf limitframe\/}}\/}~{\bf :}  ({\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\bf \raisebox{.6ex}{{\small {\bf  either:\/}}}\/}{[} {\em None\/}{\bf \raisebox{.6ex}{{\small {\bf  or \/}}}\/} {\em frame\/}]\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  )\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The traversal limiting frame.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  If limitframe is set to a frame object, the frames that are more
+recently entered than limitframe will be hidden when traversing the
+heap from the root RootState. It will start traversing from limitframe
+rather than from the most recent frame as it would otherwise do.
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3] \vskip 10 pt \noindent
+{\LARGE {\bf .tgt.kindnames.NodeGraph\/}}\par \vskip 10 pt
+} \noindent
+{\par \noindent
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Name\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf NodeGraph\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Synopsis\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\large {\bf Constructor\/}}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+ {\em module heapyc\/}{\large {\tt .\/} {\em NodeGraph\/}}( {[}{\em edges\/}~{\bf :}  {\em iterable+\/}  {[}{\em is{\_}mapping\/}~{\bf :}  {\em boolean+\/}]]) \(\mapsto \)  {\em NodeGraph\/}\par}
+\par}
+\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[2] \vskip 6 pt \noindent
+{\large {\bf For any object {\em NG\/} of kind  {\em NodeGraph\/}:\/}}\par \vskip 6 pt
+} \noindent
+\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Methods\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em add{\_}edge\/}}({\em source\/}~{\bf :}  {\em Any+\/}, {\em target\/}~{\bf :}  {\em Any+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em add{\_}edges{\_}n1\/}}({\em srcs\/}~{\bf :}  {\em iterable+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em as{\_}flat{\_}list\/}}() \(\mapsto \)  {\em list\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em clear\/}}()\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em copy\/}}() \(\mapsto \)  {\em NodeGraph\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em domain{\_}covers\/}}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em domain{\_}restricted\/}}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeGraph\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em get{\_}domain\/}}() \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em get{\_}range\/}}() \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em invert\/}}()\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em inverted\/}}() \(\mapsto \)  {\em NodeGraph\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em relimg\/}}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeSet\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em update\/}}({\em X\/}~{\bf :}  {\em iterable+\/})\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em updated\/}}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeGraph\/}\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Operators\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  {\em {\large {\bf len\/}}\/}(NG) \(\mapsto \)  {\em int\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  {\em {\#} \/}NG{[}{\em source\/}~{\bf :}  {\em Any+\/}] \(\mapsto \)  {\em Any\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{[}{\em source\/}~{\bf :}  {\em Any+\/}]{\bf {\large {\bf  = \/}}\/}{\em target{\_}spec\/}~{\bf :}  {\em TargetSpec+\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  {\em {\large {\bf iter\/}}\/}(NG) \(\mapsto \)  {\em iterator\/}\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf Attributes\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em {\_}hiding{\_}tag{\_}\/}}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em is{\_}mapping\/}}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt NG{\large {\tt .\/} {\em is{\_}sorted\/}}~{\bf :}  {\em boolean\/}\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Description\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt A NodeGraph object contains pairs of nodes (edges) and can be indexed
+on the first node of such a pair (the source of an edge) to find all
+second nodes of such pairs (the targets of those edges).{\par \parindent = 0 pt 
+NodeGraph objects are used internally in the Heapy system, for example
+to record dict ownership and shortest-path graphs. \par}
+{\par 
+They may be used generally for mapping and dict-like purposes, but
+differ from dicts in the following: \par}
+\begin{itemize}
+\item  The mapping is based on object identity - no equality or hashing is
+  assumed, so any object can be used as a key. Only the address is used.
+  To distinguish this usage from that of ordinary dicts and sets, such
+  objects are called 'nodes'.\item  There may be any number of targets associated with each source.\item  Performance characteristics differ from dicts, in somewhat subtle ways.
+\end{itemize}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Methods\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf add{\_}edge\/}}\/}({\em source\/}~{\bf :}  {\em Any+\/}, {\em target\/}~{\bf :}  {\em Any+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Add to NG, an edge from source to target.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf add{\_}edges{\_}n1\/}}\/}({\em srcs\/}~{\bf :}  {\em iterable+\/}, {\em tgt\/}~{\bf :}  {\em Any+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Add to NG, for each src in srcs, an edge from src to tgt.\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf as{\_}flat{\_}list\/}}\/}() \(\mapsto \)  {\em list\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the edges of NG in the form {[}src0, tgt0, src1, tgt1 ...].
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf clear\/}}\/}(){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Remove all items from NG.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf copy\/}}\/}() \(\mapsto \)  {\em NodeGraph\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a copy of NG.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf domain{\_}covers\/}}\/}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em boolean\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} True if each node in X is the source of some edge in NG, False otherwise.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf domain{\_}restricted\/}}\/}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeGraph\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a new NodeGraph, containing those edges in NG that have the source in X.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf get{\_}domain\/}}\/}() \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the set of nodes that are the source of some edge in NG.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf get{\_}range\/}}\/}() \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the set of nodes that are the target of some edge in NG.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf invert\/}}\/}(){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Invert the edges of NG.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf inverted\/}}\/}() \(\mapsto \)  {\em NodeGraph\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a copy of NG with the edges inverted.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf relimg\/}}\/}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeSet\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the relational image of NG wrt X.\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  That is, the set of nodes that are the target of some edge that have
+       its source in X.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf update\/}}\/}({\em X\/}~{\bf :}  {\em iterable+\/}){\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Update NG with the edges from X,
+specified as pairs of the form (source, target).\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf updated\/}}\/}({\em X\/}~{\bf :}  {\em iterable+\/}) \(\mapsto \)  {\em NodeGraph\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} a copy of NG updated with the edges from X,
+specified as pairs of the form (source, target).\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Operators\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\large {\bf len\/}}(NG) \(\mapsto \)  {\em int\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the number of edges in NG.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+NG{[}{\em source\/}~{\bf :}  {\em Any+\/}] \(\mapsto \)  {\em Any\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} the target(s) of all edges with a particular source. The value
+depends on if NG was initialized to be a 'mapping' or not:{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+ NG.is{\_}mapping == False\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  Return a tuple of all targets of edges from the source.
+          The tuple will be empty if there are no such edges.\par}
+{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
+ NG.is{\_}mapping == True\par}
+{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  Return the target of the edge from the source.
+          If there is no such edge, KeyError will be raised.
+          If there is more than one edge, ValueError will be raised.\par}
+\par}
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+NG{[}{\em source\/}~{\bf :}  {\em Any+\/}]{\bf {\large {\bf  = \/}}\/}{\em target{\_}spec\/}~{\bf :}  {\em TargetSpec+\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt  Assign new target(s) to the edge(s) from a given source. How the
+targets are specified, depends on whether NG is a 'mapping' or not:{\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+ NG.is{\_}mapping == False\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The target{\_}spec argument is a tuple of targets.
+    There must already be the same number of edges in NG from the given
+    source as the number of objects in target{\_}spec.\par}
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+ NG.is{\_}mapping == True\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The target{\_}spec argument is the target itself.
+    There must already be exactly one edge in NG from the given source.\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt 
+If there were not already the same number of edges as the targets specified,
+ValueError will be raised. The reason for the restriction is to make sure
+assignment will be efficient when interleaved with indexing.\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf {\large {\bf See also\/}}\/}\par}
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt   {\em add{\_}edge\/},  {\em add{\_}edges{\_}n1\/}\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\large {\bf iter\/}}(NG) \(\mapsto \)  {\em iterator\/}{\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
+{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\bf Returns \/} an iterator yielding a pair (source, target) for each edge in NG.
+\par}
+\par}
+\par}
+\par}
+\par}
+{\par \pagebreak[3.300000] \noindent \hangindent = 12 pt \hangafter = 1 
+{\par \pagebreak[3] \vskip 8 pt \noindent
+{\Large {\bf Attributes\/}}\par \vskip 8 pt
+} \noindent
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf {\_}hiding{\_}tag{\_}\/}}\/}~{\bf :} {\bf  anything\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  The hiding tag: if it is the the same object as  {\em HeapView.{\_}hiding{\_}tag{\_}\/} of a HeapView object, the nodegraph will be hidden from the corresponding heap view .
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf is{\_}mapping\/}}\/}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Read only. True if NG is a 'mapping'. Then, only one edge is
+allowed for each source; indexing returns the actual target object
+instead of a tuple of targets.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt NG{\tt .\/}{\bf {\large {\bf is{\_}sorted\/}}\/}~{\bf :}  {\em boolean\/}\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  Read only. True if NG is sorted.
+\par}
+\par}
+\par}
+{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
+{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt  It will become unsorted after any update. It will need to be
+sorted to make it possible to find edges (implementation uses binary
+search). Any indexing operation will automatically sort it if it was
+not already sorted.  The flag is currently used from Python to see if
+the nodegraph has been used at least once after update, so that it
+will not be cleared too early.
+\par}
+\par}
+\par}
+\par}

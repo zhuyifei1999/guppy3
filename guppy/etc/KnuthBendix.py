@@ -63,6 +63,8 @@ year=1994
 
 """
 
+import functools
+
 
 class KnuthBendix:
     def __init__(self, E, delim='', max_iterations=100):
@@ -206,7 +208,7 @@ Check your equations or specify an higher max_iterations value.'
             if x == y:
                 return 0
             return -1
-        reds.sort(cmp)
+        reds.sort(key=functools.cmp_to_key(cmp))
 
     def pp(self):
         printreds(self.reductions)

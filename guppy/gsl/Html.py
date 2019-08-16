@@ -371,8 +371,8 @@ class _GLUECLAMP_:
         '_parent.Gsml:is_not_ascii',
         '_parent.Main:tgt_prefix',
         '_parent.Main:ReportedError',
-        '_root.htmlentitydefs:name2codepoint',
-        '_root.htmlentitydefs:codepoint2name',
+        '_root.html.entities:name2codepoint',
+        '_root.html.entities:codepoint2name',
         '_root:re',
         '_root:time',
     )

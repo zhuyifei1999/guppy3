@@ -115,7 +115,7 @@ class RelationTestCase(TestCase):
     def test_frame_relation(self):
         try:
             1/0
-        except:
+        except ZeroDivisionError:
             type, value, traceback = sys.exc_info()
             f = traceback.tb_frame
         f.f_trace = lambda: None
@@ -136,7 +136,7 @@ class RelationTestCase(TestCase):
         def func(x, y=3):
             try:
                 1/0
-            except:
+            except ZeroDivisionError:
                 type, value, traceback = sys.exc_info()
                 frame = traceback.tb_frame
             return self, frame, z
@@ -289,7 +289,7 @@ class RelationTestCase(TestCase):
             def g():
                 1/0
             g()
-        except:
+        except ZeroDivisionError:
             type, value, traceback = sys.exc_info()
         self.chkrelattr(traceback, 'tb_next', 'tb_frame')
 
@@ -354,7 +354,7 @@ class RootTestCase(TestCase):
 
         try:
             1/0
-        except:
+        except ZeroDivisionError:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             for name in 'exc_type', 'exc_value', 'exc_traceback':
                 rel = str(self.relation(root, eval(name)))
@@ -391,7 +391,7 @@ class RootTestCase(TestCase):
         def task(self):
             try:
                 1/0
-            except:
+            except ZeroDivisionError:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 self.exc_traceback = exc_traceback
                 self.sync = 1

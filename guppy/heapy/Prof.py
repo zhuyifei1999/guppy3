@@ -466,7 +466,7 @@ class AxisControl:
             if rng not in self.scale_table:
                 if not 1 <= rng <= self.scale_table[-1]:
                     raise ValueError
-        except:
+        except ValueError:
             self.frame.bell()
             self.errorbox("""\
 Invalid range entry.
@@ -1466,12 +1466,11 @@ class Display:
         if 0:
             try:
                 _x1, _y1, _x2, _y2 = self.scrollregion
-            except:
+            except Exception:
                 pass
             else:
                 if (abs(_x2 - x2) < x2extra / 2 and
-                        abs(_x1 - x1) < x1extra / 2
-                    ):
+                        abs(_x1 - x1) < x1extra / 2):
                     return
 
         self.scrollregion = (x1, y1, x2, y2)
@@ -2999,7 +2998,7 @@ class ProfileBrowser:
                 filename = self.mod.path.abspath(filename)
             try:
                 self.stats.open(filename)
-            except:
+            except Exception:
                 etype, value, tb = self.mod._root.sys.exc_info()
                 tkinter.messagebox.showerror(
                     master=self.frame,

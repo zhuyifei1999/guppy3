@@ -33,7 +33,7 @@ def execfile(filename, globs=None, locs=None):
         def get_globs():
             try:
                 1/0
-            except:
+            except ZeroDivisionError:
                 try:
                     typ, val, trb = sys.exc_info()
                     frame = trb.tb_frame.f_back.f_back

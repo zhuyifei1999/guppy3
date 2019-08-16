@@ -1,0 +1,7 @@
+/build/
+/guppy.egg-info/
+/guppy/doc/*,gsl-backuped
+
+__pycache__/
+*.so
+venv/

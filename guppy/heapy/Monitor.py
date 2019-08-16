@@ -189,7 +189,7 @@ class MonitorConnection(cmd.Cmd):
             stop = self.onecmd(line)
             stop = self.postcmd(stop, line)
             return stop
-        except:
+        except BaseException:
             self.handle_error(line)
 
     def handle_error(self, cmdline):

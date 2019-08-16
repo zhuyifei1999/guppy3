@@ -53,12 +53,18 @@ class Function:
             if not callable(f):
                 raise TypeError(
                     'Function: map is neither callable or indexable')
-        self.__getitem__ = self.__call__ = f
+        self.f = f
         self.src = src
         self.tgt = tgt
 
+    def __getitem__(self, *args):
+        return self.f(*args)
+
+    def __call__(self, *args, **kwargs):
+        return self.f(*args, **kwargs)
+
     def __str__(self):
-        return '%s(%s, %s, %s)' % (self.__class__, self.src, self.tgt, self.__call__)
+        return '%s(%s, %s, %s)' % (self.__class__, self.src, self.tgt, self.f)
 
     def asdict(self):
         return dict([(x, self[x]) for x in self.src])

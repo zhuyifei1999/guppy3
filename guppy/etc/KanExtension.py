@@ -553,7 +553,7 @@ class CategoryTester:
     def test_object_fail(self, object, value):
         try:
             self.test_object(object, value)
-        except:
+        except Exception:
             pass
         else:
             raise Exception('Exception excepted')
