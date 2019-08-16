@@ -1939,8 +1939,6 @@ class Summary_str:
             t = getattr(types, name.capitalize()+'Type')
             self.shorter_invtypes[t] = name
 
-        #
-
         self.table = {
             mod.NodeSet: self.str_address_len,
             bool: self.str_repr,
@@ -1966,7 +1964,10 @@ class Summary_str:
     def __call__(self, key, longer=False):
         x = self.table.get(key)
         if x is None:
-            x = self.str_address
+            if isinstance(key, type):
+                x = self.str_type
+            else:
+                x = self.str_address
         if longer and 'longer' in x.__func__.__code__.co_varnames:
             return lambda k: x(k, longer=longer)
         else:
