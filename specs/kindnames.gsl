@@ -49,7 +49,7 @@ class _GLUECLAMP_:
     # Tuple of changable attributes.
 
     _chgable_ = ('config',)    	# Allow self.config to be written
-	
+
     # A 'normal' attribute.
 
     config = 'A'
@@ -108,9 +108,12 @@ hv = HeapView((), ())
 
 .superkind:: type+
 ..eg: int
+..eg: C
+...in context:
+class C:
+    pass
 
 .superkind:: type_with_hiding_tag+
 ..eg: MutNodeSet
 ...in context:
 from guppy.sets import MutNodeSet
-

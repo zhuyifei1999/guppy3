@@ -17,7 +17,7 @@ profilefilename+,
 relationname+,
 SetOfKind+,SetOfClodoKind+,
 UniSet+,
-type+, typeexceptdict+, typeoremptytuple+
+typeexceptdict+, typeoremptytuple+
 
 ..from: heapykinds
 
@@ -35,7 +35,7 @@ type+, typeexceptdict+, typeoremptytuple+
 ...d: The empty set.
 
 ..attr:: Clodo
-...d: Equivalence relation by class or dict owner.
+...d: Equivalence relation by type or dict owner.
 ...d: It defines objects to be be equivalent
 when their classifications, as defined below, are equal.
 ....ol:
