@@ -39,7 +39,7 @@ class GenGuppyDoc:
             # Default to current directory
             input_dir = os.getcwd()
         if output_dir is None:
-            output_dir = join(input_dir, '..', 'guppy', 'doc')
+            output_dir = join(input_dir, '..', 'docs')
         self.input_dir = input_dir
         self.output_dir = output_dir
         self.gsl = guppy.Root().guppy.gsl
