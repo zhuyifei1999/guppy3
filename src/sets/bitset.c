@@ -476,7 +476,7 @@ bitno_modiv(NyBit bitno, NyBit *div) {
 
 static void
 bitno_to_field(NyBit bitno, NyBitField *f) {
-    f->bits = 1l<<bitno_modiv(bitno, &f->pos);
+    f->bits = ONE_LONG<<bitno_modiv(bitno, &f->pos);
 }
 
 /* Find the first (lowest) or last (highest) bit set
@@ -2400,7 +2400,7 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
             if (f->bits) {
                 j = bits_last(f->bits);
                 ret = f->pos * NyBits_N + j;
-                f->bits &= ~(1l<<j);
+                f->bits &= ~(ONE_LONG<<j);
                 if (f->bits)
                     mutbitset_set_hi(v, s, f+1);
                 else
@@ -2414,7 +2414,7 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
             if (f->bits) {
                 j = bits_first(f->bits);
                 ret = f->pos * NyBits_N + j;
-                f->bits &= ~(1l<<j);
+                f->bits &= ~(ONE_LONG<<j);
                 if (f->bits)
                     mutbitset_set_lo(v, s, f);
                 else
@@ -2876,7 +2876,7 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
             assert(g > bs->ob_field);
             g--;
             while (nbits > nbitswanted) {
-                g->bits &= ~(1l<<bits_last(g->bits));
+                g->bits &= ~(ONE_LONG<<bits_last(g->bits));
                 nbits--;
             }
         }
@@ -2916,7 +2916,7 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
             g++;
             assert(g == bs->ob_field);
             while (nbits > nbitswanted) {
-                g->bits &= ~(1l<<bits_first(g->bits));
+                g->bits &= ~(ONE_LONG<<bits_first(g->bits));
                 nbits--;
             }
         }
@@ -4133,13 +4133,13 @@ NyImmBitSet_Range(NyBit lo, NyBit hi, NyBit step)
 
     bp = 0;
     fst.pos = pos;
-    fst.bits = 1l<<bit;
+    fst.bits = ONE_LONG<<bit;
     bp++;
     if (step < NyBits_N) { /* has to check, add step may overflow */
         bit += step;
         lim = pos == hipos ? hibit : NyBits_N;
         while (bit < lim) {
-            fst.bits |= 1l<<bit;
+            fst.bits |= ONE_LONG<<bit;
             bit += step;
             bp++;
         }
@@ -4151,14 +4151,14 @@ NyImmBitSet_Range(NyBit lo, NyBit hi, NyBit step)
         bit = fstbit;
         do {
             bitnos[i] = bitno;
-            fs[i].bits = 1l<<bit;
+            fs[i].bits = ONE_LONG<<bit;
             fs[i].pos = pos;
             bp++;
             if (step < NyBits_N) { /* has to check, add step may overflow */
                 bit += step;
                 lim = pos == hipos ? hibit : NyBits_N;
                 while (bit < lim) {
-                    fs[i].bits |= 1l<<bit;
+                    fs[i].bits |= ONE_LONG<<bit;
                     bp++;
                     bit += step;
                 }
@@ -4225,12 +4225,12 @@ NyImmBitSet_Range(NyBit lo, NyBit hi, NyBit step)
     if (extra) {
         assert(f < fhi);
         bit = bitno_modiv(bitno, &f->pos);
-        f->bits = 1l<<bit;
+        f->bits = ONE_LONG<<bit;
         if (step < NyBits_N) /* has to check, add may overflow */ {
             bit += step;
             lim = f->pos == hipos ? hibit : NyBits_N;
             while (bit < lim) {
-                f->bits |= 1l<<bit;
+                f->bits |= ONE_LONG<<bit;
                 bit += step;
             }
         }

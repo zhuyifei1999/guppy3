@@ -49,7 +49,7 @@ extern int NyMutBitSet_hasbit(NyMutBitSetObject *v, NyBit bit);
 extern int NyImmBitSet_hasbit(NyImmBitSetObject *v, NyBit bit);
 
 extern int NyMutBitSet_clear(NyMutBitSetObject *v);
-extern long NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i);
+extern NyBit NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i);
 
 int cplbitset_traverse(NyHeapTraverse *ta);
 size_t mutbitset_indisize(NyMutBitSetObject *v);

@@ -99,7 +99,7 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
     VISIT(hv->weak_type_callback);
 
     if (hv->xt_table) {
-        Py_ssize_t i;
+        size_t i;
         for (i = 0; i < hv->xt_size; i++) {
             ExtraType *xt;
             for (xt = hv->xt_table[i]; xt; xt = xt->xt_next) {
@@ -112,9 +112,9 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 
 
 void
-xt_free_table(ExtraType **xt_table, Py_ssize_t size)
+xt_free_table(ExtraType **xt_table, size_t size)
 {
-    Py_ssize_t i;
+    size_t i;
     if (!xt_table)
         return;
     for (i = 0; i < size; i++) {
@@ -648,7 +648,7 @@ PyObject *
 NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdefs)
 {
     NyHeapViewObject *hv = (NyHeapViewObject *)type->tp_alloc(type, 1);
-    Py_ssize_t i;
+    size_t i;
     if (!hv)
         return 0;
     Py_INCREF(root);
@@ -734,7 +734,7 @@ Delete extra type information. For internal use as a weak-ref callback.");
 static PyObject *
 hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
 {
-    Py_ssize_t i;
+    size_t i;
 
     if (!PyWeakref_Check(wr)) {
         PyErr_Format(PyExc_TypeError,
