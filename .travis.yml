@@ -1,0 +1,24 @@
+language: python
+matrix:
+  include:
+    # - name: "Python 3.4 on Linux"
+    #   python: 3.4
+    - name: "Python 3.5 on Linux"
+      python: 3.5
+    - name: "Python 3.6 on Linux"
+      python: 3.6
+    - name: "Python 3.7 on Linux"
+      python: 3.7
+    - name: "Python 3 on macOS"
+      os: osx
+      osx_image: xcode11
+      language: shell
+    - name: "Python 3 on Windows"
+      os: windows
+      language: shell
+      before_install:
+        - choco install python
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+install: pip3 install --upgrade pip; pip install -ve .
+script: which python3 &> /dev/null && PYTHON=python3 || PYTHON=python; $PYTHON --version; $PYTHON -c '__import__("guppy").hpy().test()'
