@@ -2433,9 +2433,9 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
 static PyObject *
 mutbitset_pop(NyMutBitSetObject *v, PyObject *args)
 {
-    int i = -1;
+    NyBit i = -1;
     NyBit bit;
-    if (!PyArg_ParseTuple(args, "|i:pop", &i))
+    if (!PyArg_ParseTuple(args, "|n:pop", &i))
         return NULL;
     bit = NyMutBitSet_pop(v, i);
     if (bit == -1 && PyErr_Occurred())
@@ -4249,13 +4249,13 @@ _NyImmBitSet_Range(PyObject *unused, PyObject *args)
 
     if (PyTuple_Size(args) <= 1) {
         if (!PyArg_ParseTuple(args,
-                        "l;bitrange() requires 1-3 int arguments",
+                        "n;bitrange() requires 1-3 int arguments",
                         &ihigh))
             return NULL;
     }
     else {
         if (!PyArg_ParseTuple(args,
-                        "ll|l;bitrange() requires 1-3 int arguments",
+                        "nn|n;bitrange() requires 1-3 int arguments",
                         &ilow, &ihigh, &istep))
             return NULL;
     }
