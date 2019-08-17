@@ -1924,10 +1924,10 @@ class Summary_str:
         self.mod = mod
         types = mod.types._module
         self.invtypes = {}
-        for k, v in list(types.__dict__.items()):
+        for k, v in sorted(types.__dict__.items()):
             if isinstance(v, type):
                 self.invtypes[v] = 'types.%s' % k
-        for k, v in list(types.__builtins__.items()):
+        for k, v in sorted(types.__builtins__.items()):
             if isinstance(v, type):
                 self.invtypes[v] = k
 
@@ -1942,7 +1942,7 @@ class Summary_str:
         self.table = {
             mod.NodeSet: self.str_address_len,
             bool: self.str_repr,
-            types.BuiltinMethodType: self.str_builtin_function,
+            types.BuiltinFunctionType: self.str_builtin_function,
             types.CodeType: self.str_code,
             complex: self.str_repr,
             dict: self.str_address_len,
