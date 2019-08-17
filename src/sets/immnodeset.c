@@ -87,7 +87,7 @@ PyTypeObject NyImmNodeSetIter_Type = {
 
 
 NyNodeSetObject *
-NyImmNodeSet_SubtypeNew(PyTypeObject *type, int size, PyObject *hiding_tag)
+NyImmNodeSet_SubtypeNew(PyTypeObject *type, NyBit size, PyObject *hiding_tag)
 {
     NyNodeSetObject *v = (void *)type->tp_alloc(type, size);
     if (!v)
@@ -100,7 +100,7 @@ NyImmNodeSet_SubtypeNew(PyTypeObject *type, int size, PyObject *hiding_tag)
 }
 
 NyNodeSetObject *
-NyImmNodeSet_New(int size, PyObject *hiding_tag)
+NyImmNodeSet_New(NyBit size, PyObject *hiding_tag)
 {
     return NyImmNodeSet_SubtypeNew(&NyImmNodeSet_Type, size, hiding_tag);
 }

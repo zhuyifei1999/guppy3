@@ -136,7 +136,7 @@ PyTypeObject NyMutNodeSet_Type;
 NyNodeSetObject *
 NyImmNodeSet_SubtypeOfNodeSetDecRef(PyTypeObject *type, NyNodeSetObject *v);
 NyNodeSetObject *
-NyImmNodeSet_New(int size, PyObject *hiding_tag);
+NyImmNodeSet_New(NyBit size, PyObject *hiding_tag);
 
 static NyNodeSetObject *
 immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op);
