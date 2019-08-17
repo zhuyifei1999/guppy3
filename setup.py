@@ -20,7 +20,7 @@ heapyc = Extension("guppy.heapy.heapyc", [
 
 def doit():
     setup(name="guppy3",
-          version="3.0.1",
+          version="3.0.1.post1",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description="""
 Guppy 3 is a library and programming environment for Python,
@@ -56,7 +56,7 @@ sets
 """,
           author="YiFei Zhu",
           author_email="zhuyifei1999@gmail.com",
-          url="https://zhuyifei1999.github.io/guppy3/",
+          url="https://github.com/zhuyifei1999/guppy3/",
           license='MIT',
           packages=[
               "guppy",
