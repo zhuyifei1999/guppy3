@@ -16,10 +16,10 @@
 /* NodeGraphIter objects */
 
 typedef struct {
-        PyObject_HEAD
-        NyNodeGraphObject *nodegraph;
-        int i;
-        int oldsize;
+    PyObject_HEAD
+    NyNodeGraphObject *nodegraph;
+    Py_ssize_t i;
+    Py_ssize_t oldsize;
 } NyNodeGraphIterObject;
 
 /* NodeGraphIter methods */
@@ -27,9 +27,9 @@ typedef struct {
 static void
 ngiter_dealloc(NyNodeGraphIterObject *it)
 {
-        _PyObject_GC_UNTRACK(it);
-        Py_XDECREF(it->nodegraph);
-        PyObject_GC_Del(it);
+    _PyObject_GC_UNTRACK(it);
+    Py_XDECREF(it->nodegraph);
+    PyObject_GC_Del(it);
 }
 
 static int
@@ -84,9 +84,9 @@ PyTypeObject NyNodeGraphIter_Type = {
 void
 NyNodeGraph_Clear(NyNodeGraphObject *ng)
 {
-    int N = ng->used_size;
+    Py_ssize_t N = ng->used_size;
     NyNodeGraphEdge *edges = ng->edges;
-    int i;
+    Py_ssize_t i;
     ng->edges = 0;
     ng->used_size = ng->allo_size = 0;
     for (i = 0; i < N; i++) {
@@ -110,7 +110,7 @@ static void
 ng_dealloc(PyObject *v)
 {
     NyNodeGraphObject *ng = (void *)v;
-    int i;
+    Py_ssize_t i;
     Py_TRASHCAN_SAFE_BEGIN(v)
     _PyObject_GC_UNTRACK(v);
     ng_gc_clear(ng);
@@ -127,7 +127,7 @@ ng_dealloc(PyObject *v)
 static int
 ng_gc_traverse(NyNodeGraphObject *ng, visitproc visit, void *arg)
 {
-    int i;
+    Py_ssize_t i;
     int err = 0;
     for (i = 0; i < ng->used_size; i++) {
         err = visit(ng->edges[i].src, arg) ;
@@ -154,7 +154,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
     assert(tgt->ob_refcnt < 0xa000000 && (Py_uintptr_t)Py_TYPE(tgt) > 0x1000);
 
     if (ng->used_size >= ng->allo_size) {
-        int allo = roundupsize(ng->used_size + 1);
+        Py_ssize_t allo = roundupsize(ng->used_size + 1);
         PyMem_RESIZE(ng->edges, NyNodeGraphEdge, allo);
         if (!ng->edges) {
             ng->used_size = ng->allo_size = 0;
@@ -304,7 +304,7 @@ PyObject *
 ng_as_flat_list(NyNodeGraphObject *ng, PyObject *arg)
 {
     PyObject *r = PyList_New(0);
-    int i;
+    Py_ssize_t i;
     if (!r)
         return 0;
     for (i = 0; i < ng->used_size; i++) {
@@ -476,7 +476,7 @@ static PyObject *
 ng_get_domain(NyNodeGraphObject *ng, void *closure)
 {
     NyNodeSetObject *ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
-    int i;
+    Py_ssize_t i;
     if (!ns)
         return 0;
     for (i = 0; i < ng->used_size; i++) {
@@ -497,7 +497,7 @@ static PyObject *
 ng_get_range(NyNodeGraphObject *ng, void *closure)
 {
     NyNodeSetObject *ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
-    int i;
+    Py_ssize_t i;
     if (!ns)
         return 0;
     for (i = 0; i < ng->used_size; i++) {
@@ -512,7 +512,7 @@ ng_get_range(NyNodeGraphObject *ng, void *closure)
 int
 NyNodeGraph_Invert(NyNodeGraphObject *ng) {
     NyNodeGraphEdge *edge = ng->edges;
-    int i;
+    Py_ssize_t i;
     for (i = 0; i < ng->used_size; i++, edge++) {
         PyObject *t = edge->src;
         edge->src = edge->tgt;
@@ -725,9 +725,9 @@ static PyMethodDef ng_methods[] = {
     {0} /* sentinel */
 };
 
-static int
+static size_t
 nodegraph_size(PyObject *obj) {
-    int z = Py_TYPE(obj)->tp_basicsize +
+    Py_ssize_t z = Py_TYPE(obj)->tp_basicsize +
         ((NyNodeGraphObject *)obj)->allo_size * sizeof(NyNodeGraphEdge);
     if (PyObject_IS_GC(obj))
         z += sizeof(PyGC_Head);
@@ -747,7 +747,7 @@ static int
 nodegraph_relate(NyHeapRelate *r)
 {
     NyNodeGraphObject *ng = (void *)r->src;
-    int i;
+    Py_ssize_t i;
     for (i = 0; i < ng->used_size; i++) {
         if (r->tgt == ng->edges[i].src) {
             if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].src", i), r))
@@ -878,7 +878,7 @@ static int
 ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
 {
     NyNodeGraphEdge *lo, *hi;
-    int i, regsize, tupsize;
+    Py_ssize_t i, regsize, tupsize;
     if (!w) {
         PyErr_SetString(PyExc_NotImplementedError,
                         "Item deletion is not implemented for nodegraphs.");

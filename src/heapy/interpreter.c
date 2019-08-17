@@ -144,7 +144,7 @@ hp_interpreter(PyObject *self, PyObject *args)
         PyMem_DEL(boot);
         return NULL;
     }
-    return PyInt_FromLong(ident);
+    return PyLongFromLong(ident);
 }
 
 #define ZAP(x) {                     \
@@ -160,7 +160,7 @@ hp_interpreter(PyObject *self, PyObject *args)
 *//*
 
 
-int
+Py_ssize_t
 NyThreadState_SetAsyncExc(long id, PyObject *exc) {
     PyInterpreterState *interp;
     int count = 0;
@@ -185,16 +185,16 @@ static PyObject *
 hp_set_async_exc(PyObject *self, PyObject *args)
 {
     PyObject *idobj, *exc;
-    long id, r;
+    Py_ssize_t id, r;
     if (!PyArg_ParseTuple(args, "OO",
                           &idobj, &exc))
         return NULL;
-    if ((id = PyInt_AsLong(idobj)) == -1 && PyErr_Occurred())
+    if ((id = PyLong_AsSsize_t(idobj)) == -1 && PyErr_Occurred())
         return NULL;
     if ((r = NyThreadState_SetAsyncExc(id, exc)) > 1) {
         NyThreadState_SetAsyncExc(id, NULL);
         r = -1;
     }
-    return PyLong_FromLong(r);
+    return PyLong_FromSsize_t(r);
 }
 */

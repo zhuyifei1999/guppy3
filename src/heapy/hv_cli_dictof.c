@@ -87,7 +87,8 @@ hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
     NyNodeSetObject *dictsowned = 0;
     PyObject **dp;
-    int i, k, len;
+    Py_ssize_t i, len;
+    int k;
     int result = -1;
     PyObject *lists[2] = {0, 0};
 

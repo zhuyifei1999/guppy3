@@ -99,7 +99,7 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
     VISIT(hv->weak_type_callback);
 
     if (hv->xt_table) {
-        int i;
+        Py_ssize_t i;
         for (i = 0; i < hv->xt_size; i++) {
             ExtraType *xt;
             for (xt = hv->xt_table[i]; xt; xt = xt->xt_next) {
@@ -112,9 +112,9 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 
 
 void
-xt_free_table(ExtraType **xt_table, int size)
+xt_free_table(ExtraType **xt_table, Py_ssize_t size)
 {
-    int i;
+    Py_ssize_t i;
     if (!xt_table)
         return;
     for (i = 0; i < size; i++) {
@@ -149,7 +149,6 @@ hv_gc_clear(NyHeapViewObject *hv)
 
     xt_free_table(xt, hv->xt_size);
 
-
     Py_XDECREF(ro);
     Py_XDECREF(lf);
 
@@ -159,12 +158,12 @@ hv_gc_clear(NyHeapViewObject *hv)
     return 0;
 }
 
-static int
+static size_t
 hv_default_size(PyObject *obj)
 {
-    int z = obj->ob_type->tp_basicsize;
+    Py_ssize_t z = obj->ob_type->tp_basicsize;
     if (obj->ob_type->tp_itemsize) {
-        int itemsize = obj->ob_type->tp_itemsize;
+        Py_ssize_t itemsize = obj->ob_type->tp_itemsize;
         if (itemsize < 0)
             itemsize = - itemsize; /* For (e.g.) long(Should we check? */
         z += ((PyVarObject *)obj)->ob_size * itemsize;
@@ -204,16 +203,16 @@ hv_default_classify(PyObject *obj)
 }
 
 static NyHeapDef default_hd = {
-    0,            /* flags */
-    0,            /* type */
-    hv_default_size,    /* size */
-    0,            /* traverse */
-    0,            /* relate */
+    0,               /* flags */
+    0,               /* type */
+    hv_default_size, /* size */
+    0,               /* traverse */
+    0,               /* relate */
 };
 
 
 
-static int
+static size_t
 xt_error_size(PyObject *obj)
 {
     return -1;
@@ -308,11 +307,10 @@ xt_he_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 
 
 static ExtraType xt_error = {
-    0,                /* xt_type */
-    xt_error_size,        /* xt_size */
-    xt_error_traverse,        /* xt_traverse */
-    xt_error_relate,        /* xt_relate */
-
+    0,                 /* xt_type */
+    xt_error_size,     /* xt_size */
+    xt_error_traverse, /* xt_traverse */
+    xt_error_relate,   /* xt_relate */
 };
 
 #define XT_ERROR    0
@@ -331,7 +329,6 @@ xt_findout_size(ExtraType *xt)
         xt->xt_size = xt->xt_hd->size;
     else
         xt->xt_size = hv_default_size;
-
 }
 
 void
@@ -494,7 +491,7 @@ xt_relate(ExtraType *xt, NyHeapRelate *hr)
 }
 
 
-static int
+static size_t
 xt_size(ExtraType *xt, PyObject *obj)
 {
     return xt->xt_size(obj);
@@ -518,7 +515,7 @@ hv_mutnodeset_new(NyHeapViewObject *hv)
     return NyMutNodeSet_NewHiding(hv->_hiding_tag_);
 }
 
-static int
+static size_t
 hv_std_size(NyHeapViewObject *hv, PyObject *obj)
 {
     return xt_size(hv_extra_type(hv, obj->ob_type), obj);
@@ -589,7 +586,7 @@ hv_cleanup_mutset(NyHeapViewObject *hv, NyNodeSetObject *ns)
 {
     CMSTravArg ta;
     int ret = -1;
-    long i, size;
+    Py_ssize_t i, size;
     ta.hv = hv;
     ta.ns = ns;
     ta.rm = PyList_New(0);
@@ -604,7 +601,7 @@ hv_cleanup_mutset(NyHeapViewObject *hv, NyNodeSetObject *ns)
             goto err;
     }
     ret = 0;
-    err:
+err:
     Py_XDECREF(ta.rm);
     return ret;
 }
@@ -633,7 +630,7 @@ hv_add_heapdefs_array(NyHeapViewObject *hv, NyHeapDef *hd)
 static int
 hv_add_heapdefs_tuple(NyHeapViewObject *hv, PyTupleObject *heapdefs)
 {
-    int i;
+    Py_ssize_t i;
     for (i = 0; i < PyTuple_Size((PyObject *)heapdefs); i++) {
         PyObject *obj = PyTuple_GetItem((PyObject *)heapdefs, i);
         NyHeapDef *hd = PyCapsule_GetPointer(obj, "guppy.sets.setsc._NyHeapDefs_");
@@ -651,7 +648,7 @@ PyObject *
 NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdefs)
 {
     NyHeapViewObject *hv = (NyHeapViewObject *)type->tp_alloc(type, 1);
-    int i;
+    Py_ssize_t i;
     if (!hv)
         return 0;
     Py_INCREF(root);
@@ -694,7 +691,7 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
         goto err;
     return (PyObject *)hv;
 
-    err:
+err:
     Py_DECREF(hv);
     return 0;
 }
@@ -737,8 +734,7 @@ Delete extra type information. For internal use as a weak-ref callback.");
 static PyObject *
 hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
 {
-
-    int i;
+    Py_ssize_t i;
 
     if (!PyWeakref_Check(wr)) {
         PyErr_Format(PyExc_TypeError,
@@ -869,7 +865,7 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
             goto err;
     }
     return (PyObject *)ta.visited;
-    err:
+err:
     Py_XDECREF(ta.visited);
     return 0;
 }
@@ -877,7 +873,7 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 
 typedef struct {
     NyHeapViewObject *hv;
-    long sum;
+    Py_ssize_t sum;
 } SalArg;
 
 static int
@@ -901,7 +897,7 @@ hv_indisize_sum(NyHeapViewObject *self, PyObject *arg)
     ta.hv = self;
     if (iterable_iterate(arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
         return 0;
-    return PyLong_FromLong(ta.sum);
+    return PyLong_FromSsize_t(ta.sum);
 }
 
 
@@ -939,7 +935,7 @@ hv_relate_visit(unsigned int relatype, PyObject *relator, NyHeapRelate *arg_)
 
 typedef struct {
     NyHeapRelate hr;
-    long ne;
+    Py_ssize_t ne;
     int err;
 }
 NETravArg;
@@ -987,7 +983,7 @@ hv_numedges(NyHeapViewObject *self, PyObject *args)
     if (hv_std_relate(&ta.hr) == -1 || ta.err)
 #endif
         return 0;
-    return PyLong_FromLong(ta.ne);
+    return PyLong_FromSsize_t(ta.ne);
 }
 
 typedef struct {
@@ -1033,7 +1029,7 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err;
     return (PyObject *)ta.visited;
-    err:
+err:
     Py_XDECREF(ta.visited);
     return 0;
 }
@@ -1077,7 +1073,7 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err;
     return (PyObject *)ta.visited;
-    err:
+err:
     Py_XDECREF(ta.visited);
     return 0;
 }
@@ -1087,7 +1083,7 @@ hv_get_member_offset(PyTypeObject *type, char *member_name)
 {
     PyObject *mro = type->tp_mro;
     if (mro) {
-        int i;
+        Py_ssize_t i;
         for (i = 0; i < PyTuple_GET_SIZE(mro); i++) {
             PyObject *t = PyTuple_GET_ITEM(mro, i);
             if (PyType_Check(t)) {
@@ -1275,10 +1271,9 @@ hv_relimg(NyHeapViewObject *hv, PyObject *S)
     if (hv_cleanup_mutset(ta.hv, ta.hs) == -1)
         goto err;
     return ta.hs;
-    err:
+err:
     Py_DECREF(ta.hs);
     return 0;
-
 }
 
 typedef struct {
@@ -1376,7 +1371,7 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     if (NyNodeSet_iterate(ta.U, (visitproc)hv_shpath_outer, &ta) == -1)
         goto err;
     return (PyObject *)ta.V;
-    err:
+err:
     Py_XDECREF(ta.V);
     return 0;
 }
@@ -1487,7 +1482,7 @@ static int
 rg_traverec(PyObject *obj, RetaTravArg *ta)
 {
     PyObject *oretainer = ta->retainer;
-    int osize = ta->rg->used_size;
+    Py_ssize_t osize = ta->rg->used_size;
     int r;
     if (obj == (PyObject *)ta->rg)
         return 0;
@@ -1604,7 +1599,7 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
 {
     URCOTravArg ta;
     PyObject *objects=0, *result=0, *_hiding_tag_=0;
-    int len, i;
+    Py_ssize_t len, i;
     ta.hv = self;
     _hiding_tag_ = self->_hiding_tag_;
     self->_hiding_tag_ = Py_None;
