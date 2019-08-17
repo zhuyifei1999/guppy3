@@ -19,7 +19,7 @@ heapyc = Extension("guppy.heapy.heapyc", [
 
 
 def doit():
-    setup(name="guppy",
+    setup(name="guppy3",
           version="3.0.1",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description="""
