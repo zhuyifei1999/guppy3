@@ -1,34 +1,34 @@
-This is Guppy-PE version 0.1.10
+This is Guppy 3 version 3.0.1
 
-A Python Programming Environment.
+A Python Programming Environment & Heap analysis toolset.
 
 CONTENTS
 
 This distribution provides a root package, guppy, with the following
 subpackages:
 
-doc	Documentation data files: *.html, *.jpg, and help support.
+doc       Documentation data files: *.html, *.jpg, and help support.
 
-etc	Support modules. Contains especially the Glue protocol module.
+etc       Support modules. Contains especially the Glue protocol module.
 
-gsl	The Guppy Specification Language implementation. This can
-	be used to create documents and tests from a common source.
+gsl       The Guppy Specification Language implementation. This can
+          be used to create documents and tests from a common source.
 
-heapy	The heap analysis toolset. It can be used to find information
-	about the objects in the heap and display the information
-	in various ways.
+heapy     The heap analysis toolset. It can be used to find information
+          about the objects in the heap and display the information
+          in various ways.
 
-sets	Bitsets and 'nodesets' implemented in C.
+sets      Bitsets and 'nodesets' implemented in C.
 
 The following files are not in packages but on the toplevel:
 
-gsl-mode-0.1.el		Emacs mode for GSL
-specs/*.gsl		Specifications
-specs/genguppydoc.py	Regenerates the doc/*.html files from specs/*.gsl
+gsl-mode-0.1.el       Emacs mode for GSL
+specs/*.gsl           Specifications
+specs/genguppydoc.py  Regenerates the doc/*.html files from specs/*.gsl
 
 REQUIREMENTS
 
-You should have Python 2.3, 2.4, 2.5 or 2.6
+You should have Python 3.5, 3.6, or 3.7.
 
 To build the system so you can use Heapy, you should have what is
 needed to build extension modules from source code. The extension
@@ -41,27 +41,9 @@ To use the remote monitor, threading must be available.
 
 INSTALLATION
 
-Extract the files from the .tar.gz file, in Linux for example by:
+Install with pip by:
 
-tar xzf guppy-x.y.z.tar.gz
-
-where x.y.z is the current version number. This will create the
-directory guppy-x.y.z .  You should then cd into this directory.  You
-can then compile the extension modules by:
-
-python setup.py build
-
-And to install you can do, for example, as follows to install to the
-default location (when you are super-user):
-
-python setup.py install
-
-NOTE that you typically must LEAVE the guppy-x.y.z directory to use
-Heapy, since the current directory is usually in the Python search
-path, and then Python will find the guppy directory there FIRST and
-will NOT find the extension modules. This may be a somewhat common
-problem -- so I am noting it here for lack of a suitable fix at the
-moment.
+pip install guppy3
 
 I also note that the documentation files and emacs-mode are not
 automatically installed.
@@ -77,29 +59,29 @@ The following example shows
 
 >>> from guppy import hpy; h=hpy()
 >>> h.heap()
-Partition of a set of 48477 objects. Total size = 3265516 bytes.
+Partition of a set of 30940 objects. Total size = 3562865 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
-     0  25773  53  1612820  49   1612820  49 str
-     1  11699  24   483960  15   2096780  64 tuple
-     2    174   0   241584   7   2338364  72 dict of module
-     3   3478   7   222592   7   2560956  78 types.CodeType
-     4   3296   7   184576   6   2745532  84 function
-     5    401   1   175112   5   2920644  89 dict of class
-     6    108   0    81888   3   3002532  92 dict (no owner)
-     7    114   0    79632   2   3082164  94 dict of type
-     8    117   0    51336   2   3133500  96 type
-     9    667   1    24012   1   3157512  97 __builtin__.wrapper_descriptor
-<76 more rows. Type e.g. '_.more' to view.>
+     0   8233  27   737593  21    737593  21 str
+     1   7827  25   625128  18   1362721  38 tuple
+     2    400   1   353952  10   1716673  48 type
+     3   2077   7   299088   8   2015761  57 types.CodeType
+     4   4164  13   296152   8   2311913  65 bytes
+     5   1867   6   268848   8   2580761  72 function
+     6    400   1   230376   6   2811137  79 dict of type
+     7     79   0   139704   4   2950841  83 dict of module
+     8   1080   3    95040   3   3045881  85 types.WrapperDescriptorType
+     9    169   1    76504   2   3122385  88 dict (no owner)
+<87 more rows. Type e.g. '_.more' to view.>
 >>> h.iso(1,[],{})
-Partition of a set of 3 objects. Total size = 176 bytes.
+Partition of a set of 3 objects. Total size = 352 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
-     0      1  33      136  77       136  77 dict (no owner)
-     1      1  33       28  16       164  93 list
-     2      1  33       12   7       176 100 int
+     0      1  33      248  70       248  70 dict (no owner)
+     1      1  33       72  20       320  91 list
+     2      1  33       32   9       352 100 int
 >>> x=[]
 >>> h.iso(x).sp
  0: h.Root.i0_modules['__main__'].__dict__['x']
->>> 
+>>>
 
 TEST
 
@@ -115,22 +97,16 @@ Test #2
 
 There will be several more tests. Some tests may take a while.
 
-Caveat 1: Some tests may be somewhat picky, and may have to be relaxed
+Caveat: Some tests may be somewhat picky, and may have to be relaxed
 to pass in different installations.
-
-Caveat 2: All tests don't currently work always in Python 2.7
 
 LICENSE
 
-Copyright (C) 2005 -- 2008 Sverker Nilsson, S. Nilsson Computer System AB
+Copyright (C) 2005 -- 2011 Sverker Nilsson, S. Nilsson Computer System AB
+Copyright (C) 2019 YiFei Zhu
 
 The right is granted to copy, use, modify and redistribute this code
 according to the rules in what is commonly referred to as an MIT
 license.
 
 *** USE AT YOUR OWN RISK AND BE AWARE THAT THIS IS AN EARLY RELEASE ***
-
-CONTACT INFORMATION
-
-Sverker Nilsson <sn@sncs.se> (Homepage: http://sncs.se)
-Guppy-PE homepage: http://guppy-pe.sourceforge.net

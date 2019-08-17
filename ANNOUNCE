@@ -1,6 +1,6 @@
-I am happy to announce Guppy-PE 0.1.10
+I am happy to announce Guppy 3 3.0.1
 
-Guppy-PE is a library and programming environment for Python,
+Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
 object and heap memory sizing, profiling and debugging. It also
 includes a prototypical specification language, the Guppy
@@ -8,26 +8,22 @@ Specification Language (GSL), which can be used to formally specify
 aspects of Python programs and generate tests and documentation from a
 common source.
 
+Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
+
 The main news in this release:
 
-o Support for Python 2.7
-  However, there are still some problems with the tests
-  that I haven't been able to sort out.
-
-o Some minor bug fixes
+o Ported to Python 3
+o Multiple interpreter support disabled.
+o Classifier byclass removed. There are no more old style classes.
+c Extended C integer size to work on 64 bit Windows machines.
+o Many minor changes.
 
 License: MIT
 
-Guppy-PE 0.1.10 is available in source tarball format on the Python
-Package Index (a.k.a. Cheeseshop):
+The project homepage is on GitHub:
 
-        http://pypi.python.org/pypi/guppy/0.1.10
-
-The project homepage is on Sourceforge:
-
-        http://guppy-pe.sourceforge.net
+        https://zhuyifei1999.github.io/guppy3/
 
 Enjoy,
 
-Sverker Nilsson
-
+YiFei Zhu
