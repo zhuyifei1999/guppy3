@@ -226,7 +226,7 @@ INITFUNC (void)
     PyObject *m = NULL;
     PyObject *d;
 
-    _Ny_RootStateStruct.ob_type = &NyRootState_Type;
+    Py_TYPE(&_Ny_RootStateStruct) = &NyRootState_Type;
 
     NyNodeTuple_Type.tp_base = &PyTuple_Type;
     if (nyfills() == -1) {

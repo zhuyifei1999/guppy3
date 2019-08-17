@@ -161,12 +161,12 @@ hv_gc_clear(NyHeapViewObject *hv)
 static size_t
 hv_default_size(PyObject *obj)
 {
-    Py_ssize_t z = obj->ob_type->tp_basicsize;
-    if (obj->ob_type->tp_itemsize) {
-        Py_ssize_t itemsize = obj->ob_type->tp_itemsize;
+    Py_ssize_t z = Py_TYPE(obj)->tp_basicsize;
+    if (Py_TYPE(obj)->tp_itemsize) {
+        Py_ssize_t itemsize = Py_TYPE(obj)->tp_itemsize;
         if (itemsize < 0)
             itemsize = - itemsize; /* For (e.g.) long(Should we check? */
-        z += ((PyVarObject *)obj)->ob_size * itemsize;
+        z += Py_SIZE(obj) * itemsize;
         z = (z + ALIGN_MASK) & ~ALIGN_MASK;
     }
     if (PyObject_IS_GC(obj))
@@ -275,7 +275,7 @@ xt_no_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 static int
 xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
-    return obj->ob_type->tp_traverse(obj, visit, arg);
+    return Py_TYPE(obj)->tp_traverse(obj, visit, arg);
 }
 
 
@@ -478,7 +478,7 @@ int maxcoll = 0;
 static int
 xt_relate(ExtraType *xt, NyHeapRelate *hr)
 {
-    PyTypeObject *type = hr->src->ob_type;
+    PyTypeObject *type = Py_TYPE(hr->src);
     if (PyType_Ready(type) == -1)
         return -1;
     if ((PyObject *)type == hr->tgt) {
@@ -504,7 +504,7 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
     if (xt->xt_trav_code == XT_NO)
         return 0;
     else if (xt->xt_trav_code == XT_TP)
-        return obj->ob_type->tp_traverse(obj, visit, arg);
+        return Py_TYPE(obj)->tp_traverse(obj, visit, arg);
     else
         return xt->xt_traverse(xt, obj, visit, arg);
 }
@@ -518,13 +518,13 @@ hv_mutnodeset_new(NyHeapViewObject *hv)
 static size_t
 hv_std_size(NyHeapViewObject *hv, PyObject *obj)
 {
-    return xt_size(hv_extra_type(hv, obj->ob_type), obj);
+    return xt_size(hv_extra_type(hv, Py_TYPE(obj)), obj);
 }
 
 static int
 hv_std_relate(NyHeapRelate *hr)
 {
-    return xt_relate(hv_extra_type((NyHeapViewObject *)hr->hv, hr->src->ob_type), hr);
+    return xt_relate(hv_extra_type((NyHeapViewObject *)hr->hv, Py_TYPE(hr->src)), hr);
 }
 
 
@@ -532,7 +532,7 @@ static int
 hv_std_traverse(NyHeapViewObject *hv,
              PyObject *obj, visitproc visit, void *arg)
 {
-    return xt_traverse(hv_extra_type(hv, obj->ob_type), obj, visit, arg);
+    return xt_traverse(hv_extra_type(hv, Py_TYPE(obj)), obj, visit, arg);
 }
 
 
@@ -552,7 +552,7 @@ typedef struct {
 int
 hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 {
-    PyTypeObject *type = obj->ob_type;
+    PyTypeObject *type = Py_TYPE(obj);
     ExtraType *xt = hv_extra_type(hv, type);
     if (xt->xt_trav_code == XT_HE) {
         Py_ssize_t offs = xt->xt_he_offs;
@@ -715,7 +715,7 @@ hv_dealloc(PyObject *v)
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_SAFE_BEGIN(v)
     hv_gc_clear((NyHeapViewObject *)v);
-    v->ob_type->tp_free(v);
+    Py_TYPE(v)->tp_free(v);
     Py_TRASHCAN_SAFE_END(v)
 }
 
@@ -739,7 +739,7 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
     if (!PyWeakref_Check(wr)) {
         PyErr_Format(PyExc_TypeError,
                      "delete_extra_type: argument must be a weak ref, got '%.50s'",
-                     wr->ob_type->tp_name);
+                     Py_TYPE(wr)->tp_name);
         return 0;
     }
     for (i = 0; i < hv->xt_size; i++) {
@@ -776,7 +776,7 @@ typedef struct {
 static int
 iter_rec(PyObject *obj, IterTravArg *ta) {
     int r;
-    if (obj->ob_refcnt > 1) {
+    if (Py_REFCNT(obj) > 1) {
         r = NyNodeSet_setobj(ta->hs, obj);
         if (r) {
             if (r == -1)
@@ -1441,19 +1441,19 @@ hv_update_dictowners(NyHeapViewObject *self, PyObject *args)
 static int
 rg_is_on_stack(PyObject *obj)
 {
-    return obj->ob_refcnt & RG_STACK_MARK;
+    return Py_REFCNT(obj) & RG_STACK_MARK;
 }
 
 static void
 rg_set_on_stack(PyObject *obj)
 {
-     obj->ob_refcnt |= RG_STACK_MARK;
+    Py_REFCNT(obj) |= RG_STACK_MARK;
 }
 
 static void
 rg_clr_on_stack(PyObject *obj)
 {
-     obj->ob_refcnt &= ~RG_STACK_MARK;
+    Py_REFCNT(obj) &= ~RG_STACK_MARK;
 }
 
 
@@ -1486,7 +1486,7 @@ rg_traverec(PyObject *obj, RetaTravArg *ta)
     int r;
     if (obj == (PyObject *)ta->rg)
         return 0;
-    assert((obj == Py_None || obj->ob_refcnt < 0xa000000) && (Py_uintptr_t)obj->ob_type > 0x1000);
+    assert((obj == Py_None || Py_REFCNT(obj) < 0xa000000) && (Py_uintptr_t)Py_TYPE(obj) > 0x1000);
     ta->retainer = obj;
     r = hv_std_traverse(ta->hv, obj, (visitproc)rg_retarec, ta);
     ta->retainer = oretainer;
@@ -1504,7 +1504,7 @@ rg_retarec(PyObject *obj, RetaTravArg *ta) {
         r = 0;
     else if (rg_is_on_stack(obj)) {
         r = rg_put_set_out(ta, obj);
-    } else if (obj->ob_refcnt == 1) {
+    } else if (Py_REFCNT(obj) == 1) {
         r = rg_traverec(obj, ta);
         if (r > 0)
             r = NyNodeGraph_AddEdge(ta->rg, obj, ta->retainer);

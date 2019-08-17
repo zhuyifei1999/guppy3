@@ -25,7 +25,7 @@ Arguments:\n\
    the clodo classifier is concerned. So we don't bother about
    subtypes - they can't be 'owned' in any standard way can they (?)
 */
-#define ClodoDict_Check(obj) (obj->ob_type == &PyDict_Type)
+#define ClodoDict_Check(obj) (Py_TYPE(obj) == &PyDict_Type)
 
 typedef struct {
     PyObject_VAR_HEAD
@@ -85,7 +85,7 @@ hv_cli_clodo_retadorec(PyObject *obj, DOTravArg *ta)
                 return -1;
         }
     }
-    if (obj->ob_refcnt > 1) {
+    if (Py_REFCNT(obj) > 1) {
         r = NyNodeSet_setobj(ta->markset, obj);
         if (r) {
             if (r == -1)
@@ -256,8 +256,8 @@ hv_cli_clodo_classify(ClodoObject *self, PyObject *obj)
             Py_DECREF(ownerkind);
             return kind;
         } else {
-            Py_INCREF(obj->ob_type);
-            return (PyObject *)obj->ob_type;
+            Py_INCREF(Py_TYPE(obj));
+            return (PyObject *)Py_TYPE(obj);
         }
     }
 

@@ -102,8 +102,8 @@ hv_cli_class(NyHeapViewObject *self, PyObject *args)
 static PyObject *
 hv_cli_type_classify(NyHeapViewObject *hv, PyObject *obj)
 {
-    Py_INCREF(obj->ob_type);
-    return (PyObject *)obj->ob_type;
+    Py_INCREF(Py_TYPE(obj));
+    return (PyObject *)Py_TYPE(obj);
 }
 
 static int
