@@ -204,7 +204,7 @@ static struct PyModuleDef moduledef = {
     module_methods
 };
 
-static int nyfills() {
+static int nyfills(void) {
     NYFILL(NyNodeTuple_Type);
     NYFILL(NyRelation_Type);
     NYFILL(NyHeapView_Type);
@@ -220,7 +220,7 @@ static int nyfills() {
 PyMODINIT_FUNC
 INITFUNC (void)
 {
-    PyObject *m;
+    PyObject *m = NULL;
     PyObject *d;
 
     _Ny_RootStateStruct.ob_type = &NyRootState_Type;

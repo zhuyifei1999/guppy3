@@ -919,13 +919,13 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
             bs = union_realloc(bs, cur_size + 1);
             if (!bs) return 0;
         }
-        assert (cur_size < Py_SIZE(bs));
+        assert(cur_size < Py_SIZE(bs));
         v->root = bs;
         sf = &bs->ob_field[where];
     }
     assert(where <= cur_size);
     if (where < cur_size) {
-        assert (sf + 1 + cur_size - where <= &bs->ob_field[Py_SIZE(bs)]);
+        assert(sf + 1 + cur_size - where <= &bs->ob_field[Py_SIZE(bs)]);
         sfp_move(sf+1, sf, cur_size - where);
     }
     bs->cur_size = cur_size + 1;
@@ -1269,7 +1269,7 @@ mutbitset_as_noncomplemented_immbitset_subtype(NyMutBitSetObject *v, PyTypeObjec
                     bs->ob_field[j++] = *f;
             }
         }
-        assert (j == size);
+        assert(j == size);
     }
     return bs;
 }
@@ -1542,16 +1542,16 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, int n)
             }
             end_w = w + n;
             for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
-                while (w < end_w && f->pos > w->pos)
-                    w++;
-                if (w < end_w && w->pos == f->pos) {
-                    f->bits = ~f->bits & w->bits;
-                    w++;
-                } else {
-                    f->bits = 0;
+                for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+                    while (w < end_w && f->pos > w->pos)
+                        w++;
+                    if (w < end_w && w->pos == f->pos) {
+                        f->bits = ~f->bits & w->bits;
+                        w++;
+                    } else {
+                        f->bits = 0;
+                    }
                 }
-            }
         }
         break;
     default:
@@ -2871,7 +2871,7 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
                 break;
         }
         if (nbits > nbitswanted) {
-            assert (g > bs->ob_field);
+            assert(g > bs->ob_field);
             g--;
             while (nbits > nbitswanted) {
                 g->bits &= ~(1l<<bits_last(g->bits));
@@ -2912,7 +2912,7 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
         }
         if (nbits > nbitswanted) {
             g++;
-            assert (g == bs->ob_field);
+            assert(g == bs->ob_field);
             while (nbits > nbitswanted) {
                 g->bits &= ~(1l<<bits_first(g->bits));
                 nbits--;
@@ -4192,7 +4192,7 @@ NyImmBitSet_Range(long lo, long hi, long step)
             i++;
             bitno += d;
         }
-        assert (i < blocksize);
+        assert(i < blocksize);
         nf = i;
 
         extra = bitno < hi;
@@ -4203,24 +4203,25 @@ NyImmBitSet_Range(long lo, long hi, long step)
     if (!v) return 0;
     f = v->ob_field;
     fhi = v->ob_field + Py_SIZE(v);
-    assert (f < fhi);
+    (void)fhi; // if assert is preprocessed into nothing, it generates a warning
+    assert(f < fhi);
     f->pos = fst.pos;
     f->bits = fst.bits;
     f++;
     for (i = 0, posadd = 0; i < nblocks; i++, posadd += pos_per_block) {
         for (j = 0; j < blocksize; j++, f++) {
-            assert (f < fhi);
+            assert(f < fhi);
             f->pos = fs[j].pos + posadd;
             f->bits = fs[j].bits;
         }
     }
     for (i = 0; i < nf; i++, f++) {
-        assert (f < fhi);
+        assert(f < fhi);
         f->pos = fs[i].pos + posadd;
         f->bits = fs[i].bits;
     }
     if (extra) {
-        assert (f < fhi);
+        assert(f < fhi);
         bit = bitno_modiv(bitno, &f->pos);
         f->bits = 1l<<bit;
         if (step < NyBits_N) /* has to check, add may overflow */ {
@@ -4234,7 +4235,7 @@ NyImmBitSet_Range(long lo, long hi, long step)
         f++;
     }
 
-    assert (f == fhi);
+    assert(f == fhi);
     return (PyObject *)v;
 }
 
