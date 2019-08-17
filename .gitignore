@@ -1,4 +1,5 @@
 /build/
+/dist/
 /guppy.egg-info/
 /guppy/doc/*,gsl-backuped
 
