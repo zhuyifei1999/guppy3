@@ -4,7 +4,7 @@
 .import:: Use
 ..from: heapy_Use
 
-.import:: UniSet, Kind, KindWithAlt, KindOfTypeFamily, KindOfClassFamily,KindOfSizeFamily,
+.import:: UniSet, Kind, KindWithAlt, KindOfTypeFamily, KindOfSizeFamily,
 KindOfRetClaSetFamily,KindOfInViaFamily,IdentitySet,IdentitySetNotEmpty,IdentitySetSingleton
 ..from: heapy_UniSet
 
@@ -24,7 +24,6 @@ KindOfRetClaSetFamily,KindOfInViaFamily,IdentitySet,IdentitySetNotEmpty,Identity
 ..man page of: Kind
 ..man page of: KindWithAlt
 ..man page of: KindOfTypeFamily
-..man page of: KindOfClassFamily
 ..man page of: KindOfSizeFamily
 ..man page of: KindOfRetClaSetFamily
 ..man page of: KindOfInViaFamily
@@ -77,5 +76,3 @@ h=hpy()
 ..document: test_Use
 ...output: tester
 ...test of: Use
-
-

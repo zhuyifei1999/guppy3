@@ -114,9 +114,6 @@ class ArgNamesFamily(SpecFamily):
         types = self.mod._root.types
         return (func_argnames(x) or
                 meth_argnames(x) or
-                (isinstance(x, types.InstanceType) and
-                 hasattr(x, '__call__') and
-                 meth_argnames(x.__call__)) or
                 (isinstance(x, type) and
                  (hasattr(x, '__init__') and
                   meth_argnames(x.__init__))) or

@@ -724,7 +724,6 @@ class BaseCase(TestCase):
         US = self.US
         US.auto_convert_iter = False
         US.auto_convert_type = False
-        US.auto_convert_class = False
 
         ty = self.ty
         c1 = self.c1
@@ -798,7 +797,6 @@ class BaseCase(TestCase):
         # in classification set expressions.
 
         self.US.auto_convert_type = True
-        self.US.auto_convert_class = True
 
         un = self.un
         ty = self.ty

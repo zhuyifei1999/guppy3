@@ -7,12 +7,12 @@
 .import:: EquivalenceRelation, Helper,
 
 IdentitySet, IdentitySetNotEmpty, IdentitySetSingleton,
-Kind, KindOfClassFamily, KindOfSizeFamily, KindOfInViaFamily,
+Kind, KindOfSizeFamily, KindOfInViaFamily,
 KindOfRetClaSetFamily,
 KindOfTypeFamily, KindWithAlt,
 MappingProxy,
 MorePrinter,
-Partition, Paths, ReferencePattern, 
+Partition, Paths, ReferencePattern,
 
 Stat, UniSet, UniSetAvantGarde, Use
 
@@ -283,33 +283,6 @@ in the following way.
 .....td: >
 .....td: strict supertype
 
-.and: KindOfClassFamily
-..subkind of: KindWithAlt
-
-..d: A kind of this family includes all objects of one particular 'class',
-where the class is the value of the builtin __class__ attribute.  This
-is equal to type() unless the object is of an 'old-fashioned' class;
-then type() is <type 'instance'>.
-
-..d: The kind returned by the alt method depends on its operator argument
-in the following way.
-...table
-....tr
-.....th: Operator
-.....th: Returned kind in terms of original class
-....tr
-.....td: <
-.....td: strict subclass
-....tr
-.....td: <=
-.....td: subclass
-....tr
-.....td: >=
-.....td: superclass
-....tr
-.....td: >
-.....td: strict superclass
-
 .and: KindOfSizeFamily
 ..subkind of: KindWithAlt
 ..d: The kind returned by the alt method depends on its operator argument
@@ -377,13 +350,6 @@ in the following way.
 .and: IdentitySet
 ..self: x
 ..subkind of: UniSet
-
-..attr:: byclass
-...kind of: IdentitySet
-
-...d: A copy of x, but with
-....ref: .myfile.Use.Class
-....t: as the equivalence relation.
 
 ..attr:: byclodo
 ...kind of: IdentitySet
@@ -529,7 +495,7 @@ Set of 2 <mixed> objects. Total size = 40 bytes.
  Index     Size   %   Cumulative  %   Brief
      0       28  70.0        28  70.0 str: 'b'
      1       12  30.0        40 100.0 int: 1
->>> 
+>>>
 ...c: end dwh
 
 ..attr:: more
@@ -757,10 +723,8 @@ made by code like this:
 ......pre
 stopkind = (
 	    hp.Type.Module |
-	    hp.Type.Class |
 	    hp.Type.Type |
 	    hp.Type.Module.dictof |
-	    hp.Type.Class.dictof |
 	    hp.Type.Type.dictof |
 	    hp.Type.Code |
 	    hp.Type.Frame
@@ -791,7 +755,7 @@ stopkind = (
 must be avoided to hide the data in the heapy system itself.
 
 ....key arg: avoid_edges:NodeGraph+
-.....d: Edges to avoid                  
+.....d: Edges to avoid
 .....default: No edges are avoided.
 
 ...dwh: See also

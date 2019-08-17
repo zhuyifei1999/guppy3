@@ -42,11 +42,6 @@
      <dt><strong><big>Attributes</big></strong></dt>
      <dd><big><a href='#heapykinds.Use.Anything'>Anything</a></big><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a></dd>
      <dd><big><a href='#heapykinds.Use.Nothing'>Nothing</a></big><code>:</code>&nbsp;<a href='heapy_UniSet.html#heapykinds.IdentitySet'>IdentitySet</a></dd>
-     <dd><big><a href='#heapykinds.Use.Class'>Class</a></big><code>:</code>&nbsp; (
-      <dl>
-       <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
-       <dd><a href='#heapy_Use.Use.Class.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>tc</var><code>:</code>&nbsp;<em>typeorclass+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfClassFamily'>KindOfClassFamily</a></dd>
-       <dd> )</dd></dl></dd>
      <dd><big><a href='#heapykinds.Use.Clodo'>Clodo</a></big><code>:</code>&nbsp; (
       <dl>
        <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
@@ -217,7 +212,7 @@ in memory even though they are gc-collectable and not reachable.
       <dl>
        <dt><strong>Note</strong></dt>
        <dd>This method is the same as <a href='#heapykinds.Use.iso'>iso</a>
- except for the argument. 
+ except for the argument.
 </dd></dl></dd></dl></dd>
    <dd><a name='heapykinds.Use.iso'><strong><big>iso</big></strong></a>( <sup><strong>0..*:</strong></sup><var>node</var><code>:</code>&nbsp;<em>Any+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.IdentitySet'>IdentitySet</a>
     <dl>
@@ -243,7 +238,7 @@ Partition of a set of 5 objects. Total size = 220 bytes.
      1      2  40       56  25       192  87 list
      2      1  20       16   7       208  95 float
      3      1  20       12   5       220 100 int
-&gt;&gt;&gt; </pre></dd></dl></dd>
+&gt;&gt;&gt;</pre></dd></dl></dd>
      <dd>
       <dl>
        <dt><strong>Note</strong></dt>
@@ -339,7 +334,7 @@ from guppy.heapy.Remote import off; off()</code></p></dd>
 nicosys [175] solitaire.py &amp;
 [1] 25928
 nicosys [176] python -c &quot;from guppy import hpy;hpy().monitor()&quot;
-&lt;Monitor&gt; 
+&lt;Monitor&gt;
 *** Connection 1 opened ***
 &lt;Monitor&gt; h
 
@@ -422,7 +417,7 @@ sizes and counts compared to when setref was called.
        <dd>This method may become depreciated or reserved for internal use; the <a href='#heapykinds.Use.setref'>setref</a> method is the preferred public interface.</dd></dl></dd>
      <dd> Set relative heap view.</dd>
      <dd>
- With no argument, set a variable in self to the current set of 
+ With no argument, set a variable in self to the current set of
 objects in the heap. This set will be subtracted from
 the returned set in subsequent calls to <a href='#heapykinds.Use.heap'>heap</a>
 . In this way, it will show the heap relative
@@ -479,30 +474,6 @@ methods to one.
      <dd>
  The empty set.
 </dd></dl></dd>
-   <dd><a name='heapykinds.Use.Class'><strong><big>Class</big></strong></a></dd>
-   <dd>
-    <dl>
-     <dd>
- Equivalence relation by class. It defines objects to
-to be equivalent when their builtin __class__ attributes are identical.</dd></dl></dd>
-   <dd><strong><big>Class</big></strong><code>:</code>&nbsp; (
-    <dl>
-     <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
-     <dd><a name='heapy_Use.Use.Class.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>tc</var><code>:</code>&nbsp;<em>typeorclass+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfClassFamily'>KindOfClassFamily</a>
-      <dl>
-       <dd>
- Create a Kind object that represent an equivalence class
-of Class.</dd>
-       <dd>
-        <dl>
-         <dt><strong>Argument</strong></dt>
-         <dd>
-          <dl>
-           <dt><var>tc</var><code>:</code>&nbsp;<em>typeorclass+</em></dt>
-           <dd>
- The Python type or class object that the Kind object will represent.
-</dd></dl></dd></dl></dd></dl></dd>
-     <dd> )</dd></dl></dd>
    <dd><a name='heapykinds.Use.Clodo'><strong><big>Clodo</big></strong></a></dd>
    <dd>
     <dl>
@@ -514,9 +485,6 @@ of Class.</dd>
 when their classifications, as defined below, are equal.
       <ol>
        <li>
-If the object is an instance of a class, the
-	classification will be the class.</li>
-       <li>
 If the object is not a dictionary,
 	the classification will be the type of the object.</li>
        <li>
@@ -526,7 +494,7 @@ The object is a dictionary. The referrers of the
 	__dict__ attribute of the owner. If no such
 	owner is found, the object will be the classified
 	as a dict with no owner. If the owner is found, it will
-	be classified in its turn, by class as defined in <a href='#heapykinds.Use.Class'>Class</a>
+	be classified in its turn, by class as defined in <em>Class</em>
 . The object will be classified as a dict
 	owned by such a kind of object.
 
@@ -547,12 +515,12 @@ The object is a dictionary. The referrers of the
  If this argument is specified,
 it must be or represent a Python type or class object, except that
 it may not be the type dict, and the resulting Kind will be the
-same as that returned from <a href='#heapykinds.Use.Class'>Class</a>(tc).</dd>
+same as that returned from <em>Class</em>(tc).</dd>
            <dt><code>dictof</code><strong>&nbsp;=&nbsp;</strong><em>typeorclassoremptytuple+</em></dt>
            <dd>
  If this argument is specified, and is an empty tuple,
 the result will be a kind representing a dict that has no owner.
-Otherwise the owner kind will be created as by <a href='#heapykinds.Use.Class'>Class</a>
+Otherwise the owner kind will be created as by <em>Class</em>
 (dictof),
 and the result will be a kind representing a dict that is owned
 by that class.
@@ -791,4 +759,4 @@ in the web browser the doc for the heap method one can do:
       <pre>
 &gt;&gt;&gt; hp.doc.heap[0]
 </pre></dd></dl></dd></dl>
-  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Fri Aug 16 19:10:41 2019</div></body></html>
+  <hr>Generated by <a href="http://guppy-pe.sourceforge.net/gsl.html">GSL-HTML 0.1.5</a> on Sat Aug 17 01:48:42 2019</div></body></html>

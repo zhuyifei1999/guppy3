@@ -2022,7 +2022,7 @@ class Summary_str:
         except AttributeError:
             func_name = func.__name__
         return '%s.%s' % (cn, func_name)
-    str_method._idpart_header = 'Class/<Class at address> . method'
+    str_method._idpart_header = 'Type/<Type at address> . method'
 
     def str_module(self, x):
         return x.__name__
@@ -2088,12 +2088,11 @@ def minimals(A, le=lambda x, y: x <= y):
 class _GLUECLAMP_:
     max_summary_length = 80
     auto_convert_type = True
-    auto_convert_class = True
     auto_convert_iter = False   # Can give problems if enabled; notes 22/11-04
     out_reach_module_names = ('UniSet', 'View', 'Path', 'RefPat')
 
     _chgable_ = ('max_summary_length', 'out_reach_module_names',
-                 'auto_convert_type', 'auto_convert_class', 'auto_convert_iter', 'output')
+                 'auto_convert_type', 'auto_convert_iter', 'output')
 
     # _preload_ = ('_hiding_tag_',)
 
@@ -2233,8 +2232,6 @@ class _GLUECLAMP_:
         types = self.types
         if isinstance(X, type) and self.auto_convert_type:
             return self.Use.Type(X)
-        elif isinstance(X, type) and self.auto_convert_class:
-            return self.Use.Class(X)
         elif isinstance(X, self.NodeSet) and X._hiding_tag_ is self._hiding_tag_:
             return self.idset(X)
         elif self.auto_convert_iter:
