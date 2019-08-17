@@ -1,4 +1,6 @@
-#include "Python.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include "structmember.h"
 #include "compile.h"
 #include "frameobject.h"
@@ -333,22 +335,17 @@ type_relate(NyHeapRelate *r)
 #undef v
 }
 
-static int
-wrapper_PySys_GetSizeOf(PyObject *obj) {
-    return _PySys_GetSizeOf(obj);
-}
-
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
         0,                       /* flags */
         0,                       /* type */
-        wrapper_PySys_GetSizeOf, /* size */
+        _PySys_GetSizeOf, /* size */
         dict_traverse,           /* traverse */
         dict_relate              /* relate */
     }, {
         0,                       /* flags */
         0,                       /* type */
-        wrapper_PySys_GetSizeOf, /* size */
+        _PySys_GetSizeOf, /* size */
         0,                       /* traverse */
         list_relate              /* relate */
     }, {
@@ -390,7 +387,7 @@ NyHeapDef NyStdTypes_HeapDef[] = {
     }, {
         0,                       /* flags */
         0,                       /* type */
-        wrapper_PySys_GetSizeOf, /* size */
+        _PySys_GetSizeOf, /* size */
         0,                       /* traverse */
         0                        /* relate */
     }, {
@@ -414,7 +411,7 @@ NyHeapDef NyStdTypes_HeapDef[] = {
     }, {
         0,                       /* flags */
         0,                       /* type */
-        wrapper_PySys_GetSizeOf, /* size */
+        _PySys_GetSizeOf, /* size */
         0,                       /* traverse */
         0,                       /* relate */
     }, {

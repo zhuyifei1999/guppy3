@@ -29,8 +29,8 @@ char sets_doc[] =
 "    NyBitSet_Exports,\n"
 "    NyNodeSet_Exports   C-level exported function tables.\n";
 
-
-#include "Python.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 #include "../heapy/heapdef.h"
 #include "../heapy/heapy.h"

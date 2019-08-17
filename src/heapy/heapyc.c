@@ -24,7 +24,9 @@ char heapyc_doc[] =
 ;
 
 
-#include "Python.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include "structmember.h"
 #include "compile.h"
 #include "frameobject.h"

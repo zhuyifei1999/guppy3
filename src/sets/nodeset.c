@@ -1,6 +1,8 @@
 /* Implementation of the NodeSet, ImmNodeSet, and MutNodeSet types */
 
-#include "Python.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include "structmember.h"
 
 #include "../include/guppy.h"
