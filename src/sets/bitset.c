@@ -416,8 +416,7 @@ PyTypeObject NyBitSet_Type = {
 /* Predefined no-bits and all-bits sets */
 
 NyImmBitSetObject _NyImmBitSet_EmptyStruct = {
-    PyObject_HEAD_INIT(NULL)
-    0    /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
 };
 
 NyCplBitSetObject _NyImmBitSet_OmegaStruct = {
@@ -754,31 +753,6 @@ NyImmBitSet_Singleton(PyObject *arg)
         if (p) {
             bitno_to_field(bit, &p->ob_field[0]);
         }
-        return p;
-    }
-}
-
-static PyObject *
-NyImmBitSet_FromLong(long v)
-{
-    if (v > 0) {
-        NyImmBitSetObject *p = NyImmBitSet_New(1);
-        if (!p) return 0;
-        p->ob_field[0].pos = 0;
-        p->ob_field[0].bits = v;
-        return (PyObject *)p;
-    } else if (v == 0) {
-        Py_INCREF(NyImmBitSet_Empty);
-        return (PyObject *)NyImmBitSet_Empty;
-    } else if (v == -1) {
-        Py_INCREF(NyImmBitSet_Omega);
-        return (PyObject *)NyImmBitSet_Omega;
-    } else {
-        NyImmBitSetObject *q = (NyImmBitSetObject *)NyImmBitSet_FromLong(~v);
-        PyObject *p;
-        if (!q) return 0;
-        p = immbitset_complement(q);
-        Py_DECREF(q);
         return p;
     }
 }
@@ -1206,8 +1180,6 @@ mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
         assert(sf >= lo);
     }
     {
-        NyBitField *lo, *hi;
-        lo = sf_getrange_mut(sf, &hi);
         f = bitfield_binsearch(sf->lo, sf->hi, pos);
         if (ins) {
             if (!(f < sf->hi && f->pos == pos))
@@ -2170,7 +2142,6 @@ mutbitset_repr(NyMutBitSetObject *a)
 {
     char *fmt;
     PyObject *s, *iter;
-    int i;
     if (a->cpl) {
         fmt = "MutBitSet(~ImmBitSet(%R))";
         /* Subtle:
@@ -3328,7 +3299,7 @@ static PyObject *
 immbitset_repr(NyImmBitSetObject *a)
 {
     PyObject *s, *iter;
-    NyBit i, len;
+    NyBit len;
     len = Py_SIZE(a);
     if (len == 0) {
         return PyUnicode_FromString("ImmBitSet([])");
