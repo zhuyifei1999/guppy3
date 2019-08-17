@@ -75,7 +75,7 @@ sets
               "License :: OSI Approved :: MIT License",
               "Operating System :: OS Independent",
               "Development Status :: 4 - Beta",
-              "Software Development :: Debuggers",
+              "Topic :: Software Development :: Debuggers",
               "Environment :: Console",
               "Intended Audience :: Developers",
           ])
