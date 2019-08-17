@@ -1,5 +1,4 @@
 from distutils.core import setup, Extension
-import os
 
 from distutils.command.install import INSTALL_SCHEMES
 
@@ -7,34 +6,32 @@ for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
 
-setsc = Extension("guppy.sets.setsc",
-                  [
+setsc = Extension("guppy.sets.setsc", [
                       "src/sets/sets.c",
                       "src/sets/bitset.c",
                       "src/sets/nodeset.c"
-                  ]
-                  )
+                  ])
 
-heapyc = Extension("guppy.heapy.heapyc",
-                   [
+heapyc = Extension("guppy.heapy.heapyc", [
                        'src/heapy/heapyc.c',
                        'src/heapy/stdtypes.c'
-                   ]
-                   )
+                   ])
 
 
 def doit():
     setup(name="guppy",
-          version="0.1.10",
-          description="Guppy-PE -- A Python Programming Environment",
+          version="3.0.1",
+          description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description="""
-Guppy-PE is a library and programming environment for Python,
+Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
 object and heap memory sizing, profiling and debugging. It also
 includes a prototypical specification language, the Guppy
 Specification Language (GSL), which can be used to formally specify
 aspects of Python programs and generate tests and documentation from a
 common source.
+
+Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The guppy top-level package contains the following subpackages:
 
@@ -57,13 +54,12 @@ heapy
 sets
        Bitsets and 'nodesets' implemented in C.
 """,
-          author="Sverker Nilsson",
-          author_email="sn@sncs.se",
-          url="http://guppy-pe.sourceforge.net",
+          author="YiFei Zhu",
+          author_email="zhuyifei1999@gmail.com",
+          url="https://zhuyifei1999.github.io/guppy3/",
           license='MIT',
           packages=[
               "guppy",
-              "guppy.doc",
               "guppy.etc",
               "guppy.gsl",
               "guppy.heapy",
@@ -71,8 +67,7 @@ sets
               "guppy.sets",
           ],
           package_data={"guppy.doc": ["*.html", "*.jpg"]},
-          ext_modules=[setsc, heapyc]
-          )
+          ext_modules=[setsc, heapyc])
 
 
 doit()
