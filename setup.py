@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 from distutils.command.install import INSTALL_SCHEMES
 
@@ -67,7 +67,18 @@ sets
               "guppy.sets",
           ],
           package_data={"guppy.doc": ["*.html", "*.jpg"]},
-          ext_modules=[setsc, heapyc])
+          ext_modules=[setsc, heapyc],
+          classifiers=[
+              "Programming Language :: Python :: 3",
+              "Programming Language :: Python :: Implementation :: CPython",
+              "Programming Language :: C",
+              "License :: OSI Approved :: MIT License",
+              "Operating System :: OS Independent",
+              "Development Status :: 4 - Beta",
+              "Software Development :: Debuggers",
+              "Environment :: Console",
+              "Intended Audience :: Developers",
+          ])
 
 
 doit()
