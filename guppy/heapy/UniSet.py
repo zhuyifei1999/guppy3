@@ -529,7 +529,7 @@ object via its special __dict__ attribute.""")
 A partition of the set of objects in self. The set is partitioned into
 subsets by equal kind, as given by a equivalence relation.  Unless
 otherwise specified, the equivalence relation used is 'byclodo', which
-means it classifies 'by type or class or dict owner'. Different
+means it classifies 'by type or dict owner'. Different
 equivalence relations are specified for sets created by the 'by_...'
 attributes of any IdentitySet object.
 

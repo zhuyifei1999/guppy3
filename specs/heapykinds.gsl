@@ -73,13 +73,6 @@ import os
 ..eg: '[0]'
 ..eg: '.a'
 
-.superkind:: type+
-..eg: int
-..eg: C
-...in context:
-class C:
-    pass
-
 .superkind:: typeexceptdict+
 ..eg: int
 ..eg: C

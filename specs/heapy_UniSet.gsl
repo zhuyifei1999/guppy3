@@ -527,7 +527,7 @@ refers to the object via its special __dict__ attribute.
 ...d: A partition of the set of objects in x. The set is partitioned
 into subsets by equal kind, as given by an equivalence relation.
 Unless otherwise specified, the equivalence relation used is
-'byclodo', which means it classifies 'by type or class or dict
+'byclodo', which means it classifies 'by type or dict
 owner'. Different equivalence relations can be specified by using
 'by_...' attributes of any IdentitySet object.
 
@@ -717,7 +717,7 @@ cycle patterns marked.
 
 ....key arg: stopkind: UniSet+
 .....d: The referrers of objects of kind stopkind will not be followed.
-.....d: The default is a kind representing a union of all modules, classes, types
+.....d: The default is a kind representing a union of all modules, types
 and their dicts; and also all code and frame objects. Actually, it is
 made by code like this:
 ......pre

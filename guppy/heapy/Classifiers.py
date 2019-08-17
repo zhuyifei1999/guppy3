@@ -705,8 +705,8 @@ The classification is performed as follows:
         except TypeError:
             raise TypeError("""\
 Argument should be either
-    <type or class except dict>
-    dictof=<type or class>
+    <type except dict>
+    dictof=<type>
     dictof=()""")
 
     def get_userkindargrepr(self, kind):
@@ -1271,8 +1271,8 @@ the object.
             View.rg)
 
     def tc_adapt(self, k):
-        # Adapt to a type or class.
-        # Accepts a type or class object, or a string representation
+        # Adapt to a type.
+        # Accepts a type object, or a string representation
         # (at least as) by tc_repr.
 
         if isinstance(k, type):
@@ -1327,7 +1327,7 @@ the object.
         return kind
 
     def tc_repr(self, k):
-        # Represent a type or class object as a string,
+        # Represent a type object as a string,
         # so that it can converted back via tc_adapt,
         # as long as it still exists in the heap.
         # There is no absolute guarantee that it will always become the same object,
