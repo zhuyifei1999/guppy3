@@ -8,7 +8,7 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
     _chgable_ = ('reprefix', 'default_reprefix', 'gcobjs',
                  'relheap', 'relheapg', 'relheapu', '__doc__')
     _dir_ = (
-        'Anything', 'Class', 'Clodo', 'Id', 'Idset', 'Module',
+        'Anything', 'Clodo', 'Id', 'Idset', 'Module',
         'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
         'Via', 'doc', 'findex', 'heap', 'heapu',
         'idset', 'iso', 'load', 'monitor', 'pb',
@@ -367,7 +367,6 @@ Argument
         self._parent.test.test_all.test_main(debug)
 
     _imports_ = (
-        '_parent.Classifiers:Class',
         '_parent.Classifiers:Clodo',
         '_parent.Classifiers:Id',
         '_parent.Classifiers:Idset',
@@ -404,36 +403,24 @@ A symbolic set that represents all possible Python objects.
 References
     [0] heapy_Use.html#heapykinds.Use.Anything"""
 
-    _doc_Class = """Class:EquivalenceRelation
-Class(tc:typeorclass+) -> Kind
-
-Equivalence relation by class. It defines objects to be equivalent
-when their builtin __class__ attributes are identical. When called it
-returns the equivalenc class defined by the argument:
-
-    tc: A type or class that the returned kind should represent.
-
-References
-    [0] heapy_Use.html#heapykinds.Use.Class"""
-
     _doc_Clodo = """Clodo:EquivalenceRelation
-Clodo(alt:[tc: typeorclassexceptdict+ or dictof =
-        typeorclassoremptytuple+]) -> Kind
+Clodo(alt:[tc: typeexceptdict+ or dictof =
+        typeoremptytuple+]) -> Kind
 
 Equivalence relation by class or dict owner. It distinguishes between
-objects based on their class just like the Class relation, and in
+objects based on their type just like the Type relation, and in
 addition distinguishes between dicts depending on what class they are
 'owned' by, i.e. occur in __dict__ attribute of.
 
 When called it returns the equivalence class defined by the argument,
 
 EITHER:
-    tc: A positional argument, a type or class but not a dict, to
+    tc: A positional argument, a type but not a dict, to
         create the corresponding equivalence class.
 OR:
     dictof: A named argument, to create an equivalence class
         consisting of all dicts that are owned by objects of the type
-        or class specified in the argument; or dicts with no owner if
+        specified in the argument; or dicts with no owner if
         an empty tuple is given. XXX express this simpler&better...
 
 

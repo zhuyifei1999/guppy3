@@ -5,19 +5,19 @@
 ..from: guppy
 
 .import:: EquivalenceRelation, IdentitySet, IdentitySetSingleton, Kind, UniSet, Use,
-KindOfClassFamily, KindOfRetClaSetFamily, KindOfSizeFamily, KindOfTypeFamily,
+KindOfRetClaSetFamily, KindOfSizeFamily, KindOfTypeFamily,
 KindOfInViaFamily, RootStateType, SetOfKind, Stat
 
 ..from: heapykinds
 
 .import:: Kind+, ClodoKind+,
-loadableiterableofstrings+, loadablefilenamestring+, 
+loadableiterableofstrings+, loadablefilenamestring+,
 moduleaddress+, modulename+, objectaddress+,
 profilefilename+,
 relationname+,
 SetOfKind+,SetOfClodoKind+,
 UniSet+,
-typeorclass+, typeorclassexceptdict+, typeorclassoremptytuple+
+type+, typeexceptdict+, typeoremptytuple+
 
 ..from: heapykinds
 
@@ -34,24 +34,11 @@ typeorclass+, typeorclassexceptdict+, typeorclassoremptytuple+
 ...kind of: IdentitySet
 ...d: The empty set.
 
-..attr:: Class
-...d: Equivalence relation by class. It defines objects to
-to be equivalent when their builtin __class__ attributes are identical.
-...kind of: EquivalenceRelation
-...mapping
-....d: Create a Kind object that represent an equivalence class
-of Class.
-....returns: KindOfClassFamily
-....arg: tc: typeorclass+
-.....d: The Python type or class object that the Kind object will represent.
-
 ..attr:: Clodo
 ...d: Equivalence relation by class or dict owner.
 ...d: It defines objects to be be equivalent
 when their classifications, as defined below, are equal.
 ....ol:
-.....li:If the object is an instance of a class, the
-	classification will be the class.
 .....li:If the object is not a dictionary,
 	the classification will be the type of the object.
 .....li:The object is a dictionary. The referrers of the
@@ -60,8 +47,8 @@ when their classifications, as defined below, are equal.
 	__dict__ attribute of the owner. If no such
 	owner is found, the object will be the classified
 	as a dict with no owner. If the owner is found, it will
-	be classified in its turn, by class as defined in
-......ref: .mykind.Class
+	be classified in its turn, by type as defined in
+......ref: .mykind.Type
 ......t:. The object will be classified as a dict
 	owned by such a kind of object.
 
@@ -71,18 +58,18 @@ when their classifications, as defined below, are equal.
 ....d: Creates an equivalence class of Clodo.
 ....returns: Kind
 ....alt
-.....arg: tc: typeorclassexceptdict+
+.....arg: tc: typeexceptdict+
 ......d: If this argument is specified,
-it must be or represent a Python type or class object, except that
+it must be or represent a Python type object, except that
 it may not be the type dict, and the resulting Kind will be the
 same as that returned from
-.......ref: .mykind.Class
+.......ref: .mykind.Type
 .......t:(tc).
-.....key arg: dictof: typeorclassoremptytuple+
+.....key arg: dictof: typeoremptytuple+
 ......d: If this argument is specified, and is an empty tuple,
 the result will be a kind representing a dict that has no owner.
 Otherwise the owner kind will be created as by
-.......ref: .mykind.Class
+.......ref: .mykind.Type
 .......t:(dictof),
 and the result will be a kind representing a dict that is owned
 by that class.
@@ -392,7 +379,7 @@ in memory even though they are gc-collectable and not reachable.
 ...dwh: Note
 This method is the same as
 ....ref: .mykind.iso
-....t: except for the argument. 
+....t: except for the argument.
 
 ..method:: iso
 ...d
@@ -417,7 +404,7 @@ Partition of a set of 5 objects. Total size = 220 bytes.
      1      2  40       56  25       192  87 list
      2      1  20       16   7       208  95 float
      3      1  20       12   5       220 100 int
->>> 
+>>>
 ....c: end pre
 
 ...dwh: Note
@@ -501,7 +488,7 @@ from guppy.heapy.Remote import off; off()
 nicosys [175] solitaire.py &
 [1] 25928
 nicosys [176] python -c "from guppy import hpy;hpy().monitor()"
-<Monitor> 
+<Monitor>
 *** Connection 1 opened ***
 <Monitor> h
 
@@ -585,7 +572,7 @@ This method may become depreciated or reserved for internal use; the
 ....ref: .mykind.setref
 ....t: method is the preferred public interface.
 ...d: Set relative heap view.
-...d: With no argument, set a variable in self to the current set of 
+...d: With no argument, set a variable in self to the current set of
 objects in the heap. This set will be subtracted from
 the returned set in subsequent calls to
 ....ref: .mykind.heap
@@ -662,11 +649,11 @@ useful or redundant, and they may well be removed later on.
 
 ..method:: tc_adapt
 ...d:
- Adapt to a type or class.
- Accepts a type or class object, or a string representation
+ Adapt to a type.
+ Accepts a type object, or a string representation
  (at least as) by tc_repr.
-...arg: toc: typeorclass+
-...c: .returns: 
+...arg: toc: type+
+...c: .returns:
 
 ..method:: tc_repr
 
@@ -678,4 +665,3 @@ useful or redundant, and they may well be removed later on.
 
 ..attr:: View
 ..attr:: _hiding_tag_
-
