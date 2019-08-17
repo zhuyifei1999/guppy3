@@ -85,8 +85,8 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     FindexObject *s, tmp;
-    int numalts;
-    int i;
+    Py_ssize_t numalts;
+    Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "O!O!:cli_findex",
                           &PyTuple_Type, &tmp.alts,
                           &PyDict_Type, &tmp.memo)) {

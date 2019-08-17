@@ -296,7 +296,7 @@ xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 static int
 xt_he_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
-    long offs = xt->xt_he_offs;
+    Py_ssize_t offs = xt->xt_he_offs;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
     PyObject **phe = (PyObject **)((char *)obj + offs);
     if (*phe == hv->_hiding_tag_) {
@@ -555,7 +555,7 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
     PyTypeObject *type = obj->ob_type;
     ExtraType *xt = hv_extra_type(hv, type);
     if (xt->xt_trav_code == XT_HE) {
-        long offs = xt->xt_he_offs;
+        Py_ssize_t offs = xt->xt_he_offs;
         PyObject **phe = (PyObject **)((char *)obj + offs);
         if (*phe == hv->_hiding_tag_) {
             return 1;
@@ -1078,7 +1078,7 @@ err:
     return 0;
 }
 
-static long
+static Py_ssize_t
 hv_get_member_offset(PyTypeObject *type, char *member_name)
 {
     PyObject *mro = type->tp_mro;
@@ -1115,7 +1115,7 @@ hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     static char *kwlist[] = {"type", 0};
     PyTypeObject *type;
     ExtraType *xt;
-    long offs;
+    Py_ssize_t offs;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:register_hiding_type", kwlist,
                                  &PyType_Type, &type))
         return NULL;
