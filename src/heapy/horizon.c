@@ -101,7 +101,6 @@ horizon_patched_dealloc(PyObject *v)
 static int
 horizon_patch_dealloc(PyTypeObject *t)
 {
-
     PyObject *org;
     if (!rm.types) {
         rm.types = PyDict_New();
