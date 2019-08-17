@@ -842,7 +842,7 @@ ng_subscript(NyNodeGraphObject *ng, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi;
     PyObject *ret;
-    int i, size;
+    Py_ssize_t i, size;
     ng_maybesortetc(ng);
     if (NyNodeGraph_Region(ng, obj, &lo, &hi) == -1) {
         return 0;

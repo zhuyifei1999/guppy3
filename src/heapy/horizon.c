@@ -108,7 +108,7 @@ horizon_patch_dealloc(PyTypeObject *t)
         if (!rm.types)
             return -1;
     }
-    if (!(org = PyLong_FromSsize_t((long)t->tp_dealloc)))
+    if (!(org = PyLong_FromSsize_t((Py_ssize_t)t->tp_dealloc)))
         return -1;
     if (PyDict_SetItem(rm.types, (PyObject *)t, org) == -1) {
         Py_DECREF(org);

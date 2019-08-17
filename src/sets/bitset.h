@@ -15,14 +15,14 @@ typedef Py_uintptr_t NyBits;
 */
 
 
-#if ULONG_MAX==4294967295UL
+#if SIZE_MAX==4294967295UL
 #define NyBits_N 32
 #define ONE_LONG 1l
-#elif ULONG_MAX==18446744073709551615UL
+#elif SIZE_MAX==18446744073709551615ULL
 #define NyBits_N 64
 #define ONE_LONG 1ll
 #else
-#error "Unsupported size of unsigned long"
+#error "Unsupported size of size_t"
 #endif
 
 

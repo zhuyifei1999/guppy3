@@ -29,7 +29,7 @@ typedef struct ExtraType {
     NyHeapViewObject *xt_hv;
     PyObject *xt_weak_type;
     NyHeapDef *xt_hd;
-    long xt_he_offs;
+    Py_ssize_t xt_he_offs;
     int xt_trav_code;
 } ExtraType;
 

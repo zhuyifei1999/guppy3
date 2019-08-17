@@ -757,7 +757,7 @@ nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
         PyErr_SetString(PyExc_TypeError, "pop: argument must be mutable");
         return 0;
     } else {
-        long bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
+        NyBit bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
         if (bitno == -1 && PyErr_Occurred())
             return 0;
         return nodeset_bitno_to_obj(bitno);
@@ -839,7 +839,7 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
         NyNodeSetObject *w = 0;
         NyNodeSetObject *ret=0;
         PyObject *bs = 0, *bsv = 0, *bsw = 0;
-        long length;
+        NyBits length;
         NSOPARG nsa;
         if (!NyNodeSet_Check(v)) {
             PyErr_SetString(PyExc_TypeError, "left argument must be a NodeSet");

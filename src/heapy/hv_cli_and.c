@@ -24,7 +24,7 @@ PyDoc_STRVAR(nodetuple_doc,
 #define NyNodeTuple_Check(op) PyObject_TypeCheck(op, &NyNodeTuple_Type)
 
 static PyObject *
-NyNodeTuple_New(int size)
+NyNodeTuple_New(Py_ssize_t size)
 {
     PyTupleObject *op;
     op = PyObject_GC_NewVar(PyTupleObject, &NyNodeTuple_Type, size);
@@ -202,7 +202,7 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     PyTupleObject *vt, *wt;
     Py_ssize_t i;
     Py_ssize_t vlen, wlen;
-    long vi=0, wi=0;
+    Py_ssize_t vi=0, wi=0;
     int cmp;
     PyObject *res;
 
@@ -232,8 +232,8 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     /* Search for the first index where items are different.
      */
     for (i = 0; i < vlen && i < wlen; i++) {
-        vi = (long)vt->ob_item[i];
-        wi = (long)vt->ob_item[i];
+        vi = (Py_ssize_t)vt->ob_item[i];
+        wi = (Py_ssize_t)vt->ob_item[i];
         if (vi != wi)
             break;
     }
