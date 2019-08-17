@@ -34,7 +34,7 @@ void *
 mallochook(int size) {
     void *o = __malloc_hook;
     void *p;
-    int f;
+    Py_ssize_t f;
     __malloc_hook = 0;
     p = org_alloc(size);
     f = malloc_usable_size(p);
@@ -43,50 +43,50 @@ mallochook(int size) {
     numalloc += 1;
     numdiff += 1;
     if (f > 265000) {
-	breakit(p, 'm');
+        breakit(p, 'm');
     }
     return p;
 }
 
 void *
-reallochook(void *p, int size) {
+reallochook(void *p, size_t size) {
     void *q;
-    int f;
+    Py_ssize_t f;
     void *o = __realloc_hook;
     if (p)
-      f = malloc_usable_size(p);
+        f = malloc_usable_size(p);
     else
-      f = 0;
+        f = 0;
     __realloc_hook = 0;
     q = org_realloc(p, size);
     if (alset) {
-	NyNodeSetObject *a = alset;
-	alset = 0;
-	NyNodeSet_clrobj(a, p);
-	NyNodeSet_setobj(a, q);
-	alset = a;
+        NyNodeSetObject *a = alset;
+        alset = 0;
+        NyNodeSet_clrobj(a, p);
+        NyNodeSet_setobj(a, q);
+        alset = a;
     }
     if (q != p) {
-	totfree += f;
-	reallocfree += f;
-	f = malloc_usable_size(q);
-	totalloc += f;
-	reallocalloc += f;
+        totfree += f;
+        reallocfree += f;
+        f = malloc_usable_size(q);
+        totalloc += f;
+        reallocalloc += f;
     } else {
-	f = malloc_usable_size(q) - f;
-	if (f > 0) {
-	    totalloc += f;
-	    reallocalloc += f;
-	} else {
-	    totfree -= f;
-	    reallocfree -= f;
-	}
+        f = malloc_usable_size(q) - f;
+        if (f > 0) {
+            totalloc += f;
+            reallocalloc += f;
+        } else {
+            totfree -= f;
+            reallocfree -= f;
+        }
     }
     __realloc_hook = o;
     if (f > 265000) {
-	breakit(q, 'r');
+        breakit(q, 'r');
     }
-	
+
     return q;
 }
 
@@ -96,10 +96,10 @@ freehook(void *p) {
     __free_hook = 0;
     totfree += malloc_usable_size(p);
     if (alset) {
-	NyNodeSetObject *a = alset;
-	alset = 0;
-	NyNodeSet_clrobj(a, p);
-	alset = a;
+        NyNodeSetObject *a = alset;
+        alset = 0;
+        NyNodeSet_clrobj(a, p);
+        alset = a;
     }
     org_free(p);
     __free_hook = o;
@@ -153,9 +153,8 @@ hp_xmemstats(PyObject *self, PyObject *args)
 #endif
 #ifdef Py_TRACE_REFS
     {
-	PyObject *x; int i;
-	for (i = 0, x = this_module->_ob_next; x != this_module; x = x->_ob_next, i++)
-	  ;
+        PyObject *x; int i;
+        for (i = 0, x = this_module->_ob_next; x != this_module; x = x->_ob_next, i++);
     fprintf(stderr, "Total heap objects                 =         %12d\n", i);
     }
 #endif
@@ -163,9 +162,4 @@ hp_xmemstats(PyObject *self, PyObject *args)
 
     Py_INCREF(Py_None);
     return Py_None;
-
 }
-
-
-
-

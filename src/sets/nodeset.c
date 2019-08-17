@@ -228,7 +228,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     NyBit bitno;
     if (!bitobj)
         return 0;
-    bitno = PyLong_AsLong(bitobj);
+    bitno = PyLong_AsSsize_t(bitobj);
     if (bitno == -1 && PyErr_Occurred())
         return 0;
     ret = nodeset_bitno_to_obj(bitno);
@@ -236,7 +236,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
     } else {
-        ret = PyLong_FromLong((Py_intptr_t)ret);
+        ret = PyLong_FromSsize_t((Py_intptr_t)ret);
     }
     return ret;
 }
@@ -325,7 +325,7 @@ mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static NyBit
 nodeset_obj_to_bitno(PyObject *obj)
 {
-    return (unsigned long) obj / ALIGN;
+    return (NyBit) obj / ALIGN;
 }
 
 static PyObject *
@@ -340,7 +340,7 @@ nodeset_bitset(NyNodeSetObject *v) {
         Py_INCREF(v->u.bitset);
         return v->u.bitset;
     } else {
-        int i;
+        NyBit i;
         NyMutBitSetObject *bitset = NyMutBitSet_New();
         if (!bitset)
             return 0;
@@ -395,11 +395,11 @@ mutnodeset_dealloc(NyNodeSetObject *v)
     Py_TRASHCAN_SAFE_END(v)
 }
 
-int
+size_t
 nodeset_indisize(PyObject *v)
 {
     NyNodeSetObject *ns = (void *)v;
-    int r = generic_indisize(v);
+    NyBit r = generic_indisize(v);
     if (NyMutNodeSet_Check(v))
         r += anybitset_indisize(ns->u.bitset);
     return r;
@@ -474,7 +474,7 @@ mutnodeset_iterate_visit(NyBit bitno, nodeset_iterate_visit_arg *arg)
     if (arg->ns->flags & NS_HOLDOBJECTS)
         return arg->visit(obj, arg->arg);
     else {
-        PyObject *addr = PyLong_FromLong((Py_intptr_t)obj);
+        PyObject *addr = PyLong_FromSsize_t((Py_intptr_t)obj);
         if (addr) {
             int r = arg->visit(addr, arg->arg);
             Py_DECREF(addr);
@@ -584,11 +584,11 @@ int
 NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
 {
     if (NyImmNodeSet_Check(v)) {
-        int lo, hi;
+        NyBit lo, hi;
         lo = 0;
         hi = Py_SIZE(v);
         while (hi > lo) {
-            int i = (hi + lo) / 2;
+            NyBit i = (hi + lo) / 2;
             PyObject *node = v->u.nodes[i];
             if (node == obj)
                 return 1;
@@ -598,7 +598,6 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
                 hi = i;
         }
         return 0;
-
     } else {
         NyBit bitno = nodeset_obj_to_bitno(obj);
         return NyMutBitSet_hasbit((NyMutBitSetObject *)v->u.bitset, bitno);

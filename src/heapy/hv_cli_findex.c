@@ -38,7 +38,7 @@ Err:
 static PyObject *
 hv_cli_findex_classify(FindexObject * self, PyObject *obj)
 {
-    int i, numalts;
+    Py_ssize_t i, numalts;
     PyObject *kind, *ret, *index;
     numalts = PyTuple_GET_SIZE(self->alts);
     for (i = 0; i < numalts; i++) {
@@ -56,7 +56,7 @@ hv_cli_findex_classify(FindexObject * self, PyObject *obj)
         if (cmp)
             break;
     }
-    index = PyLong_FromLong(i);
+    index = PyLong_FromSsize_t(i);
     if (!index)
         return 0;
     ret = hv_cli_findex_memoized_kind(self, index);

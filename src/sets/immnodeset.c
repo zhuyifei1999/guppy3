@@ -19,10 +19,10 @@ PyDoc_STRVAR(immnodeset_doc,
 static PyObject *nodeset_ior(NyNodeSetObject *v, PyObject *w);
 
 typedef struct {
-        PyObject_HEAD
-        int i;
-        NyNodeSetObject *nodeset; /* Need to hold on to this 'cause it shouldn't decref
-                                     objects in set*/
+    PyObject_HEAD
+    int i;
+    NyNodeSetObject *nodeset; /* Need to hold on to this 'cause it shouldn't decref
+                                 objects in set*/
 } NyImmNodeSetIterObject;
 
 
@@ -47,7 +47,7 @@ static int
 immnsiter_traverse(NyImmNodeSetIterObject *it, visitproc visit, void *arg)
 {
     if (it->nodeset == NULL)
-            return 0;
+        return 0;
     return visit((PyObject *)it->nodeset, arg);
 }
 
@@ -206,7 +206,7 @@ immnodeset_gc_clear(NyNodeSetObject *v)
         Py_DECREF(x);
     }
     if (v->flags & NS_HOLDOBJECTS) {
-        int i;
+        NyBit i;
         for (i = 0; i < Py_SIZE(v); i++) {
             PyObject *x = v->u.nodes[i];
             if (x) {
@@ -233,7 +233,8 @@ immnodeset_dealloc(NyNodeSetObject *v)
 static int
 immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
-    int i, err;
+    NyBit i;
+    int err;
     err = 0;
     if (v->flags & NS_HOLDOBJECTS) {
         for (i = 0; i < Py_SIZE(v); i++) {
@@ -251,13 +252,13 @@ immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
     return err;
 }
 
-static long
+static Py_hash_t
 immnodeset_hash(NyNodeSetObject *v)
 {
-    int i;
-    long x = 0x983714;
+    NyBit i;
+    Py_hash_t x = 0x983714;
     for (i = 0; i < Py_SIZE(v); i++)
-        x ^= (long)v->u.nodes[i];
+        x ^= (Py_hash_t)v->u.nodes[i];
     if (x == -1)
         x = -2;
     return x;
@@ -363,9 +364,6 @@ immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
             zf = &dst->u.nodes[0];
         }
     }
-
-
-
 }
 
 PyDoc_STRVAR(immnodeset_obj_at_doc,

@@ -39,7 +39,7 @@ horizon_get_org_dealloc(PyTypeObject *t)
     if (!d) {
         Py_FatalError("horizon_get_org_dealloc: no original destructor found");
     }
-    return (destructor)PyLong_AsLong(d);
+    return (destructor)PyLong_AsSsize_t(d);
 }
 
 static void
@@ -55,7 +55,7 @@ horizon_remove(NyHorizonObject *v)
         Py_ssize_t i = 0;
         PyObject *pk, *pv;
         while (PyDict_Next(rm.types, &i, &pk, &pv)) {
-            ((PyTypeObject *)pk)->tp_dealloc = (destructor) PyLong_AsLong(pv);
+            ((PyTypeObject *)pk)->tp_dealloc = (destructor)PyLong_AsSsize_t(pv);
         }
         Py_DECREF(rm.types);
         rm.types = 0;
@@ -108,7 +108,7 @@ horizon_patch_dealloc(PyTypeObject *t)
         if (!rm.types)
             return -1;
     }
-    if (!(org = PyLong_FromLong((long)t->tp_dealloc)))
+    if (!(org = PyLong_FromSsize_t((long)t->tp_dealloc)))
         return -1;
     if (PyDict_SetItem(rm.types, (PyObject *)t, org) == -1) {
         Py_DECREF(org);

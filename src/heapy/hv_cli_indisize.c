@@ -25,7 +25,7 @@ hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
 static PyObject *
 hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
 {
-    PyObject *size = PyLong_FromLong(hv_std_size(self->hv, obj));
+    PyObject *size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
     PyObject *memoedsize;
     if (!size)
         return size;

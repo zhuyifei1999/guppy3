@@ -62,7 +62,7 @@ typedef struct NyHeapRelate {
 
 /* Definitions of its function types, useful for casting. */
 
-typedef int (*NyHeapDef_SizeGetter) (PyObject *obj);
+typedef size_t (*NyHeapDef_SizeGetter) (PyObject *obj);
 typedef int (*NyHeapDef_Traverser) (NyHeapTraverse *arg);
 typedef int (*NyHeapDef_RelationGetter) (NyHeapRelate *r);
 

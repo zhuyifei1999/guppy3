@@ -1,13 +1,5 @@
 #ifndef Ny_HEAPY_H
 
-/* Definiing Py_ssize_t for backwards compatibility, from PEP 353 */
-
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#endif
-
 struct ExtraType;
 
 typedef struct {
@@ -21,14 +13,14 @@ typedef struct {
     char is_using_traversing_owner_update;
     struct ExtraType **xt_table;
     int xt_mask;
-    int xt_size;
+    size_t xt_size;
 } NyHeapViewObject;
 
 #define NyHeapView_Check(op) PyObject_TypeCheck(op, &NyHeapView_Type)
 
 typedef struct ExtraType {
     PyTypeObject *xt_type;
-    int (*xt_size) (PyObject *obj);
+    size_t (*xt_size)(PyObject *obj);
     int (*xt_traverse)(struct ExtraType *, PyObject *, visitproc, void *);
     int (*xt_relate)(struct ExtraType *, NyHeapRelate *r);
     struct ExtraType *xt_next;
@@ -54,4 +46,3 @@ extern PyObject _Ny_RootStateStruct; /* Don't use this directly */
 #define Ny_RootState (&_Ny_RootStateStruct)
 
 #endif /* Ny_HEAPY_H */
-

@@ -40,12 +40,12 @@ dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
 {
     PyObject *pk, *pv;
     Py_ssize_t i = 0;
-    int ix = 0;
+    Py_ssize_t ix = 0;
     if (!dict)
         return 0;
     while (PyDict_Next(dict, &i, &pk, &pv)) {
         if (pk == r->tgt) {
-            if (r->visit(k, PyLong_FromLong(ix), r))
+            if (r->visit(k, PyLong_FromSsize_t(ix), r))
                 return 0;
         }
         if (pv == r->tgt) {
@@ -88,12 +88,12 @@ dictproxy_relate(NyHeapRelate *r)
 static int
 list_relate(NyHeapRelate *r)
 {
-    int len = PyList_Size(r->src);
-    int i;
+    Py_ssize_t len = PyList_Size(r->src);
+    Py_ssize_t i;
     for (i = 0; i < len; i++) {
         PyObject *o = PyList_GET_ITEM(r->src, i);
         if (o == r->tgt) {
-            PyObject *ix = PyLong_FromLong(i);
+            PyObject *ix = PyLong_FromSsize_t(i);
             int x;
             if (!ix)
                 return -1;
@@ -108,12 +108,12 @@ list_relate(NyHeapRelate *r)
 static int
 tuple_relate(NyHeapRelate *r)
 {
-    int len = PyTuple_Size(r->src);
-    int i;
+    Py_ssize_t len = PyTuple_Size(r->src);
+    Py_ssize_t i;
     for (i = 0; i < len; i++) {
         PyObject *o = PyTuple_GetItem(r->src, i);
         if (o == r->tgt) {
-            PyObject *ix = PyLong_FromLong(i);
+            PyObject *ix = PyLong_FromSsize_t(i);
             int x;
             if (!ix)
                 return -1;
@@ -151,10 +151,10 @@ module_relate(NyHeapRelate *r)
 }
 
 static int
-frame_locals(NyHeapRelate *r, PyObject *map, int start, int n, int deref)
+frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int deref)
 {
     PyFrameObject *v = (void *)r->src;
-    int i;
+    Py_ssize_t i;
     for (i = start; i < start + n; i++) {
         if ((!deref && v->f_localsplus[i] == r->tgt) ||
             (deref && PyCell_GET(v->f_localsplus[i]) == r->tgt)) {
@@ -177,9 +177,9 @@ frame_relate(NyHeapRelate *r)
 {
     PyFrameObject *v = (void *)r->src;
     PyCodeObject *co = v->f_code;
-    int ncells = PyTuple_GET_SIZE(co->co_cellvars);
-    int nlocals = co->co_nlocals;
-    int nfreevars = PyTuple_GET_SIZE(co->co_freevars);
+    Py_ssize_t ncells = PyTuple_GET_SIZE(co->co_cellvars);
+    Py_ssize_t nlocals = co->co_nlocals;
+    Py_ssize_t nfreevars = PyTuple_GET_SIZE(co->co_freevars);
     ATTR(f_back)
     ATTR(f_code)
     ATTR(f_builtins)
@@ -195,8 +195,8 @@ frame_relate(NyHeapRelate *r)
     /* locals */
     if (
         frame_locals(r, co->co_varnames, 0, nlocals, 0) ||
-        frame_locals(r, co->co_cellvars, nlocals,  ncells, 0) ||
-        frame_locals(r, co->co_cellvars, nlocals,  ncells, 1) ||
+        frame_locals(r, co->co_cellvars, nlocals, ncells, 0) ||
+        frame_locals(r, co->co_cellvars, nlocals, ncells, 1) ||
         frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 0) ||
         frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 1))
         return 1;
@@ -207,7 +207,7 @@ frame_relate(NyHeapRelate *r)
         PyObject **p;
         for (p = v->f_valuestack; p < v->f_stacktop; p++) {
             if (*p == r->tgt) {
-                if (r->visit(NYHR_STACK, PyLong_FromLong(p-v->f_valuestack), r))
+                if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
                     return 1;
             }
         }
@@ -337,17 +337,17 @@ type_relate(NyHeapRelate *r)
 
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
-        0,                       /* flags */
-        0,                       /* type */
+        0,                /* flags */
+        0,                /* type */
         _PySys_GetSizeOf, /* size */
-        dict_traverse,           /* traverse */
-        dict_relate              /* relate */
+        dict_traverse,    /* traverse */
+        dict_relate       /* relate */
     }, {
-        0,                       /* flags */
-        0,                       /* type */
+        0,                /* flags */
+        0,                /* type */
         _PySys_GetSizeOf, /* size */
-        0,                       /* traverse */
-        list_relate              /* relate */
+        0,                /* traverse */
+        list_relate       /* relate */
     }, {
         0,           /* flags */
         0,           /* type */
@@ -385,11 +385,11 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,          /* traverse */
         cell_relate /* relate */
     }, {
-        0,                       /* flags */
-        0,                       /* type */
+        0,                /* flags */
+        0,                /* type */
         _PySys_GetSizeOf, /* size */
-        0,                       /* traverse */
-        0                        /* relate */
+        0,                /* traverse */
+        0                 /* relate */
     }, {
         0,          /* flags */
         0,          /* type */
@@ -409,11 +409,11 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         type_traverse, /* traverse */
         type_relate    /* relate */
     }, {
-        0,                       /* flags */
-        0,                       /* type */
+        0,                /* flags */
+        0,                /* type */
         _PySys_GetSizeOf, /* size */
-        0,                       /* traverse */
-        0,                       /* relate */
+        0,                /* traverse */
+        0,                /* relate */
     }, {
         0,               /* flags */
         0,               /* type */ /* To be patched-in from a dictproxy ! */

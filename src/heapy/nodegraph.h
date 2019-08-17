@@ -9,8 +9,8 @@ typedef struct {
     PyObject_HEAD
     PyObject *_hiding_tag_;
     NyNodeGraphEdge *edges;
-    int used_size;
-    int allo_size;
+    Py_ssize_t used_size;
+    Py_ssize_t allo_size;
     char is_mapping;
     char is_sorted;
     char is_preserving_duplicates;

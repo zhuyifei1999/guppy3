@@ -5,15 +5,7 @@
 extern "C" {
 #endif
 
-/* Defining Py_ssize_t for backwards compatibility, from PEP 353 */
-
-#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
-typedef int Py_ssize_t;
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#endif
-
-typedef unsigned long NyBits;
+typedef Py_uintptr_t NyBits;
 
 
 /* Number of bits in a NyBits field
@@ -82,14 +74,14 @@ typedef struct {
     Py_ssize_t ob_length;	/* Result for len(), -1 if not yet calculated */
     NyBitField ob_field[1];	/* The bit fields, ob_size of these */
 } NyImmBitSetObject;
-			      
+
 typedef struct {
     PyObject_HEAD
     NyImmBitSetObject *ob_val;
 } NyCplBitSetObject;
-			      
+
 typedef struct {
-    long pos;
+    NyBit pos;
     NyBitField *lo, *hi;
     NyImmBitSetObject *set;
 } NySetField;
@@ -98,7 +90,7 @@ typedef struct {
 
 typedef struct {
     PyObject_VAR_HEAD
-    int cur_size;
+    NyBit cur_size;
     NySetField ob_field[NyUnion_MINSIZE];
 } NyUnionObject;
 
@@ -107,7 +99,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     int cpl;
-    int splitting_size;
+    NyBit splitting_size;
     NyBitField *cur_field;
     NyUnionObject *root;
     NyUnionObject fst_root;
@@ -138,13 +130,13 @@ typedef struct {
        On error, -1 is returned.
     */
     int (*mbs_setbit)(NyMutBitSetObject *v, NyBit bitno);
-    int (*mbs_clrbit)(NyMutBitSetObject *v, NyBit bitno); 
+    int (*mbs_clrbit)(NyMutBitSetObject *v, NyBit bitno);
     int (*mbs_set_or_clr)(NyMutBitSetObject *v, NyBit bitno, int set_or_clr);
     PyObject *(*mbs_as_immutable)(NyMutBitSetObject *v);
     int (*iterate)(PyObject *v,
-		   int (*visit)(NyBit, void *),
-		   void *arg
-		   );
+                   int (*visit)(NyBit, void *),
+                   void *arg
+                   );
 
     int (*mbs_hasbit)(NyMutBitSetObject *v, NyBit bitno);
     int (*ibs_hasbit)(NyImmBitSetObject *v, NyBit bitno);
@@ -159,4 +151,3 @@ typedef struct {
 #endif
 
 #endif /* Ny_BITSET_H */
-

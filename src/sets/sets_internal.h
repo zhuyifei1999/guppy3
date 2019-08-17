@@ -25,11 +25,11 @@ typedef int (*NyIterableVisitor)(PyObject *, void *);
 
 
 extern int NyAnyBitSet_iterate(PyObject *v,
-		   NySetVisitor visit,
-		   void *arg);
+                   NySetVisitor visit,
+                   void *arg);
 
 
-extern int NyAnyBitSet_length(PyObject *v);
+extern size_t NyAnyBitSet_length(PyObject *v);
 
 /* The predefined empty set */
 
@@ -52,13 +52,13 @@ extern int NyMutBitSet_clear(NyMutBitSetObject *v);
 extern long NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i);
 
 int cplbitset_traverse(NyHeapTraverse *ta);
-int mutbitset_indisize(NyMutBitSetObject *v);
-int anybitset_indisize(PyObject *obj);
-int generic_indisize(PyObject *v);
+size_t mutbitset_indisize(NyMutBitSetObject *v);
+size_t anybitset_indisize(PyObject *obj);
+size_t generic_indisize(PyObject *v);
 
 /* NodeSet */
 
-int nodeset_indisize(PyObject *v);
+size_t nodeset_indisize(PyObject *v);
 int nodeset_traverse(NyHeapTraverse *ta);
 int nodeset_relate(NyHeapRelate *r);
 
@@ -72,8 +72,7 @@ extern PyTypeObject NyImmNodeSet_Type;
 
 
 extern int fsb_dx_addmethods
-	(PyObject *m, PyMethodDef *methods, PyObject *passthrough);
+        (PyObject *m, PyMethodDef *methods, PyObject *passthrough);
 
 
 #endif /* SETS_INTERNAL_H */
-

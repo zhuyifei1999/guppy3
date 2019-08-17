@@ -57,7 +57,7 @@ Err:
 static PyObject *
 hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
 {
-    int i, size;
+    Py_ssize_t i, size;
     PyObject *nt, *result;
     if (!PyTuple_Check(kind)) {
         PyErr_SetString(PyExc_TypeError,
@@ -98,7 +98,7 @@ hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
 static PyObject *
 hv_cli_and_classify(CliAndObject * self, PyObject *obj)
 {
-    int i, n;
+    Py_ssize_t i, n;
     PyObject *classifiers = self->classifiers;
     PyObject *kind, *result;
     n = PyTuple_GET_SIZE(classifiers);
@@ -137,7 +137,7 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     CliAndObject *s, tmp;
-    int i;
+    Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "O!O!:cli_and",
                           &PyTuple_Type, &tmp.classifiers,
                           &PyDict_Type, &tmp.memo
@@ -168,16 +168,16 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
     return r;
 }
 
-static long
+static Py_hash_t
 nodetuple_hash(PyTupleObject *v)
 {
-    long x;
-    int len = Py_SIZE(v);
+    Py_hash_t x;
+    Py_ssize_t len = Py_SIZE(v);
     PyObject **p;
     x = 0x436587L;
     p = v->ob_item;
     while (--len >= 0) {
-            x = (1000003*x) ^ (long)p[0];
+            x = (1000003*x) ^ (Py_hash_t)p[0];
             p++;
     }
     x ^= Py_SIZE(v);
@@ -200,8 +200,8 @@ static PyObject *
 nodetuple_richcompare(PyObject *v, PyObject *w, int op)
 {
     PyTupleObject *vt, *wt;
-    int i;
-    int vlen, wlen;
+    Py_ssize_t i;
+    Py_ssize_t vlen, wlen;
     long vi=0, wi=0;
     int cmp;
     PyObject *res;

@@ -90,10 +90,10 @@ rel_clear(NyRelationObject *op)
     return 0;
 }
 
-static long
+static Py_hash_t
 rel_hash(NyRelationObject *op)
 {
-    long x = PyObject_Hash(op->relator);
+    Py_hash_t x = PyObject_Hash(op->relator);
     if (x == -1)
         return -1;
     x ^= op->kind;

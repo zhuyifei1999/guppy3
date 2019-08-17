@@ -67,7 +67,7 @@ PyObject * NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
 int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
                        void *arg);
 
-static int roundupsize(int n);
+static Py_ssize_t roundupsize(Py_ssize_t n);
 
 /* Global constants */
 
@@ -94,7 +94,8 @@ iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
     } else if (NyHeapView_Check(v)) {
         return NyHeapView_iterate((NyHeapViewObject *)v, visit, arg);
     } else if (PyList_Check(v)) { /* A bit faster than general iterator?? */
-        int i, r;
+        Py_ssize_t i;
+        int r;
         PyObject *item;
         for (i = 0; i < PyList_GET_SIZE(v); i++) {
             item = PyList_GET_ITEM(v, i);
