@@ -1180,6 +1180,9 @@ mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
         assert(sf >= lo);
     }
     {
+        NyBitField *lo, *hi;
+        lo = sf_getrange_mut(sf, &hi);
+        (void)lo;
         f = bitfield_binsearch(sf->lo, sf->hi, pos);
         if (ins) {
             if (!(f < sf->hi && f->pos == pos))
