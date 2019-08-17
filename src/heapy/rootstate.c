@@ -410,19 +410,24 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                 }
             }
         }
-
     }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute '%.200s'", s);
     Py_DECREF(name);
     return 0;
 }
 
-
 /* Dummy traverse function to make hv_std_traverse optimization not bypass this */
 static int
 rootstate_gc_traverse(PyObject *self, visitproc visit, void *arg)
 {
     return 0;
+}
+
+static PyObject *
+rootstate_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
+{
+    Py_INCREF(Ny_RootState);
+    return (PyObject *)Ny_RootState;
 }
 
 static PyObject *
@@ -510,6 +515,7 @@ PyTypeObject NyRootState_Type = {
     .tp_traverse  = (traverseproc)rootstate_gc_traverse, /* DUMMY */
     .tp_methods   = rootstate_methods,
     .tp_alloc     = PyType_GenericAlloc,
+    .tp_new       = rootstate_new,
     .tp_free      = PyObject_Del,
 };
 

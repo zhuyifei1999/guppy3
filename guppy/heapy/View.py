@@ -321,7 +321,6 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
         return r
 
     def heapu(self, rma=1):
-
         self.gc.collect()
         self.gc.collect()
         r = self.gc.get_objects()
@@ -347,7 +346,7 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
 
         del ref, exclude
 
-        r = r.byclass  # Avoid memoizing for complicated classification
+        r = r.bytype  # Avoid memoizing for complicated classification
         return r
 
     def heap(self):
