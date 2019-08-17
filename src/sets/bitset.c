@@ -3932,7 +3932,7 @@ generic_indisize(PyObject *v)
 {
     NyBit size = Py_TYPE(v)->tp_basicsize;
     if (Py_TYPE(v)->tp_itemsize)
-        size += ((PyVarObject *)v)->ob_size * Py_TYPE(v)->tp_itemsize;
+        size += Py_SIZE(v) * Py_TYPE(v)->tp_itemsize;
     return size;
 }
 
