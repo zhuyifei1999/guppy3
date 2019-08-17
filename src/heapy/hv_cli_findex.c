@@ -99,7 +99,7 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "Tuple of TUPLES expected.");
             return 0;
         }
-        if (!PyTuple_GET_SIZE(ckc) == 3) {
+        if (PyTuple_GET_SIZE(ckc) != 3) {
             PyErr_SetString(PyExc_TypeError, "Tuple of TRIPLES expected.");
             return 0;
         }

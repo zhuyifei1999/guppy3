@@ -135,7 +135,7 @@ hp_interpreter(PyObject *self, PyObject *args)
     Py_INCREF(cmd);
     Py_XINCREF(locals);
 
-    PyEval_InitThreads(); /* Start the interpreter's thread-awareness *//*
+    PyEval_InitThreads(); // Start the interpreter's thread-awareness
     ident = PyThread_start_new_thread(t_bootstrap, (void*) boot);
     if (ident == -1) {
         PyErr_SetString(PyExc_ValueError, "can't start new thread\n");
@@ -153,7 +153,7 @@ hp_interpreter(PyObject *self, PyObject *args)
     Py_XDECREF(tmp);                 \
 }
 
-/* As PyThreadState_SetAsyncExc in pystate.c,
+*//* As PyThreadState_SetAsyncExc in pystate.c,
    but searches all interpreters.
    Thus it finds any task, and it should not be of
    any disadvantage, what I can think of..
