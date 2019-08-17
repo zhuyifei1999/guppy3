@@ -2448,7 +2448,7 @@ mutbitset_slice(NyMutBitSetObject *a, NyBit ilow, NyBit ihigh)
 {
 
     NySetField *ss, *se;
-    if (ilow == 0 && ihigh == LONG_MAX) {
+    if (ilow == 0 && ihigh == SIZE_MAX) {
         return NyMutBitSet_AsImmBitSet(a);
     }
     if (a->cpl) {
@@ -2881,7 +2881,7 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
             }
         }
         return bs;
-    } else if (ilow < 0 && ihigh == LONG_MAX) {
+    } else if (ilow < 0 && ihigh == SIZE_MAX) {
         nbitswanted = - ilow;
         for (s = se; --s >= ss;) {
             for (fs = sf_getrange(s, &f); --f >= fs; ) {
@@ -2933,7 +2933,7 @@ immbitset_slice(NyImmBitSetObject *a, NyBit ilow, NyBit ihigh)
 {
 
     NySetField s;
-    if (ilow == 0 && ihigh == LONG_MAX) {
+    if (ilow == 0 && ihigh == SIZE_MAX) {
         Py_INCREF(a);
         return a;
     }
