@@ -11,14 +11,14 @@ from guppy.heapy.RemoteConstants import *
 from guppy.heapy.Console import Console
 from guppy.sets import mutbitset
 
-import os
+import atexit
+import queue
 import socket
 import sys
 import time
 import _thread
 import threading
 import traceback
-import queue
 
 
 class SocketClosed(Exception):
@@ -76,8 +76,8 @@ class Annex(cmd.Cmd):
             port = HEAPYPORT
         self.server_address = (LOCALHOST, port)
         self.target = target
-        # target.close = target.sys.modules['guppy.heapy.Remote'].IsolatedCaller(
-        target.close = IsolatedCaller(
+        target.close = target.sys.modules['guppy.heapy.Remote'].IsolatedCaller(
+        # target.close = IsolatedCaller(
             self.asynch_close)
         self.socket = None
         self.isclosed = 0
@@ -156,7 +156,6 @@ class Annex(cmd.Cmd):
 
         def run():
             try:
-                _hiding_tag_ = self.intlocals['hp']._hiding_tag_
                 while socket is self.socket:
                     line = ostdin.input.readline()
                     if not line:
@@ -174,6 +173,7 @@ class Annex(cmd.Cmd):
 
         th = threading.Thread(target=run,
                               args=())
+        th._hiding_tag_ = self.intlocals['hp']._hiding_tag_
 
         th.start()
 
