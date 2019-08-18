@@ -12,7 +12,9 @@ from guppy.heapy.Console import Console
 from guppy.sets import mutbitset
 
 import atexit
+import io
 import queue
+import select
 import socket
 import sys
 import time
@@ -48,6 +50,26 @@ class QueueWithReadline(queue.Queue):
                 return self.get(timeout=0.5)
             except queue.Empty:
                 continue
+
+
+class InterruptableSocket:
+    def __init__(self, backing):
+        self._backing = backing
+        self.fileno = self._backing.fileno
+        self.close = self._backing.close
+        self.readable = self._backing.readable
+        self.writable = self._backing.writable
+        self.seekable = self._backing.seekable
+
+    @property
+    def closed(self):
+        return self._backing.closed
+
+    def read(self, size=-1):
+        while not select.select([self], [], [], 0.5)[0]:
+            pass
+
+        return self._backing.read(size)
 
 
 class NotiInput:
@@ -101,9 +123,11 @@ class Annex(cmd.Cmd):
             if not self.isclosed:
                 self.isclosed = 1
                 self.disconnect()
-
         finally:
             self.closelock.release()
+
+        while hasattr(self, 'th') and self.th.is_alive():
+            time.sleep(0.5)
 
     def connect(self):
         self.socket = socket.socket(self.address_family,
@@ -125,20 +149,15 @@ class Annex(cmd.Cmd):
 
         # print 'CONNECTED'
 
-        import io
         self.stdout = io.TextIOWrapper(
             self.socket.makefile('wb', buffering=0),
             encoding='utf-8', write_through=True)
         self.stdin = NotiInput(io.TextIOWrapper(
-            self.socket.makefile('rb', buffering=0),
+            InterruptableSocket(self.socket.makefile('rb', buffering=0)),
             encoding='utf-8', write_through=True), self.stdout)
         self.stderr = sys.stderr
 
-        if sys.version_info < (2, 4):
-            self.interruptible = 0
-        else:
-            self.start_ki_thread()
-            self.interruptible = 1
+        self.start_ki_thread()
 
         cmd.Cmd.__init__(self, stdin=self.stdin, stdout=self.stdout)
 
@@ -171,23 +190,27 @@ class Annex(cmd.Cmd):
                     heapyc.set_async_exc(self.target.annex_thread,
                                          SocketClosed)
 
-        th = threading.Thread(target=run,
-                              args=())
-        th._hiding_tag_ = self.intlocals['hp']._hiding_tag_
+        self.th = threading.Thread(target=run,
+                                   args=())
+        self.th._hiding_tag_ = self.intlocals['hp']._hiding_tag_
 
-        th.start()
+        self.th.start()
 
     def disconnect(self):
-        socket = self.socket
-        if socket is None:
+        sock = self.socket
+        if sock is None:
             return
         self.socket = None
         try:
-            socket.send(DONE)
+            sock.send(DONE)
         except Exception:
             pass
         try:
-            socket.close()
+            sock.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
+        try:
+            sock.close()
         except Exception:
             pass
         sys.last_traceback = None
@@ -232,8 +255,6 @@ With a command name as argument, print help about that command.""", file=self.st
         ostderr = sys.stderr
 
         try:
-            import io
-
             sys.stdin = self.stdin
             sys.stdout = self.stdout
             sys.stderr = self.stdout
@@ -371,8 +392,6 @@ interpreter heap under investigation rather than the current one.)
         print("target.pid              = %d" %
               self.target.pid, file=self.stdout)
         print("------------------------------------", file=self.stdout)
-        if not self.interruptible:
-            print("noninterruptible interactive console", file=self.stdout)
 
     def help_stat(self):
         print("""stat
@@ -456,8 +475,7 @@ def off():
         except AttributeError:
             # It may not have been initiated yet.
             # wait and repeat
-            print('Can not turn it off yet, waiting..')
-            time.sleep(1)
+            time.sleep(0.05)
         else:
             close()
             break
@@ -465,8 +483,17 @@ def off():
         raise
 
     heapyc.set_async_exc(annex_thread, SystemExit)
+
+    while True:
+        if not hasattr(heapyc.RootState, 't%d_async_exc' % annex_thread):
+            break
+        else:
+            time.sleep(0.05)
+
     annex_thread = target = None
 
 
 annex_thread = None
 target = None
+
+atexit.register(off)
