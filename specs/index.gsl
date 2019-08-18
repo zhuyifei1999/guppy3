@@ -6,7 +6,7 @@
 
 .document: index
 ..output: html
-..document_title: Guppy-PE: A Python Programming Environment
+..document_title: Guppy 3: A Python Programming Environment & Heap analysis toolset
 ..use: header
 
 ..div
