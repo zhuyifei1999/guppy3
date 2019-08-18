@@ -1,3 +1,10 @@
+    Version 3.0.2
+
+2019-08-18  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Multiple interpreter support returned.
+    * Bug fixes to Remote Monitor.
+
     Version 3.0.1
 
 2019-08-17  YiFei Zhu  <zhuyifei1999@gmail.com>
