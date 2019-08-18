@@ -124,8 +124,14 @@ class Annex(cmd.Cmd):
             return
 
         # print 'CONNECTED'
-        self.stdout = self.socket.makefile('w', bufsize=0)
-        self.stdin = NotiInput(self.socket.makefile('r'), self.stdout)
+
+        import io
+        self.stdout = io.TextIOWrapper(
+            self.socket.makefile('wb', buffering=0),
+            encoding='utf-8', write_through=True)
+        self.stdin = NotiInput(io.TextIOWrapper(
+            self.socket.makefile('rb', buffering=0),
+            encoding='utf-8', write_through=True), self.stdout)
         self.stderr = sys.stderr
 
         if sys.version_info < (2, 4):
@@ -185,7 +191,6 @@ class Annex(cmd.Cmd):
         except Exception:
             pass
         sys.last_traceback = None
-        sys.exc_clear()
 
     def do_close(self, arg):
         self.asynch_close()
@@ -227,6 +232,8 @@ With a command name as argument, print help about that command.""", file=self.st
         ostderr = sys.stderr
 
         try:
+            import io
+
             sys.stdin = self.stdin
             sys.stdout = self.stdout
             sys.stderr = self.stdout
