@@ -36,19 +36,41 @@ static char hp_set_async_exc_doc[] =
 struct bootstate {
     PyObject *cmd;
     PyObject *locals;
-    PyThreadState *tstate;
+    // used by child to signal parent that thread has started
+    PyThread_type_lock evt_ready;
 };
 
 static void
 t_bootstrap(void *boot_raw)
 {
     struct bootstate *boot = (struct bootstate *)boot_raw;
-    PyThreadState *tstate = boot->tstate;
+    PyThreadState *tstate;
     PyObject *v;
     int res = 0;
     const char *str;
 
+    // borrow GIL from parent
+    PyThreadState *save_tstate = PyThreadState_Swap(NULL);
+    tstate = Py_NewInterpreter();
+    PyThreadState_Swap(save_tstate);
+
+    if (!tstate) {
+        Py_DECREF(boot->cmd);
+        Py_XDECREF(boot->locals);
+
+        // PyMem_DEL must be called with GIL held. Once we release evt_ready,
+        // GIL state is undefind.
+        PyThread_type_lock evt_ready = boot->evt_ready;
+        PyMem_DEL(boot_raw);
+        PyThread_release_lock(evt_ready);
+
+        PyThread_exit_thread();
+    }
+
+    // return GIL to parent, wait for it to unlock
+    PyThread_release_lock(boot->evt_ready);
     PyEval_RestoreThread(tstate);
+
     if ((str = PyUnicode_AsUTF8(boot->cmd))) {
         PyObject *mainmod = PyImport_ImportModule("__main__");
         PyObject *maindict = PyModule_GetDict(mainmod);
@@ -77,7 +99,7 @@ t_bootstrap(void *boot_raw)
         if (PyErr_ExceptionMatches(PyExc_SystemExit))
             PyErr_Clear();
         else {
-            PySys_FormatStderr("Unhandled exception in thread started by %R\n", boot->cmd);
+            PySys_FormatStderr("Unhandled exception in interpreter started by %R\n", boot->cmd);
             PyErr_PrintEx(0);
         }
 	}
@@ -118,6 +140,7 @@ hp_interpreter(PyObject *self, PyObject *args)
 {
     PyObject *cmd = NULL;
     PyObject *locals = NULL;
+    PyThread_type_lock evt_ready;
 
     struct bootstate *boot;
     long ident;
@@ -136,26 +159,27 @@ hp_interpreter(PyObject *self, PyObject *args)
     Py_INCREF(cmd);
     Py_XINCREF(locals);
 
-
     PyEval_InitThreads(); // Start the interpreter's thread-awareness
 
-    PyThreadState *save_tstate = PyThreadState_Swap(NULL);
-    boot->tstate = Py_NewInterpreter();
-    PyThreadState_Swap(save_tstate);
-
-    if (boot->tstate == NULL) {
-        PyErr_SetString(PyExc_RuntimeError, "interpreter creation failed");
+    evt_ready = PyThread_allocate_lock();
+    if (evt_ready == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "lock creation failed");
         goto Err;
     }
+    boot->evt_ready = evt_ready;
 
     ident = PyThread_start_new_thread(t_bootstrap, (void *)boot);
     if (ident == -1) {
-        PyThreadState_Swap(boot->tstate);
-        Py_EndInterpreter(boot->tstate);
-        PyThreadState_Swap(save_tstate);
+        PyThread_free_lock(boot->evt_ready);
         PyErr_SetString(PyExc_RuntimeError, "can't start new thread");
         goto Err;
     }
+
+    PyThread_acquire_lock(evt_ready, 1);
+
+    // wait for child to release it
+    PyThread_acquire_lock(evt_ready, 1);
+    PyThread_free_lock(evt_ready);
 
     return PyLong_FromLong(ident);
 
