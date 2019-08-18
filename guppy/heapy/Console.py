@@ -30,3 +30,4 @@ class Console(code.InteractiveConsole):
 
     def write(self, data):
         self.stdout.write(data)
+        self.stdout.flush()
