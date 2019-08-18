@@ -13,10 +13,10 @@
 ...dl
 ....dt
 .....h1:
-......big: Guppy-PE
+......big: Guppy 3
 
 ....dd
-.....h1: A Python Programming Environment
+.....h1: A Python Programming Environment & Heap analysis toolset
 ...hr
 
 ...table
