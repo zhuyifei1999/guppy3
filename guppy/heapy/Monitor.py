@@ -61,7 +61,7 @@ class Handler(socketserver.StreamRequestHandler):
     def send_cmd(self, cmd):
         if not cmd.endswith('\n'):
             cmd += '\n'
-        self.request.send(cmd)
+        self.request.send(cmd.encode('utf-8'))
 
     def browser_cmd(self, cmd):
         if self.prompt == '>>> ':
@@ -126,7 +126,7 @@ class Handler(socketserver.StreamRequestHandler):
 
         while 1:
             try:
-                data = self.rfile.readline()
+                data = self.rfile.readline().decode('utf-8')
                 if not data:
                     raise EOFError('End of file')
                 if data.endswith(DONE):

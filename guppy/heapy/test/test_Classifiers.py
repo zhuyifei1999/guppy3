@@ -58,32 +58,9 @@ class TestCase(support.TestCase):
         self.assertTrue(not a.disjoint(b))
 
 
-class NewCases(TestCase):
-    # New cases that came up after all the original tests had passed,
-    # according to notes at Tue Nov 23 06:40:59 MET 2004.
-    # To keep original tests intact, for consistency, speed reasons.
-
-    def test_owners(self):
-        # FIXME: Determine if tis works for "new-style classes"
-        return
-        # Test the .owners attribute
-        iso = self.iso
-
-        class C:
-            pass
-
-        class D:
-            pass
-        c = C()
-        d = D()
-        self.aseq(iso(c.__dict__, d.__dict__, C.__dict__).owners,
-                  iso(c, d, C))
-
-
 class SpecialCases(TestCase):
     # Special tests that catch cases that came up during development & debugging
     def test_1(self):
-
         un = self.un
         ty = self.ty
         do = self.do
@@ -990,7 +967,6 @@ class ClassificationCase(TestCase):
 
 
 def test_main(testrender=1, debug=0):
-
     if 0 or not debug:
         support.run_unittest(BaseCase, debug)
 
@@ -999,9 +975,6 @@ def test_main(testrender=1, debug=0):
 
     if 0 or not debug:
         support.run_unittest(LawsCase, debug)
-
-    if 0 or not debug:
-        support.run_unittest(NewCases, debug)
 
     if 0 or (testrender and not debug):
         support.run_unittest(RenderCase, debug)

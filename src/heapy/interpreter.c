@@ -1,6 +1,5 @@
 /* Support for multiple Python interpreters */
 
-/*
 static char hp_interpreter_doc[] =
 
 "interpreter(command:string [,locals:dict] ) -> int\n"
@@ -37,50 +36,48 @@ static char hp_set_async_exc_doc[] =
 struct bootstate {
     PyObject *cmd;
     PyObject *locals;
+    PyThreadState *tstate;
 };
 
 static void
 t_bootstrap(void *boot_raw)
 {
-    struct bootstate *boot = (struct bootstate *) boot_raw;
-    PyThreadState *tstate;
+    struct bootstate *boot = (struct bootstate *)boot_raw;
+    PyThreadState *tstate = boot->tstate;
     PyObject *v;
-    int res;
-    char *str;
+    int res = 0;
+    const char *str;
 
-    PyEval_AcquireLock();
-    tstate = Py_NewInterpreter();
-    if (!tstate) {
-        PyThread_exit_thread();
-        return;
-    }
-    if (PyString_AsStringAndSize(boot->cmd, &str, NULL))
-        res = -1;
-    else {
+    PyEval_RestoreThread(tstate);
+    if ((str = PyUnicode_AsUTF8(boot->cmd))) {
         PyObject *mainmod = PyImport_ImportModule("__main__");
         PyObject *maindict = PyModule_GetDict(mainmod);
-        v = PyRun_String(str, Py_file_input, maindict, boot->locals);
-        if (!v)
-            res = -1;
-        else {
-            Py_DECREF(v);
-            res = 0;
+
+        // Not using locals or otherwise functions defined inside would not be
+        // able to access any newly defined global, just like how methods
+        // defined in a class cannot access attributes of the class directly
+        // without self.
+        if (boot->locals) {
+            res = PyDict_Update(maindict, boot->locals);
         }
-        Py_DECREF(mainmod);
-    }
-    if (res == -1) {
+
+        if (!res) {
+            v = PyRun_String(str, Py_file_input, maindict, NULL);
+            if (!v)
+                res = -1;
+            else {
+                Py_DECREF(v);
+                res = 0;
+            }
+            Py_DECREF(mainmod);
+        }
+    } else
+        res = -1;
+    if (res == -1 && PyErr_Occurred()) {
         if (PyErr_ExceptionMatches(PyExc_SystemExit))
             PyErr_Clear();
         else {
-            PyObject *file;
-            PySys_WriteStderr(
-                    "Unhandled exception in thread started by ");
-            file = PySys_GetObject("stderr");
-            if (file)
-                    PyFile_WriteObject(boot->cmd, file, 0);
-            else
-                    PyObject_Print(boot->cmd, stderr, 0);
-            PySys_WriteStderr("\n");
+            PySys_FormatStderr("Unhandled exception in thread started by %R\n", boot->cmd);
             PyErr_PrintEx(0);
         }
 	}
@@ -107,7 +104,11 @@ t_bootstrap(void *boot_raw)
         Py_DECREF(time);
         Py_DECREF(sleep);
     }
+
     Py_EndInterpreter(tstate);
+    // Not deprecated in code because t_bootstrap in _thread module still uses
+    // it. If they have a solution for this issue of trying to release GIL while
+    // current thread state is NULL we can use their solution.
     PyEval_ReleaseLock();
     PyThread_exit_thread();
 }
@@ -121,61 +122,74 @@ hp_interpreter(PyObject *self, PyObject *args)
     struct bootstate *boot;
     long ident;
 
-    if (!PyArg_ParseTuple(args, "O|O!:interpreter",
-                    &cmd,
+    if (!PyArg_ParseTuple(args, "O!|O!:interpreter",
+                    &PyUnicode_Type, &cmd,
                     &PyDict_Type, &locals))
             return NULL;
 
-
     boot = PyMem_NEW(struct bootstate, 1);
     if (boot == NULL)
-            return PyErr_NoMemory();
+        return PyErr_NoMemory();
+
     boot->cmd = cmd;
     boot->locals = locals;
     Py_INCREF(cmd);
     Py_XINCREF(locals);
 
+
     PyEval_InitThreads(); // Start the interpreter's thread-awareness
-    ident = PyThread_start_new_thread(t_bootstrap, (void*) boot);
-    if (ident == -1) {
-        PyErr_SetString(PyExc_ValueError, "can't start new thread\n");
-        Py_DECREF(cmd);
-        Py_XDECREF(locals);
-        PyMem_DEL(boot);
-        return NULL;
+
+    PyThreadState *save_tstate = PyThreadState_Swap(NULL);
+    boot->tstate = Py_NewInterpreter();
+    PyThreadState_Swap(save_tstate);
+
+    if (boot->tstate == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "interpreter creation failed");
+        goto Err;
     }
-    return PyLongFromLong(ident);
+
+    ident = PyThread_start_new_thread(t_bootstrap, (void *)boot);
+    if (ident == -1) {
+        PyThreadState_Swap(boot->tstate);
+        Py_EndInterpreter(boot->tstate);
+        PyThreadState_Swap(save_tstate);
+        PyErr_SetString(PyExc_RuntimeError, "can't start new thread");
+        goto Err;
+    }
+
+    return PyLong_FromLong(ident);
+
+Err:
+    Py_DECREF(cmd);
+    Py_XDECREF(locals);
+    PyMem_DEL(boot);
+    return NULL;
 }
 
-#define ZAP(x) {                     \
-    PyObject *tmp = (PyObject *)(x); \
-    (x) = NULL;                      \
-    Py_XDECREF(tmp);                 \
-}
-
-*//* As PyThreadState_SetAsyncExc in pystate.c,
+/* As PyThreadState_SetAsyncExc in pystate.c,
    but searches all interpreters.
    Thus it finds any task, and it should not be of
    any disadvantage, what I can think of..
-*//*
+*/
 
 
 Py_ssize_t
 NyThreadState_SetAsyncExc(long id, PyObject *exc) {
     PyInterpreterState *interp;
     int count = 0;
+
+    // We should lock the interp list, but PyThreadState_SetAsyncExc
+    // relies on that it is not locked,,,
     for (interp = PyInterpreterState_Head(); interp;
          interp = PyInterpreterState_Next(interp)) {
-        PyThreadState *p;
-        for (p = interp->tstate_head; p != NULL; p = p->next) {
-            if (THREAD_ID(p) != id)
-                continue;
-            ZAP(p->async_exc);
-            Py_XINCREF(exc);
-            p->async_exc = exc;
-            count += 1;
-        }
+        if (!interp->tstate_head)
+            continue;
+
+        PyThreadState *save_tstate = PyThreadState_Swap(interp->tstate_head);
+        count += PyThreadState_SetAsyncExc(id, exc);
+        PyThreadState_Swap(save_tstate);
     }
+
     return count;
 }
 
@@ -197,4 +211,3 @@ hp_set_async_exc(PyObject *self, PyObject *args)
     }
     return PyLong_FromSsize_t(r);
 }
-*/

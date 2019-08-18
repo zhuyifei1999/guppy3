@@ -166,8 +166,8 @@ err:
 
 static PyMethodDef module_methods[] =
 {
-    // {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
-    // {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
+    {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
+    {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
     {"xmemstats", (PyCFunction)hp_xmemstats, METH_NOARGS, hp_xmemstats_doc},
     {0}
 };

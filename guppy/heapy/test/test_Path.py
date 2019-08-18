@@ -418,7 +418,7 @@ class RootTestCase(TestCase):
         while not self.sync:
             pass
 
-    def _test_secondary_interpreter(self):
+    def test_secondary_interpreter(self):
         try:
             import _thread
         except ImportError:
@@ -427,18 +427,19 @@ class RootTestCase(TestCase):
 
         import_remote = """\
 import sys
-import thread
+import _thread
 import time
+
 def task():
-    time.sleep(0.5)
-thread.start_new_thread(task, ())
+    time.sleep(1)
 
-self.sysdict = sys.__dict__
-self.sync = 1
-while self.sync:
-    pass
-# print 'done'
+    self.sysdict = sys.__dict__
+    self.sync = 1
 
+    while self.sync:
+        pass
+
+_thread.start_new_thread(task, ())
 """
 
         self.sync = 0
