@@ -7,8 +7,6 @@ CONTENTS
 This distribution provides a root package, guppy, with the following
 subpackages:
 
-doc       Documentation data files: *.html, *.jpg, and help support.
-
 etc       Support modules. Contains especially the Glue protocol module.
 
 gsl       The Guppy Specification Language implementation. This can
@@ -22,6 +20,7 @@ sets      Bitsets and 'nodesets' implemented in C.
 
 The following files are not in packages but on the toplevel:
 
+docs                  Documentation data files
 gsl-mode-0.1.el       Emacs mode for GSL
 specs/*.gsl           Specifications
 specs/genguppydoc.py  Regenerates the doc/*.html files from specs/*.gsl
