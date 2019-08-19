@@ -126,11 +126,29 @@ rootstate_dealloc(void *arg)
 
 static struct PyMemberDef is_members[] = {
     MEMBER(modules),
+    MEMBER(modules_by_index),
     MEMBER(sysdict),
     MEMBER(builtins),
+    MEMBER(importlib),
+
     MEMBER(codec_search_path),
     MEMBER(codec_search_cache),
     MEMBER(codec_error_registry),
+
+    MEMBER(builtins_copy),
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+    MEMBER(import_func),
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#ifdef HAVE_FORK
+    MEMBER(before_forkers),
+    MEMBER(after_forkers_parent),
+    MEMBER(after_forkers_child),
+#endif
+
+    MEMBER(pyexitmodule),
+#endif
     {0} /* Sentinel */
 };
 
@@ -143,9 +161,11 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(frame),
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
+
     MEMBER(curexc_type),
     MEMBER(curexc_value),
     MEMBER(curexc_traceback),
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
     RENAMEMEMBER(exc_state.exc_type, exc_type),
     RENAMEMEMBER(exc_state.exc_value, exc_value),
@@ -155,8 +175,20 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(exc_value),
     MEMBER(exc_traceback),
 #endif
+
     MEMBER(dict),
     MEMBER(async_exc),
+    // trash_delete_later not included
+    MEMBER(coroutine_wrapper),
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+    MEMBER(async_gen_firstiter),
+    MEMBER(async_gen_finalizer),
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+    MEMBER(context),
+#endif
     {0} /* Sentinel */
 };
 
@@ -224,11 +256,29 @@ rootstate_relate(NyHeapRelate *r)
          is;
          is = PyInterpreterState_Next(is), isno--) {
         ISATTR(modules);
+        ISATTR(modules_by_index);
         ISATTR(sysdict);
         ISATTR(builtins);
+        ISATTR(importlib);
+
         ISATTR(codec_search_path);
         ISATTR(codec_search_cache);
         ISATTR(codec_error_registry);
+
+        ISATTR(builtins_copy);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+        ISATTR(import_func);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#ifdef HAVE_FORK
+        ISATTR(before_forkers);
+        ISATTR(after_forkers_parent);
+        ISATTR(after_forkers_child);
+#endif
+
+        ISATTR(pyexitmodule);
+#endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
             if ((ts == bts && r->tgt == hv->limitframe) ||
@@ -249,9 +299,11 @@ rootstate_relate(NyHeapRelate *r)
             }
             TSATTR(c_profileobj);
             TSATTR(c_traceobj);
+
             TSATTR(curexc_type);
             TSATTR(curexc_value);
             TSATTR(curexc_traceback);
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             RENAMETSATTR(exc_state.exc_type, exc_type);
             RENAMETSATTR(exc_state.exc_value, exc_value);
@@ -261,8 +313,19 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(exc_value);
             TSATTR(exc_traceback);
 #endif
+
             TSATTR(dict);
             TSATTR(async_exc);
+            TSATTR(coroutine_wrapper);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+            TSATTR(async_gen_firstiter);
+            TSATTR(async_gen_finalizer);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+            TSATTR(context);
+#endif
         }
     }
     return 0;
@@ -283,12 +346,29 @@ rootstate_traverse(NyHeapTraverse *ta)
         if (hv->is_hiding_calling_interpreter && is == bts->interp)
             continue;
         VISIT(is->modules);
+        VISIT(is->modules_by_index);
         VISIT(is->sysdict);
         VISIT(is->builtins);
+        VISIT(is->importlib);
 
         VISIT(is->codec_search_path);
         VISIT(is->codec_search_cache);
         VISIT(is->codec_error_registry);
+
+        VISIT(is->builtins_copy);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+        VISIT(is->import_func);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#ifdef HAVE_FORK
+        VISIT(is->before_forkers);
+        VISIT(is->after_forkers_parent);
+        VISIT(is->after_forkers_child);
+#endif
+
+        VISIT(is->pyexitmodule);
+#endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
             if (ts == bts && hv->limitframe) {
@@ -298,9 +378,11 @@ rootstate_traverse(NyHeapTraverse *ta)
             }
             VISIT(ts->c_profileobj);
             VISIT(ts->c_traceobj);
+
             VISIT(ts->curexc_type);
             VISIT(ts->curexc_value);
             VISIT(ts->curexc_traceback);
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             VISIT(ts->exc_state.exc_type);
             VISIT(ts->exc_state.exc_value);
@@ -310,8 +392,19 @@ rootstate_traverse(NyHeapTraverse *ta)
             VISIT(ts->exc_value);
             VISIT(ts->exc_traceback);
 #endif
+
             VISIT(ts->dict);
             VISIT(ts->async_exc);
+            VISIT(ts->coroutine_wrapper);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+            VISIT(ts->async_gen_firstiter);
+            VISIT(ts->async_gen_finalizer);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+            VISIT(ts->context);
+#endif
         }
     }
     return 0;
@@ -449,11 +542,29 @@ rootstate_dir(PyObject *self, PyObject *args)
          is;
          is = PyInterpreterState_Next(is), isno--) {
         ISATTR_DIR(modules);
+        ISATTR_DIR(modules_by_index);
         ISATTR_DIR(sysdict);
         ISATTR_DIR(builtins);
+        ISATTR_DIR(importlib);
+
         ISATTR_DIR(codec_search_path);
         ISATTR_DIR(codec_search_cache);
         ISATTR_DIR(codec_error_registry);
+
+        ISATTR_DIR(builtins_copy);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+        ISATTR_DIR(import_func);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#ifdef HAVE_FORK
+        ISATTR_DIR(before_forkers);
+        ISATTR_DIR(after_forkers_parent);
+        ISATTR_DIR(after_forkers_child);
+#endif
+
+        ISATTR_DIR(pyexitmodule);
+#endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
             int numframes = 0;
@@ -474,14 +585,27 @@ rootstate_dir(PyObject *self, PyObject *args)
             }
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
+
             TSATTR_DIR(curexc_type);
             TSATTR_DIR(curexc_value);
             TSATTR_DIR(curexc_traceback);
+
             TSATTR_DIR(exc_type);
             TSATTR_DIR(exc_value);
             TSATTR_DIR(exc_traceback);
+
             TSATTR_DIR(dict);
             TSATTR_DIR(async_exc);
+            TSATTR_DIR(coroutine_wrapper);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
+            TSATTR_DIR(async_gen_firstiter);
+            TSATTR_DIR(async_gen_finalizer);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+            TSATTR_DIR(context);
+#endif
         }
     }
 
