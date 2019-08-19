@@ -66,7 +66,6 @@ sets
               "guppy.heapy.test",
               "guppy.sets",
           ],
-          package_data={"guppy.doc": ["*.html", "*.jpg"]},
           ext_modules=[setsc, heapyc],
           classifiers=[
               "Programming Language :: Python :: 3",

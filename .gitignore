@@ -1,7 +1,7 @@
 /build/
 /dist/
-/guppy.egg-info/
-/guppy/doc/*,gsl-backuped
+/guppy3.egg-info/
+/docs/*,gsl-backuped
 
 __pycache__/
 *.so
