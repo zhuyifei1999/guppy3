@@ -633,7 +633,17 @@ hv_add_heapdefs_tuple(NyHeapViewObject *hv, PyTupleObject *heapdefs)
     Py_ssize_t i;
     for (i = 0; i < PyTuple_Size((PyObject *)heapdefs); i++) {
         PyObject *obj = PyTuple_GetItem((PyObject *)heapdefs, i);
-        NyHeapDef *hd = PyCapsule_GetPointer(obj, "guppy.sets.setsc._NyHeapDefs_");
+        if (!PyCapsule_CheckExact(obj)) {
+            PyErr_SetString(PyExc_TypeError, "heapdefs must be a capsule object");
+            return -1;
+        }
+        const char *name = PyCapsule_GetName(obj);
+        const char *dot = strrchr(name, '.');
+        if (!dot || strcmp(dot, "._NyHeapDefs_")) {
+            PyErr_SetString(PyExc_TypeError, "heapdefs must be named <package name>._NyHeapDefs_");
+            return -1;
+        }
+        NyHeapDef *hd = PyCapsule_GetPointer(obj, name);
         if (!hd)
             return -1;
         if (hv_add_heapdefs_array(hv, hd) == -1)
