@@ -346,7 +346,9 @@ rootstate_traverse(NyHeapTraverse *ta)
         if (hv->is_hiding_calling_interpreter && is == bts->interp)
             continue;
         VISIT(is->modules);
-        VISIT(is->modules_by_index);
+        // Not traversing through this because it is of the same level as
+        // modules, making pathfinding generate an extra path.
+        // VISIT(is->modules_by_index);
         VISIT(is->sysdict);
         VISIT(is->builtins);
         VISIT(is->importlib);
