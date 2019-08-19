@@ -257,10 +257,6 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
                 type, value, traceback = sys.exc_info()
                 limitframe = traceback.tb_frame.f_back.f_back
             sys.last_traceback = None
-            try:
-                sys.exc_clear()
-            except AttributeError:
-                pass
             del type, value, traceback
             self.hv.limitframe = limitframe
 
