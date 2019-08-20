@@ -253,20 +253,5 @@ class _GLUECLAMP_:
         return url
 
     def open_browser(self, url):
-        try:
-            import webbrowser
-            webbrowser.open(url)
-        except ImportError:  # pre-webbrowser.py compatibility
-            if sys.platform == 'win32':
-                os.system('start "%s"' % url)
-            elif sys.platform == 'mac':
-                try:
-                    import ic
-                except ImportError:
-                    pass
-                else:
-                    ic.launchurl(url)
-            else:
-                rc = os.system('netscape -remote "openURL(%s)" &' % url)
-                if rc:
-                    os.system('netscape "%s" &' % url)
+        import webbrowser
+        webbrowser.open(url)
