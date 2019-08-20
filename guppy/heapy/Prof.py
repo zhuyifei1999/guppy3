@@ -4,6 +4,8 @@ from tkinter import *
 import tkinter.filedialog
 import tkinter.messagebox
 
+from guppy.etc.Descriptor import property_nondata
+
 
 class MyVar(StringVar):
     _default = 0.0
@@ -126,7 +128,7 @@ class Stats:
     def __init__(self, mod, fn=None):
         self.mod = mod
         self.os = mod.os
-        self.md5 = mod.md5
+        self.hashlib = mod.hashlib
         self.fn = fn
 
     def clear_cache(self):
@@ -139,7 +141,7 @@ class Stats:
         self.open(self.fn)
         return self.stats
 
-    stats = property(get_stats)
+    stats = property_nondata(get_stats)
 
     def collect(self):
         if not self.fn:
@@ -151,7 +153,7 @@ class Stats:
 
         f = open(self.fn)
         str = f.read(self.lastfilesize)
-        md5 = self.md5.md5(str)
+        md5 = self.hashlib.md5(str)
         digest = md5.digest()
         if digest == self.lastdigest:
             numoldstats = len(self)
@@ -183,7 +185,7 @@ class Stats:
 
         f = open(fn)
         str = f.read()
-        lastdigest = self.md5.md5(str).digest()
+        lastdigest = self.hashlib.md5(str).digest()
         laststat = self.os.fstat(f.fileno())
         f.close()
         self.loadstr(str, reset=1)
@@ -2999,6 +3001,7 @@ class ProfileBrowser:
             try:
                 self.stats.open(filename)
             except Exception:
+                __import__('traceback').print_exc()
                 etype, value, tb = self.mod._root.sys.exc_info()
                 tkinter.messagebox.showerror(
                     master=self.frame,
@@ -3073,7 +3076,7 @@ class _GLUECLAMP_:
         '_parent:pbhelp',
         '_root.guppy.etc:textView',
         '_root.guppy:specs',
-        '_root:md5',
+        '_root:hashlib',
         '_root:os',
         '_root.os:path',
         '_root:time',
