@@ -1,3 +1,18 @@
+    Version 3.0.3
+
+2019-08-20  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Open help web pages with online version.
+
+2019-08-19  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed Profile Browser.
+    * Accept _NyHeapDefs_ from outside c capsules.
+
+2019-08-18  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Add more attributes for traversal in root state.
+
     Version 3.0.2
 
 2019-08-18  YiFei Zhu  <zhuyifei1999@gmail.com>
