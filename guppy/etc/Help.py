@@ -248,8 +248,7 @@ class _GLUECLAMP_:
         return GuppyDoc(self, doc)
 
     def docurl(self, url):
-        path = os.path.dirname(__file__)+'/../../docs'
-        url = 'file://'+path+'/'+url
+        url = 'https://zhuyifei1999.github.io/guppy3/'+url
         return url
 
     def open_browser(self, url):
