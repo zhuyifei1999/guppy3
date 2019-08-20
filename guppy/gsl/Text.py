@@ -961,7 +961,7 @@ class _GLUECLAMP_:
         '_parent.SpecNodes:node_of_string',
         '_parent.Main:ReportedError',
         '_parent:Html',
-        '_root:cPickle',
+        '_root:pickle',
         '_root.md5:md5',
         '_root:os',
         '_root:re',
@@ -1009,7 +1009,7 @@ class _GLUECLAMP_:
         # It seems they dont want we mix data and py files in the dist sigh
         # so these are last minute hacks
 
-        pickle = self.cPickle
+        pickle = self.pickle
 
         if inpickle:
             inrecorder = pickle.loads(inpickle)

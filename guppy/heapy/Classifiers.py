@@ -1,11 +1,14 @@
 # ._cv_part guppy.heapy.Classifiers
 
+from guppy.etc.Descriptor import property_nondata
+
 
 class Classifier:
     def __init__(self, mod, name, cli=None, supers=(), depends=(), with_referrers=False):
         self.mod = mod
         self.name = name
-        self._cli = cli
+        if cli is not None:
+            self.cli = cli
         # Set of all super-classifiers (including self).
         # The partial order is defined in Notes Aug 30 2005.
         self.super_classifiers = mod.ImpSet.immnodeset([self])
@@ -17,7 +20,7 @@ class Classifier:
             # if not supers specified; init of ByUnity itself depends on this.
             self.super_classifiers |= [mod.Use.Unity.classifier]
 
-        # The classifiers that self depends on.
+        # The classifiers that self depends on.https://wx2.qq.com/?&lang=en
         for d in depends:
             if d.with_referrers:
                 with_referrers = True
@@ -36,9 +39,9 @@ class Classifier:
     # This is not redefined by subclass unless they set cli property.
     def _get_cli(self):
         # This may be defined by subclass w/o setting cli property.
-        return self.get_cli() if self._cli is None else self._cli
+        return self.get_cli()
 
-    cli = property(_get_cli)
+    cli = property_nondata(_get_cli)
 
     def get_alt(self, kind, alt):
         # Get alternative kind for a kind with self as fam.classifier.

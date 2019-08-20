@@ -1,6 +1,8 @@
 # ._cv_part guppy.heapy.Path
 import functools
 
+from guppy.etc.Descriptor import property_nondata
+
 
 class R_NORELATION:
     code = -1
@@ -400,10 +402,10 @@ class ShortestPaths:
 
     def _get_numpaths(self):
         num = self.numpaths_from(self.Src)
-        # self.numpaths = num
+        self.numpaths = num
         return num
 
-    numpaths = property(fget=_get_numpaths)
+    numpaths = property_nondata(fget=_get_numpaths)
 
     def pp(self, start=None, output=None):
         self.moreiterator = None

@@ -1,5 +1,6 @@
 # ._cv_part guppy.gsl.Main
 
+from guppy.etc.Descriptor import property_nondata
 from guppy.gsl.Exceptions import *
 
 
@@ -1258,9 +1259,10 @@ class ConditionRef(Description):
         cond_id = self.cond_definition.tgtfullname
         if self.is_not:
             cond_id = 'not ' + cond_id
+        self.cond_id = cond_id
         return cond_id
 
-    cond_id = property(get_cond_id)
+    cond_id = property_nondata(get_cond_id)
 
     def get_definition(self):
         return self.cond_definition

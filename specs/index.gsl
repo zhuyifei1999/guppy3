@@ -394,11 +394,11 @@ started. More tips are very welcome!
 ..ul
 ...li
 ....a:How to use guppy/heapy for tracking down memory usage
-.....href=http://www.pkgcore.org/trac/pkgcore/doc/dev-notes/heapy.rst
+.....href=https://smira.ru/wp-content/uploads/2011/08/heapy.html
 ....t: (pkgcore - Trac)
 ...li
 ....a:Debugging Django memory leak with TrackRefs and Guppy
-.....href=http://blog.redinnovation.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy
+.....href=https://opensourcehacker.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy/
 ....t: (Redi for Life)
 
 ..a
