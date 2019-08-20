@@ -248,7 +248,7 @@ class _GLUECLAMP_:
         return GuppyDoc(self, doc)
 
     def docurl(self, url):
-        path = os.path.dirname(__file__)+'/../doc'
+        path = os.path.dirname(__file__)+'/../../docs'
         url = 'file://'+path+'/'+url
         return url
 
