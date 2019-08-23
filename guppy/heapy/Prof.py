@@ -153,7 +153,7 @@ class Stats:
 
         f = open(self.fn)
         str = f.read(self.lastfilesize)
-        md5 = self.hashlib.md5(str)
+        md5 = self.hashlib.md5(str.encode('utf-8'))
         digest = md5.digest()
         if digest == self.lastdigest:
             numoldstats = len(self)
@@ -167,7 +167,7 @@ class Stats:
         f.close()
         self.lastfilesize = self.laststat.st_size
 
-        md5.update(str)
+        md5.update(str.encode('utf-8'))
         self.lastdigest = md5.digest()
         self.loadstr(str)
 
@@ -185,7 +185,7 @@ class Stats:
 
         f = open(fn)
         str = f.read()
-        lastdigest = self.hashlib.md5(str).digest()
+        lastdigest = self.hashlib.md5(str.encode('utf-8')).digest()
         laststat = self.os.fstat(f.fileno())
         f.close()
         self.loadstr(str, reset=1)
