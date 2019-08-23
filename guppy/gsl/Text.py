@@ -1049,7 +1049,7 @@ class _GLUECLAMP_:
                 r = inrecorder
             else:
                 r = None
-                textdigest = self.md5(text).digest()
+                textdigest = self.md5(text.encode('utf-8')).digest()
                 try:
                     f = open(cache)
                 except IOError:

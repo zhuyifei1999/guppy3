@@ -235,19 +235,19 @@ References
                         break
                     pos = f.tell()
                     yield line
-        elif hasattr(fn, '__iter__') and not hasattr(fn, 'next'):
+        elif hasattr(fn, '__iter__') and not hasattr(fn, '__next__'):
             # We got a sequence, that is not an iterator. Use it directly.
             def get_trows():
                 return fn
-        elif hasattr(fn, 'next'):
+        elif hasattr(fn, '__next__'):
             # We got an iterator or file object.
             # We 'have' to read all lines (at once)-
             # to update the read position -
             # to mimic 'pickle' semantics if several
             # objects are stored in the same file.
-            # We can't use .next always - (eg not on pipes)
+            # We can't use .__next__ always - (eg not on pipes)
             # it makes a big readahead (regardless of buffering setting).
-            # But since .next() (typically) is much faster, we use it
+            # But since .__next__() (typically) is much faster, we use it
             # per default unless use_readline is set.
             if use_readline:
                 get_line = fn.readline
