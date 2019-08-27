@@ -35,10 +35,6 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The guppy top-level package contains the following subpackages:
 
-doc
-       Documentation files. These are in a package so they get installed
-       at a well-defined place, especially to support interactive help.
-
 etc
        Support modules. Contains especially the Glue protocol module.
 
@@ -67,6 +63,7 @@ sets
               "guppy.sets",
           ],
           ext_modules=[setsc, heapyc],
+          python_requires='>=3.5',
           classifiers=[
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",

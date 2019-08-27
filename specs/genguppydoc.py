@@ -67,12 +67,16 @@ class GenGuppyDoc:
 
         self.gen('gslexample.gsl', input_string=gslexample)
 
+    def genpb(self):
+        self.gen('help_Prof.gsl')
+
 
 def main():
     g = GenGuppyDoc()
     g.genext()
     g.genguppy()
     g.gengsl()
+    g.genpb()
 
 
 if __name__ == '__main__':
