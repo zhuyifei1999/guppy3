@@ -183,6 +183,7 @@ class Document:
     def get_cur_subject(self, node):
         sd = self.subdoc
         if not sd:
+            __import__('traceback').print_stack()
             self.error('No subject defined in current environment.', node)
         return sd.subject
 
