@@ -1,5 +1,5 @@
+import sys
 from setuptools import setup, Extension
-
 from distutils.command.install import INSTALL_SCHEMES
 
 for scheme in INSTALL_SCHEMES.values():
@@ -19,6 +19,17 @@ heapyc = Extension("guppy.heapy.heapyc", [
 
 
 def doit():
+    if sys.version_info.major < 3:
+        print('''\
+setup.py: Error: This guppy package only supports Python 3.
+You can find the original Python 2 version, Guppy-PE, here:
+http://guppy-pe.sourceforge.net/''', file=sys.stderr)
+        sys.exit(1)
+    if sys.implementation.name != 'cpython':
+        print('''\
+setup.py: Warning: This guppy package only supports CPython.
+Compilation failure expected, but continuting anyways...''', file=sys.stderr)
+
     setup(name="guppy3",
           version="3.0.3",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
