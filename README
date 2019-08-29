@@ -1,4 +1,4 @@
-This is Guppy 3 version 3.0.1
+This is Guppy 3 version 3.0.3
 
 A Python Programming Environment & Heap analysis toolset.
 
@@ -27,7 +27,10 @@ specs/genguppydoc.py  Regenerates the doc/*.html files from specs/*.gsl
 
 REQUIREMENTS
 
-You should have Python 3.5, 3.6, or 3.7.
+You should have Python 3.5, 3.6, or 3.7. This package is CPython only;
+PyPy and other Python implementations are not supported. Python 2 support
+can be obtained from guppy-pe (http://guppy-pe.sourceforge.net/) by
+Sverker Nilsson, from which this package is forked.
 
 To build the system so you can use Heapy, you should have what is
 needed to build extension modules from source code. The extension
