@@ -1,3 +1,21 @@
+    Version 3.0.4
+
+2019-09-01  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Generate Profile Browser about / help
+
+2019-08-29  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Add warning / error if attempting to install on non-CPython 3
+
+2019-08-27  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Document how to load dumps in Profile Browser
+
+2019-08-23  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix Profile Browser loading dumps
+
     Version 3.0.3
 
 2019-08-20  YiFei Zhu  <zhuyifei1999@gmail.com>

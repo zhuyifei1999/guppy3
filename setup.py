@@ -31,7 +31,7 @@ setup.py: Warning: This guppy package only supports CPython.
 Compilation failure expected, but continuting anyways...''', file=sys.stderr)
 
     setup(name="guppy3",
-          version="3.0.3",
+          version="3.0.4",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description="""
 Guppy 3 is a library and programming environment for Python,
