@@ -1,3 +1,8 @@
+trigger:
+  tags:
+    include:
+    - v*
+pr: none
 variables:
   CIBW_BUILD: 'cp3[567]-*'
 jobs:
