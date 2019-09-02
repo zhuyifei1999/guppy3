@@ -263,6 +263,9 @@ class Node2Html:
             for sym in syms:
                 self.symplace[sym] = ch.tag
 
+    def visit_file(self, node):
+        self._visit_children(node)
+
     def visit_header(self, node):
         self.header_nodes.extend(node.children)
 

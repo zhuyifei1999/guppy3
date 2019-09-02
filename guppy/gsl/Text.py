@@ -298,6 +298,9 @@ class Node2Inter:
     def visit_em(self, node):
         self.span(node, font_italic=1)
 
+    def visit_file(self, node):
+        self._visit_children(node)
+
     def visit_gsl_title(self, node):
         self.out._gsl_title = node.arg
 
@@ -966,13 +969,12 @@ class _GLUECLAMP_:
         '_root:os',
         '_root:re',
         '_root:string',
-        '_root:Tkinter',
-        '_root:tkFont',
+        '_root:tkinter',
     )
 
     def _get_makefont(self):
         fonts = {}
-        root = self.Tkinter.Tk()
+        root = self.tkinter.Tk()
         root.withdraw()
 
         def makefont(font):
@@ -986,7 +988,7 @@ class _GLUECLAMP_:
                     weight = 'bold'
                 if 'italic' in font[2]:
                     slant = 'italic'
-            f = self.tkFont.Font(family=font[0], size=font[1],
+            f = self.tkinter.font.Font(family=font[0], size=font[1],
                                  weight=weight, slant=slant)
             fonts[font] = f
             return f
@@ -1098,7 +1100,7 @@ def test_string(s=None, name=None):
     if s is None:
         s = getattr(me._parent.test.testdata, name)
 
-    T = me.Tkinter
+    T = me.tkinter
     node = me.node_of_string(s, nostrip=1)
 
     me._parent.Html.node2file(node, '/tmp/x.html')
@@ -1106,7 +1108,6 @@ def test_string(s=None, name=None):
     t = RecordingInter()
     me.node2inter(node, t)
 
-    import pickle as pickle
     t.prepare_for_pickle()
 
     root = T.Tk()
