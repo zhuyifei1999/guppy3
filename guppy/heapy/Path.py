@@ -88,7 +88,7 @@ class RelationBase(object):
                 return self.code < other.code
             return self.r < other.r
         else:
-            return type(self) < type(other)
+            return id(type(self)) < id(type(other))
 
     def __eq__(self, other):
         if isinstance(other, RelationBase):
