@@ -733,7 +733,7 @@ NyImmBitSet_SubtypeNewArg(PyTypeObject *type, PyObject *v)
         PyErr_SetString(PyExc_TypeError, "ImmBitSet.__new__ : complemented arg not supported");
         Py_DECREF(ms);
         return 0;
-        }
+    }
     ret = mutbitset_as_noncomplemented_immbitset_subtype(ms, type);
     Py_DECREF(ms);
     return ret;
@@ -1193,7 +1193,6 @@ mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
         }
         return f;
     }
-
 }
 
 static NySetField *
@@ -1406,7 +1405,7 @@ mutbitset_ior_fields(NyMutBitSetObject *v, NyBitField *w, NyBit n)
 {
     for (; n--;)
         if (mutbitset_ior_field(v, w++))
-        return -1;
+            return -1;
     return 0;
 }
 
@@ -1539,7 +1538,7 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, NyBit n)
             for (i = 0; i < n; i++) {
                 if (w[i].bits) {
                     if (!mutbitset_findpos_ins(v, w[i].pos))
-                    return -1;
+                        return -1;
                 }
             }
             end_w = w + n;
@@ -1616,7 +1615,7 @@ mutbitset_iop_bits(NyMutBitSetObject *v, int op, NyBit pos, NyBits *bits, NyBit 
             for (i = 0; i < n; i++) {
                 if (bits[i]) {
                     if (!mutbitset_findpos_ins(v, pos + i))
-                    return -1;
+                        return -1;
                 }
             }
             for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
@@ -1721,7 +1720,7 @@ mutbitset_iop_mutset(NyMutBitSetObject *v, int op, NyMutBitSetObject *w)
             for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
             for (f = sf_getrange(s, &end_f); f < end_f; f++)
                 if (mutbitset_iop_field(v, op, f) == -1)
-                return -1;
+                    return -1;
             break;
     case NyBits_AND:
             for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
@@ -1737,7 +1736,7 @@ mutbitset_iop_mutset(NyMutBitSetObject *v, int op, NyMutBitSetObject *w)
             for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
             for (f = sf_getrange(s, &end_f); f < end_f; f++)
                 if (!mutbitset_findpos_ins(v, f->pos))
-                return -1;
+                    return -1;
             for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
             for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
                 wf = mutbitset_findpos(w, f->pos);
@@ -1803,7 +1802,6 @@ Err:
     }
     Py_XDECREF(it);
     return -1;
-
 }
 
 static int
@@ -1838,7 +1836,6 @@ Err:
         Py_DECREF(tms);
     }
     return -1;
-
 }
 
 static int
@@ -1874,7 +1871,6 @@ Err:
         Py_DECREF(tms);
     }
     return -1;
-
 }
 
 static int
@@ -1910,7 +1906,6 @@ Err:
         Py_DECREF(tms);
     }
     return -1;
-
 }
 
 static int
@@ -2134,8 +2129,8 @@ mutbitset_nonzero(NyMutBitSetObject *v)
         return 1;
     for (s = mutbitset_getrange(v, &end_s); s < end_s; s++)
         for (f = sf_getrange(s, &end_f); f < end_f; f++)
-        if (f->bits)
-            return 1;
+            if (f->bits)
+                return 1;
     return 0;
 }
 
@@ -2521,13 +2516,13 @@ mutbitset_subscript(NyMutBitSetObject *v, PyObject *w)
     if (i == - 1) {
         for (end_s = mutbitset_getrange(v, &s); --s >= end_s;)
             for (end_f = sf_getrange(s, &f); --f >= end_f;)
-            if (f->bits)
-                return PyLong_FromSsize_t(field_last(f));
+                if (f->bits)
+                    return PyLong_FromSsize_t(field_last(f));
     } else if (i == 0) {
         for (s = mutbitset_getrange(v, &end_s); s < end_s; s++)
             for (f = sf_getrange(s, &end_f); f < end_f; f++)
-            if (f->bits)
-                return PyLong_FromSsize_t(field_first(f));
+                if (f->bits)
+                    return PyLong_FromSsize_t(field_first(f));
     } else {
         PyErr_SetString(PyExc_IndexError, "mutbitset_subscript(): index must be 0 or -1");
         return NULL;
@@ -3347,10 +3342,10 @@ immbitset_xor(NyImmBitSetObject *v, PyObject *w, int wt)
 
 
 typedef struct {
-        PyObject_HEAD
-        NyImmBitSetObject *immbitset;
-        NyBit fldpos;
-        NyBit bitpos;
+    PyObject_HEAD
+    NyImmBitSetObject *immbitset;
+    NyBit fldpos;
+    NyBit bitpos;
 } NyImmBitSetIterObject;
 
 
@@ -3502,13 +3497,13 @@ cplbitset_and(NyCplBitSetObject *v, PyObject *w, int wt)
     case BITSET:
         return (PyObject *)
             immbitset_op((NyImmBitSetObject *)w,
-                    NyBits_SUB,
-                    cplbitset_cpl(v));
+                         NyBits_SUB,
+                         cplbitset_cpl(v));
 
     case CPLSET:
         return cpl_immbitset_op(cplbitset_cpl(v),
-                            NyBits_OR,
-                            cplbitset_cpl((NyCplBitSetObject *)w));
+                                NyBits_OR,
+                                cplbitset_cpl((NyCplBitSetObject *)w));
     default:
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -3521,13 +3516,13 @@ cplbitset_or(NyCplBitSetObject *v, PyObject *w, int wt)
     switch (wt) {
     case BITSET:
         return cpl_immbitset_op(cplbitset_cpl(v),
-                             NyBits_SUB,
-                             (NyImmBitSetObject *)w);
+                                NyBits_SUB,
+                                (NyImmBitSetObject *)w);
 
     case CPLSET:
         return cpl_immbitset_op(cplbitset_cpl(v),
-                             NyBits_AND,
-                             cplbitset_cpl((NyCplBitSetObject *)w));
+                                NyBits_AND,
+                                cplbitset_cpl((NyCplBitSetObject *)w));
     default:
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -3540,14 +3535,14 @@ cplbitset_sub(NyCplBitSetObject *v, PyObject *w, int wt)
     switch (wt) {
     case BITSET:
         return cpl_immbitset_op(cplbitset_cpl(v),
-                             NyBits_OR,
-                             (NyImmBitSetObject *)w);
+                                NyBits_OR,
+                                (NyImmBitSetObject *)w);
 
     case CPLSET:
         return (PyObject *)
             immbitset_op(cplbitset_cpl((NyCplBitSetObject *)w),
-                    NyBits_SUB,
-                    cplbitset_cpl(v));
+                         NyBits_SUB,
+                         cplbitset_cpl(v));
     default:
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -3560,13 +3555,13 @@ cplbitset_xor(NyCplBitSetObject *v, PyObject *w, int wt)
     switch (wt) {
     case BITSET:
         return cpl_immbitset_op(cplbitset_cpl(v),
-                             NyBits_XOR,
-                             (NyImmBitSetObject *)w);
+                                NyBits_XOR,
+                                (NyImmBitSetObject *)w);
     case CPLSET:
         return (PyObject *)
             immbitset_op(cplbitset_cpl(v),
-                    NyBits_XOR,
-                    cplbitset_cpl((NyCplBitSetObject *)w));
+                         NyBits_XOR,
+                         cplbitset_cpl((NyCplBitSetObject *)w));
     default:
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
@@ -4249,14 +4244,14 @@ _NyImmBitSet_Range(PyObject *unused, PyObject *args)
 
     if (PyTuple_Size(args) <= 1) {
         if (!PyArg_ParseTuple(args,
-                        "n;bitrange() requires 1-3 int arguments",
-                        &ihigh))
+                              "n;bitrange() requires 1-3 int arguments",
+                              &ihigh))
             return NULL;
     }
     else {
         if (!PyArg_ParseTuple(args,
-                        "nn|n;bitrange() requires 1-3 int arguments",
-                        &ilow, &ihigh, &istep))
+                              "nn|n;bitrange() requires 1-3 int arguments",
+                              &ilow, &ihigh, &istep))
             return NULL;
     }
     return NyImmBitSet_Range(ilow, ihigh, istep);
@@ -4372,7 +4367,8 @@ int fsb_dx_nybitset_init(PyObject *m)
     NyBitSet_FormMethod = PyObject_GetAttrString(m, "_bs");
     if (!NyBitSet_FormMethod)
         goto error;
-    { int i;
+    {
+        int i;
         /* initialize len() helper */
         for (i = 0; i < LEN_TAB_SIZE; i++) {
             unsigned b = i;
@@ -4387,6 +4383,6 @@ int fsb_dx_nybitset_init(PyObject *m)
     }
 
     return 0;
-    error:
+error:
     return -1;
 }
