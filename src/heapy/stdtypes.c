@@ -337,17 +337,17 @@ type_relate(NyHeapRelate *r)
 
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
-        0,                /* flags */
-        0,                /* type */
-        _PySys_GetSizeOf, /* size */
-        dict_traverse,    /* traverse */
-        dict_relate       /* relate */
+        0,             /* flags */
+        0,             /* type */
+        0,             /* size */
+        dict_traverse, /* traverse */
+        dict_relate    /* relate */
     }, {
-        0,                /* flags */
-        0,                /* type */
-        _PySys_GetSizeOf, /* size */
-        0,                /* traverse */
-        list_relate       /* relate */
+        0,          /* flags */
+        0,          /* type */
+        0,          /* size */
+        0,          /* traverse */
+        list_relate /* relate */
     }, {
         0,           /* flags */
         0,           /* type */
@@ -385,12 +385,6 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,          /* traverse */
         cell_relate /* relate */
     }, {
-        0,                /* flags */
-        0,                /* type */
-        _PySys_GetSizeOf, /* size */
-        0,                /* traverse */
-        0                 /* relate */
-    }, {
         0,          /* flags */
         0,          /* type */
         0,          /* size */
@@ -408,12 +402,6 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,             /* size */
         type_traverse, /* traverse */
         type_relate    /* relate */
-    }, {
-        0,                /* flags */
-        0,                /* type */
-        _PySys_GetSizeOf, /* size */
-        0,                /* traverse */
-        0,                /* relate */
     }, {
         0,               /* flags */
         0,               /* type */ /* To be patched-in from a dictproxy ! */
@@ -441,19 +429,10 @@ NyStdTypes_init(void)
     NyStdTypes_HeapDef[x++].type = &PyFrame_Type;
     NyStdTypes_HeapDef[x++].type = &PyTraceBack_Type;
     NyStdTypes_HeapDef[x++].type = &PyCell_Type;
-    NyHeapDef *array_def = &NyStdTypes_HeapDef[x++];
     NyStdTypes_HeapDef[x++].type = &PyCFunction_Type;
     NyStdTypes_HeapDef[x++].type = &PyCode_Type;
     NyStdTypes_HeapDef[x++].type = &PyType_Type;
-    NyStdTypes_HeapDef[x++].type = &PyUnicode_Type;
     NyHeapDef *dictproxy_def = &NyStdTypes_HeapDef[x++];
-
-    /* Patch up array type - it is not statically accessible, may be optional */
-    if ((m = PyImport_ImportModule("array"))) {
-        if ((c = PyObject_GetAttrString(m, "ArrayType"))) {
-            array_def->type = (PyTypeObject *)c;
-        }
-    }
 
     PyObject *d = PyDict_New();
     if (d) {

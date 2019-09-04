@@ -398,12 +398,12 @@ This method is the same as
 ....pre
 >>> from guppy import hpy
 >>> hpy().iso(1, 1, 1.0, [], [], {})
-Partition of a set of 5 objects. Total size = 220 bytes.
+Partition of a set of 5 objects. Total size = 444 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
-     0      1  20      136  62       136  62 dict (no owner)
-     1      2  40       56  25       192  87 list
-     2      1  20       16   7       208  95 float
-     3      1  20       12   5       220 100 int
+     0      1  20      248  56       248  56 dict (no owner)
+     1      2  40      144  32       392  88 list
+     2      1  20       28   6       420  95 int
+     3      1  20       24   5       444 100 float
 >>>
 ....c: end pre
 

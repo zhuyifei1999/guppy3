@@ -161,9 +161,16 @@ hv_gc_clear(NyHeapViewObject *hv)
 static size_t
 hv_default_size(PyObject *obj)
 {
-    Py_ssize_t z = Py_TYPE(obj)->tp_basicsize;
+    if (PyErr_Occurred())
+        return -1;
+    size_t z = _PySys_GetSizeOf(obj);
+    if (!PyErr_Occurred() || !PyErr_ExceptionMatches(PyExc_TypeError))
+        return z;
+    PyErr_Clear();
+
+    z = Py_TYPE(obj)->tp_basicsize;
     if (Py_TYPE(obj)->tp_itemsize) {
-        Py_ssize_t itemsize = Py_TYPE(obj)->tp_itemsize;
+        size_t itemsize = Py_TYPE(obj)->tp_itemsize;
         if (itemsize < 0)
             itemsize = - itemsize; /* For (e.g.) long(Should we check? */
         z += Py_SIZE(obj) * itemsize;
