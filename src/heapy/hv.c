@@ -282,6 +282,9 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 static int
 xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
+    PyErr_CheckSignals();
+    if (PyErr_Occurred())
+        return -1;
     NyHeapTraverse ta;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
     ta.flags = 0;
