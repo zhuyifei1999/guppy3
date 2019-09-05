@@ -530,6 +530,7 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                         "is deprecated. Use %R instead", fullname);
                     PyObject *res = rootstate_getattr(obj, fullname);
                     Py_DECREF(fullname);
+                    Py_DECREF(name);
                     return res;
                 }
             }
