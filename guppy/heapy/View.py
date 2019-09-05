@@ -355,10 +355,11 @@ Return the set of objects in the visible heap.
         # because of common operations.
         if not heap_one_time_initialized:
             heap_one_time_initialized = 1
-            repr(self.idset(self.hv.heap()))
             x = []
+            repr(self.iso(x))
             repr(self.iso(x).shpaths)
             repr(self.iso(x).rp)
+            del x
 
         self.gc.collect()  # Sealing a leak at particular usage ; Notes Apr 13 2005
         # Exclude current frame by encapsulting in enter(). Note Apr 20 2005
