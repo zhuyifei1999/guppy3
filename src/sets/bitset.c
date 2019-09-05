@@ -3304,6 +3304,7 @@ immbitset_repr(NyImmBitSetObject *a)
     iter = PySequence_List((PyObject *)a);
     if (!iter) goto Fail;
     s = PyUnicode_FromFormat("ImmBitSet(%R)", iter);
+    Py_XDECREF(iter);
     return s;
 Fail:
     Py_XDECREF(iter);
