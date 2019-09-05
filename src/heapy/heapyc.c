@@ -265,7 +265,6 @@ error:
     fprintf(stderr, "Error at initialization of module heapyc");
     if (PyErr_Occurred() == NULL)
         PyErr_SetString(PyExc_ImportError, "module initialization failed");
-    if (m)
-        Py_DECREF(m);
+    Py_XDECREF(m);
     return NULL;
 }
