@@ -309,8 +309,17 @@ class _GLUECLAMP_:
         printer = more._oh_printer
         client.more = more
         client.printer = printer
-        client.__class__.__str__ = client.__class__.__repr__ = (
-            lambda self: self.printer.get_str_of_top())
+
+        def reprfunc(self):
+            return self.printer.get_str_of_top()
+
+        # Don't recreate, messes with relheap, and this is not
+        # under _hiding_tag_
+        cls = client.__class__
+        if not hasattr(cls, '__str__'):
+            cls.__str__ = reprfunc
+        if not hasattr(cls, '__repr__'):
+            cls.__repr__ = reprfunc
 
     def basic_more_printer(self, top, handler, startindex=None):
         BasicMorePrinter._add_proxy_class(top.__class__)
