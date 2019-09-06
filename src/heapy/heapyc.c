@@ -257,9 +257,7 @@ INITFUNC (void)
     NyStdTypes_init();
     if (NyNodeGraph_init() == -1)
         goto error;
-#ifdef WITH_MALLOC_HOOKS
-    sethooks();
-#endif
+    xmemstats_init();
     return m;
 error:
     fprintf(stderr, "Error at initialization of module heapyc");

@@ -21,4 +21,4 @@ matrix:
         - python -m pip install --upgrade pip
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 install: pip3 install --upgrade pip; pip install -ve .
-script: which python3 &> /dev/null && PYTHON=python3 || PYTHON=python; $PYTHON --version; $PYTHON -c '__import__("guppy").hpy().test()'
+script: which python3 &> /dev/null && PYTHON=python3 || PYTHON=python; $PYTHON --version; $PYTHON -c '__import__("guppy").hpy().test(); __import__("guppy").heapy.heapyc.xmemstats()'
