@@ -500,8 +500,8 @@ class _GLUECLAMP_:
         return table
 
     def _get__hiding_tag_(self): return self._parent.View._hiding_tag_
-    def _get_identity(self): return R_IDENTITY()
-    def _get_norelation(self): return R_NORELATION()
+    def _get_identity(self): return self.rel_table[R_IDENTITY.code]('')
+    def _get_norelation(self): return self.rel_table[R_NORELATION.code]('')
     def _get_output(self): return self._parent.OutputHandling.stdout
     def _get_saferepr(self): return self._root.reprlib.repr
     def _get_shpathstep(self): return self.hv.shpathstep
