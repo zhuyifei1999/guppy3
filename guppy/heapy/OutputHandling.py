@@ -316,9 +316,9 @@ class _GLUECLAMP_:
         # Don't recreate, messes with relheap, and this is not
         # under _hiding_tag_
         cls = client.__class__
-        if not hasattr(cls, '__str__'):
+        if '__str__' not in cls.__dict__:
             cls.__str__ = reprfunc
-        if not hasattr(cls, '__repr__'):
+        if '__repr__' not in cls.__dict__:
             cls.__repr__ = reprfunc
 
     def basic_more_printer(self, top, handler, startindex=None):
