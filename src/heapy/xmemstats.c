@@ -9,7 +9,11 @@ static char hp_xmemstats_doc[] =
 "Print extra memory statistics. What is printed depends on the system\n"
 "configuration.  ";
 
+#ifndef MS_WIN32
 #include <dlfcn.h>
+#else
+#include <windows.h>
+#endif
 
 int totalloc, totfree, reallocfree, reallocalloc, numalloc, numfree, numdiff;
 
@@ -24,6 +28,15 @@ static Py_ssize_t *dlptr__Py_RefTotal;
 void *(*org_alloc)(size_t size);
 void *(*org_realloc)(void *p, size_t size);
 void (*org_free)(void *p);
+
+static void *addr_of_symbol(const char *symbol) {
+#ifndef MS_WIN32
+    return dlsym(RTLD_DEFAULT, symbol);
+#else
+    HMODULE hMod = GetModuleHandle(NULL);
+    return (void *)GetProcAddress(hMod, symbol);
+#endif
+}
 
 void
 breakit(void *p, char c)
@@ -98,13 +111,13 @@ freehook(void *p) {
 
 void
 xmemstats_init(void) {
-    dlptr___malloc_hook              = dlsym(RTLD_DEFAULT, "__malloc_hook");
-    dlptr___realloc_hook             = dlsym(RTLD_DEFAULT, "__realloc_hook");
-    dlptr___free_hook                = dlsym(RTLD_DEFAULT, "__free_hook");
-    dlptr_malloc_usable_size         = dlsym(RTLD_DEFAULT, "malloc_usable_size");
-    dlptr_malloc_stats               = dlsym(RTLD_DEFAULT, "malloc_stats");
-    dlptr__PyObject_DebugMallocStats = dlsym(RTLD_DEFAULT, "_PyObject_DebugMallocStats");
-    dlptr__Py_RefTotal               = dlsym(RTLD_DEFAULT, "_Py_RefTotal");
+    dlptr___malloc_hook              = addr_of_symbol("__malloc_hook");
+    dlptr___realloc_hook             = addr_of_symbol("__realloc_hook");
+    dlptr___free_hook                = addr_of_symbol("__free_hook");
+    dlptr_malloc_usable_size         = addr_of_symbol("malloc_usable_size");
+    dlptr_malloc_stats               = addr_of_symbol("malloc_stats");
+    dlptr__PyObject_DebugMallocStats = addr_of_symbol("_PyObject_DebugMallocStats");
+    dlptr__Py_RefTotal               = addr_of_symbol("_Py_RefTotal");
 
     has_malloc_hooks = dlptr___malloc_hook && dlptr___realloc_hook &&
         dlptr___free_hook && dlptr_malloc_usable_size;
