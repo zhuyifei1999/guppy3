@@ -24,7 +24,7 @@ class FirstCase(support.TestCase):
                     get_num_lines=get_num_lines,
                     get_more_msg=get_more_msg)
 
-            def __str__(self):
+            def __repr__(self):
                 return self.more._oh_printer.get_str_of_top()
 
         self.aseq(str(T(self, 4)), '0\n1\n2\n3')

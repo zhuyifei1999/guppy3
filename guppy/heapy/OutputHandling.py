@@ -9,7 +9,6 @@ import weakref
 class _MetaAttrProxy(type):
     def __init__(self, name, bases, dct):
         self._proxied_classes = weakref.WeakSet({type, object})
-        self._add_proxy_attr('__str__')
         self._add_proxy_attr('__repr__')
 
     def _add_proxy_attr(self, attr):
@@ -196,8 +195,6 @@ class Printer:
     def _get___repr__(self, mp):
         return lambda: self.get_str(mp, self.max_more_lines)
 
-    _get___str__ = _get___repr__
-
     def get_str_of_top(self):
         return self.get_str(self, self.max_top_lines)
 
@@ -269,9 +266,6 @@ class BasicMorePrinter(metaclass=_MetaAttrProxy):
             return getattr(self.top, attr)
 
     def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
         ob = self.mod.output_buffer()
         self.handler.ppob(ob, self.startindex)
         return ob.getvalue().rstrip()
@@ -316,8 +310,6 @@ class _GLUECLAMP_:
         # Don't recreate, messes with relheap, and this is not
         # under _hiding_tag_
         cls = client.__class__
-        if '__str__' not in cls.__dict__:
-            cls.__str__ = reprfunc
         if '__repr__' not in cls.__dict__:
             cls.__repr__ = reprfunc
 

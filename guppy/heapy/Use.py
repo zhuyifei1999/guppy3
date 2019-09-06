@@ -66,8 +66,6 @@ Top level interface to Heapy.
 Use eg: %sdoc for more info on %s.""" % (
             self.reprefix, self.reprefix[:-1])
 
-    __str__ = __repr__
-
     def Ddir(self, opts=''):
         """\
         #OBSOLETE

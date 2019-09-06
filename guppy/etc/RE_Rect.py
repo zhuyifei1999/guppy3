@@ -52,11 +52,9 @@ class Rect(object):
             lines.append(self.all_lines[i])
         return lines
 
-    def __str__(self):
+    def __repr__(self):
         return '<\n dir = %d\n width = %d\n lnos = %s\n lines = %s\n>' % (
             self.dir, self.width, list(self.lnos), self.lines)
-
-    __repr__ = __str__
 
 
 class LeftRect(Rect):

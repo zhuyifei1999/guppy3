@@ -272,9 +272,6 @@ class MorePrinter:
             x = '<No more paths>'
         return x
 
-    def __str__(self):
-        return self.__repr__()
-
 
 class ShortestPaths:
     firstpath = 0
@@ -329,9 +326,6 @@ class ShortestPaths:
         f = self.mod._root.io.StringIO()
         self.pp(output=f)
         return f.getvalue().rstrip()
-
-    def __str__(self):
-        return self.__repr__()
 
     def iter(self, start=0, stop=None):
         return PathsIter(self, start, stop)
