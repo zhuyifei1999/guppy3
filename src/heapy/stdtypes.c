@@ -418,7 +418,6 @@ void
 NyStdTypes_init(void)
 {
     /* Patch up the table for some types that were not directly accessible */
-    PyObject *m, *c;
     int x = 0;
 
     NyStdTypes_HeapDef[x++].type = &PyDict_Type;

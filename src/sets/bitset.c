@@ -2392,31 +2392,31 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
     if (i == - 1) {
         for (end_s = mutbitset_getrange_mut(v, &s); --s >= end_s;)
             for (end_f = sf_getrange_mut(s, &f); --f >= end_f;) {
-            if (f->bits) {
-                j = bits_last(f->bits);
-                ret = f->pos * NyBits_N + j;
-                f->bits &= ~(ONE_LONG<<j);
-                if (f->bits)
-                    mutbitset_set_hi(v, s, f+1);
-                else
-                    mutbitset_set_hi(v, s, f);
-                return ret;
+                if (f->bits) {
+                    j = bits_last(f->bits);
+                    ret = f->pos * NyBits_N + j;
+                    f->bits &= ~(ONE_LONG<<j);
+                    if (f->bits)
+                        mutbitset_set_hi(v, s, f+1);
+                    else
+                        mutbitset_set_hi(v, s, f);
+                    return ret;
+                }
             }
-        }
     } else if (i == 0) {
         for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
             for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
-            if (f->bits) {
-                j = bits_first(f->bits);
-                ret = f->pos * NyBits_N + j;
-                f->bits &= ~(ONE_LONG<<j);
-                if (f->bits)
-                    mutbitset_set_lo(v, s, f);
-                else
-                    mutbitset_set_lo(v, s, f+1);
-                return ret;
+                if (f->bits) {
+                    j = bits_first(f->bits);
+                    ret = f->pos * NyBits_N + j;
+                    f->bits &= ~(ONE_LONG<<j);
+                    if (f->bits)
+                        mutbitset_set_lo(v, s, f);
+                    else
+                        mutbitset_set_lo(v, s, f+1);
+                    return ret;
+                }
             }
-        }
     } else {
         PyErr_SetString(PyExc_IndexError, "pop(): index must be 0 or -1");
         return -1;
