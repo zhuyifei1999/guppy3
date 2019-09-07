@@ -15,7 +15,7 @@ static char hp_xmemstats_doc[] =
 #include <windows.h>
 #endif
 
-int totalloc, totfree, reallocfree, reallocalloc, numalloc, numfree, numdiff;
+Py_ssize_t totalloc, totfree, reallocfree, reallocalloc, numalloc, numfree, numdiff;
 
 static int has_malloc_hooks;
 
@@ -150,10 +150,10 @@ hp_xmemstats(PyObject *self, PyObject *args)
         fprintf(stderr, "======================================================================\n");
         fprintf(stderr, "Statistics gathered from hooks into malloc, realloc and free\n\n");
 
-        fprintf(stderr, "Allocated bytes                    =         %12d\n", totalloc);
-        fprintf(stderr, "Allocated - freed bytes            =         %12d\n", totalloc-totfree);
-        fprintf(stderr, "Calls to malloc                    =         %12d\n", numalloc);
-        fprintf(stderr, "Calls to malloc - calls to free    =         %12d\n", numdiff);
+        fprintf(stderr, "Allocated bytes                    =         %12zd\n", totalloc);
+        fprintf(stderr, "Allocated - freed bytes            =         %12zd\n", totalloc-totfree);
+        fprintf(stderr, "Calls to malloc                    =         %12zd\n", numalloc);
+        fprintf(stderr, "Calls to malloc - calls to free    =         %12zd\n", numdiff);
     }
 
 #ifndef Py_TRACE_REFS

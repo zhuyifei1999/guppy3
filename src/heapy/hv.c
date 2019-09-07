@@ -170,9 +170,9 @@ hv_default_size(PyObject *obj)
 
     z = Py_TYPE(obj)->tp_basicsize;
     if (Py_TYPE(obj)->tp_itemsize) {
-        size_t itemsize = Py_TYPE(obj)->tp_itemsize;
+        Py_ssize_t itemsize = Py_TYPE(obj)->tp_itemsize;
         if (itemsize < 0)
-            itemsize = - itemsize; /* For (e.g.) long(Should we check? */
+            itemsize = -itemsize; /* For (e.g.) long(Should we check? */
         z += Py_SIZE(obj) * itemsize;
         z = (z + ALIGN_MASK) & ~ALIGN_MASK;
     }

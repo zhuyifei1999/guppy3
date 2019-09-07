@@ -223,15 +223,15 @@ static PyObject *
 hp_set_async_exc(PyObject *self, PyObject *args)
 {
     PyObject *idobj, *exc;
-    Py_ssize_t id, r;
+    long id, r;
     if (!PyArg_ParseTuple(args, "OO",
                           &idobj, &exc))
         return NULL;
-    if ((id = PyLong_AsSsize_t(idobj)) == -1 && PyErr_Occurred())
+    if ((id = PyLong_AsLong(idobj)) == -1 && PyErr_Occurred())
         return NULL;
     if ((r = NyThreadState_SetAsyncExc(id, exc)) > 1) {
         NyThreadState_SetAsyncExc(id, NULL);
         r = -1;
     }
-    return PyLong_FromSsize_t(r);
+    return PyLong_FromLong(r);
 }

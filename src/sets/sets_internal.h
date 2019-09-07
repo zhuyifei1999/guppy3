@@ -25,11 +25,11 @@ typedef int (*NyIterableVisitor)(PyObject *, void *);
 
 
 extern int NyAnyBitSet_iterate(PyObject *v,
-                   NySetVisitor visit,
-                   void *arg);
+                               NySetVisitor visit,
+                               void *arg);
 
 
-extern size_t NyAnyBitSet_length(PyObject *v);
+extern Py_ssize_t NyAnyBitSet_length(PyObject *v);
 
 /* The predefined empty set */
 

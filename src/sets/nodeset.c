@@ -839,7 +839,7 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
         NyNodeSetObject *w = 0;
         NyNodeSetObject *ret=0;
         PyObject *bs = 0, *bsv = 0, *bsw = 0;
-        NyBits length;
+        NyBit length;
         NSOPARG nsa;
         if (!NyNodeSet_Check(v)) {
             PyErr_SetString(PyExc_TypeError, "left argument must be a NodeSet");

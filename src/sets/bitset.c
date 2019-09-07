@@ -2743,7 +2743,7 @@ immbitset_length(PyObject *_v)
     return n;
 }
 
-size_t
+Py_ssize_t
 NyAnyBitSet_length(PyObject *v)
 {
     if (NyImmBitSet_Check(v))
@@ -3002,9 +3002,9 @@ immbitset_int(NyImmBitSetObject *v)
         buf[pos] = bits;
     }
     r = _PyLong_FromByteArray((unsigned char *)buf,        /* bytes */
-                                num_poses * sizeof(NyBits),    /* n = number of bytes*/
-                                1,    /* Always little endian here */
-                                0);    /* not is_signed, never here */
+                              num_poses * sizeof(NyBits),    /* n = number of bytes*/
+                              1,    /* Always little endian here */
+                              0);    /* not is_signed, never here */
     PyMem_Del(buf);
     return r;
 }
