@@ -1914,8 +1914,8 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     NyBits *buf;
     int r = -1;
     Py_ssize_t e;
-    NyBit num_poses, num_bytes;
-    double num_bits, x;
+    NyBit num_bits, num_poses, num_bytes;
+    double x;
     int cpl = 0;
     PyObject *w = 0;
 
@@ -1933,10 +1933,8 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
             return -1;
         assert(x >= 0);
     }
-    if (x != 0) {
+    if (x != 0)
         num_bits = e;
-        num_bits += log(x)/log(2) + 1;
-    }
     else
         num_bits = 0;
 
@@ -1949,10 +1947,10 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
         goto Err1;
     }
     r = _PyLong_AsByteArray((PyLongObject *)v,
-                        (unsigned char *)buf,
-                        num_bytes,
-                        1, /* little_endian */
-                        0  /* is_signed */);
+                            (unsigned char *)buf,
+                            num_bytes,
+                            1, /* little_endian */
+                            0  /* is_signed */);
     if (r == -1) goto Err1;
 #if NyBits_IS_BIG_ENDIAN
     {
@@ -1966,7 +1964,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     r = mutbitset_iop_bits(ms, op, 0, buf, num_poses);
     if (!r && cpl)
         r = mutbitset_iop_complement(ms);
-    Err1:
+Err1:
     PyMem_Del(buf);
     Py_XDECREF(w);
     return r;
