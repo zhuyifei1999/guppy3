@@ -1,3 +1,28 @@
+    Version 3.0.5
+
+2019-09-07  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Wheel binary compatibility fix for Python >= 3.7, < 3.7.4:
+      Use PyObject_GC_UnTrack instead of _PyObject_GC_UNTRACK
+
+2019-09-06  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * xmemstats: Resolve availability of most information at run time
+    * Minor bug fixes
+
+2019-09-05  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Prefix thread states with interpreter number in RootState
+    * Minor bug fixes
+
+2019-09-04  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Make first heap call faster by making an IdentitySet of a single
+      object instead of the entire heap during initialization
+    * Use _PySys_GetSizeOf as default size getter
+    * Allow xt_hd_traverse to be KeyboardInterrupt-ed
+    * Minor bug fixes
+
     Version 3.0.4
 
 2019-09-01  YiFei Zhu  <zhuyifei1999@gmail.com>

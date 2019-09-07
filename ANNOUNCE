@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.0.4
+I am happy to announce Guppy 3 3.0.5
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -12,11 +12,11 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The main news in this release:
 
-o A error message is now displayed pointing to guppy-pe if the package is
-  installed in Python 2, and a warning is now displayed if the package is
-  installed in non-CPython.
-o Profile Browser is now able to load data dumps and how to perform a dump
-  is documented.
+o Wheel binary compatibility fix for Python >= 3.7, < 3.7.4
+o Prefix thread states with interpreter number in RootState
+o Made first heap call faster
+o Use _PySys_GetSizeOf as default size getter
+o Allow xt_hd_traverse to be KeyboardInterrupt-ed
 
 License: MIT
 
