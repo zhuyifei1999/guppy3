@@ -29,7 +29,7 @@ typedef struct {
 static void
 immnsiter_dealloc(NyImmNodeSetIterObject *it)
 {
-    _PyObject_GC_UNTRACK(it);
+    PyObject_GC_UnTrack(it);
     Py_TRASHCAN_SAFE_BEGIN(it)
         Py_XDECREF(it->nodeset);
         PyObject_GC_Del(it);
@@ -221,7 +221,7 @@ immnodeset_gc_clear(NyNodeSetObject *v)
 static void
 immnodeset_dealloc(NyNodeSetObject *v)
 {
-    _PyObject_GC_UNTRACK(v);
+    PyObject_GC_UnTrack(v);
     Py_TRASHCAN_SAFE_BEGIN(v)
     immnodeset_gc_clear(v);
     Py_TYPE(v)->tp_free((PyObject *)v);

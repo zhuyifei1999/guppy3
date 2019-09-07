@@ -388,7 +388,7 @@ mutnodeset_gc_clear(NyNodeSetObject *v)
 static void
 mutnodeset_dealloc(NyNodeSetObject *v)
 {
-    _PyObject_GC_UNTRACK(v);
+    PyObject_GC_UnTrack(v);
     Py_TRASHCAN_SAFE_BEGIN(v)
     mutnodeset_gc_clear(v);
     Py_TYPE(v)->tp_free((PyObject *)v);

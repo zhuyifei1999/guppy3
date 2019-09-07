@@ -27,7 +27,7 @@ typedef struct {
 static void
 ngiter_dealloc(NyNodeGraphIterObject *it)
 {
-    _PyObject_GC_UNTRACK(it);
+    PyObject_GC_UnTrack(it);
     Py_XDECREF(it->nodegraph);
     PyObject_GC_Del(it);
 }
@@ -112,7 +112,7 @@ ng_dealloc(PyObject *v)
     NyNodeGraphObject *ng = (void *)v;
     Py_ssize_t i;
     Py_TRASHCAN_SAFE_BEGIN(v)
-    _PyObject_GC_UNTRACK(v);
+    PyObject_GC_UnTrack(v);
     ng_gc_clear(ng);
     for (i = 0; i < ng->used_size; i++) {
         Py_DECREF(ng->edges[i].src);

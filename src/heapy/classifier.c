@@ -38,7 +38,7 @@ NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject 
 static void
 cli_dealloc(NyObjectClassifierObject *op)
 {
-    _PyObject_GC_UNTRACK(op);
+    PyObject_GC_UnTrack(op);
     Py_TRASHCAN_SAFE_BEGIN(op)
     Py_XDECREF(op->self);
     PyObject_GC_Del(op);
