@@ -54,10 +54,6 @@ The new interpreter and thread is started in a new environment.  This
 environment consists of a new '__main__' module, with the optional
 locals dict as local variables.
 ....d
-The site-specific initializations are not automatically made. To do
-that, 'import site' could be used as the first statement in the
-command string.
-....d
 The interpreter() function will return after the new thread structure
 has been created. The command will execute sooner or later.  The
 thread will terminate, and the interpreter structure be deallocated,
@@ -101,7 +97,7 @@ terminated.
 ..d
 ...p
 A HeapView object provides methods to get memory related information
-about the system heap and about individual objects. 
+about the system heap and about individual objects.
 
 ...p
 It implements much of the low-level functionality for the Heapy
@@ -148,7 +144,7 @@ See also the ObjectClassifier type.
 ...label: Individual size
 ...h3: Individual size.
 ...p
-The individual size of an object is its individually allocated memory size. 
+The individual size of an object is its individually allocated memory size.
 
 ...p
 It includes:
@@ -241,7 +237,7 @@ object's individual memory size.
 ....returns: ObjectClassifier
 .....d: a classifier that classifies by Referrer Classification Set.
 .....d: The classification of an object is the classifications of its
-referrers, collected in an immutable NodeSet object. 
+referrers, collected in an immutable NodeSet object.
 
 ....arg: referrers: NodeGraph+
 .....d: Used to map each object to its referrers.
@@ -578,6 +574,3 @@ specified as pairs of the form (source, target).
 ....d: a copy of NG updated with the edges from X,
 specified as pairs of the form (source, target).
 ...arg: X:iterable+
-
-
-
