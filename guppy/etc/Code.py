@@ -1,6 +1,3 @@
-# ._cv_part guppy.etc.Code
-
-
 def co_code_findloadednames(co):
     """Find in the code of a code object, all loaded names.
     (by LOAD_NAME, LOAD_GLOBAL or LOAD_FAST) """

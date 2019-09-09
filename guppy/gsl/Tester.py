@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Tester
-
-
 class Doc2Tester:
     def __init__(self, mod, doc, node):
         self.mod = mod
@@ -374,10 +371,6 @@ class TestOf(Doc2Tester):
             if a in ex_map:
                 return ex_map[a]
             x = self.parent.get_example_expr(a)
-            if 0:
-                name = 'ex_%d' % len(ex_map)
-                ex_setup.append('%s = %s' % (name, x))
-                x = name
             usage = a.get_use_text(x)
             ex_map[a] = usage
             return usage
@@ -474,15 +467,8 @@ class TestOf(Doc2Tester):
         tester.get_arrow_name = get_arrow_name
 
         object_tester = tester.get_object_tester(self.kind.get_id_name())
-        if 0:
-            print('kind: ', self.kind.get_id_name())
-            print('objects', objects)
-            print('arrows', arrows)
-
-        # print 'test code:'
 
         icode = object_tester.get_intermediate_test_code()
-        # print 'icode', icode
 
         e_names = {}
         e_name_no = [0]
@@ -680,10 +666,6 @@ class TestOf(Doc2Tester):
         for a in alla:
             for i in range(1, len(a)+1):
                 at_of_pre(a[:i])
-
-        # print init
-        # set_trace()
-        # print ats
 
         trav(init)
 

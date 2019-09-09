@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.AbstractAlgebra
-
 import unittest
 from guppy.heapy.test import support
 
@@ -662,43 +660,40 @@ class _Specification_:
 
     class LocalEnvExpr:
         exec("""\
-if 1:
-    binary_operation_name       <is> equals(
-        '+', '-', '*', '/', '%', '|', '&', '**', '<<', '>>')
-    algebraic_class     <is>    (setof(Type.Tuple) &
-                                 attr('new', callable))
+binary_operation_name       <is> equals(
+    '+', '-', '*', '/', '%', '|', '&', '**', '<<', '>>')
+algebraic_class     <is>    (setof(Type.Tuple) &
+                             attr('new', callable))
 
 
-    relation_class      <is>    (setof( setof(any*any) |
-                                        Type.Tuple))
+relation_class      <is>    (setof( setof(any*any) |
+                                    Type.Tuple))
 
-    relational_operator_name <is>       equals(
-    '<', '<=', '>', '>=', '==', '!=', 'in', 'not in', 'is', 'is not')
+relational_operator_name <is>       equals(
+'<', '<=', '>', '>=', '==', '!=', 'in', 'not in', 'is', 'is not')
 """.replace('<is>', ' = lambda IS: '))
 
     class GlueTypeExpr:
         exec("""
-if 1:
-    abelian_group       <in>     setof(AA.group)
-    associative         <in>    setof(AA.binary_operation)
-    binary_operation    <in>     doc('''
+abelian_group       <in>     setof(AA.group)
+associative         <in>    setof(AA.binary_operation)
+binary_operation    <in>     doc('''
 A \emp{binary operation} $*$ on a set $S$ is a function $*: S \cross S \mapsto S$.
 The element in $S$ assigned to $(x, y)$ is denoted $x*y$.
 \citemh(p.21)
 ''') & LE.algebraic_class
-    boolean_algebra     <in>    LE.algebraic_class
-    commutative         <in>    LE.algebraic_class
-    distributive        <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
-    distributive_1      <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
-    distributive_2      <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
-    field               <in>    LE.algebraic_class
-    group               <in>    (LE.algebraic_class & doc('''
+boolean_algebra     <in>    LE.algebraic_class
+commutative         <in>    LE.algebraic_class
+distributive        <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
+distributive_1      <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
+distributive_2      <in>    setof(cprod(AA.binary_operation, AA.binary_operation))
+field               <in>    LE.algebraic_class
+group               <in>    (LE.algebraic_class & doc('''
 '''     ))
-    monoid              <in>    LE.algebraic_class
-    ring                <in>    (LE.algebraic_class,
-                                attr('new', argnames('S', 'add', 'mul', 'neg', 'zero')))
-    semigroup           <in>    LE.algebraic_class
-
+monoid              <in>    LE.algebraic_class
+ring                <in>    (LE.algebraic_class,
+                            attr('new', argnames('S', 'add', 'mul', 'neg', 'zero')))
+semigroup           <in>    LE.algebraic_class
 """.replace('<in>', '= lambda IN:'))
 
 # Relations and functions
@@ -757,27 +752,26 @@ The element in $S$ assigned to $(x, y)$ is denoted $x*y$.
 
     class GlueTypeExpr:
         exec("""\
-if 1:
-    reflexive           <in>    doc('x R x for every x in A',
-                                AA.LE.relation_class)
-    symmetric           <in>    doc('x R y implies y R x, for all x, y in A',
-                                AA.LE.relation_class)
-    transitive          <in>    doc('x R y, y R z implies x R z, for all x, y, z in A',
-                                AA.LE.relation_class)
-    irreflexive         <in>    doc('not (x R y), for all x in A',
-                                AA.LE.relation_class)
-    antisymmetric       <in>    doc('x R y, y R x implies x == y, for all x, y in A',
-                                AA.LE.relation_class)
-    total_relation      <in>    doc('x R y or y R x, for all x, y in A',
-                                AA.LE.relation_class)
-    equivalence_relation<in>    doc('Reflexive, symmetric and transitive',
-                                AA.LE.relation_class)
-    partial_order       <in>    doc('Reflexive, antisymmetric and transitive',
-                                AA.LE.relation_class)
-    total_order         <in>    doc('Partial order and x R y or y R x, for all x, y in A',
-                                AA.LE.relation_class)
+reflexive           <in>    doc('x R x for every x in A',
+                            AA.LE.relation_class)
+symmetric           <in>    doc('x R y implies y R x, for all x, y in A',
+                            AA.LE.relation_class)
+transitive          <in>    doc('x R y, y R z implies x R z, for all x, y, z in A',
+                            AA.LE.relation_class)
+irreflexive         <in>    doc('not (x R y), for all x in A',
+                            AA.LE.relation_class)
+antisymmetric       <in>    doc('x R y, y R x implies x == y, for all x, y in A',
+                            AA.LE.relation_class)
+total_relation      <in>    doc('x R y or y R x, for all x, y in A',
+                            AA.LE.relation_class)
+equivalence_relation<in>    doc('Reflexive, symmetric and transitive',
+                            AA.LE.relation_class)
+partial_order       <in>    doc('Reflexive, antisymmetric and transitive',
+                            AA.LE.relation_class)
+total_order         <in>    doc('Partial order and x R y or y R x, for all x, y in A',
+                            AA.LE.relation_class)
 
-    lattice             <in>    attr('quadruple', doc('''\
+lattice             <in>    attr('quadruple', doc('''\
 Tuples (S, R, V, A), where:
         S:      set or convertible to set, i.e. 'setcastable'
         R:      relation operator on S
@@ -799,15 +793,15 @@ For example, these are lattice specifications:
 (int, '<=', min, max)
 (int, lambda x, y: x & y == x, '&', '|')
 
-''',                            setof(tupleform(
-                        ('S', 'R', 'V', 'A'),
-                        attr('S', SPLE.setcastable) &
-                        expset('''\
+''',                        setof(tupleform(
+                    ('S', 'R', 'V', 'A'),
+                    attr('S', SPLE.setcastable) &
+                    expset('''\
 attr('R', AA.LE.relational_operator_name | boolean<<(S, S)) &
 attr('V', AA.LE.binary_operation_name | setcast(S)<<(S, S)) &
 attr('A', AA.LE.binary_operation_name | setcast(S)<<(S, S))
 ''',                     'S')
-                        ))))
+                    ))))
 """.replace('<in>', '=lambda IN:'))
 
 
@@ -819,7 +813,6 @@ class FirstCase(TestCase):
     def test_1(self):
         Spec = self.heapy.Spec
         TestEnv = Spec.mkTestEnv(_Specification_)
-        # print SpecSpec.getstr(1000)
 
         TestEnv.test(self.guppy.heapy.AbstractAlgebra)
 

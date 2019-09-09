@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.test.test_dependencies
-
 # Test the libraries we are dependent on
 # Only sets right now.
 

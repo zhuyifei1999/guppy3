@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy.View
-
-
 class Horizon:
     def __init__(self, mod):
         self.mod = mod
@@ -106,7 +103,6 @@ class _GLUECLAMP_:
                 c.cb.callback = None
 
     def clear_callback(self, wr):
-        # print 'clear callback'
         self._clear_hook.clear()
         for m in self.clear_methods:
             m()
@@ -131,12 +127,9 @@ class _GLUECLAMP_:
         drg = self.nodegraph()
 
         def clear_drg():
-            # print 'clear_drg?'
             if drg.is_sorted and self._is_clear_drg_enabled:
-                # print 'yes'
                 drg.clear()
             else:
-                # print 'no, enabled = ', self.is_clear_drg_enabled
                 pass
         self.clear_register_method(clear_drg)
         return drg
@@ -181,11 +174,9 @@ class _GLUECLAMP_:
             return
         rg = self.rg
         if rg.is_sorted:
-            # print 'clearing', rg
             rg.clear()
             self.norefer.clear()
         else:
-            # print 'no clear', rg, len(rg), len(self.norefer)
             pass
 
     def _get_referrers_lock(self): return 0
@@ -460,19 +451,13 @@ any of the objects in the set X."""
         if self.is_rg_update_all and self.root is self.heapyc.RootState:
             if not (self.rg.domain_covers(X) or
                     self.rg.domain_covers(X - self.norefer)):
-                # print 'new update old len = %d'%len(self.rg)
-                # print self.idset(X-self.rg.get_domain())
                 self.rg.clear()
                 import gc
                 gc.collect()
                 self.hv.update_referrers_completely(self.rg)
                 addnoref = X - self.rg.get_domain()
-                # print 'done 1', len(X), len(addnoref)
                 self.norefer |= addnoref
-                # print 'done 1a', len(self.rg)
         else:
-            # print 'X', X, len(X)
-            # print self.idset(X)
             Y = self.mutnodeset(X)
             Y -= self.norefer
             if not self.rg.domain_covers(Y):
@@ -480,9 +465,6 @@ any of the objects in the set X."""
                     t = wt()
                     if t is not None:
                         Y |= t.set.nodes
-                if 0:
-                    print('old update')
-                    print(self.idset(Y - self.rg.get_domain()))
                 Y |= self.rg.get_domain()
                 self.rg.clear()
                 self.hv.update_referrers(self.rg, Y)
@@ -494,8 +476,6 @@ any of the objects in the set X."""
                     print('update_referrers failed')
                     print('Y - domain of rg:')
                     print(self.idset(Y - self.rg.get_domain()))
-                    from pdb import pm, set_trace
-                    set_trace()
 
                 Y = None
 

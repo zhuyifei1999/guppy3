@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.FileIO
-
-
 class TestPath:
     _path_using_io = (
         'abspath', 'curdir', 'exists', 'expanduser', 'expandvars',

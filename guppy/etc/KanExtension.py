@@ -1,6 +1,3 @@
-# ._cv_part guppy.etc.KanExtension
-
-
 class LeftKanExtension:
 
     # Implementation of algorithms described by Brown and Heyworth (ref.251)
@@ -39,10 +36,7 @@ class LeftKanExtension:
     def general_procedure(self):
         self.initialize_tables()
         self.make_confluent_system()
-        if 0:
-            self.make_catalogue()
-        else:
-            self.make_automaton()
+        self.make_automaton()  # self.make_catalogue()
         self.make_natural_transformation()
 
     def initialize_tables(self):
@@ -231,8 +225,6 @@ class LeftKanExtension:
                 KB[target(e)].append(e)
             else:
                 pass
-                # print e, self
-                # pdb.set_trace()
 
         KB = dict([(B, []) for B in self.B.objects])
         block = []

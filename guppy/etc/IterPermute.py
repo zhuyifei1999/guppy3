@@ -1,5 +1,4 @@
 from functools import reduce
-# ._cv_part guppy.etc.IterPermute
 
 
 def iterpermute(*args):

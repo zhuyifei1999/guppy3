@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Console
-
 import code
 
 

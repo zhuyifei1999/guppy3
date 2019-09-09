@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.etc
-
 from io import StringIO
 
 
@@ -37,8 +35,7 @@ def reptable(tb):
                 if fillright:
                     s = fill + s
                 else:
-                    if 1 or i + 1 < len(r):
-                        s = s + fill
+                    s = s + fill
                 so += s + ' '
             out.append(so)
     return maxlens, out

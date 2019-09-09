@@ -1,4 +1,3 @@
-# ._cv_part guppy.heapy.Path
 import functools
 
 from guppy.etc.Descriptor import property_nondata
@@ -593,7 +592,5 @@ class _GLUECLAMP_:
 class _Specification_:
     class GlueTypeExpr:
         exec("""\
-if 1:
-        shpgraph        <in>    callable
-
+shpgraph        <in>    callable
 """.replace('<in>', ' = lambda IN : '))

@@ -1,5 +1,3 @@
-# ._cv_part guppy.gsl.Main
-
 from guppy.etc.Descriptor import property_nondata
 from guppy.gsl.Exceptions import *
 
@@ -893,9 +891,6 @@ class Superkind(Definition):
     d_sub = ('comment', 'description', 'example', 'superkind_of')
 
     def get_local_name(self):
-        if 0:  # hmm xxx why was this?
-            if not self.aspects:
-                return '<nothing+>'
         return self.srclastname
 
 
@@ -1111,7 +1106,6 @@ class ArgsExample:
         map = self.mapping
 
         pres = map.find_aspects('precondition')
-        # print 'map', map, map.d_tag
         if pres:
             # set_trace()
             for a in kind.find_aspects('attribute'):
@@ -1122,7 +1116,6 @@ class ArgsExample:
                     match = self.match_to(m.find_aspects('postcondition'))
                     if match is not None:
                         # found one
-                        # print 'found precondition, match = ', match
                         args = m.get_args_for_args(self, match)
                         return [SetUp(a.get_attr_name(), args)]
                         break
@@ -2242,8 +2235,3 @@ class _GLUECLAMP_:
     def set_input_dir(self, dir):
         dir = self.IO.path.abspath(dir)
         self.input_dir = dir
-
-
-if 0 or __name__ == '__main__':
-    from guppy import Root
-    Root().guppy.gsl.Main._test_main_()

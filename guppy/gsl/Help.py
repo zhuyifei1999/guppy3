@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Help
-
-
 class _GLUECLAMP_:
     _imports_ = (
         '_root:os',

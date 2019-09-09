@@ -156,10 +156,8 @@ class GCCase(TestCase):
 
         def clear_drg():
             if drg.is_sorted:
-                # print 'yes'
                 drg.clear()
             else:
-                # print 'no'
                 pass
         _clear_drg_hook = View.gchook(clear_drg)
 
@@ -256,7 +254,6 @@ class AltHeapCase(TestCase):
         # Get possible containers
 
         oc = idset(self.View.observation_containers())
-        # print oc
 
         self.assertTrue(iso(a.nodes, b, c) <= oc)
         self.assertTrue(not (iso(excla, exclb) & oc))

@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.test.test_ER
-
 # Tests of equivalence relations.
 
 # These are also tested by test_Classifiers.
@@ -18,340 +16,323 @@ class TestCase(support.TestCase):
 
 
 class FirstCase(TestCase):
-    if 1:
+    def test_1(self):
+        hp = self.heapy.Use
+        hp.reprefix = 'hp.'
 
-        def test_1(self):
-            hp = self.heapy.Use
-            hp.reprefix = 'hp.'
+        a = hp.iso(1, '', 'asdf', 3.4, 3.7, 2)
 
-            a = hp.iso(1, '', 'asdf', 3.4, 3.7, 2)
+        ts = (hp.Type & hp.Size)
+        k = ts[a]
 
-            ts = (hp.Type & hp.Size)
-            k = ts[a]
-            # print  'k', k, 'ts', ts
+        # From Sep 1-2 2005
+        # (h&dict).by(hp.Id.dictof&hp.Size)._get_partition()
+        # (h&dict).by((hp.Type&hp.Size).dictof&hp.Size)
 
-            # From Sep 1-2 2005
-            # (h&dict).by(hp.Id.dictof&hp.Size)._get_partition()
-            # (h&dict).by((hp.Type&hp.Size).dictof&hp.Size)
+        # These require with_referrers of refby/via classifier
+        # after gc collect referrers graph will be empty
+        # (h).by(hp.Module.refby.dictof)
+        # (h).by(hp.Via.dictof)
 
-            # These require with_referrers of refby/via classifier
-            # after gc collect referrers graph will be empty
-            # (h).by(hp.Module.refby.dictof)
-            # (h).by(hp.Via.dictof)
+        # How to construct RCS / refby
 
-            # How to construct RCS / refby
+        # self.aseq(hp.Type.refby(int, list) , hp.Type.refby(list, int)
 
-            # self.aseq(hp.Type.refby(int, list) , hp.Type.refby(list, int)
+        class C:
+            pass
 
-            class C:
-                pass
+        di = hp.iso(C.__dict__, [])
+        import types
 
-            di = hp.iso(C.__dict__, [])
-            import types
+        # db = di.by('Rcs')
+        # for i in (0, 1):
+        #     rk = repr(db[i].kind)
+        #     ek = eval(rk)
+        #     self.aseq(ek, db[i].kind)
+        #     self.aseq(db & ek, db[i])
 
-            # db = di.by('Rcs')
-            # for i in (0, 1):
-            #
-            #     rk = repr(db[i].kind)
-            #     # print rk
-            #     ek = eval(rk)
-            #     self.aseq(ek, db[i].kind)
-            #     # print db & ek
-            #     self.aseq(db & ek, db[i])
+    def test_2(self):
+        ' Systematically test all kind constructors: '
+        # wrt repr and evaluation of repr
 
-        def test_2(self):
-            ' Systematically test all kind constructors: '
-            # wrt repr and evaluation of repr
+        hp = self.heapy.Use
+        hp.reprefix = 'hp.'
 
-            hp = self.heapy.Use
-            hp.reprefix = 'hp.'
+        class C:
+            pass
 
-            class C:
-                pass
+        class T(object):
+            pass
 
-            class T(object):
-                pass
+        c = C()
+        t = T()
+        import sys
 
-            c = C()
-            t = T()
-            import sys
+        for s in (
+            'hp.Clodo(dictof=C)',
+            'hp.Clodo(dictof=T)',
+            'hp.Clodo(dictof=())',
+            'hp.Clodo(C)',
+            'hp.Clodo(T)',
+            'hp.Id(id(c))',
+            'hp.Module("sys")',
+            'hp.Rcs(hp.Clodo.sokind(int)(dictof=C))',
+            'hp.Size(hp.iso(c).indisize)',
+            'hp.Size(hp.iso(C).indisize).dictof',
 
-            for s in (
-                'hp.Clodo(dictof=C)',
-                'hp.Clodo(dictof=T)',
-                'hp.Clodo(dictof=())',
-                'hp.Clodo(C)',
-                'hp.Clodo(T)',
-                'hp.Id(id(c))',
-                'hp.Module("sys")',
-                'hp.Rcs(hp.Clodo.sokind(int)(dictof=C))',
-                'hp.Size(hp.iso(c).indisize)',
-                'hp.Size(hp.iso(C).indisize).dictof',
+            'hp.Type(T)',
+            'hp.Type(int)',
 
-                'hp.Type(T)',
-                'hp.Type(int)',
+            'hp.Unity()',
 
-                'hp.Unity()',
+            'hp.Via()',
+            # Via is also specially tested below
+        ):
+            x = eval(s)
+            rx = repr(x)
+            self.aseq(eval(rx), x)
 
-                'hp.Via()',
-                # Via is also specially tested below
-            ):
-                x = eval(s)
-                rx = repr(x)
-                self.aseq(eval(rx), x)
+        for i, s in enumerate((
+            # Test Via construction.
+            # One test for each relation kind defined in Path except IDENTITY and RELSRC.
+            # In code order.
+            "hp.Via('_.x')",
+            "hp.Via('_[0]')",
+            "hp.Via('_.keys()[0]')",
+            "hp.Via('_->abc')",
+            "hp.Via('_.__dict__.keys()[0]')",
+            "hp.Via('_.f_locals[\"abc\"]')",
+            "hp.Via('_.f_locals [\"abc\"]')",
+            "hp.Via('_->f_valuestack[0]')",
+        )):
+            code = i + 1
+            x = eval(s)
+            rel = list(x.arg)[0]
+            self.aseq(rel.kind, code)
+            rx = repr(x)
+            self.aseq(eval(rx), x)
 
-            for i, s in enumerate((
-                # Test Via construction.
-                # One test for each relation kind defined in Path except IDENTITY and RELSRC.
-                # In code order.
-                "hp.Via('_.x')",
-                "hp.Via('_[0]')",
-                "hp.Via('_.keys()[0]')",
-                "hp.Via('_->abc')",
-                "hp.Via('_.__dict__.keys()[0]')",
-                "hp.Via('_.f_locals[\"abc\"]')",
-                "hp.Via('_.f_locals [\"abc\"]')",
-                "hp.Via('_->f_valuestack[0]')",
-            )):
-                code = i + 1
-                x = eval(s)
-                rel = list(x.arg)[0]
-                self.aseq(rel.kind, code)
-                rx = repr(x)
-                self.aseq(eval(rx), x)
+    def test_3(self):
+        ' Test of dictof '
+        # Test of dictof on something that requires memoization, i.e. Size, & (and)
 
-        def test_3(self):
-            ' Test of dictof '
-            # Test of dictof on something that requires memoization, i.e. Size, & (and)
+        hp = self.heapy.Use
 
-            hp = self.heapy.Use
+        class C:
+            pass
 
-            class C:
-                pass
+        class T(object):
+            # The test works only if sizes of objects of class C and T differ.
+            # At first test, T() was 4 bytes smaller than C().
+            # This might be brittle with different systems.
+            # This is to make sure this diff gets significantly bigger:
+            __slots__ = '__dict__', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
 
-            class T(object):
-                # The test works only if sizes of objects of class C and T differ.
-                # At first test, T() was 4 bytes smaller than C().
-                # This might be brittle with different systems.
-                # This is to make sure this diff gets significantly bigger:
-                __slots__ = '__dict__', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
-
-            c = C()
-            t = T()
-            dn = {}
-            isod = hp.iso(c.__dict__, t.__dict__, dn)
-            for x in (
-                    t, c):
-                X = x.__class__
-                for k in (
-                    hp.Clodo(dictof=X),
-                    hp.Size(hp.iso(x).indisize).dictof,
-                    hp.iso(x).bysize.kind.dictof,
-                    hp.iso(x.__dict__).kind,
-                ):
-                    self.aseq(isod & k,  hp.iso(x.__dict__))
-
-            # Test no-owner selection
+        c = C()
+        t = T()
+        dn = {}
+        isod = hp.iso(c.__dict__, t.__dict__, dn)
+        for x in (
+                t, c):
+            X = x.__class__
             for k in (
-                hp.Nothing.dictof,
+                hp.Clodo(dictof=X),
+                hp.Size(hp.iso(x).indisize).dictof,
+                hp.iso(x).bysize.kind.dictof,
+                hp.iso(x.__dict__).kind,
             ):
-                self.aseq(isod & k, hp.iso(dn))
+                self.aseq(isod & k,  hp.iso(x.__dict__))
 
-        def test_4(self):
-            ' Test of via '
-            # Esp. representation, construction
+        # Test no-owner selection
+        for k in (
+            hp.Nothing.dictof,
+        ):
+            self.aseq(isod & k, hp.iso(dn))
 
-            class C:
-                pass
+    def test_4(self):
+        ' Test of via '
+        # Esp. representation, construction
 
-            c = C()
-            hp = self.heapy.Use
+        class C:
+            pass
 
-            isod = hp.iso(c.__dict__)
+        c = C()
+        hp = self.heapy.Use
 
-            x = isod.by('Via').kind
-            self.aseq(repr(x), "hpy().Via('.__dict__')")
-            # print repr(x)
+        isod = hp.iso(c.__dict__)
 
-        def test_5(self):
-            ' Non-systematic tests that came up around Sep 14 2005 '
+        x = isod.by('Via').kind
+        self.aseq(repr(x), "hpy().Via('.__dict__')")
 
-            class C:
-                pass
+    def test_5(self):
+        ' Non-systematic tests that came up around Sep 14 2005 '
 
-            c = C()
-            d = {}
-            cref = [c]
-            cref.append(cref)
-            c.cref = cref
-            hp = self.heapy.Use
-            hp.reprefix = 'hp.'
+        class C:
+            pass
 
-            # I thought these should be the same
-            a = hp.iso(C, c, c.__dict__, d)
-            b = hp.iso(C, c, c.__dict__, d)
-            self.aseq(a, b)
+        c = C()
+        d = {}
+        cref = [c]
+        cref.append(cref)
+        c.cref = cref
+        hp = self.heapy.Use
+        hp.reprefix = 'hp.'
 
-            # This is a kind of nested refdby that has been a concern lately
-            # -- how to represent it
+        # I thought these should be the same
+        a = hp.iso(C, c, c.__dict__, d)
+        b = hp.iso(C, c, c.__dict__, d)
+        self.aseq(a, b)
 
-            s = hp.iso(C.__dict__, C, c, c.__dict__,
-                       d).by(hp.Clodo.refdby.refdby)
-            # print s
+        # This is a kind of nested refdby that has been a concern lately
+        # -- how to represent it
 
-            for i in range(len(s)):
-                a = s[i].kind
-                ra = repr(a)
-                # print ra
-                era = eval(ra)
-                self.aseq(a, era)
+        s = hp.iso(C.__dict__, C, c, c.__dict__,
+                   d).by(hp.Clodo.refdby.refdby)
 
-                self.aseq(s & era,
-                          s[i])
+        for i in range(len(s)):
+            a = s[i].kind
+            ra = repr(a)
+            era = eval(ra)
+            self.aseq(a, era)
 
-            import sys
+            self.aseq(s & era,
+                      s[i])
 
-            p = sys.path
-            del sys
+        import sys
 
-            s = hp.iso(p)
-            x = s.by(hp.Module.dictof.refdby)
-            self.aseq(s & eval(repr(x.kind)), s)
+        p = sys.path
+        del sys
 
-        def test_6(self):
-            ' Test of .refdby on all others '
+        s = hp.iso(p)
+        x = s.by(hp.Module.dictof.refdby)
+        self.aseq(s & eval(repr(x.kind)), s)
 
-            class C:
-                pass
+    def test_6(self):
+        ' Test of .refdby on all others '
 
-            c = C()
-            d = {}
-            cref = [c]
-            cref.append(cref)
-            c.cref = cref
+        class C:
+            pass
 
-            hp = self.heapy.Use
-            hp.reprefix = 'hp.'
+        c = C()
+        d = {}
+        cref = [c]
+        cref.append(cref)
+        c.cref = cref
 
-            import sys
-            s = hp.iso(C.__dict__, C, c, c.__dict__, d, sys)
+        hp = self.heapy.Use
+        hp.reprefix = 'hp.'
 
-            for pre in (
-                'Unity',
-                'Clodo',
-                'Id',
-                'Module',
-                ('Rcs', 0),
-                'Size',
-                'Type',
-                'Via'
-            ):
-                if isinstance(pre, tuple):
-                    pre, level = pre
-                else:
-                    level = 1
-                er = getattr(hp, pre)
-                self.er_test(er, s, level)
+        import sys
+        s = hp.iso(C.__dict__, C, c, c.__dict__, d, sys)
 
-        def er_test(self, er, set, level=1):
-            # Tests what any eqv. rel. er should do
-            hp = self.heapy.Use
+        for pre in (
+            'Unity',
+            'Clodo',
+            'Id',
+            'Module',
+            ('Rcs', 0),
+            'Size',
+            'Type',
+            'Via'
+        ):
+            if isinstance(pre, tuple):
+                pre, level = pre
+            else:
+                level = 1
+            er = getattr(hp, pre)
+            self.er_test(er, s, level)
 
-            rer = repr(er)
-            # print rer
-            self.aseq(eval(rer), er)
+    def er_test(self, er, set, level=1):
+        # Tests what any eqv. rel. er should do
+        hp = self.heapy.Use
 
-            for s in (set,):
-                sby = s.by(er)
-                sk = sby.kind
-                rsk = repr(sk)
-                # print rsk
-                ske = eval(rsk)
+        rer = repr(er)
+        self.aseq(eval(rer), er)
 
-                self.aseq(ske, sk, -1)
-                self.aseq(s & sk, s, -1)
-                self.aseq(s & ske, s, -1)
+        for s in (set,):
+            sby = s.by(er)
+            sk = sby.kind
+            rsk = repr(sk)
+            ske = eval(rsk)
 
-            # That it can do .refdby
+            self.aseq(ske, sk, -1)
+            self.aseq(s & sk, s, -1)
+            self.aseq(s & ske, s, -1)
 
-            er_refdby = er.refdby
+        # That it can do .refdby
 
-            # That it can do .dictof
+        er_refdby = er.refdby
 
-            er_dictof = er.dictof
+        # That it can do .dictof
 
-            if level > 0:
-                self.er_test(er_refdby, set, level - 1)
-                self.er_test(er_dictof, set, level - 1)
+        er_dictof = er.dictof
 
-        def test_7(self):
-            ' Test of alternative sets w. biper '
+        if level > 0:
+            self.er_test(er_refdby, set, level - 1)
+            self.er_test(er_dictof, set, level - 1)
 
-            hp = self.heapy.Use
+    def test_7(self):
+        ' Test of alternative sets w. biper '
 
-            class C:
-                pass
+        hp = self.heapy.Use
 
-            class D(C):
-                pass
+        class C:
+            pass
 
-            class E(D):
-                pass
+        class D(C):
+            pass
 
-            class T(object):
-                pass
+        class E(D):
+            pass
 
-            class U(T):
-                pass
+        class T(object):
+            pass
 
-            class V(U):
-                pass
+        class U(T):
+            pass
 
-            c = C()
-            d = D()
-            e = E()
-            t = T()
-            u = U()
-            v = V()
+        class V(U):
+            pass
 
-            s = hp.iso([], {}, c, d, e, t, u, v, d.__dict__)
+        c = C()
+        d = D()
+        e = E()
+        t = T()
+        u = U()
+        v = V()
 
-            for k in (
-                hp.Size(32),
-                hp.Type(U),
-            ):
+        s = hp.iso([], {}, c, d, e, t, u, v, d.__dict__)
 
-                lt = k.alt('<')
-                le = k.alt('<=')
-                ge = k.alt('>=')
-                gt = k.alt('>=')
-                ne = k.alt('!=')
-                assert (s & le) & (s & ge) == s & k
+        for k in (
+            hp.Size(32),
+            hp.Type(U),
+        ):
 
-                for a in (lt, le, ge, gt, ne, le & ~k):
-                    s & a
-                    # print s.by(a.biper)
-                    # print s.by(a.biper)[0].kind
-                    # print s.by(a.biper)[1].kind
-                    # print s & a
+            lt = k.alt('<')
+            le = k.alt('<=')
+            ge = k.alt('>=')
+            gt = k.alt('>=')
+            ne = k.alt('!=')
+            assert (s & le) & (s & ge) == s & k
 
-            import gc
+            for a in (lt, le, ge, gt, ne, le & ~k):
+                s & a
 
-            gc.collect()
+        import gc
 
-            a = s.by(k.alt('>=').biper)
-            b = s.by(k.alt('>=').biper)
-            # print a
-            self.assertTrue(hp.iso(d.__dict__) <= a[0])
-            self.assertTrue(a == b)
+        gc.collect()
 
-            gc.collect()
+        a = s.by(k.alt('>=').biper)
+        b = s.by(k.alt('>=').biper)
+        self.assertTrue(hp.iso(d.__dict__) <= a[0])
+        self.assertTrue(a == b)
 
-            a = s.by(k.alt('<=').biper)
-            b = s.by(k.alt('<=').biper)
-            # print a
-            self.assertTrue(hp.iso(d.__dict__) <= a[0])
-            self.assertTrue(a == b)
+        gc.collect()
+
+        a = s.by(k.alt('<=').biper)
+        b = s.by(k.alt('<=').biper)
+        self.assertTrue(hp.iso(d.__dict__) <= a[0])
+        self.assertTrue(a == b)
 
     def test_8(self):
         ' Test of findex and biper '
@@ -373,7 +354,6 @@ class FirstCase(TestCase):
             (hp.iso(c, li), 1),
         ):
             p = s.by(k.biper)
-            # print p
             self.aseq(p[i].kind.fam.classifier.kinds[0], k)
 
     def test_9(self):

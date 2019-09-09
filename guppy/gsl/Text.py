@@ -1,5 +1,3 @@
-# ._cv_part guppy.gsl.Text
-
 # Convert a node representation to text
 # in some different forms
 
@@ -666,7 +664,6 @@ class TableCell:
         self.get_width()
 
     def wrap_to_width(self, width):
-        # print 'wrap', width
         if width >= self.width:
             return
         self.gen_out(width)
@@ -719,17 +716,16 @@ class Table:
             # The longest?
             # All?
             gw = [Width / len(self.widths)]*len(self.widths)
-            if 1:
-                extra = 0
-                others = list(range(len(self.widths)))
-                for i, w in enumerate(self.widths):
-                    if w < gw[i]:
-                        extra += gw[i] - w
-                        gw[i] = w
-                        others.remove(i)
-                extra = int(extra / len(others))
-                for i in others:
-                    gw[i] += extra
+            extra = 0
+            others = list(range(len(self.widths)))
+            for i, w in enumerate(self.widths):
+                if w < gw[i]:
+                    extra += gw[i] - w
+                    gw[i] = w
+                    others.remove(i)
+            extra = int(extra / len(others))
+            for i in others:
+                gw[i] += extra
 
             widths = self.widths = gw
             for row in self.rows:

@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.test.support
-
 """Supporting definitions for the Heapy regression test.
 Addapted from Python standard module test_support.
 """

@@ -182,7 +182,6 @@ class TestHeapView(TestCase):
     def test_timing(self):
         # Test some timing aspects of heap traversal
 
-        # print 'timing..'
         from time import process_time as clock
         hv = self.hv
 
@@ -290,18 +289,17 @@ class TestLeak(support.TestCase):
         ns.add(rec)
         rec._hiding_tag_ = rec
 
-        if 1:
-            hv = heapyc.HeapView(root, heapdefs)
-            hv.register__hiding_tag__type(T)
-            h = hv.heap()
-            assert a in h
-            assert c in h
-            assert tonly in h
-            hv._hiding_tag_ = he
-            h = hv.heap()
-            del x
-            del h
-            del hv
+        hv = heapyc.HeapView(root, heapdefs)
+        hv.register__hiding_tag__type(T)
+        h = hv.heap()
+        assert a in h
+        assert c in h
+        assert tonly in h
+        hv._hiding_tag_ = he
+        h = hv.heap()
+        del x
+        del h
+        del hv
 
         ns.discard(rec)
         rec = None
@@ -352,11 +350,10 @@ class TestLeak(support.TestCase):
         root.append(t)
         root.append(u)
 
-        if 1:
-            hv = heapyc.HeapView(root, heapdefs)
-            x = hv.heap()
-            assert t in x
-            x = None
+        hv = heapyc.HeapView(root, heapdefs)
+        x = hv.heap()
+        assert t in x
+        x = None
 
         T = t = U = u = None
         root[:] = []
@@ -567,7 +564,6 @@ class TestClassifiers(TestCase):
             r = {str(i): x}
             rg.add_edge(x, r)
         c = cli.classify(x)
-        # print str_inrel(c)
 
 
 def test_main(debug=False):

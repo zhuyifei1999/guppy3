@@ -52,15 +52,11 @@ Set of 100 <float> objects. Total size = 1600 bytes.
             if s[-1].startswith('<'):
                 s.pop()
             s = [line[datapos:] for line in s]
-            # print s
             return s
 
         def aeq(x, y):
             self.aseq(ae(x), ae(y))
 
-        # print x
-        # print x[100:]
-        # print x[100:].byid
         for i in range(0, 300, 60):
             b = x[i:]
             aeq(b, b.byid)
@@ -129,21 +125,18 @@ class StatCase(support.TestCase):
         d = x.diff(y)
         self.aseq(d.count, 1)
         self.aseq(d[0].count, 1)
-        # print d
+
         d = y.diff(x)
         self.aseq(d.count, -1)
         self.aseq(d[0].count, -1)
-        # print d
 
         d = x.diff(hp.iso())
         self.aseq(d.count, 2)
         self.aseq(d[0].count, 2)
-        # print d
 
         d = hp.iso().diff(x)
         self.aseq(d.count, -2)
         self.aseq(d[0].count, -2)
-        # print d
 
 
 def test_main(debug=0):

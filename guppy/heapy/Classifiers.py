@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Classifiers
-
 from guppy.etc.Descriptor import property_nondata
 
 
@@ -45,7 +43,6 @@ class Classifier:
 
     def get_alt(self, kind, alt):
         # Get alternative kind for a kind with self as fam.classifier.
-        # assert kind.fam.classifier is self
         return self.mod.alt(kind, alt)
 
     def get_dictof(self, kind):
@@ -79,12 +76,6 @@ class Classifier:
     def get_sokindrepr(self, sokind):
         # Get the representation of a set of kinds
         # from this classifier / eqv. relation.
-
-        if 0:
-
-            return '%ssokind(%s)' % (self.mod.Use.reprefix,
-                                     ', '.join(['%r' % kind for kind in sokind.kinds]))
-
         return '%s.sokind%s' % (self.get_reprname(),
                                 ''.join(['(%s)' % self.get_userkindargrepr(k)
                                          for k in sokind.kinds]))
@@ -796,7 +787,6 @@ class ByRetClaSet(Classifier):
         return self.mod.hv.cli_rcs(self.rg, self.referrer_classifier.cli, memo)
 
     def get_inverted_refkind(self, k):
-        set_trace()
         if k.fam.opname == 'OR':
             ks = k.arg
         elif k is self.mod.Use.Nothing:

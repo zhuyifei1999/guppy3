@@ -1,4 +1,3 @@
-# ._cv_part guppy.etc.Help
 # -*- coding: utf-8 -*-
 
 import io
@@ -6,12 +5,10 @@ import inspect
 import os
 
 THISDIR = os.path.dirname(__file__)
-# print 'THISDIR',THISDIR
 
 
 class GuppyDoc:
     def __init__(self, mod, str):
-        #assert str is not None
         self.mod = mod
         if str is None:
             str = '???'
@@ -66,10 +63,7 @@ class Lister:
         rows = (len(items) + columns - 1) // columns
         for row in range(rows):
             for col in range(columns):
-                if 1:
-                    i = col * rows + row
-                else:
-                    i = row * columns + col
+                i = col * rows + row
                 if i < len(items):
                     self.output.write(items[i])
                     if col < columns - 1:

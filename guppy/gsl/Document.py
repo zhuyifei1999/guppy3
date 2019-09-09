@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Document
-
-
 class Document:
     def __init__(self, mod, node, env):
         self.mod = mod
@@ -196,7 +193,6 @@ class Document:
         filers = []
         r = self.get_result()
         name = self.get_doc_name()
-        # print 'directives', self.output_directives
         for (handler, opts) in self.output_directives:
             print('processing', handler, opts, name)
             filers.append(handler.doc2filer(
@@ -335,8 +331,6 @@ class Document:
         self.ap_text(self.get_arg_subject(node).get_id_name())
 
     def visit_in(self, node):
-        assert 0
-        set_trace()
         self.in_in += 1
         self.visit_default(node)
         self.in_in -= 1
@@ -1980,8 +1974,3 @@ class _GLUECLAMP_:
         h = self._parent.Html.doc2html(r)
         print(h)
         open('/tmp/d.html', 'w').write(h)
-
-
-if 0 or __name__ == '__main__':
-    from guppy import Root
-    Root().guppy.gsl.Document._test_main_()

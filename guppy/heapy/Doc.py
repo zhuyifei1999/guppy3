@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy.Doc
-
-
 class Doc:  # base class
     def __mod__(self, other):
         other = self.mod.getdoc(other)
@@ -187,7 +184,6 @@ class Tuple(Doc):
     def __init__(self, mod, *args):
         self.mod = mod
         self.args = args
-        # pdb.set_trace()
 
     def mapchildren(self, f):
         return self.__class__(self.mod, *[f(x) for x in self.args])
@@ -256,9 +252,8 @@ class _GLUECLAMP_:
         a = self.getdoc(a)
         b = self.getdoc(b)
         if isinstance(a, Multi):
-            # pdb.set_trace()
             set = a.set.copy()
-            if 1 and len(set) > 4:
+            if len(set) > 4:
                 return a
         else:
             set = {a: 1}
@@ -284,14 +279,12 @@ class _GLUECLAMP_:
         return UnaryOp(self, op, self.getdoc(a))
 
     def wrap(self, obj, doc):
-        if obj is self._parent.UniSet.UniSet:
-            pdb.set_trace()
+        assert obj is not self._parent.UniSet.UniSet
         w = getattr(obj, '_derive_origin_', None)
         if w is not None:
             if getattr(w, 'im_self', None) is obj or isinstance(w, self._root.types.MethodType):
                 obj = w(doc)
             elif w == 'ADD':
-                # pdb.set_trace()
                 obj = self.add_origin(obj, doc)
             else:
                 raise DocError(

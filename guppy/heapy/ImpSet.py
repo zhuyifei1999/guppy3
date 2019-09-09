@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy.ImpSet
-
-
 class _GLUECLAMP_:
     _imports_ = (
         '_parent.UniSet:IdentitySetMulti',

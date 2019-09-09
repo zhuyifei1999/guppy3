@@ -361,7 +361,6 @@ class Test:
         print(bitset(-1), file=f)
         print(bitset([-1]), file=f)
         print(bitset([-1]) | bitset([4]), file=f)
-        #print >>f,long(bitset([-1]))
 
         # LP: #770882
         if sys.hexversion < 0x2070000:
@@ -476,7 +475,6 @@ ImmBitSet([-1, 4])
         if sys.hexversion >= 0x2070000:
             return
         for tr in ts[1:]:
-            # print tr
             for r, x in zip(tr, ts[0]):
                 assert int(r) == x
 
@@ -1013,8 +1011,6 @@ MutBitSet([])
         for i in bitrange(3, N // 2, 2):
             primes &= ~bitrange(2 * i, N, i)
 
-        # print primes._indisize, primes._num_seg
-
         primes = list(primes)
         assert len(primes) == 550
         assert primes[:10] == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
@@ -1063,7 +1059,6 @@ MutBitSet([])
             (minint, maxint, -(minint//320)),
         ):
             br = bitrange(*a)
-            # print br
             assert list(br) == list(range(*a))
 
         try:
@@ -1112,7 +1107,6 @@ MutBitSet([])
         for a in any:
             for bin in (0, 1):
                 da = pickle.dumps(a, bin)
-                # print len(da), len(bitset(a))
                 aa = pickle.loads(da)
                 assert aa == a
                 assert type(aa) is type(a)
@@ -1275,32 +1269,6 @@ MutBitSet([])
         assert int(bitset(sys.maxsize)) == sys.maxsize
         assert int(bitset(-sys.maxsize - 1)) == - sys.maxsize - 1
 
-        if 0:
-            # This was added without implementing & testing
-            # I have not implemented it yet.
-            # It is possible but I don't need to right now. / Also Notes May 19 2005
-            #
-
-            # Relation operation with iterable right argument,
-            # apparently not tested before. (Nov. 10 2004)
-
-            assert not immbitset([1, 2, 3]) <= [1, 2]
-            assert not mutbitset([1, 2, 3]) <= [1, 2]
-            assert not mutnodeset([1, 2, 3]) <= [1, 2]
-            assert not immnodeset([1, 2, 3]) <= [1, 2]
-            assert immbitset([1, 2, 3]) <= [1, 2, 3]
-            assert mutbitset([1, 2, 3]) <= [1, 2, 3]
-            assert immnodeset([1, 2, 3]) <= [1, 2, 3]
-            assert mutnodeset([1, 2, 3]) <= [1, 2, 3]
-            assert [1, 2] <= immbitset([1, 2, 3])
-            assert [1, 2] <= mutbitset([1, 2, 3])
-            assert [1, 2] <= immnodeset([1, 2, 3])
-            assert [1, 2] <= mutnodeset([1, 2, 3])
-            assert not [1, 2, 3] <= immbitset([1, 2])
-            assert not [1, 2, 3] <= mutbitset([1, 2])
-            assert not [1, 2, 3] <= immnodeset([1, 2])
-            assert not [1, 2, 3] <= mutnodeset([1, 2])
-
     def test26(self):
         # len() tests
 
@@ -1341,7 +1309,6 @@ MutBitSet([])
         # Also tests S.mutcopy() where S is mutable with 1 or 2 segments
 
         def t(p):
-            # print p._num_seg
             q = p.mutcopy()
             p.add(17)
             assert p != q
@@ -1463,14 +1430,6 @@ MutBitSet([])
         H = mutnodeset
         from sys import getrefcount as grc
 
-        if 0:
-            print(H.add.__doc__)
-            print(H.append.__doc__)
-            print(H.discard.__doc__)
-            print(H.remove.__doc__)
-            print(H.tas.__doc__)
-            print(H.tac.__doc__)
-
         e1 = []
         e2 = []
         e3 = []
@@ -1538,7 +1497,7 @@ MutBitSet([])
         assert s in s
         s = None
         gc.collect()
-        #assert r1 == grc(e1)
+        assert r1 == grc(e1)
 
         s = H()
         s.append(e1)
@@ -1723,22 +1682,12 @@ class MemStat:
     def dump(self):
         gc.collect()
         self.xmemstats()
-        # print 'len alset', len(self.alset)
 
         V = self.V
         R = self.R
         P = self.P
         nrefs = self.nrefs
-        if 0:
-            h = self.h
 
-            n = h.news(gc.get_objects())
-            print(V.retset(n))
-            if len(n) <= 12:
-                l = list(n)
-                for i in range(len(n)):
-                    V.enter(
-                        lambda: P.shpaths((), l[i]).pp())
         try:
             co = sys.getcounts()
         except AttributeError:
@@ -1775,18 +1724,11 @@ def test_leak():
     nums = list(range(36))
     nums.remove(34)
     ms = MemStat()
-    if 0:
-        clr_alset = ms.R.guppy.heapy.heapyc.clr_alset
-        dump_alset = ms.R.guppy.heapy.heapyc.dump_alset
-    # dump_alset()
     i = 0
     while 1:
         test_nums(nums, ms.dump)
         gc.collect()
-        if 0 and i >= 2:
-            dump_alset()
         i += 1
-        # ms.dump()
 
 
 def test_main():
@@ -1800,5 +1742,5 @@ if __name__ == '__main__':
     # t.test25()
     # t.test30()
     test_main()
-    #test_nums(range(30, 36))
+    # test_nums(range(30, 36))
     # test_nums(range(13,35))

@@ -1,5 +1,3 @@
-# ._cv_part guppy
-
 """\
 Top level package of Guppy, a library and programming environment
 currently providing in particular the Heapy subsystem, which supports

@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.Descriptor
-
 import functools
 
 

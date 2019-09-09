@@ -1,14 +1,12 @@
-# ._cv_part guppy.sets
-
-from .setsc import BitSet        # base bitset type
-from .setsc import ImmBitSet     # immutable bitset type
-from .setsc import immbit        # immutable bitset singleton constructor
-from .setsc import immbitrange   # immutable bitset range constructor
-from .setsc import immbitset     # immutable bitset constructor
-from .setsc import MutBitSet     # mutable bitset
-from .setsc import NodeSet       # base nodeset type
-from .setsc import ImmNodeSet    # immmutable nodeset type
-from .setsc import MutNodeSet    # mutable nodeset type
+from guppy.sets.setsc import BitSet        # base bitset type
+from guppy.sets.setsc import ImmBitSet     # immutable bitset type
+from guppy.sets.setsc import immbit        # immutable bitset singleton constructor
+from guppy.sets.setsc import immbitrange   # immutable bitset range constructor
+from guppy.sets.setsc import immbitset     # immutable bitset constructor
+from guppy.sets.setsc import MutBitSet     # mutable bitset
+from guppy.sets.setsc import NodeSet       # base nodeset type
+from guppy.sets.setsc import ImmNodeSet    # immmutable nodeset type
+from guppy.sets.setsc import MutNodeSet    # mutable nodeset type
 
 from .setsc import _bs
 _bs.__module__ = 'guppy.sets'  # ..to be able to set it.

@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy
-
-
 class _GLUECLAMP_:
     uniset_imports = ('UniSet', 'View', 'Path', 'RefPat')
 

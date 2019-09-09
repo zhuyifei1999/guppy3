@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Remote
-
 """
     Support remote access to a Python interpreter.
 """
@@ -134,7 +132,6 @@ class Annex(cmd.Cmd):
                                     self.socket_type)
         while not self.isclosed:
             try:
-                # print 'connecting'
                 self.socket.connect(self.server_address)
             except SystemExit:
                 raise
@@ -146,8 +143,6 @@ class Annex(cmd.Cmd):
                 break
         else:
             return
-
-        # print 'CONNECTED'
 
         self.stdout = io.TextIOWrapper(
             self.socket.makefile('wb', buffering=0),
@@ -440,7 +435,6 @@ target.pid is the process id of the target interpreter.
             # without the annex being closed,
             # and that we WAIT if someone else is being closing us.
             self.asynch_close()
-            # print 'Annex DONE'
 
 
 def on():

@@ -490,13 +490,11 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
                   void *arg)
 {
     nodeset_iterate_visit_arg hia;
-#if 1
     if (!(ns->flags & NS_HOLDOBJECTS)) {
         PyErr_SetString(PyExc_ValueError,
             "NyNodeSet_iterate: can not iterate because not owning element nodes");
         return -1;
     }
-#endif
     hia.ns = ns;
     hia.arg = arg;
     hia.visit = visit;
@@ -519,13 +517,6 @@ mutnodeset_iter(NyNodeSetObject *v)
 {
     PyObject *bitset_iter;
     NyMutNodeSetIterObject *iter;
-#if 0
-    if (!(v->flags & NS_HOLDOBJECTS)) {
-        PyErr_SetString(PyExc_ValueError,
-        "nodeset_iter: can not iterate because not owning element nodes");
-        return 0;;
-    }
-#endif
     bitset_iter = Py_TYPE(v->u.bitset)->tp_iter(v->u.bitset);
     if (!bitset_iter)
         return 0;

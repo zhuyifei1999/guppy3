@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Exceptions
-
-
 class DebugError(Exception):
     # An error raised for debugging
     # when we want to look at the error at the place it really happened

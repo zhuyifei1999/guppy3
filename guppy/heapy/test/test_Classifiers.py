@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.test.test_Classifiers
-
 from guppy.heapy.test import support
 import importlib
 
@@ -234,7 +232,6 @@ class SpecialCases(TestCase):
             iso(c1.__dict__).kind
         slow = clock()-t
 
-        # print 'slow,fast',slow,fast
         self.assertTrue(slow <= 1.5*fast)
 
         # This is another slow case according to notes Nov 18 2004.
@@ -254,7 +251,6 @@ class SpecialCases(TestCase):
             iso(list(dn)[i]).kind
         slow = clock()-t
 
-        # print 'slow,fast',slow,fast
         self.assertTrue(slow <= 1.5*fast)
 
         # Partition was likewise slow for unreachable dicts
@@ -268,7 +264,6 @@ class SpecialCases(TestCase):
         t = clock()
         [x[0] for x in Use.Clodo.classifier.partition(dn)]
         slow = clock()-t
-        # print 'slow,fast',slow,fast
         self.assertTrue(slow <= 1.5*fast)
 
         # Check that ref counts for target objects are the same as initially
@@ -336,13 +331,7 @@ dict (no owner)
 
         x = C1()
 
-        # set_trace()
-
-        if 0:
-            # (B) makes sure arg is removed from frame when converted
-            self.aseq(s & [c1, x], iso(c1))
-        else:
-            self.aseq(s & iso(c1, x), iso(c1))
+        self.aseq(s & iso(c1, x), iso(c1))
 
         s = iso(x).byrcs.kind
         self.aseq(s & iso(c1, x), iso(x))
@@ -367,18 +356,18 @@ dict (no owner)
         b = self.View.immnodeset([[]])
 
         x = [a, b]
-        if 1:
-            hv = self.View.hv
 
-            rg = self.View.nodegraph()
+        hv = self.View.hv
 
-            gc.collect()
-            hv.update_referrers_completely(rg)
-            self.assertTrue(x in rg[a])
+        rg = self.View.nodegraph()
 
-            self.assertTrue(rg[list(b)[0]] == (None,))
-            rg.clear()
-            rg = None
+        gc.collect()
+        hv.update_referrers_completely(rg)
+        self.assertTrue(x in rg[a])
+
+        self.assertTrue(rg[list(b)[0]] == (None,))
+        rg.clear()
+        rg = None
 
         # Test View functionality
 
@@ -410,7 +399,6 @@ dict (no owner)
         for i in range(N):
             s.referrers
         slow = clock() - t
-        # print 'slow,fast,faster',slow, fast, faster
         self.assertTrue(not slow > fast * 4)
 
     def test_via(self, vlist=['v', ]):  # vlist is just to make v unoptimizable
@@ -560,10 +548,7 @@ class RenderCase(TestCase):
         x = iso(C1()).bytype
         print(x, file=o)
 
-        if 0:
-            print(o.getvalue())
-        else:
-            expected = """\
+        expected = """\
 Partition of a set of 24 objects. Total size = 2128 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
      0      3  12     1272  60      1272  60 type
@@ -590,7 +575,7 @@ Partition of a set of 1 object. Total size = 32 bytes.
  Index  Count   %     Size   % Cumulative  % Type
      0      1 100       32 100        32 100 types.InstanceType
 """.replace('<Module>', self.__module__)
-            self.aseq(o.getvalue(), expected)
+        self.aseq(o.getvalue(), expected)
 
 
 class BaseCase(TestCase):
@@ -967,26 +952,8 @@ class ClassificationCase(TestCase):
 
 
 def test_main(testrender=1, debug=0):
-    if 0 or not debug:
-        support.run_unittest(BaseCase, debug)
-
-    if 1 or not debug:
-        support.run_unittest(ClassificationCase, debug)
-
-    if 0 or not debug:
-        support.run_unittest(LawsCase, debug)
-
-    if 0 or (testrender and not debug):
-        support.run_unittest(RenderCase, debug)
-
-    if 0 or not debug:
-        support.run_unittest(SpecialCases, debug)
-
-
-if 0 and __name__ == "__main__":
-    # It doesn't like to be run under name __main__,
-    # needs to have its actual module name.
-    import guppy.heapy.test.test_Classifiers as x
-    if 1:
-        importlib.reload(x)
-    x.test_main()
+    support.run_unittest(BaseCase, debug)
+    support.run_unittest(ClassificationCase, debug)
+    support.run_unittest(LawsCase, debug)
+    support.run_unittest(RenderCase, debug)
+    support.run_unittest(SpecialCases, debug)

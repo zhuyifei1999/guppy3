@@ -1,4 +1,3 @@
-# ._cv_part guppy.etc.RE_Rect
 """ Support functions for RE simplification.
 This module is intended for use by the RE module.
 It is in a separate module to keep RE itself cleaner
@@ -7,11 +6,10 @@ separate part that depends on some tricky heuristics.
 
 The primary entry function is
 
-chooserects(lines, gauges, trace)
+chooserects(lines, gauges)
 
 It chooses 'the best' rectangles from lines to base simplification on.
 A weight on atoms is given by gauges.
-The trace parameter is for debugging.
 
 pr() gives some example usages of chooserects.
 
@@ -161,10 +159,8 @@ def brect(lines):
     return donerects
 
 
-def choose(rects, lines=[], gauges=[None], trace=''):
+def choose(rects, lines=[], gauges=[None]):
     def induce(r):
-        if trace == 'induce':
-            pdb.set_trace()
         uncommons = r.get_uncommons()
         if len(uncommons) < 2:
             return
@@ -187,18 +183,12 @@ def choose(rects, lines=[], gauges=[None], trace=''):
                 else:
                     c = InducedLeftRect
                 ir = c(s, pss, pslnos)
-                if trace == 'indap':
-                    pdb.set_trace()
                 irs.append(ir)
 
         if irs:
-            # pdb.set_trace()
             news.extend(irs)
 
     def overlap(r):
-        #
-        if 'overlap' in trace:
-            pdb.set_trace()
         rlnos = r.lnos
         tonews = []
         for s in rects:
@@ -236,23 +226,17 @@ def choose(rects, lines=[], gauges=[None], trace=''):
                 if c > 0:
                     continue
 
-                if trace == 'obreak':
-                    pdb.set_trace
                 break
 
             else:
                 # s is ok
                 tonews.append(s)
                 rects.remove(s)
-        if len(tonews) > 1:
-            pdb.set_trace()
         news.extend(tonews)
 
     def picknext():
         while 1:
             if news:
-                if trace == 'news':
-                    pdb.set_trace()
                 r = news[0]
                 del news[0]
             else:
@@ -314,8 +298,7 @@ def choose(rects, lines=[], gauges=[None], trace=''):
         c = y.dir - x.dir
         if c:
             return c
-        c = cmp(x.lnos[0], y.lnos[0])
-        return c
+        return x.lnos[0], y.lnos[0]
 
     if gauges[0] == None:
         gauges = gauges[1:]
@@ -328,7 +311,7 @@ def choose(rects, lines=[], gauges=[None], trace=''):
     for r in rects:
         r.init2(lnobyid, lines)
 
-    rects.sort(cmpinit)
+    rects.sort(key=cmpinit)
 
     allnos = immbitrange(len(lines))
 
@@ -341,21 +324,14 @@ def choose(rects, lines=[], gauges=[None], trace=''):
         pickednos |= r.lnos
         pickedrects.append(r)
         induce(r)
-        if trace == 'induced':
-            pdb.set_trace()
         overlap(r)
 
-    if trace == 'chosorted':
-        pdb.set_trace()
-
-    if trace == 'choosen':
-        pdb.set_trace()
     return pickedrects
 
 
-def chooserects(lines, gauges=[None], trace=''):
+def chooserects(lines, gauges=[None]):
     rects = brect(lines)
-    choosen = choose(rects, lines, gauges, trace)
+    choosen = choose(rects, lines, gauges)
     return choosen
 
 
@@ -427,10 +403,6 @@ def pr():
 
     print(chooserects(['auvw', 'buvw', 'a', 'b']))
     print(chooserects(['axuvw', 'bxuvw', 'axy', 'bxy', 'cy']))
-
-    # Case with overlap reversed as per Mar 4
-
-    print(chooserects(['dcba', 'ecba', 'a', 'f'], trace='choosen'))
 
 
 def tmany():

@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Latex
-
-
 class Doc2Latex:
     sizes = ('tiny', 'scriptsize', 'footnotesize', 'small',
              'normalsize', 'large', 'Large', 'LARGE', 'huge', 'Huge')
@@ -391,18 +388,10 @@ class Doc2Latex:
     def visit_text(self, node):
         if self.latex_mode:
             self.append(node.arg)
-        elif 1:
+        else:
             text = node.arg
             text = self.encoder.encode(text)
             self.append(text)
-        else:
-            for ch in node.arg:
-                if ch == '\\':
-                    ch = '{\\textbackslash}'
-                elif ch in '{}#~':
-                    ch = '\\'+ch
-                self.append(ch)
-            self.append('\n')
         self._visit_children(node)
 
     def visit_to_document_only(self, node):

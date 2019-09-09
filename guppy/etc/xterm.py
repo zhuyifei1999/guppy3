@@ -1,5 +1,3 @@
-# ._cv_part xterm
-
 # Run an xterm on current process or a forked process
 
 # Adapted from pty.py in Python 1.5.2 distribution.

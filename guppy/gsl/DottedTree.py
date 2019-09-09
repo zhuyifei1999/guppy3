@@ -1,5 +1,3 @@
-# ._cv_part guppy.gsl.DottedTree
-
 """
 Handling of tree structures given in a special 'dotted' syntax.
 This represents trees of nodes with strings as tags,
@@ -313,7 +311,3 @@ def test_main():
     test_1()
     test_2()
     # test_doctest()
-
-
-if 0 or __name__ == '__main__':
-    test_main()

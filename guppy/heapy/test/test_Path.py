@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.test.test_Path
-
 from guppy.heapy.test import support
 import sys
 import unittest
@@ -200,14 +198,7 @@ class RelationTestCase(TestCase):
 
     def test_nodeset_relation(self):
         from guppy.sets import immnodeset, mutnodeset
-        if 0:
-            # This is hard to get to work accross different architectures
-            # Noted Jan 17 2006
-            x = [0, 1, 'a', 'b']
-            x.sort(key=lambda x: id(x))
-        else:
-            # This is a relaxed variant, still tests SOME thing!
-            x = ['a']
+        x = ['a']
         for s in (immnodeset(x), mutnodeset(x)):
             for i in range(len(x)):
                 self.chkrel(s, x[i], 'list(%%s)[%s]' % i)
@@ -220,7 +211,7 @@ class RelationTestCase(TestCase):
         t.a = a
         b = []
         t.b = b
-        #self.chkrel(t, T, 'type(%s)')
+        # self.chkrel(t, T, 'type(%s)')
         self.chkrel(t, T, '%s->ob_type')
         self.chkrelattr(t, 'a', 'b')
         # We shouldn't have a __dict__ here - just make sure this is the case
@@ -318,9 +309,6 @@ class RelationTestCase(TestCase):
         self.chkrelattr(T, '__mro__', '__base__', '__bases__')
         # tp_cache and tp_subclasses can also not be tested directly
 
-        # We could try use referrers if it worked
-        # print V.referents(T).reprobj.select('TOC=="dict"')
-
         # Inheritance is tested via test_object_relation()
 
 
@@ -366,8 +354,6 @@ class RootTestCase(TestCase):
             # We need to find out what level we are at - count to lowest frame
             level = 0
             frame = exc_traceback.tb_frame
-            # print self.relation(root, frame)
-            # print self.relation(root, exc_type)
 
             while frame.f_back:
                 frame = frame.f_back
@@ -460,13 +446,8 @@ _thread.start_new_thread(task, ())
 
         self.sync = 0
 
-    def test_rootframe(self):
-        # assert 0 # to do
-        pass
-
 
 class PathTestCase(TestCase):
-
     def makegraph(self, width, length):
         # Generate a structure which will yield a high number
         # of shortest paths.
@@ -550,7 +531,6 @@ class PathTestCase(TestCase):
         # (The initial algorithm took astronomically long time.)
 
         osrc = src
-        #osrc = [[],[]]
 
         src, dst = self.makegraph(width, length)
         src[0] = osrc
@@ -561,7 +541,6 @@ class PathTestCase(TestCase):
             sp = str(path)
             div, mod = divmod(i, width)
             self.aseq(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]' % (div, mod))
-            # print sp
 
         # Test iterating with a negative start and a large positive start
 
@@ -752,33 +731,6 @@ class NewTestCase(TestCase):
 
         print(iso(x, y).get_shpaths(iso(z)), file=o)
 
-        if 0:       # feature is dropped, for now at least. Nov 4 2005
-
-            # Test that the shortest path to an abstract set of objects,
-            # is the shortest paths to all the closest such objects,
-            # and that the time to calculate this doesn't need to involve
-            # an entire heap traversal to find all such objects
-
-            clock = self.python.time.clock
-            import gc
-            gc.collect()
-            t = clock()
-
-            x = str(iso(x, y).get_shpaths(iso(z)))
-
-            fast = clock() - t
-
-            gc.collect()
-            t = clock()
-            x = str((iso() | list).get_shpaths(iso(z)))
-            slow = clock() - t
-
-            # Originally, it was 16 times slower to use an abstract set
-            # Now, it's about 2.5;
-            # print slow/fast # has been seen printing 2.17 to 3.25
-            # we test with some margin
-            self.assertTrue(slow < 5 * fast)
-
         # Test that we can relate objects that inherits from a class and object
         # (Used to segfault)
 
@@ -913,7 +865,6 @@ class NewTestCase(TestCase):
         shp = iso(dst).shpaths
         del dst
         self.assertTrue('Edges' not in str(shp.avoided(0)))
-        # print shp.avoided(0)
 
         dst = []
 
@@ -983,16 +934,12 @@ def run_test(case, debug=0):
 
 
 def test_main(debug=0):
-    if 1:
-        run_test(NewTestCase, debug)
-    if 1:
-        run_test(RelationTestCase, debug)
-        run_test(RootTestCase, debug)
-    if 1:
-        run_test(PathTestCase, debug)
-    if 1:
-        run_test(MultiTestCase, debug)
-        run_test(AvoidTestCase, debug)
+    run_test(NewTestCase, debug)
+    run_test(RelationTestCase, debug)
+    run_test(RootTestCase, debug)
+    run_test(PathTestCase, debug)
+    run_test(MultiTestCase, debug)
+    run_test(AvoidTestCase, debug)
 
 
 if __name__ == "__main__":

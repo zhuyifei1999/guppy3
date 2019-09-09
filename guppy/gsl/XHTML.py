@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.XHTML
-
-
 class Node2XHTML:
     def __init__(self, mod, node=None, error_report=None, encode_name=None
                  ):

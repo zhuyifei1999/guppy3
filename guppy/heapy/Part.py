@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy.Part
-
-
 class Format(object):
     __slots__ = 'impl', 'mod'
 
@@ -716,14 +713,10 @@ class SetPartition(Partition):
         for (minusize, name, kind, part) in tosort:
             size = -minusize
             cumulsize += size
-            # assert size == part.size
             rows.append(PartRow(
                 part.count, size, name,
                 len(rows), cumulsize,
                 part, kind))
-
-        # No check. Sizes may change. Note feb 8 2006.
-        #assert cumulsize == set.size
 
         self.count = set.count
         self.kindheader = classifier.get_tabheader('')

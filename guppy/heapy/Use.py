@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Use
-
 import guppy.etc.Glue
 
 

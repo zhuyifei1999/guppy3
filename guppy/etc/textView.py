@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.textView
-
 # Copied from idlelib/textView
 # - I copied it rather than imported since I didn't want
 #   to have a dependency on idlelib,

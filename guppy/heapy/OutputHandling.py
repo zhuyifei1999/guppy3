@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.OutputHandling
-
 import types
 import weakref
 

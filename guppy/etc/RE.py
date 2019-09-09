@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.RE
-
 import functools
 
 from guppy.etc.RE_Rect import chooserects
@@ -268,7 +266,6 @@ class Concatenation(RE):
     _name = 'Concat'
 
     def __new__(clas, *args):
-        #assert Epsilon not in args
         if len(args) < 2:
             if not args:
                 return Epsilon
@@ -393,7 +390,6 @@ class Concatenation(RE):
 
 class SimplifiedConcatenation(Concatenation):
     def simplified(self, *a, **k):
-        # pdb.set_trace()
         return self
 
 
@@ -850,7 +846,6 @@ class RegularSystem:
                     return c
                 i += 1
 
-            # pdb.set_trace()
             return (x > y) - (x < y)
 
         sumdists = [start_distance]

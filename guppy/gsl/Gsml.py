@@ -1,11 +1,7 @@
-# ._cv_part guppy.gsl.Gsml
-
-
 class GsmlHandler:
     # To be mixed in with something like HTMLParser.HTMLParser
 
     def handle_starttag(self, tag, attrs):
-        # print 'starttag', tag, attrs
         self.stack.append(self.out)
         self.out = []
         if attrs:
@@ -15,13 +11,11 @@ class GsmlHandler:
             self.out.append(self.mod.node_of_taci('with', '', at))
 
     def handle_endtag(self, tag):
-        # print 'endtag', tag
         node = self.mod.node_of_taci(tag, '', self.out)
         self.out = self.stack.pop()
         self.out.append(node)
 
     def handle_charref(self, name):
-        # print 'charref', name
         if name[:1] == "x":
             char = int(name[1:], 16)
             name = '0'+name
@@ -34,7 +28,6 @@ class GsmlHandler:
             self.out.append(self.mod.node_of_taci('char', name))
 
     def handle_entityref(self, name):
-        # print 'handle entityref', name
         if name not in self.mod.entitydefs:
             self.unknown_entityref(name)
         self.out.append(self.mod.node_of_taci('char', name))
@@ -43,7 +36,6 @@ class GsmlHandler:
         raise SyntaxError('Unknown entity ref: %r' % name)
 
     def handle_data(self, data):
-        # print 'data', data
         # data = data.strip()
         if data.strip():
             self.out.extend(self.mod.nodes_of_text(data))
@@ -52,7 +44,6 @@ class GsmlHandler:
         self.out.append(self.mod.node_of_taci('comment', data, (), 0))
 
     def handle_decl(self, decl):
-        # print 'handle_decl', decl
         self.out.append(self.mod.node_of_taci('html_declaration', decl))
 
     def handle_pi(self, data):
@@ -104,8 +95,3 @@ Handle char ref: &lt;.
 
         node = self.node_of_gsml(x)
         print(node)
-
-
-if 0 or __name__ == '__main__':
-    from guppy import Root
-    Root().guppy.gsl.Gsml._test_main_()

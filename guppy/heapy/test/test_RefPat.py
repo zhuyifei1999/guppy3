@@ -157,7 +157,6 @@ class RefPatCase(TestCase):
 
         dst = []
         src.append(dst)
-        # print R.refpat(dst=dst)
 
         test_pp(dst, src)
 
@@ -203,15 +202,6 @@ class RefPatCase(TestCase):
 
         write(m1.prev)
 
-        if 0:
-            # I don't know if I really want this, after new general output handling
-
-            # Test that .top works at the top
-
-            write(m1.top.top)
-
-        # pdb.set_trace()
-
         # Test that they won't say '...more lines...' if the # of lines is what is printed
 
         src, dst = self.makegraph(1, 30)
@@ -236,10 +226,7 @@ class RefPatCase(TestCase):
 
         write(rp.more)
 
-        if 0:
-            print(output.getvalue())
-        else:
-            self.aseq(output.getvalue(), """\
+        self.aseq(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1

@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Spec
-
 """
 Contains some experimental set constructions.
 In the current state, not to be used by the faint-hearted.
@@ -64,20 +62,6 @@ class SpecFamily:
 
     def c_get_brief(self, a):
         return '<%s(%s)>' % (self.__class__.__name__, briefstr(a.arg))
-
-    if 0:
-
-        def c_select(self, a, b):
-            env = self.specmod._static_test_env
-            res = self.mod.mutnodeset()
-            for bi in b:
-                try:
-                    env.test_contains(a, bi, 'select contains')
-                except TestError:
-                    pass
-                else:
-                    res.add(bi)
-            return self.mod.fam_Identity._cons(self.mod.immnodeset(res))
 
 
 class ArgNamesFamily(SpecFamily):
@@ -963,7 +947,6 @@ class TestEnv:
 
         ls = []
         selfset = None
-        # print 1
 
         names = list(expr.__dict__.keys())
         names.sort()
@@ -1005,9 +988,7 @@ class TestEnv:
             # Alternatively: r = r & selfset afterwards,
             # but could be unnecessarily slow
 
-        # print 2
         r = mod.UniSet.fam_And._cons(ls)
-        # print 3
         return r
 
     def get_examples(self, collection):
@@ -1113,15 +1094,7 @@ class TestEnv:
         return x
 
     def test_contains(self, a, b, message):
-        if 0:
-            try:
-                a.test_contains(b, self)
-            except TestError:
-                raise
-                # return self.failed('test_contains, from: %s'% message)
-            return True
-        else:
-            return a.test_contains(b, self)
+        return a.test_contains(b, self)
 
     def test_contains_not(self, a, b, message):
         try:
@@ -1244,7 +1217,6 @@ class _GLUECLAMP_:
         Doc = self.Doc
         if name == 'setof':
             pass
-            # pdb.set_trace()
         try:
             obj = Doc.wrap(obj, Doc.attribute(self._origin_, name))
         except Doc.DocError:
@@ -1424,7 +1396,6 @@ class _GLUECLAMP_:
     def _get_all_names(self):
         names = {'_root': 1}
         for x in _GLUECLAMP_.__dict__:
-            # print 'x', x
             if x.startswith('_get_'):
                 x = x[5:]
             names[x] = 1

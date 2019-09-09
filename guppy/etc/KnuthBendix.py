@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.KnuthBendix
-
 """
     An implementation of the Knuth-Bendix algorithm,
     as described in (1), p. 143.
@@ -100,7 +98,6 @@ class KnuthBendix:
     def make_confluent(self, max_iterations):
         def add_reduction(p, q):
             if p != q:
-                # pdb.set_trace()
                 if self.gt(p, q):
                     self.reductions.append((p, q))
                 else:
@@ -109,7 +106,6 @@ class KnuthBendix:
 
         reds_tested = {}
         for i in range(max_iterations):
-            # print 'iter', i
             self.confluent = 1
             reds = list(self.reductions)
             for u1, v1 in reds:
@@ -126,11 +122,6 @@ class KnuthBendix:
                             q = self.freduce(uuu)
                             add_reduction(p, q)
                             i = u1.find(u2, i+1)
-
-                        if 0:
-                            uuu = u1.replace(u2, v2)
-                            q = self.freduce(uuu)
-                            add_reduction(p, q)
                     lu1 = len(u1)
                     for i in range(1, lu1-len(self.delim)):
                         if u2[:lu1-i] == u1[i:]:
@@ -153,12 +144,10 @@ class KnuthBendix:
                     self.reductions[i] = urv
                 else:
                     pass
-                    # pdb.set_trace()
             if len(newr) != self.reductions:
                 assert ('', '') not in newr
                 self.reductions = newr
             assert ('', '') not in self.reductions
-            #assert ('', '') not in reds
             if self.confluent:
                 break
 
@@ -167,7 +156,6 @@ class KnuthBendix:
 KnuthBendix.make_confluent did not terminate in %d iterations.
 Check your equations or specify an higher max_iterations value.'
 """ % max_iterations)
-        # print len(reds_tested)
 
     def freduce(self, p):
         # This (internal) variant of reduce:
@@ -298,7 +286,6 @@ def test():
     p = a.reduce('.f.f.f.ffff.ff.fff.fff.fff.fffff.')
     q = a.reduce('.f.f.ffff.ff.fff.fffff.')
 
-    # print p, q
     assert p == 'f.f.f.f.ff.fffff'
     assert q == 'f.f.f.ff.fffff'
 
@@ -325,10 +312,5 @@ def test3():
     ]
 
     a.canon = canon
-
-    if 0:
-        for uv in canon:
-            if not uv in a.reductions:
-                print(uv)
 
     return a

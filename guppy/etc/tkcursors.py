@@ -1,5 +1,3 @@
-# ._cv_part guppy.etc.tkcursors
-
 # A Tk window that shows what cursor shapes are available.
 # Moving the mouse over the cursor name shows the cursor in that shape.
 

@@ -1,5 +1,3 @@
-# ._cv_part genguppydoc.py
-
 import guppy
 import os
 from os.path import join

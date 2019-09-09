@@ -1,6 +1,3 @@
-# ._cv_part guppy.heapy.RefPat
-
-
 def str_as_atr(s):
     if s == '_':
         return []

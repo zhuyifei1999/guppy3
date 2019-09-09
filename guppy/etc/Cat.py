@@ -1,6 +1,3 @@
-# ._cv_part guppy.etc.Cat
-
-
 class Graph:
     def __init__(self, objects, arrows):
         self.objects = objects  # Sequence of objects

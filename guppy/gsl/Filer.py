@@ -1,4 +1,3 @@
-# ._cv_part guppy.gsl.Filer
 """ Handles filing of data from low-level gsl filing and data records.
 """
 
@@ -151,10 +150,3 @@ class _GLUECLAMP_:
             for name in IO.listdir(tempdir):
                 IO.remove(IO.path.join(tempdir, name))
             IO.rmdir(tempdir)
-
-
-if 0 or __name__ == '__main__':  # doesnt work
-    from guppy import Root
-    gsl = Root().guppy.gsl
-    gsl.FileIO.set_test_mode()
-    gsl.Filer._test_main_()

@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.UniSet
-
 import guppy
 from functools import reduce
 
@@ -1255,7 +1253,6 @@ class OrFamily(Family):
         return r
 
     def _ge_TERM(self, a, b):
-        # pdb.set_trace()
         a = a & b
         if a.fam is self:
             if b.fam is not a.fam or len(b.arg) != len(a.arg):
@@ -1508,12 +1505,6 @@ class IdentitySetFamily(AtomFamily):
     def __init__(self, mod):
         AtomFamily.__init__(self, mod)
         self.defrefining(mod.Anything)
-        # I think this is wrong
-        # It's not used?
-        #
-        if 0:
-            # No overlap with sets of other families??
-            self.defdisjoint(mod.Anything.fam)
 
         self.immnodeset = mod.immnodeset
         self.Part = mod.Part

@@ -767,10 +767,6 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
         for (xtp = &hv->xt_table[i]; (xt = *xtp); xtp = &xt->xt_next) {
             if (xt->xt_weak_type == wr) {
                 *xtp = xt->xt_next;
-#if 0
-                fprintf(stderr, "Deleted type at %p\n", xt->xt_type);
-                fprintf(stderr, "Deleted type name %s\n", xt->xt_type->tp_name);
-#endif
                 PyMem_Del(xt);
                 Py_DECREF(wr);
                 Py_INCREF(Py_None);

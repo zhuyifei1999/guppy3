@@ -1,4 +1,3 @@
-# ._cv_part guppy.etc.Glue
 import re
 import sys
 import types
@@ -48,7 +47,6 @@ class Interface(object):
         return ','.join(names) + '=' + ','.join(['self._root.%s' % name for name in names])
 
     def __getattr__(self, name):
-        # print 'getattr', name
         return self._share.getattr(self, name)
 
     def __setattr__(self, name, value):
@@ -239,14 +237,12 @@ class Share:
                         x = self.getattr_module(inter, name)
                 wrapattr = self.wrapattr
                 if wrapattr is not None and name not in self.nowrap:
-                    if not self.wrapping:
-                        try:
-                            self.wrapping = 1
-                            x = wrapattr(inter, x, name)
-                        finally:
-                            self.wrapping = 0
-                    else:
-                        pdb.set_trace()
+                    assert not self.wrapping
+                    try:
+                        self.wrapping = 1
+                        x = wrapattr(inter, x, name)
+                    finally:
+                        self.wrapping = 0
                 self.data[name] = x
             finally:
                 self.recursion -= 1

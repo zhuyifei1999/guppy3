@@ -1,6 +1,3 @@
-# ._cv_part guppy.etc.FSA
-
-
 class FiniteAutomaton:
     def __init__(self, start_state, dump_state=''):
         self.start_state = start_state

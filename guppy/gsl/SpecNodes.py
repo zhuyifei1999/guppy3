@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.SpecNodes
-
-
 ##
 # Specification entity object
 #
@@ -97,14 +94,10 @@ class FileEnv:
     def error_node(self, node, msg, exception=None):
         index = node.index
         lineno = index + 1
-        if 0:
-            print('%s:%d: %s,' % (self.filename, lineno, msg))
-            print('in line %r.' % self.get_line(index))
-        else:
-            print('%s:%s:' % (self.filename, lineno))
-            print('    %r' % self.get_line(index))
-            print('    %s' % msg)
-            print()
+        print('%s:%s:' % (self.filename, lineno))
+        print('    %r' % self.get_line(index))
+        print('    %s' % msg)
+        print()
 
     def find_subject(self, node, name):
         subject = self.subjects.get(name)
@@ -636,5 +629,5 @@ def test_main():
     root.guppy.gsl.SpecNodes.main(root.guppy)
 
 
-if 0 or __name__ == '__main__':
+if __name__ == '__main__':
     test_main()

@@ -1,6 +1,3 @@
-# ._cv_part guppy.gsl.Html
-
-
 class Node2Html:
     def __init__(self, mod, node=None, error_report=None, encode_name=None
                  ):

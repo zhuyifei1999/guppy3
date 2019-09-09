@@ -1,5 +1,3 @@
-# ._cv_part guppy.heapy.Prof
-
 from tkinter import *
 import tkinter.filedialog
 import tkinter.messagebox
@@ -328,39 +326,18 @@ class AxisControl:
 
         self.rangevar = SizeVar()
         self.rangevar.set(range)
-        if 1:
-            rangeval = Entry(master=self.frame,
-                             # anchor=E,
-                             width=4,
-                             textvar=self.rangevar,
-                             #font=('fixed', '16', 'bold'),
-                             #font=('terminal', '16', 'bold'),
-                             #font=('terminal', '14'),
-                             font=('fixed', '14'),
-                             # bg='black',fg='yellow'
-                             bg='#fdd'
-                             )
-            rangeval.bind('<KeyPress-Return>', self.event_range_enter)
-
-        elif 1:
-            rangeval = Button(master=self.frame,
-                              anchor=E,
-                              width=4,
-                              textvar=self.rangevar,
-                              #font=('fixed', '16', 'bold'),
-                              font=('terminal', '16', 'bold'),
-                              bg='black', fg='yellow')
-
-        else:
-            rangeval = Listbox(
-                self.frame,
-                height=1,
-                width=4,
-                font=('terminal', '16', 'bold'),
-                bg='black', fg='yellow')
-            for scale in self.scale_table:
-                s = sizestring(scale)
-                rangeval.insert(0, s)
+        rangeval = Entry(master=self.frame,
+                         # anchor=E,
+                         width=4,
+                         textvar=self.rangevar,
+                         #font=('fixed', '16', 'bold'),
+                         #font=('terminal', '16', 'bold'),
+                         #font=('terminal', '14'),
+                         font=('fixed', '14'),
+                         # bg='black',fg='yellow'
+                         bg='#fdd'
+                         )
+        rangeval.bind('<KeyPress-Return>', self.event_range_enter)
 
         namelabel = Menubutton(frame, text=name, relief='raised', anchor=W)
 
@@ -568,9 +545,8 @@ class Marker:
         text = self.name
         pos = 0
 
-        if 1:
-            self.d.drawingarea.create_line(pos, 0, pos, 20-self.d.boty, stipple='gray12',
-                                           width=4, tags=(tag,))
+        self.d.drawingarea.create_line(pos, 0, pos, 20-self.d.boty, stipple='gray12',
+                                       width=4, tags=(tag,))
         if WM:
             label = self.xlabel = Label(
                 self.d.xmarks, text=text, padx=2, pady=2, relief=RAISED)
@@ -644,10 +620,6 @@ class Marker:
 
     def event_motion(self, event):
         self.has_moved = 1
-        if 0:  # Simple variant - get back
-            if not (self.fraloy <= event.y_root < self.frahiy):
-                self.event_button_1_release(self.down_event)
-                return
 
         inside = (self.fraloy <= event.y_root < self.frahiy)
 
@@ -934,59 +906,45 @@ class Display:
                     background=bordercolor,
                     )
 
-        #
+        var_yrange = SizeVar()
+        self.var_yrange = var_yrange
 
-        if 0:
-            self.yaxis.grid(row=0, column=0)
-            self.yscrollbar.grid(row=0, column=2, sticky=N+S)
-            C.grid(row=0, column=1, sticky=W+E)
-            xy.grid(row=1, column=0)
-            self.xaxis.grid(row=1, column=1)
+        row = 0
 
-            self.xscrollbar.grid(row=2, column=1, sticky=E+W)
-            self.rsbut.grid(row=2, column=2)
-        else:
-            var_yrange = SizeVar()
-            self.var_yrange = var_yrange
+        Label(frame,
+              textvar=var_yrange,
+              bd=0,
+              relief=FLAT,
+              background=bordercolor).grid(
+                  row=row,
+                  column=0,
+                  sticky=W+E+N+S)
 
-            row = 0
+        self.xscrollbar.grid(row=row, column=1, sticky=E+W)
 
-            Label(frame,
-                  textvar=var_yrange,
-                  bd=0,
-                  relief=FLAT,
-                  background=bordercolor).grid(
-                      row=row,
-                      column=0,
-                      sticky=W+E+N+S)
+        row += 1
 
-            self.xscrollbar.grid(row=row, column=1, sticky=E+W)
+        self.yunit = Label(frame,
+                           text='Bytes',
+                           bd=0,
+                           relief=FLAT,
+                           background=bordercolor)
+        self.yunit.grid(
+            row=row,
+            column=0,
+            sticky=W+E+N+S)
 
-            row += 1
+        self.xmarks.grid(row=row, column=1, sticky=W+E+N)
 
-            self.yunit = Label(frame,
-                               text='Bytes',
-                               bd=0,
-                               relief=FLAT,
-                               background=bordercolor)
-            self.yunit.grid(
-                row=row,
-                column=0,
-                sticky=W+E+N+S)
+        row += 1
 
-            self.xmarks.grid(row=row, column=1, sticky=W+E+N)
+        self.yaxis.grid(row=row, column=0)
+        C.grid(row=row, column=1, sticky=W+E)
 
-            row += 1
+        row += 1
 
-            self.yaxis.grid(row=row, column=0)
-            C.grid(row=row, column=1, sticky=W+E)
-
-            row += 1
-
-            xy.grid(row=row, column=0)
-            self.xaxis.grid(row=row, column=1, sticky=W+E+N)
-
-        #
+        xy.grid(row=row, column=0)
+        self.xaxis.grid(row=row, column=1, sticky=W+E+N)
 
         self.botx = float(C['width'])
         self.boty = float(C['height'])
@@ -1187,20 +1145,11 @@ class Display:
                                   fill=color,
                                   tags=('a',))
 
-                if 1:
-                    C.create_line(x1 - 0.6 * xscale,  - dy * yscale,
-                                  x1 - 0.4 * xscale,  - dy * yscale,
-                                  fill=color,
-                                  width=4,
-                                  tags=('a',))
-
-                else:
-                    C.create_rectangle(x1 - 0.6 * xscale,  - dy * yscale,
-                                       x1 - 0.4 * xscale,  - dy * yscale,
-                                       fill=color,
-                                       outline=color,
-                                       width=2,
-                                       tags=('a',))
+                C.create_line(x1 - 0.6 * xscale,  - dy * yscale,
+                              x1 - 0.4 * xscale,  - dy * yscale,
+                              fill=color,
+                              width=4,
+                              tags=('a',))
 
         if graphtype == 'Bars':
             if y > ymax:
@@ -1362,10 +1311,7 @@ class Display:
                                              self.scrollregion[2], y,
                                              stipple="gray25",
                                              tags=('ygrid',))
-            if 0 and i == 0:
-                text = '0 bytes'
-            else:
-                text = form % (i / divi)
+            text = form % (i / divi)
             self.yaxis.create_text(chdx*2.5, y-0.5*chdy,  text=text)
 
         #self.yaxis.create_text(chdx*2.5, 0.5*chdy, text='bytes')
@@ -1450,30 +1396,14 @@ class Display:
         botx = self.botx
         x1 = self.canx0
         x2 = self.tmax * self.xscale + self.canx0
-        if 0:
-            x1extra = botx
-            x2extra = botx
-        if 1:
-            x1extra = botx / 2 + 2  # max(5, self.xscale*0.5)
-            x2extra = botx / 2 + 2  # max(5, self.xscale*0.5)
-        if 0:
-            x1extra = x2extra = max(5, self.xscale * 0.5)
+        x1extra = botx / 2 + 2  # max(5, self.xscale*0.5)
+        x2extra = botx / 2 + 2  # max(5, self.xscale*0.5)
 
         x1 -= x1extra
         x2 += x2extra
 
         y1 = 1-self.boty
         y2 = 1
-
-        if 0:
-            try:
-                _x1, _y1, _x2, _y2 = self.scrollregion
-            except Exception:
-                pass
-            else:
-                if (abs(_x2 - x2) < x2extra / 2 and
-                        abs(_x1 - x1) < x1extra / 2):
-                    return
 
         self.scrollregion = (x1, y1, x2, y2)
         C.configure(scrollregion=self.scrollregion)
@@ -1816,22 +1746,21 @@ class TableFrame:
         self.sampler = StringVar()
         self.sampler.set('R')
 
-        if 1:
-            fr = Frame(frame)  # For header
-            om = OptionMenu(fr, self.sampler, 'R', 'L', 'R-L')
-            om.grid(row=0, column=0, sticky=W)
-            Label(fr, text='Sample').grid(row=0, column=1, sticky=W)
-            Label(fr, textvariable=samplevar, background='black', foreground='yellow',
-                  ).grid(row=0, column=2, sticky=W, pady=3)
-            Label(fr, text='at').grid(row=0, column=3, sticky=W)
-            Label(fr, textvariable=self.marktime).grid(
-                row=0, column=4, sticky=W)
-            Label(fr, text='Total size = ').grid(
-                row=1, column=0, columnspan=3, sticky=W)
-            Label(fr, textvar=self.totsizevar).grid(
-                row=1, column=3, columnspan=2, sticky=W)
-            fr.grid(row=row, column=0, sticky=W)
-            row += 1
+        fr = Frame(frame)  # For header
+        om = OptionMenu(fr, self.sampler, 'R', 'L', 'R-L')
+        om.grid(row=0, column=0, sticky=W)
+        Label(fr, text='Sample').grid(row=0, column=1, sticky=W)
+        Label(fr, textvariable=samplevar, background='black', foreground='yellow',
+              ).grid(row=0, column=2, sticky=W, pady=3)
+        Label(fr, text='at').grid(row=0, column=3, sticky=W)
+        Label(fr, textvariable=self.marktime).grid(
+            row=0, column=4, sticky=W)
+        Label(fr, text='Total size = ').grid(
+            row=1, column=0, columnspan=3, sticky=W)
+        Label(fr, textvar=self.totsizevar).grid(
+            row=1, column=3, columnspan=2, sticky=W)
+        fr.grid(row=row, column=0, sticky=W)
+        row += 1
 
         orow = row
 
@@ -2526,18 +2455,6 @@ class ProfileBrowser:
             self.mcontrols.append(control)
             self.mcontrolbyname[name] = control
 
-        if 0:
-
-            self.optionsmenu.add_checkbutton(
-                label='X grid',
-                variable=self.display.var_xgrid,
-                command=self.display.cmd_xgrid)
-
-            self.optionsmenu.add_checkbutton(
-                label='Y grid',
-                variable=self.display.var_ygrid,
-                command=self.display.cmd_ygrid)
-
         self.var_showcontrol = BooleanVar()
         self.var_showcontrol.set(1)
         self.panemenu.add_checkbutton(
@@ -2562,42 +2479,26 @@ class ProfileBrowser:
         tf = self.tf = TableFrame(self, self.disptab)
         d_t = self.d_t = PaneDiv(self.disptab, movecommand=self.cmd_dt_moved)
 
-        if 0:
-            self.ycontrol.frame.pack(side=LEFT, padx=3, pady=3)
-            self.xcontrol.frame.pack(side=LEFT, padx=3, pady=3)
-            self.scontrol.frame.pack(side=LEFT, padx=3, pady=3)
-            self.graphtypeframe.pack(side=LEFT, padx=3, pady=3)
-            self.collectbutton.pack(side=LEFT, padx=3, pady=3)
-        else:
-            self.xcontrol.frame.grid(row=0, column=0, padx=3, pady=3, sticky=W)
-            self.ycontrol.frame.grid(row=1, column=0, padx=3, pady=3)
-            self.mcontrols[0].frame.grid(
-                row=0, column=1, columnspan=1, sticky=W, padx=3, pady=3)
-            self.mcontrols[1].frame.grid(
-                row=1, column=1, columnspan=1, sticky=W, padx=3, pady=3)
-            self.exitbutton.grid(row=0, column=2, padx=3, pady=3)
-            self.collectbutton.grid(row=0, column=3, padx=3, pady=3)
+        self.xcontrol.frame.grid(row=0, column=0, padx=3, pady=3, sticky=W)
+        self.ycontrol.frame.grid(row=1, column=0, padx=3, pady=3)
+        self.mcontrols[0].frame.grid(
+            row=0, column=1, columnspan=1, sticky=W, padx=3, pady=3)
+        self.mcontrols[1].frame.grid(
+            row=1, column=1, columnspan=1, sticky=W, padx=3, pady=3)
+        self.exitbutton.grid(row=0, column=2, padx=3, pady=3)
+        self.collectbutton.grid(row=0, column=3, padx=3, pady=3)
 
         self.filler = Filler(self.frame)
 
-        if 1:
-            self.filebutton.pack(side=LEFT)
-            self.panebutton.pack(side=LEFT)
-            self.graphbutton.pack(side=LEFT)
-            self.tablebutton.pack(side=LEFT)
-            self.windowmenu.button.pack(side=LEFT)
-            self.helpbutton.pack(side=LEFT)
+        self.filebutton.pack(side=LEFT)
+        self.panebutton.pack(side=LEFT)
+        self.graphbutton.pack(side=LEFT)
+        self.tablebutton.pack(side=LEFT)
+        self.windowmenu.button.pack(side=LEFT)
+        self.helpbutton.pack(side=LEFT)
 
-            self.menubar.grid(column=0, columnspan=4, sticky=N+W+E)
-            self.gridmain()
-
-        if 0:
-            self.display.frame.grid(
-                row=0, column=0, sticky=N+W, padx=3, pady=3)
-
-            tf.frame.grid(row=0, column=1, sticky=S+E, padx=3, pady=3)
-
-            self.ctrlframe.grid(row=1, column=0, columnspan=2, sticky=W)
+        self.menubar.grid(column=0, columnspan=4, sticky=N+W+E)
+        self.gridmain()
 
         frame.bind('<Map>', self.event_map)
 
@@ -2881,10 +2782,7 @@ class ProfileBrowser:
         self.filler.setsize(0, 0)
         self.filler.frame.grid(row=row, column=3, sticky=N+W)
 
-        if 0 and not (g or t):
-            self.frame.resizable(0, 0)
-        else:
-            self.frame.resizable(1, 1)
+        self.frame.resizable(1, 1)
 
     def event_configure(self, event):
         if event.widget is not self.frame:

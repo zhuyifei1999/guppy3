@@ -1,4 +1,3 @@
-# ._cv_part guppy.heapy.Monitor
 import os
 import pprint
 import signal
@@ -431,12 +430,8 @@ class Monitor:
                                 r = 1
                             if conn is self.monitor_connection and r:
                                 stop = 1
-                                # print 'to stop'
-                    # print 'end of loop'
                 except EOFError:
                     'We better exit in case the input is from a file'
-                    # print 'EOFError'
-                    # print 'Use the monitor q command to quit.'
                     print('*** End Of File - Exiting Monitor ***')
                     self.connection = self.monitor_connection
                     stop = 1
@@ -448,18 +443,15 @@ class Monitor:
 
         finally:
             self.prompt = None  # Avoid closing messages
-            # print 'to close'
             self.close()
 
     def close(self):
         for c in list(self.connections.values()):
             try:
-                # print 'to close:', c
                 c.close()
             except socket.error:
                 pass
         try:
-            # print 'to close: self'
             self.monitor_connection.close()
         except socket.error:
             pass
