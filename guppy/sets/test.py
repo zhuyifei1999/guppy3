@@ -726,18 +726,6 @@ MutBitSet([])
             for o in os:
                 assert o not in bs
 
-        try:
-            from snidioms import ListLikeDictSet
-        except ImportError:
-            print('can not import snidioms, skipping a performance comparison')
-        else:
-            rng = list(range(10000))
-            for s in [], BS(), ListLikeDictSet():
-                print(eltime(t_append, (s, rng)))
-
-            for s in [], bitsmut([]), :
-                print(eltime(t_append_id, (s, rng)))
-
     def test9(self):
         # Making bigger bitsmuts - testing the split
         for i in (1000, 10000, 100000):
