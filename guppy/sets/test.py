@@ -362,9 +362,7 @@ class Test:
         print(bitset([-1]), file=f)
         print(bitset([-1]) | bitset([4]), file=f)
 
-        # LP: #770882
-        if sys.hexversion < 0x2070000:
-            assert f.getvalue() == """\
+        assert f.getvalue() == """\
 (ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]), ImmBitSet([]))
 ImmBitSet([15])
 ImmBitSet([4])
@@ -432,9 +430,6 @@ ImmBitSet([-1, 4])
                         tr.append(~ta ^ ~tb)
                         ts.append(tr)
 
-                # LP: #770882
-                if sys.hexversion >= 0x2070000:
-                    continue
                 for tr in ts[1:]:
                     for r, x in zip(tr, ts[0]):
                         assert int(r) == x
@@ -471,9 +466,6 @@ ImmBitSet([-1, 4])
                     tr.append(int(tb))
                     ts.append(tr)
 
-        # LP: #770882
-        if sys.hexversion >= 0x2070000:
-            return
         for tr in ts[1:]:
             for r, x in zip(tr, ts[0]):
                 assert int(r) == x
@@ -579,9 +571,6 @@ ImmBitSet([-1, 4])
 
     def test6(self):
         # Comparisons
-        # LP: #770882
-        if sys.hexversion >= 0x2070000:
-            return
         for a in (randlong(),):
             for b in (a, ~a, randlong()):
                 assert ((bitset(a) == bitset(b)) == (a == b))
