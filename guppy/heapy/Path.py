@@ -423,7 +423,7 @@ class ShortestPaths:
             if lastindex is not None:
                 nummore = self.numpaths-(lastindex+1)
                 if nummore == 1:
-                    it.next().pp(output=output)
+                    next(it).pp(output=output)
                 elif nummore > 1:
                     print('<... %d more paths ...>' % nummore, file=output)
 

@@ -313,7 +313,6 @@ class RelationTestCase(TestCase):
 
 
 class RootTestCase(TestCase):
-
     def test_1(self):
         import sys
         import builtins
@@ -927,6 +926,30 @@ class NewTestCase(TestCase):
         # Test that .top is idempotent
 
         self.asis(p.more.top.top, p)
+
+    def test_4(self):
+        # Test that if one extra path will be printed if there are
+        # exactly 11 paths
+
+        iso = self.iso
+
+        dst = []
+        src = [dst] * 11
+
+        shp = iso(dst).get_shpaths(iso(src))
+        self.aseq(str(shp), """\
+ 0: Src[0]
+ 1: Src[1]
+ 2: Src[2]
+ 3: Src[3]
+ 4: Src[4]
+ 5: Src[5]
+ 6: Src[6]
+ 7: Src[7]
+ 8: Src[8]
+ 9: Src[9]
+10: Src[10]
+""")
 
 
 def run_test(case, debug=0):
