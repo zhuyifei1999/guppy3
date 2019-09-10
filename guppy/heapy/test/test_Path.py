@@ -932,12 +932,14 @@ class NewTestCase(TestCase):
         # exactly 11 paths
 
         iso = self.iso
+        o = self.python.io.StringIO()
 
         dst = []
         src = [dst] * 11
 
         shp = iso(dst).get_shpaths(iso(src))
-        self.aseq(str(shp), """\
+        print(str(shp), file=o)
+        self.aseq(o.getvalue(), """\
  0: Src[0]
  1: Src[1]
  2: Src[2]
