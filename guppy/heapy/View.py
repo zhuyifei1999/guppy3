@@ -346,8 +346,8 @@ Return the set of objects in the visible heap.
         # because of common operations.
         if not heap_one_time_initialized:
             heap_one_time_initialized = 1
+            repr(self.idset([[], 'a', 1, 1.23, {'a': 'b'}, self]))
             x = []
-            repr(self.iso(x))
             repr(self.iso(x).shpaths)
             repr(self.iso(x).rp)
             del x
