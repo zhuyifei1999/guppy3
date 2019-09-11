@@ -33,8 +33,38 @@ static void *addr_of_symbol(const char *symbol) {
 #ifndef MS_WIN32
     return dlsym(RTLD_DEFAULT, symbol);
 #else
-    HMODULE hMod = GetModuleHandle(NULL);
-    return (void *)GetProcAddress(hMod, symbol);
+    void *addr;
+    HMODULE hMod;
+
+    hMod = GetModuleHandle(NULL);
+    if (hmod) {
+        addr = GetProcAddress(hMod, symbol);
+        if (addr)
+            return addr;
+    }
+
+    hMod = GetModuleHandle(TEXT(
+        // Why isn't this in some CPython header file?
+#ifdef _DEBUG
+        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) "_d.dll";
+#else
+        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) ".dll";
+#endif
+    ));
+    if (hmod) {
+        addr = GetProcAddress(hMod, symbol);
+        if (addr)
+            return addr;
+    }
+
+    hMod = GetModuleHandle(TEXT("MSVCRT.dll"));
+    if (hmod) {
+        addr = GetProcAddress(hMod, symbol);
+        if (addr)
+            return addr;
+    }
+
+    return 0;
 #endif
 }
 
