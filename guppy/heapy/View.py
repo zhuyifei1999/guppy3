@@ -94,13 +94,15 @@ class _GLUECLAMP_:
         except IndexError:
             self.clear_setup()
         else:
-            c = wr()
-            if c is None:
+            # When tracing is enabled, each local variable gets two references.
+            # See Guppy 3 issue #3.
+            c = [wr()]
+            if c[0] is None:
                 self.clear_setup()
-            elif self._root.sys.getrefcount(c) > 3:
+            elif self._root.sys.getrefcount(c[0]) > 3:
                 print('GC hook object was referred to from somebody!')
                 self.clear_callback(wr)
-                c.cb.callback = None
+                c[0].cb.callback = None
 
     def clear_callback(self, wr):
         self._clear_hook.clear()
