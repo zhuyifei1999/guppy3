@@ -46,9 +46,9 @@ static void *addr_of_symbol(const char *symbol) {
     hMod = GetModuleHandle(
         // Why isn't this in some CPython header file?
 #ifdef _DEBUG
-        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) "_d.dll";
+        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) "_d.dll"
 #else
-        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) ".dll";
+        "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) ".dll"
 #endif
     );
     if (hMod) {
