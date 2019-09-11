@@ -37,28 +37,28 @@ static void *addr_of_symbol(const char *symbol) {
     HMODULE hMod;
 
     hMod = GetModuleHandle(NULL);
-    if (hmod) {
+    if (hMod) {
         addr = GetProcAddress(hMod, symbol);
         if (addr)
             return addr;
     }
 
-    hMod = GetModuleHandle(TEXT(
+    hMod = GetModuleHandle(
         // Why isn't this in some CPython header file?
 #ifdef _DEBUG
         "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) "_d.dll";
 #else
         "python" Py_STRINGIFY(PY_MAJOR_VERSION) Py_STRINGIFY(PY_MINOR_VERSION) ".dll";
 #endif
-    ));
-    if (hmod) {
+    );
+    if (hMod) {
         addr = GetProcAddress(hMod, symbol);
         if (addr)
             return addr;
     }
 
-    hMod = GetModuleHandle(TEXT("MSVCRT.dll"));
-    if (hmod) {
+    hMod = GetModuleHandle("MSVCRT.dll");
+    if (hMod) {
         addr = GetProcAddress(hMod, symbol);
         if (addr)
             return addr;

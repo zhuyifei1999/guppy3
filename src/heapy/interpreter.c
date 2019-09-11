@@ -200,7 +200,7 @@ Err:
 Py_ssize_t
 NyThreadState_SetAsyncExc(long id, PyObject *exc) {
     PyInterpreterState *interp;
-    int count = 0;
+    Py_ssize_t count = 0;
 
     // We should lock the interp list, but PyThreadState_SetAsyncExc
     // relies on that it is not locked,,,
@@ -223,7 +223,8 @@ static PyObject *
 hp_set_async_exc(PyObject *self, PyObject *args)
 {
     PyObject *idobj, *exc;
-    long id, r;
+    long id;
+    Py_ssize_t r;
     if (!PyArg_ParseTuple(args, "OO",
                           &idobj, &exc))
         return NULL;
@@ -233,5 +234,5 @@ hp_set_async_exc(PyObject *self, PyObject *args)
         NyThreadState_SetAsyncExc(id, NULL);
         r = -1;
     }
-    return PyLong_FromLong(r);
+    return PyLong_FromSsize_t(r);
 }
