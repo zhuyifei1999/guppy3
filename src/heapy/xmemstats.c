@@ -15,7 +15,7 @@ static char hp_xmemstats_doc[] =
 #include <windows.h>
 #endif
 
-Py_ssize_t totalloc, totfree, reallocfree, reallocalloc, numalloc, numfree, numdiff;
+Py_ssize_t totalloc, totfree, numalloc, numfree;
 
 static int has_malloc_hooks;
 
@@ -25,9 +25,7 @@ static void (*dlptr_malloc_stats)(void);
 static int (*dlptr__PyObject_DebugMallocStats)(FILE *out);
 static Py_ssize_t *dlptr__Py_RefTotal;
 
-void *(*org_alloc)(size_t size);
-void *(*org_realloc)(void *p, size_t size);
-void (*org_free)(void *p);
+static void *org___malloc_hook, *org___realloc_hook, *org___free_hook;
 
 static void *addr_of_symbol(const char *symbol) {
 #ifndef MS_WIN32
@@ -68,78 +66,112 @@ static void *addr_of_symbol(const char *symbol) {
 #endif
 }
 
-void
+static void
 breakit(void *p, char c)
 {
     // fprintf(stderr, "breakit %p %c %d\n", p, c, dlptr_malloc_usable_size(p));
 }
 
+static void *mallochook(size_t size);
+static void *reallochook(void *p, size_t size);
+static void freehook(void *p);
 
-void *
+#define HOOK_RESTORE do {                       \
+    *dlptr___malloc_hook  = org___malloc_hook;  \
+    *dlptr___realloc_hook = org___realloc_hook; \
+    *dlptr___free_hook    = org___free_hook;    \
+} while (0)
+
+#define HOOK_SAVE do {                          \
+    org___malloc_hook  = *dlptr___malloc_hook;  \
+    org___realloc_hook = *dlptr___realloc_hook; \
+    org___free_hook    = *dlptr___free_hook;    \
+} while (0)
+
+#define HOOK_SET do {                     \
+    *dlptr___malloc_hook  = &mallochook;  \
+    *dlptr___realloc_hook = &reallochook; \
+    *dlptr___free_hook    = &freehook;    \
+} while (0)
+
+
+static void *
 mallochook(size_t size) {
-    void *o = *dlptr___malloc_hook;
     void *p;
-    Py_ssize_t f;
-    *dlptr___malloc_hook = 0;
-    p = org_alloc(size);
-    f = dlptr_malloc_usable_size(p);
-    totalloc += f;
-    *dlptr___malloc_hook = o;
-    numalloc += 1;
-    numdiff += 1;
-    if (f > 265000) {
-        breakit(p, 'm');
+
+    HOOK_RESTORE;
+    p = malloc(size);
+    HOOK_SAVE;
+
+    if (p) {
+        totalloc += dlptr_malloc_usable_size(p);
+        numalloc += 1;
     }
+    breakit(p, 'm');
+
+    HOOK_SET;
     return p;
 }
 
-void *
+static void *
 reallochook(void *p, size_t size) {
     void *q;
     Py_ssize_t f;
-    void *o = *dlptr___realloc_hook;
+
     if (p)
         f = dlptr_malloc_usable_size(p);
     else
         f = 0;
-    *dlptr___realloc_hook = 0;
-    q = org_realloc(p, size);
-    if (q != p) {
-        totfree += f;
-        reallocfree += f;
-        f = dlptr_malloc_usable_size(q);
-        totalloc += f;
-        reallocalloc += f;
+
+    HOOK_RESTORE;
+    q = realloc(p, size);
+    HOOK_SAVE;
+
+    if (p) {
+        if (q) {
+            if (q != p) {
+                totfree += f;
+                f = dlptr_malloc_usable_size(q);
+                totalloc += f;
+            } else {
+                f = dlptr_malloc_usable_size(q) - f;
+                if (f > 0) {
+                    totalloc += f;
+                } else {
+                    totfree -= f;
+                }
+            }
+        } else if (!size) {
+            totfree += f;
+            numfree += 1;
+        }
     } else {
-        f = dlptr_malloc_usable_size(q) - f;
-        if (f > 0) {
-            totalloc += f;
-            reallocalloc += f;
-        } else {
-            totfree -= f;
-            reallocfree -= f;
+        if (q) {
+            totalloc += dlptr_malloc_usable_size(q);
+            numalloc += 1;
         }
     }
-    *dlptr___realloc_hook = o;
-    if (f > 265000) {
-        breakit(q, 'r');
-    }
 
+    breakit(q, 'r');
+
+    HOOK_SET;
     return q;
 }
 
-void
+static void
 freehook(void *p) {
-    void *o = *dlptr___free_hook;
-    *dlptr___free_hook = 0;
     totfree += dlptr_malloc_usable_size(p);
-    org_free(p);
-    *dlptr___free_hook = o;
-    numfree -= 1;
-    numdiff -= 1;
+    HOOK_RESTORE;
+    free(p);
+    HOOK_SAVE;
+
+    if (p)
+        numfree += 1;
+
+    HOOK_SET;
 }
 
-void
+static void
 xmemstats_init(void) {
     dlptr___malloc_hook              = addr_of_symbol("__malloc_hook");
     dlptr___realloc_hook             = addr_of_symbol("__realloc_hook");
@@ -152,28 +184,24 @@ xmemstats_init(void) {
     has_malloc_hooks = dlptr___malloc_hook && dlptr___realloc_hook &&
         dlptr___free_hook && dlptr_malloc_usable_size;
     if (has_malloc_hooks) {
-        org_alloc   = &malloc;
-        org_realloc = &realloc;
-        org_free    = &free;
-        *dlptr___malloc_hook  = &mallochook;
-        *dlptr___realloc_hook = &reallochook;
-        *dlptr___free_hook    = &freehook;
+        HOOK_SAVE;
+        HOOK_SET;
     }
 }
 
 static PyObject *
 hp_xmemstats(PyObject *self, PyObject *args)
 {
-    if (dlptr_malloc_stats) {
-        fprintf(stderr, "======================================================================\n");
-        fprintf(stderr, "Output from malloc_stats\n\n");
-        dlptr_malloc_stats();
-    }
-
     if (dlptr__PyObject_DebugMallocStats) {
         fprintf(stderr, "======================================================================\n");
         fprintf(stderr, "Output from _PyObject_DebugMallocStats()\n\n");
         dlptr__PyObject_DebugMallocStats(stderr);
+    }
+
+    if (dlptr_malloc_stats) {
+        fprintf(stderr, "======================================================================\n");
+        fprintf(stderr, "Output from malloc_stats\n\n");
+        dlptr_malloc_stats();
     }
 
     if (has_malloc_hooks) {
@@ -183,7 +211,7 @@ hp_xmemstats(PyObject *self, PyObject *args)
         fprintf(stderr, "Allocated bytes                    =         %12zd\n", totalloc);
         fprintf(stderr, "Allocated - freed bytes            =         %12zd\n", totalloc-totfree);
         fprintf(stderr, "Calls to malloc                    =         %12zd\n", numalloc);
-        fprintf(stderr, "Calls to malloc - calls to free    =         %12zd\n", numdiff);
+        fprintf(stderr, "Calls to malloc - calls to free    =         %12zd\n", numalloc-numfree);
     }
 
 #ifndef Py_TRACE_REFS
