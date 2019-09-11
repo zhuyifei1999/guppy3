@@ -149,20 +149,19 @@ class Stats:
         if stat == self.laststat:
             return len(self), 0
 
-        f = open(self.fn)
-        str = f.read(self.lastfilesize)
-        md5 = self.hashlib.md5(str.encode('utf-8'))
-        digest = md5.digest()
-        if digest == self.lastdigest:
-            numoldstats = len(self)
-        else:
-            self.loadstr(str, reset=1)
-            numoldstats = 0
+        with open(self.fn) as f:
+            str = f.read(self.lastfilesize)
+            md5 = self.hashlib.md5(str.encode('utf-8'))
+            digest = md5.digest()
+            if digest == self.lastdigest:
+                numoldstats = len(self)
+            else:
+                self.loadstr(str, reset=1)
+                numoldstats = 0
 
-        str = f.read()
+            str = f.read()
 
-        self.laststat = self.os.fstat(f.fileno())
-        f.close()
+            self.laststat = self.os.fstat(f.fileno())
         self.lastfilesize = self.laststat.st_size
 
         md5.update(str.encode('utf-8'))
@@ -181,11 +180,10 @@ class Stats:
             self.fn = fn
             return
 
-        f = open(fn)
-        str = f.read()
-        lastdigest = self.hashlib.md5(str.encode('utf-8')).digest()
-        laststat = self.os.fstat(f.fileno())
-        f.close()
+        with open(fn) as f:
+            str = f.read()
+            lastdigest = self.hashlib.md5(str.encode('utf-8')).digest()
+            laststat = self.os.fstat(f.fileno())
         self.loadstr(str, reset=1)
 
         # Update these only if there was no exception so far.

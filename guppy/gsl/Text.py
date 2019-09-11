@@ -1015,9 +1015,8 @@ class _GLUECLAMP_:
         if node is None:
             if text is None:
                 if filename is not None:
-                    f = open(filename)
-                    text = f.read()
-                    f.close()
+                    with open(filename) as f:
+                        text = f.read()
             node = self.node_of_string(text, nostrip=1)
 
         if htmloutfile is not None:
@@ -1056,7 +1055,7 @@ class _GLUECLAMP_:
                     td = f.read(len(textdigest))
                     if td == textdigest:
                         r = pickle.load(f)
-                        f.close()
+                    f.close()
                 if r is None:
                     r = RecordingInter()
                     self.node2inter(node, r)

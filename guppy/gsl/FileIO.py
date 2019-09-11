@@ -83,15 +83,12 @@ class RealIO:
         self.rename = os.rename
 
     def read_file(self, name):
-        f = open(name)
-        data = f.read()
-        f.close()
-        return data
+        with open(name) as f:
+            return f.read()
 
     def write_file(self, name, data):
-        f = open(name, 'w')
-        f.write(data)
-        f.close()
+        with open(name, 'w') as f:
+            f.write(data)
 
 
 class _GLUECLAMP_:

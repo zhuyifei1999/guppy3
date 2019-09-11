@@ -502,9 +502,8 @@ class _GLUECLAMP_:
 
     def node2file(self, node, file):
         text = self.node2text(node)
-        f = open(file, 'w')
-        f.write(text)
-        f.close()
+        with open(file, 'w') as f:
+            f.write(text)
 
     def node2text(self, node):
         text = Node2Html(self, node).get_html()
