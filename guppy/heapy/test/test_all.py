@@ -3,6 +3,7 @@ import sys
 
 autotests = (
     'dependencies',
+    'gsl',
     'Classifiers',
     'heapyc',
     'ER',

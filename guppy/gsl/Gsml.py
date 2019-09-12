@@ -52,7 +52,7 @@ class GsmlHandler:
 
 class _GLUECLAMP_:
     _imports_ = (
-        '_root.HTMLParser:HTMLParser',
+        '_root.html.parser:HTMLParser',
         '_parent.SpecNodes:node_of_taci',
         '_parent.SpecNodes:nodes_of_text',
         '_root.htmlentitydefs:entitydefs',
@@ -94,4 +94,5 @@ Handle char ref: &lt;.
         """
 
         node = self.node_of_gsml(x)
+        # FIXME: Assert equals to something?
         print(node)

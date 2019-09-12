@@ -406,7 +406,8 @@ class Source:
             print()
 
         if self.debug:
-            set_trace()
+            import pdb
+            pdb.set_trace()
         else:
             if self.num_errors >= self.max_errors:
                 raise TooManyErrors('Too many errors, giving up')
@@ -589,24 +590,20 @@ class _GLUECLAMP_:
             nodes.append(self.node_of_taci('text', text))
         return nodes
 
-    def main(self, package):
+    def main(self):
         root = self._root
 
-        specs = package.specs
-        specdir = root.os.path.dirname(specs._module.__file__)
-        print(specdir)
-        main_dt_name = root.os.path.join(specdir, "main.gsl")
+        specdir = root.os.path.join(
+            root.os.path.dirname(root.os.path.realpath(__file__)),
+            '../../specs')
+        main_dt_name = root.os.path.join(specdir, "docexample.gsl")
+        if not root.os.path.exists(main_dt_name):
+            print('%s does not exist, skipping test' % main_dt_name)
 
         env = self.SpecEnv(self)
 
         node = self.node_of_file(main_dt_name)
-
         node.accept(env)
-
-        import __main__
-        __main__.env = env
-
-        return
 
     def print_doc(self, dt):
         self.print_doc()
@@ -624,10 +621,5 @@ class _GLUECLAMP_:
 def test_main():
     from guppy import Root
     root = Root()
-    sp = root.guppy.gsl.SpecNodes
 
-    root.guppy.gsl.SpecNodes.main(root.guppy)
-
-
-if __name__ == '__main__':
-    test_main()
+    root.guppy.gsl.SpecNodes.main()

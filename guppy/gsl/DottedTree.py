@@ -298,7 +298,6 @@ line 3
              (Node('line 2\nline 3', (), 2),), 1),
         Node('line 4\n', (), 4)), 0)
     assert repr(node) == repr(exp)
-    print(node)
 
 
 def test_doctest():

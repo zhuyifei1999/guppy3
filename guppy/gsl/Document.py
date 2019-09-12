@@ -21,7 +21,10 @@ class Document:
         node.accept(self)
 
         self.result = self.node_of_taci('string', '', self.out, 0)
-        self.doc_name_node = self.node_of_taci('text', self.get_doc_name())
+
+    @property
+    def doc_name_node(self):
+        return self.node_of_taci('text', self.get_doc_name())
 
     def _visit_children(self, node):
         E = self.mod.ReportedError
@@ -180,7 +183,6 @@ class Document:
     def get_cur_subject(self, node):
         sd = self.subdoc
         if not sd:
-            __import__('traceback').print_stack()
             self.error('No subject defined in current environment.', node)
         return sd.subject
 
@@ -1953,7 +1955,7 @@ class _GLUECLAMP_:
             def __init__(self, mod):
                 self.mod = mod
 
-            def get_subject(self, name):
+            def get_descr_by_name(self, name, node):
                 return TestSubject(self.mod, name)
 
         env = TestEnv(self)
@@ -1970,7 +1972,13 @@ class _GLUECLAMP_:
         node = self._parent.SpecNodes.node_of_string(x)
         y = self.document(node, env)
         r = y.get_result()
+        # FIXME: Assert equals to something?
         print(r)
-        h = self._parent.Html.doc2html(r)
-        print(h)
-        open('/tmp/d.html', 'w').write(h)
+        h = self._parent.Html.node2text(r)
+        assert h == '''
+<h1>Description of subject<em>
+ hello
+</em></h1>
+<h1>Reversing arguments</h1>
+ C
+ B A'''

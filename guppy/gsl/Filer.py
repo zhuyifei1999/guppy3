@@ -130,6 +130,7 @@ class _GLUECLAMP_:
             data3 = '\nhello3'
             X = '''
 .write file: %s
+..text
 %s
 .write file: %s
 ..text

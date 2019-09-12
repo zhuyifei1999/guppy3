@@ -46,7 +46,8 @@ class SpecEnv:
             print()
 
         if self.debug:
-            set_trace()
+            import pdb
+            pdb.set_trace()
         else:
             if self.num_errors >= self.max_errors:
                 raise TooManyErrors('Too many errors, giving up')
@@ -845,7 +846,6 @@ class Attribute(Definition):
         # xxx needs smoother logic
         s = '%s.%s' % (self.get_descr_by_subject(
             self.tgt.parent).get_link_name(), self.tgt.lastname)
-        # set_trace()
         return s
 
     def get_test_kind(self):
@@ -1107,7 +1107,6 @@ class ArgsExample:
 
         pres = map.find_aspects('precondition')
         if pres:
-            # set_trace()
             for a in kind.find_aspects('attribute'):
                 for m in a.find_aspects('mapping'):
                     mpre = m.find_aspects('precondition')

@@ -1123,6 +1123,3 @@ def test():
     name = 'long_wrapping_tables'
     name = 'html_tables'
     test_string(name=name)
-
-
-# test()
