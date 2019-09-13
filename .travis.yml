@@ -5,23 +5,38 @@ matrix:
     #   python: 3.4
     - name: "Python 3.5 on Linux"
       python: 3.5
+      env:
+        - ACTION=test
     - name: "Python 3.6 on Linux"
       python: 3.6
+      env:
+        - ACTION=test
     - name: "Python 3.7 on Linux"
       python: 3.7
+      env:
+        - ACTION=test
     - name: "Python 3 on macOS"
       os: osx
       osx_image: xcode11
       language: shell
+      env:
+        - ACTION=test
     - name: "Python 3 on Windows"
       os: windows
       language: shell
       before_install:
         - choco install python
         - python -m pip install --upgrade pip
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
-install: pip3 install --upgrade pip; pip install -ve .
+      env:
+        - ACTION=test
+        - PATH=/c/Python37:/c/Python37/Scripts:$PATH
+    - name: "Python 3.7 on Linux (Code Coverage)"
+      python: 3.7
+      env:
+        - ACTION=codecov
+install: pip3 install --upgrade pip; ./travis.sh install
 script:
-  - which python3 &> /dev/null && PYTHON=python3 || PYTHON=python
+  - which python3 &> /dev/null && export PYTHON=python3 || export PYTHON=python
   - $PYTHON --version
-  - $PYTHON -c '__import__("faulthandler").enable(); __import__("guppy").hpy().test(); __import__("guppy").heapy.heapyc.xmemstats()'
+  - ./travis.sh script
+after_success: ./travis.sh after_success
