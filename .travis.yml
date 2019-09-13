@@ -1,8 +1,6 @@
 language: python
 matrix:
   include:
-    # - name: "Python 3.4 on Linux"
-    #   python: 3.4
     - name: "Python 3.5 on Linux"
       python: 3.5
       env:
@@ -21,11 +19,30 @@ matrix:
       language: shell
       env:
         - ACTION=test
-    - name: "Python 3 on Windows"
+    # No idea why this fails with exitcode 127
+    # - name: "Python 3.5 on Windows"
+    #   os: windows
+    #   language: shell
+    #   before_install:
+    #     - choco install python --version $(choco list -e python -a | awk '{ print $2 }' | grep -oP '^3\.5\.\d+(\.\d+)?$' | sort | tail -n 1)
+    #     - python -m pip install --upgrade pip
+    #   env:
+    #     - ACTION=test
+    #     - PATH=/c/Python35:/c/Python35/Scripts:$PATH
+    - name: "Python 3.6 on Windows"
       os: windows
       language: shell
       before_install:
-        - choco install python
+        - choco install python --version $(choco list -e python -a | awk '{ print $2 }' | grep -oP '^3\.6\.\d+(\.\d+)?$' | sort | tail -n 1)
+        - python -m pip install --upgrade pip
+      env:
+        - ACTION=test
+        - PATH=/c/Python36:/c/Python36/Scripts:$PATH
+    - name: "Python 3.7 on Windows"
+      os: windows
+      language: shell
+      before_install:
+        - choco install python --version $(choco list -e python -a | awk '{ print $2 }' | grep -oP '^3\.7\.\d+(\.\d+)?$' | sort | tail -n 1)
         - python -m pip install --upgrade pip
       env:
         - ACTION=test
