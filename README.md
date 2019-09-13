@@ -1,5 +1,6 @@
 # Guppy 3
-[![Build Status](https://travis-ci.com/zhuyifei1999/guppy3.svg?branch=master)](https://travis-ci.com/zhuyifei1999/guppy3) [![PyPI version](https://badge.fury.io/py/guppy3.svg)](https://pypi.org/project/guppy3/) ![PyPI - Implementation](https://img.shields.io/pypi/implementation/guppy3) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/guppy3) ![PyPI - License](https://img.shields.io/pypi/l/guppy3)
+[![Build Status](https://img.shields.io/travis/com/zhuyifei1999/guppy3?label=tests)](https://travis-ci.com/zhuyifei1999/guppy3) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/zhuyifei1999/572e8a8a-7a5f-49b8-9f47-d1622733d961/1?label=build%20wheels)](https://dev.azure.com/zhuyifei1999/zhuyifei1999/_build?definitionId=1&view=buildsHistory) [![Codecov](https://img.shields.io/codecov/c/github/zhuyifei1999/guppy3)](https://codecov.io/gh/zhuyifei1999/guppy3) [![PyPI version](https://img.shields.io/pypi/v/guppy3)](https://pypi.org/project/guppy3/)  
+[![PyPI - Implementation](https://img.shields.io/pypi/implementation/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - License](https://img.shields.io/pypi/l/guppy3)](https://pypi.org/project/guppy3/)
 
 A Python Programming Environment & Heap analysis toolset.
 
