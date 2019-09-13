@@ -234,7 +234,6 @@ class TestCase(unittest.TestCase):
         self.ImpSet = self.heapy.ImpSet
         self.Use = self.heapy.Use
         self.View = self.heapy.View
-        self.allocation_behaves_as_originally = self.heapy.allocation_behaves_as_originally
         self.iso = self.Use.iso
         self.idset = self.Use.idset
 

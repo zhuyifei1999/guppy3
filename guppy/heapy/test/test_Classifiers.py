@@ -1,5 +1,4 @@
 from guppy.heapy.test import support
-import importlib
 
 PORTABLE_TEST = 1       # Relax tests to be more portable
 

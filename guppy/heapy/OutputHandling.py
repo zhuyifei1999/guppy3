@@ -268,6 +268,9 @@ class BasicMorePrinter(metaclass=_MetaAttrProxy):
         self.handler.ppob(ob, self.startindex)
         return ob.getvalue().rstrip()
 
+    # This __str__ is not optional as it may get overridden by _MetaAttrProxy
+    __str__ = __repr__
+
     def at(self, idx):
         return self.__class__(self.mod, self.top, self.handler,
                               idx)
