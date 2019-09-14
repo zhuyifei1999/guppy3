@@ -687,13 +687,11 @@ class TestOf(Doc2Tester):
 
 
 class _GLUECLAMP_:
-
     _imports_ = (
         '_parent:SpecNodes',
         '_parent.SpecNodes:node_of_taci',
         '_parent:Main',
         '_parent.Main:ReportedError',
-        '_root:doctest',
         '_root.io:StringIO',
         '_root.sys:stdout',
         '_root:sys',

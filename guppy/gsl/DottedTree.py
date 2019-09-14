@@ -300,13 +300,6 @@ line 3
     assert repr(node) == repr(exp)
 
 
-def test_doctest():
-    import doctest
-    import guppy.gsl.DottedTree
-    return doctest.testmod(guppy.gsl.DottedTree)
-
-
 def test_main():
     test_1()
     test_2()
-    # test_doctest()
