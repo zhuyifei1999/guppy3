@@ -539,6 +539,17 @@ def prime_builtin_types():
               ]:
         dir(t)
 
+    # Ubuntu apport package installs a sys.excepthook that will import a lot
+    # of packages when there is an unhandled exception. This can cause a lot
+    # of irrelevant stuffs when we analyze a relative heap.
+    try:
+        import apport.fileutils
+    except ImportError:
+        pass
+    else:
+        import re
+        import traceback
+
 
 prime_builtin_types()
 
