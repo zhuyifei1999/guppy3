@@ -1,3 +1,4 @@
+import os.path
 import sys
 from setuptools import setup, Extension
 from distutils.command.install import INSTALL_SCHEMES
@@ -30,37 +31,14 @@ http://guppy-pe.sourceforge.net/''', file=sys.stderr)
 setup.py: Warning: This guppy package only supports CPython.
 Compilation failure expected, but continuting anyways...''', file=sys.stderr)
 
+    with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
+        long_description = f.read()
+
     setup(name="guppy3",
           version="3.0.6",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
-          long_description="""
-Guppy 3 is a library and programming environment for Python,
-currently providing in particular the Heapy subsystem, which supports
-object and heap memory sizing, profiling and debugging. It also
-includes a prototypical specification language, the Guppy
-Specification Language (GSL), which can be used to formally specify
-aspects of Python programs and generate tests and documentation from a
-common source.
-
-Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
-
-The guppy top-level package contains the following subpackages:
-
-etc
-       Support modules. Contains especially the Glue protocol module.
-
-gsl
-       The Guppy Specification Language implementation. This can
-       be used to create documents and tests from a common source.
-
-heapy
-       The heap analysis toolset. It can be used to find information
-       about the objects in the heap and display the information
-       in various ways.
-
-sets
-       Bitsets and 'nodesets' implemented in C.
-""",
+          long_description=long_description,
+          long_description_content_type='text/markdown',
           author="YiFei Zhu",
           author_email="zhuyifei1999@gmail.com",
           url="https://github.com/zhuyifei1999/guppy3/",
