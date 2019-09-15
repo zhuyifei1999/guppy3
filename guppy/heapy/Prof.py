@@ -2971,7 +2971,6 @@ class _GLUECLAMP_:
         '_parent:Use',
         '_parent:pbhelp',
         '_root.guppy.etc:textView',
-        '_root.guppy:specs',
         '_root:hashlib',
         '_root:os',
         '_root.os:path',

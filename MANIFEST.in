@@ -1,0 +1,4 @@
+include setup.py
+include ANNOUNCE
+include ChangeLog
+graft src

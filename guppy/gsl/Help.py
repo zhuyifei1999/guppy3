@@ -1,16 +1,10 @@
 class _GLUECLAMP_:
     _imports_ = (
         '_root:os',
-        '_root.guppy:specs',
         '_root:webbrowser',
     )
 
     default_doc_file = 'guppy.html'
-
-    def _get_doc_dir(self):
-        os = self.os
-        return os.path.join(os.path.abspath(self.os.path.dirname(self.specs.__file__)),
-                            'generated')
 
     def doc(self, subject=None, *args, **kwds):
         """\
