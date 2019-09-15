@@ -1,3 +1,31 @@
+    Version 3.0.6
+
+2019-09-14  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Prime apport because it installs an sys.excepthook that imports stuffs
+
+2019-09-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix __str__ on BasicMorePrinter not being paged
+    * Unreachable code cleanup
+
+2019-09-11  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * xmemstats import from pydll and msvcrt on Windows
+    * Made data from xmemstats malloc hooks sane
+
+2019-09-10  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix Py3 porting of foo.next => next(foo)
+
+2019-09-09  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Re-enable some Py2.7-disabled tests
+
+2019-09-08  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Unreachable code cleanup
+
     Version 3.0.5
 
 2019-09-07  YiFei Zhu  <zhuyifei1999@gmail.com>
