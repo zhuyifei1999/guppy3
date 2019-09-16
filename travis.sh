@@ -14,6 +14,28 @@ test)
     esac
     ;;
 
+sdisttest)
+    case "$1" in
+    install)
+        $PYTHON setup.py sdist --formats=gztar
+        DISTFILE="$(realpath "dist/$($PYTHON setup.py --fullname).tar.gz")"
+        $PYTHON -m venv venv
+        source venv/bin/activate
+        pushd /tmp
+        pip install -v "$DISTFILE"
+        popd
+        deactivate
+        ;;
+    script)
+        source venv/bin/activate
+        pushd /tmp
+        python -c '__import__("faulthandler").enable(); __import__("guppy").hpy().test(); __import__("guppy").heapy.heapyc.xmemstats()'
+        popd
+        deactivate
+        ;;
+    esac
+    ;;
+
 codecov)
     case "$1" in
     install)
