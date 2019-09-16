@@ -15,17 +15,20 @@ static char hp_xmemstats_doc[] =
 #include <windows.h>
 #endif
 
-Py_ssize_t totalloc, totfree, numalloc, numfree;
 
-static int has_malloc_hooks;
-
-static void **dlptr___malloc_hook, **dlptr___realloc_hook, **dlptr___free_hook;
 static size_t (*dlptr_malloc_usable_size)(void *ptr);
 static void (*dlptr_malloc_stats)(void);
 static int (*dlptr__PyObject_DebugMallocStats)(FILE *out);
 static Py_ssize_t *dlptr__Py_RefTotal;
 
+#ifdef HEAPY_BREAK_THREAD_SAFETY
+static void **dlptr___malloc_hook, **dlptr___realloc_hook, **dlptr___free_hook;
 static void *org___malloc_hook, *org___realloc_hook, *org___free_hook;
+
+Py_ssize_t totalloc, totfree, numalloc, numfree;
+
+static int has_malloc_hooks;
+#endif
 
 static void *addr_of_symbol(const char *symbol) {
 #ifndef MS_WIN32
@@ -66,6 +69,7 @@ static void *addr_of_symbol(const char *symbol) {
 #endif
 }
 
+#ifdef HEAPY_BREAK_THREAD_SAFETY
 static void
 breakit(void *p, char c)
 {
@@ -170,23 +174,28 @@ freehook(void *p) {
 
     HOOK_SET;
 }
+#endif
 
 static void
 xmemstats_init(void) {
+#ifdef HEAPY_BREAK_THREAD_SAFETY
     dlptr___malloc_hook              = addr_of_symbol("__malloc_hook");
     dlptr___realloc_hook             = addr_of_symbol("__realloc_hook");
     dlptr___free_hook                = addr_of_symbol("__free_hook");
+#endif
     dlptr_malloc_usable_size         = addr_of_symbol("malloc_usable_size");
     dlptr_malloc_stats               = addr_of_symbol("malloc_stats");
     dlptr__PyObject_DebugMallocStats = addr_of_symbol("_PyObject_DebugMallocStats");
     dlptr__Py_RefTotal               = addr_of_symbol("_Py_RefTotal");
 
+#ifdef HEAPY_BREAK_THREAD_SAFETY
     has_malloc_hooks = dlptr___malloc_hook && dlptr___realloc_hook &&
         dlptr___free_hook && dlptr_malloc_usable_size;
     if (has_malloc_hooks) {
         HOOK_SAVE;
         HOOK_SET;
     }
+#endif
 }
 
 static PyObject *
@@ -204,6 +213,7 @@ hp_xmemstats(PyObject *self, PyObject *args)
         dlptr_malloc_stats();
     }
 
+#ifdef HEAPY_BREAK_THREAD_SAFETY
     if (has_malloc_hooks) {
         fprintf(stderr, "======================================================================\n");
         fprintf(stderr, "Statistics gathered from hooks into malloc, realloc and free\n\n");
@@ -213,6 +223,7 @@ hp_xmemstats(PyObject *self, PyObject *args)
         fprintf(stderr, "Calls to malloc                    =         %12zd\n", numalloc);
         fprintf(stderr, "Calls to malloc - calls to free    =         %12zd\n", numalloc-numfree);
     }
+#endif
 
 #ifndef Py_TRACE_REFS
     if (dlptr__Py_RefTotal) {
