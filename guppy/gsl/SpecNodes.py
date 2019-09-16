@@ -599,6 +599,7 @@ class _GLUECLAMP_:
         main_dt_name = root.os.path.join(specdir, "docexample.gsl")
         if not root.os.path.exists(main_dt_name):
             print('%s does not exist, skipping test' % main_dt_name)
+            return
 
         env = self.SpecEnv(self)
 
