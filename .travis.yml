@@ -55,7 +55,7 @@ matrix:
       python: 3.7
       env:
         - ACTION=codecov
-install: -
+install:
   - which python3 &> /dev/null && export PYTHON=python3 || export PYTHON=python
   - pip3 install --upgrade pip
   - ./travis.sh install
