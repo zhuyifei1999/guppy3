@@ -199,16 +199,6 @@ owht_relate(NyHeapRelate *r, PyTypeObject *type)
     return 0;
 }
 
-
-PyObject *
-hv_default_classify(PyObject *obj)
-{
-    PyObject *c;
-    c = (PyObject *)Py_TYPE(obj);
-    Py_INCREF(c);
-    return c;
-}
-
 static NyHeapDef default_hd = {
     0,               /* flags */
     0,               /* type */
@@ -537,20 +527,11 @@ hv_std_relate(NyHeapRelate *hr)
     return xt_relate(hv_extra_type((NyHeapViewObject *)hr->hv, Py_TYPE(hr->src)), hr);
 }
 
-
 static int
 hv_std_traverse(NyHeapViewObject *hv,
              PyObject *obj, visitproc visit, void *arg)
 {
     return xt_traverse(hv_extra_type(hv, Py_TYPE(obj)), obj, visit, arg);
-}
-
-
-
-static PyObject *
-hv_std_classify(NyHeapViewObject *hv, PyObject *obj)
-{
-    return hv_default_classify(obj);
 }
 
 typedef struct {
@@ -1654,7 +1635,6 @@ err:
 
 static PyMethodDef hv_methods[] = {
     {"cli_and", (PyCFunction)hv_cli_and, METH_VARARGS, hv_cli_and_doc},
-    {"cli_class", (PyCFunction)hv_cli_class, METH_NOARGS, hv_cli_class_doc},
     {"cli_dictof", (PyCFunction)hv_cli_dictof, METH_VARARGS, hv_cli_dictof_doc},
     {"cli_findex", (PyCFunction)hv_cli_findex, METH_VARARGS, hv_cli_findex_doc},
     {"cli_id", (PyCFunction)hv_cli_id, METH_VARARGS, hv_cli_id_doc},

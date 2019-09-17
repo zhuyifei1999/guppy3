@@ -188,8 +188,6 @@ terminated.
 \par}
 {\par \pagebreak[3.200000] \noindent \hangindent = 12 pt \hangafter = 1 
 {\bf {\large {\bf Methods\/}}\/}\par}
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}class\/}}() \(\mapsto \)  {\em ObjectClassifier\/}\par}
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}clodo\/}}({\em owners\/}~{\bf :}  {\em NodeGraph+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}indisize\/}}({\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}none\/}}() \(\mapsto \)  {\em ObjectClassifier\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em cli{\_}rcs\/}}({\em referrers\/}~{\bf :}  {\em NodeGraph+\/}, {\em classifier\/}~{\bf :}  {\em ObjectClassifier+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}\par}
@@ -293,59 +291,6 @@ via the heapdefs argument to the HeapView constructor.
 {\par \pagebreak[3] \vskip 8 pt \noindent
 {\Large {\bf Methods\/}}\par \vskip 8 pt
 } \noindent
-\par}
-{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}class\/}}\/}() \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
-{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\bf Returns \/} a classifier that classifies by ``class''.\par}
-{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt 
-If an object is of instance type, its classification will be its
-class, as given in its C-level member 'in{\_}class', otherwise it will
-be its type, as given in 'ob{\_}type'.\par}
-\par}
-\par}
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
-{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\bf Note\/}\par}
-{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt This is like classifying by the Python-level '{\_}{\_}class{\_}{\_}' attribute
-in newer versions of Python, except that even though the '{\_}{\_}class{\_}{\_}'
-attribute may be redefined via the class definition, the classification
-as made by cli{\_}class isn't affected.\par}
-\par}
-\par}
-\par}
-\par}
-{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}clodo\/}}\/}({\em owners\/}~{\bf :}  {\em NodeGraph+\/}, {\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
-{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\bf Returns \/} a classifier, that classifies by ``Class Or Dict Owner''.\par}
-{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt The classification of an object is its class (as by cli{\_}class),
-unless the object is a dict object that is 'owned' by some owner.
-If the object is such an owned dict, the classification will be a
-1-tuple containing the class (as by cli{\_}class) of its owner.
-\par}
-\par}
-\par}
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent
-{\par \pagebreak[3.100000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\bf Arguments\/}\par}
-{\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\par \noindent
-{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\em owners\/}~{\bf :}  {\em NodeGraph+\/}\par}
-{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt 
-Used to map each dict object to its owner, or to None if it has no
-owner. The graph will be automatically updated, from heap information
-defined by HV, whenever an attempt is made to classify a dict that
-maps to nothing.\par}
-{\par \pagebreak[3.000000] \noindent \hangindent = 12 pt \hangafter = 1 
-{\em memo\/}~{\bf :}  {\em dict+\/}\par}
-{\par \noindent  \leftskip = 96 pt  \leftmargini = 120 pt  \leftmarginii = 144 pt  \leftmarginiii = 168 pt  \leftmarginiv = 192 pt  \leftmarginv = 216 pt  \leftmarginvi = 240 pt  Used to memoize the 1-tuples  generated when classifying owned dicts.
-\par}
-\par}
-\par}
-\par}
-\par}
-\par}
 \par}
 {\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf cli{\_}indisize\/}}\/}({\em memo\/}~{\bf :}  {\em dict+\/}) \(\mapsto \)  {\em ObjectClassifier\/}{\par \noindent
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt {\par \noindent

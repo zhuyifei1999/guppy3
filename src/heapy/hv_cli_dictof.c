@@ -19,7 +19,7 @@ PyDoc_STRVAR(hv_cli_dictof_doc,
 "                its owner, or to None if it has no owner. The\n"
 "                graph will be automatically updated, from heap\n"
 "                information defined by HV, whenever an attempt\n"
-"        	is made to classify a dict that maps to nothing.\n"
+"                is made to classify a dict that maps to nothing.\n"
 "\n"
 "\n"
 "    ownerclassifier\n"
@@ -214,7 +214,6 @@ hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
 
     s->owners = tmp.owners;
     Py_INCREF(s->owners);
-
 
     s->ownerclassifier = tmp.ownerclassifier;
     Py_INCREF(s->ownerclassifier);

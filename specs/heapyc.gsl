@@ -184,39 +184,6 @@ to HV._hiding_tag_, will be hidden from view, in the following cases:
 .....li: The object is of instance type. Such an object will be checked
   for a _hiding_tag_ item in its __dict__.
 
-..attr:: cli_class
-...mapping
-....returns: ObjectClassifier
-.....d: a classifier that classifies by "class".
-.....d:
-If an object is of instance type, its classification will be its
-class, as given in its C-level member 'in_class', otherwise it will
-be its type, as given in 'ob_type'.
-....dwh: Note
-This is like classifying by the Python-level '__class__' attribute
-in newer versions of Python, except that even though the '__class__'
-attribute may be redefined via the class definition, the classification
-as made by cli_class isn't affected.
-
-..attr:: cli_clodo
-...mapping
-....returns: ObjectClassifier
-.....d: a classifier, that classifies by "Class Or Dict Owner".
-.....d
-The classification of an object is its class (as by cli_class),
-unless the object is a dict object that is 'owned' by some owner.
-If the object is such an owned dict, the classification will be a
-1-tuple containing the class (as by cli_class) of its owner.
-
-....arg: owners:NodeGraph+
-.....d:
-Used to map each dict object to its owner, or to None if it has no
-owner. The graph will be automatically updated, from heap information
-defined by HV, whenever an attempt is made to classify a dict that
-maps to nothing.
-....arg: memo:dict+
-.....d: Used to memoize the 1-tuples  generated when classifying owned dicts.
-
 ..attr:: cli_indisize
 ...mapping
 ....returns: ObjectClassifier

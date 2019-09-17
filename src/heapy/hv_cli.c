@@ -25,7 +25,6 @@ hv_cli_none_le(PyObject * self, PyObject *a, PyObject *b)
     return 1;
 }
 
-
 static NyObjectClassifierDef hv_cli_none_def = {
     0,
     sizeof(NyObjectClassifierDef),
@@ -48,56 +47,6 @@ hv_cli_none(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_none_def);
 }
-
-
-static PyObject *
-hv_cli_class_classify(NyHeapViewObject *self, PyObject *arg)
-{
-    return hv_std_classify(self, arg);
-}
-
-static int
-hv_cli_class_le(PyObject * self, PyObject *a, PyObject *b)
-{
-    if (a == b)
-        return 1;
-    if (PyType_Check(a) && PyType_Check(b))
-        return PyType_IsSubtype((PyTypeObject *)a, (PyTypeObject *)b);
-    return 0;
-}
-
-static NyObjectClassifierDef hv_cli_class_def = {
-    0,
-    sizeof(NyObjectClassifierDef),
-    "cli_class",
-    "classifier returning object class",
-    (binaryfunc)hv_cli_class_classify,
-    (binaryfunc)0,
-    hv_cli_class_le,
-
-};
-
-
-PyDoc_STRVAR(hv_cli_class_doc,
-"HV.cli_class() -> ObjectClassifier\n\
-\n\
-Return a classifier that classifies by \"class\".\n\
-\n\
-If an object is of instance type, its classification will be its\n\
-class, as given in its C-level member 'in_class', otherwise it will\n\
-be its type, as given in 'ob_type'.\n\
-\n\
-[This is like classifying by the Python-level '__class__' attribute\n\
-in newer versions of Python, except that even though the '__class__'\n\
-attribute may be redefined via the class definition, the classification\n\
-as made by cli_class isn't affected.]");
-
-static PyObject *
-hv_cli_class(NyHeapViewObject *self, PyObject *args)
-{
-    return NyObjectClassifier_New((PyObject *)self, &hv_cli_class_def);
-}
-
 
 static PyObject *
 hv_cli_type_classify(NyHeapViewObject *hv, PyObject *obj)

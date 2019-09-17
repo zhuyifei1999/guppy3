@@ -146,7 +146,7 @@ class GCCase(TestCase):
         # Test automatic reclamation issues for dict owner nodegraph
         # This mechanism changed so the old test here is
         # not valid anymore
-        # XXX MAKE NEW TEST
+        # FIXME MAKE NEW TEST
         return
 
         import gc
