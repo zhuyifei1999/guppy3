@@ -195,6 +195,9 @@ class FirstCase(TestCase):
             era = eval(ra)
             self.aseq(a, era)
 
+            # FIXME: Figure out why locals was generated at all, and how we
+            # traversed to it.
+            locals().clear()
             self.aseq(s & era,
                       s[i])
 

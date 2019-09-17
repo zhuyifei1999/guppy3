@@ -184,7 +184,7 @@ class _GLUECLAMP_:
     def _get_referrers_lock(self): return 0
 
     def _get_root(self): return self.heapyc.RootState
-    def _get_target(self): return self._parent.Target.Target()
+    def _get_target(self): return self._parent.Target.Target(self._hiding_tag_)
 
     def _set_root(self, root):
         self.clear_retainers()

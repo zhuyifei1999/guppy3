@@ -446,7 +446,7 @@ Reference Pattern by <[dict of] class>.
 
         gc.collect()
         rp = self.rp(dst, src, depth=10)
-        rp.er.classifier.is_clear_drg_enabled = 0  # Note Apr 19 2005
+        rp.mod.View._is_clear_drg_enabled = 0  # Note Apr 19 2005
         self.asis(rp.a.theone, b)
         self.asis(rp.b.theone, a.__dict__)
 
@@ -459,7 +459,7 @@ Reference Pattern by <[dict of] class>.
         del src
         del a
         mod = rp.mod
-        rp.er.classifier.is_clear_drg_enabled = 1
+        rp.mod.View._is_clear_drg_enabled = 1
         del rp
         # It is cleared after GC
 

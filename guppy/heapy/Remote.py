@@ -407,6 +407,7 @@ target.pid is the process id of the target interpreter.
         hp = hpy(*args, **kwds)
         hp.View.is_hiding_calling_interpreter = 1
         hp.View.target = self.target
+        self.target._hiding_tag_ = hp._hiding_tag_
         self.target.close._hiding_tag_ = hp._hiding_tag_
         hp.reprefix = 'hp.'
         return hp
