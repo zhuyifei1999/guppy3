@@ -704,8 +704,8 @@ hv_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *root = NULL;
     static char *kwlist[] = {"root", "heapdefs", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO!:hv_new",kwlist,
-                                 &root,
-                                 &PyTuple_Type, &heapdefs))
+                                     &root,
+                                     &PyTuple_Type, &heapdefs))
         return NULL;
     return NyHeapView_SubTypeNew(type, root, (PyTupleObject *)heapdefs);
 }
@@ -768,6 +768,7 @@ typedef struct {
     NyNodeSetObject *hs;
     PyObject *arg;
     int (*visit)(PyObject *, void *);
+    PyObject *to_visit;
 } IterTravArg;
 
 static int
@@ -784,26 +785,45 @@ iter_rec(PyObject *obj, IterTravArg *ta) {
     }
     r = ta->visit(obj, ta->arg);
     if (!r) {
-        r = hv_std_traverse(ta->hv, obj, (visitproc)iter_rec, ta);
+        r = PyList_Append(ta->to_visit, obj);
     }
     return r;
 }
 
 int
 NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
-                void *arg)
+                   void *arg)
 {
-    IterTravArg ta;
+    PyObject *pop = 0;
+    IterTravArg ta = {0};
     int r;
     ta.hv = hv;
     ta.visit = visit;
     ta.arg = arg;
     ta.hs = hv_mutnodeset_new(hv);
-    if (!ta.hs) {
-        return -1;
-    }
+    ta.to_visit = PyList_New(0);
+    if (!(ta.hs && ta.to_visit))
+        goto err;
+    pop = PyObject_GetAttrString(ta.to_visit, "pop");
+    if (!pop)
+        goto err;
     r = iter_rec(ta.hv->root, &ta);
-    Py_DECREF(ta.hs);
+    while (PyList_Size(ta.to_visit)) {
+        PyObject *obj = PyObject_CallFunction(pop, NULL);
+        if (!obj)
+            goto err;
+        hv_std_traverse(ta.hv, obj, (visitproc)iter_rec, &ta);
+        Py_DECREF(obj);
+    }
+
+    goto out;
+
+err:
+    r = -1;
+out:
+    Py_XDECREF(pop);
+    Py_XDECREF(ta.to_visit);
+    Py_XDECREF(ta.hs);
     return r;
 }
 
@@ -816,6 +836,7 @@ defined by HV. See also HeapView.__doc__.");
 typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *visited;
+    PyObject *to_visit;
 } HeapTravArg;
 
 static int
@@ -824,10 +845,8 @@ hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
         return r < 0 ? r: 0;
-    else {
-        return hv_std_traverse(ta->hv, obj, (visitproc)hv_heap_rec, ta);
-    }
-
+    else
+        return PyList_Append(ta->to_visit, obj);
 }
 
 static int
@@ -848,25 +867,40 @@ hv_update_static_types(NyHeapViewObject *hv, PyObject *it)
 static PyObject *
 hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
-    HeapTravArg ta;
+    PyObject *pop = 0;
+    HeapTravArg ta = {0};
     ta.hv = self;
     ta.visited = hv_mutnodeset_new(self);
-    if (!ta.visited)
+    ta.to_visit = PyList_New(0);
+    if (!(ta.visited && ta.to_visit))
+        goto err;
+    pop = PyObject_GetAttrString(ta.to_visit, "pop");
+    if (!pop)
         goto err;
     if (hv_heap_rec(ta.hv->root, &ta) == -1)
         goto err;
+    while (PyList_Size(ta.to_visit)) {
+        PyObject *obj = PyObject_CallFunction(pop, NULL);
+        if (!obj)
+            goto err;
+        hv_std_traverse(ta.hv, obj, (visitproc)hv_heap_rec, &ta);
+        Py_DECREF(obj);
+    }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err;
     if (PyObject_Length(self->static_types) == 0) {
         if (hv_update_static_types(self, (PyObject *)ta.visited) == -1)
             goto err;
     }
+    Py_XDECREF(pop);
+    Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 err:
+    Py_XDECREF(pop);
     Py_XDECREF(ta.visited);
+    Py_XDECREF(ta.to_visit);
     return 0;
 }
-
 
 typedef struct {
     NyHeapViewObject *hv;
@@ -987,6 +1021,7 @@ typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *start, *avoid;
     NyNodeSetObject *visited;
+    PyObject *to_visit;
 } RATravArg;
 
 static int
@@ -999,7 +1034,7 @@ hv_ra_rec(PyObject *obj, RATravArg *ta)
     if (r)
         return r < 0 ? r: 0;
     else
-        return hv_std_traverse(ta->hv, obj, (visitproc)hv_ra_rec, ta);
+        return PyList_Append(ta->to_visit, obj);
 }
 
 PyDoc_STRVAR(hv_reachable_doc,
@@ -1011,23 +1046,39 @@ defined by HV, from some object in X, avoiding any object in Y.");
 static PyObject *
 hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
-    RATravArg ta;
+    PyObject *pop = 0;
+    RATravArg ta = {0};
     static char *kwlist[] = {"start", "avoid", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!:reachable", kwlist,
-                                 NyNodeSet_TYPE, &ta.start,
-                                 NyNodeSet_TYPE, &ta.avoid))
+                                     NyNodeSet_TYPE, &ta.start,
+                                     NyNodeSet_TYPE, &ta.avoid))
         return 0;
     ta.hv = self;
     ta.visited = hv_mutnodeset_new(self);
-    if (!ta.visited)
+    ta.to_visit = PyList_New(0);
+    if (!(ta.visited && ta.to_visit))
+        goto err;
+    pop = PyObject_GetAttrString(ta.to_visit, "pop");
+    if (!pop)
         goto err;
     if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec, &ta) == -1)
         goto err;
+    while (PyList_Size(ta.to_visit)) {
+        PyObject *obj = PyObject_CallFunction(pop, NULL);
+        if (!obj)
+            goto err;
+        hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec, &ta);
+        Py_DECREF(obj);
+    }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err;
+    Py_XDECREF(pop);
+    Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 err:
+    Py_XDECREF(pop);
     Py_XDECREF(ta.visited);
+    Py_XDECREF(ta.to_visit);
     return 0;
 }
 
@@ -1058,8 +1109,8 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     RATravArg ta;
     static char *kwlist[] = {"start", "avoid", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!:reachable", kwlist,
-                                 NyNodeSet_TYPE, &ta.start,
-                                 NyNodeSet_TYPE, &ta.avoid))
+                                     NyNodeSet_TYPE, &ta.start,
+                                     NyNodeSet_TYPE, &ta.avoid))
         return 0;
     ta.hv = self;
     ta.visited = hv_mutnodeset_new(self);
@@ -1114,7 +1165,7 @@ hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     ExtraType *xt;
     Py_ssize_t offs;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:register_hiding_type", kwlist,
-                                 &PyType_Type, &type))
+                                     &PyType_Type, &type))
         return NULL;
     offs = hv_get_member_offset(type, "_hiding_tag_");
     if (offs == -1) {
@@ -1156,7 +1207,7 @@ hv_register_hidden_exact_type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     PyTypeObject *type;
     ExtraType *xt;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:register_hiding_type", kwlist,
-                                 &PyType_Type, &type))
+                                     &PyType_Type, &type))
         return NULL;
     xt = hv_extra_type(hv, type);
     if (xt == &xt_error)
@@ -1191,8 +1242,8 @@ hv_relate(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     int i;
     PyObject *res = 0;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:relate", kwlist,
-                                 &crva.hr.src,
-                                 &crva.hr.tgt))
+                                     &crva.hr.src,
+                                     &crva.hr.tgt))
         return NULL;
     crva.hr.flags = 0;
     crva.hr.hv = (void *)self;
@@ -1353,11 +1404,11 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.find_one_flag = 0;
     ta.edgestoavoid = 0;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!|O!i:shpathstep", kwlist,
-                                 &NyNodeGraph_Type, &ta.P,
-                                 NyNodeSet_TYPE, &ta.U,
-                                 NyNodeSet_TYPE, &ta.S,
-                                 &NyNodeGraph_Type, &ta.edgestoavoid,
-                                 &ta.find_one_flag))
+                                     &NyNodeGraph_Type, &ta.P,
+                                     NyNodeSet_TYPE, &ta.U,
+                                     NyNodeSet_TYPE, &ta.S,
+                                     &NyNodeGraph_Type, &ta.edgestoavoid,
+                                     &ta.find_one_flag))
         return 0;
     ta.hv = self;
     if (ta.edgestoavoid && ta.edgestoavoid->used_size == 0)
@@ -1425,7 +1476,7 @@ hv_update_dictowners(NyHeapViewObject *self, PyObject *args)
 {
     NyNodeGraphObject *rg;
     if (!PyArg_ParseTuple(args, "O!:update_dictowners",
-                            &NyNodeGraph_Type, &rg))
+                          &NyNodeGraph_Type, &rg))
         return NULL;
     if (hv_cli_dictof_update(self, rg) == -1)
         return 0;
@@ -1433,12 +1484,13 @@ hv_update_dictowners(NyHeapViewObject *self, PyObject *args)
     return Py_None;
 }
 
-#define RG_STACK_MARK 0x8000000
+// FIXME: doing tracking on Py_REFCNT is eventually gonna invoke UB
+#define RG_STACK_MARK PY_SSIZE_T_MIN
 
 static int
 rg_is_on_stack(PyObject *obj)
 {
-    return Py_REFCNT(obj) & RG_STACK_MARK;
+    return (Py_REFCNT(obj) & RG_STACK_MARK) != 0;
 }
 
 static void
@@ -1489,8 +1541,8 @@ rg_traverec(PyObject *obj, RetaTravArg *ta)
     ta->retainer = oretainer;
     if (r != -1)
         r = (osize < ta->rg->used_size ||
-           (!ta->targetset && obj != ta->hv->root) ||
-           (ta->targetset && NyNodeSet_hasobj(ta->targetset, obj)));
+             (!ta->targetset && obj != ta->hv->root) ||
+             (ta->targetset && NyNodeSet_hasobj(ta->targetset, obj)));
     return r;
 }
 
@@ -1502,21 +1554,31 @@ rg_retarec(PyObject *obj, RetaTravArg *ta) {
     else if (rg_is_on_stack(obj)) {
         r = rg_put_set_out(ta, obj);
     } else if (Py_REFCNT(obj) == 1) {
-        r = rg_traverec(obj, ta);
-        if (r > 0)
-            r = NyNodeGraph_AddEdge(ta->rg, obj, ta->retainer);
+        if (Py_EnterRecursiveCall(" during traversal"))
+            r = -1;
+        else {
+            r = rg_traverec(obj, ta);
+            Py_LeaveRecursiveCall();
+            if (r > 0)
+                r = NyNodeGraph_AddEdge(ta->rg, obj, ta->retainer);
+        }
     } else if (NyNodeSet_hasobj(ta->markset, obj)) {
         r = 0;
     } else if (NyNodeSet_hasobj(ta->outset, obj)) {
         r = NyNodeGraph_AddEdge(ta->rg, obj, ta->retainer);
     } else {
-        rg_set_on_stack(obj);
-        r = rg_traverec(obj, ta);
-        rg_clr_on_stack(obj);
-        if (r > 0)
-            r = rg_put_set_out(ta, obj);
-        else if (r == 0)
-            r = NyNodeSet_setobj(ta->markset, obj);
+        if (Py_EnterRecursiveCall(" during traversal"))
+            r = -1;
+        else {
+            rg_set_on_stack(obj);
+            r = rg_traverec(obj, ta);
+            rg_clr_on_stack(obj);
+            Py_LeaveRecursiveCall();
+            if (r > 0)
+                r = rg_put_set_out(ta, obj);
+            else if (r == 0)
+                r = NyNodeSet_setobj(ta->markset, obj);
+        }
     }
     return r;
 }
@@ -1537,8 +1599,8 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
     RetaTravArg ta;
     int r;
     if (!PyArg_ParseTuple(args, "O!O!:update_referrers",
-                            &NyNodeGraph_Type, &ta.rg,
-                            NyNodeSet_TYPE, &ta.targetset))
+                          &NyNodeGraph_Type, &ta.rg,
+                          NyNodeSet_TYPE, &ta.targetset))
         return NULL;
 
     ta.hv = self;
@@ -1590,7 +1652,6 @@ urco_traverse(PyObject *obj, URCOTravArg *ta)
     return 0;
 }
 
-
 PyObject *
 hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
 {
@@ -1601,7 +1662,7 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     _hiding_tag_ = self->_hiding_tag_;
     self->_hiding_tag_ = Py_None;
     if (!PyArg_ParseTuple(args, "O!:update_referrers_completely",
-                            &NyNodeGraph_Type, &ta.rg))
+                          &NyNodeGraph_Type, &ta.rg))
         goto err;
     objects = gc_get_objects();
     if (!objects)
@@ -1618,7 +1679,7 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
         if (NyNodeGraph_Check(retainer))
             continue; /* Note 22/11 2004 */
         else if ((NyNodeSet_Check(retainer) &&
-                    ((NyNodeSetObject *)retainer)->_hiding_tag_ == _hiding_tag_))
+                  ((NyNodeSetObject *)retainer)->_hiding_tag_ == _hiding_tag_))
             ta.retainer = Py_None;
         else
             ta.retainer = retainer;
