@@ -338,7 +338,6 @@ dict (no owner)
 
         s = None
         x = None
-        locals().clear()
         gc.collect()
         gc.collect()                    # Note May 17 2005
         self.aseq(grc(C1), rcC1)        # (A)

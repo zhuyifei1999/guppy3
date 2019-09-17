@@ -1531,14 +1531,13 @@ MutBitSet([])
                     'assert list(b) & a == a & b',
                 ):
                     try:
-                        exec(x)
+                        exec(x, {'a': a, 'b': b}, {})
                     except TypeError:
                         pass
                     else:
                         raise Exception('Expected TypeError')
 
         ss = s = s3 = la = a = b = c = x = None
-        locals().clear()
         gc.collect()
         gc.collect()
 
