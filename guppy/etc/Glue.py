@@ -259,7 +259,7 @@ class Share:
 
     def getattr_package(self, inter, name):
         try:
-            x = __import__(self.makeName(name), globals(), locals())
+            x = __import__(self.makeName(name))
         except ImportError as exc:
             if (exc.args[0] != 'No module named \'%s\'' % self.makeName(name) or
                     (not self.module and name not in ('__repr__', '__str__'))):
