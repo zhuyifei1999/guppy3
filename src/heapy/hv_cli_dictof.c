@@ -79,10 +79,6 @@ hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     int result = -1;
     PyObject *lists[2] = {0, 0};
 
-    /* These 2 lines are to avoid a leak in certain cases noted 30 Sep-3 Oct 2005. */
-    NyNodeGraph_Clear(rg);
-    PyGC_Collect();
-
     if (!(dictsowned = NyMutNodeSet_New())) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
     if (!(lists[1] = gc_get_objects())) goto err;
