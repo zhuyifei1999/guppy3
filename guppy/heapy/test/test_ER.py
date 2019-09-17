@@ -42,12 +42,11 @@ class FirstCase(TestCase):
             pass
 
         di = hp.iso(C.__dict__, [])
-        import types
 
         # db = di.by('Rcs')
         # for i in (0, 1):
         #     rk = repr(db[i].kind)
-        #     ek = eval(rk)
+        #     ek = eval(rk, {'hp': hp}, {})
         #     self.aseq(ek, db[i].kind)
         #     self.aseq(db & ek, db[i])
 
@@ -88,9 +87,9 @@ class FirstCase(TestCase):
             'hp.Via()',
             # Via is also specially tested below
         ):
-            x = eval(s)
+            x = eval(s, {'hp': hp, 'C': C, 'T': T, 'c': c}, {})
             rx = repr(x)
-            self.aseq(eval(rx), x)
+            self.aseq(eval(rx, {'hp': hp}, {}), x)
 
         for i, s in enumerate((
             # Test Via construction.
@@ -106,11 +105,11 @@ class FirstCase(TestCase):
             "hp.Via('_->f_valuestack[0]')",
         )):
             code = i + 1
-            x = eval(s)
+            x = eval(s, {'hp': hp}, {})
             rel = list(x.arg)[0]
             self.aseq(rel.kind, code)
             rx = repr(x)
-            self.aseq(eval(rx), x)
+            self.aseq(eval(rx, {'hp': hp}, {}), x)
 
     def test_3(self):
         ' Test of dictof '
@@ -192,12 +191,9 @@ class FirstCase(TestCase):
         for i in range(len(s)):
             a = s[i].kind
             ra = repr(a)
-            era = eval(ra)
+            era = eval(ra, {'hp': hp}, {})
             self.aseq(a, era)
 
-            # FIXME: Figure out why locals was generated at all, and how we
-            # traversed to it.
-            locals().clear()
             self.aseq(s & era,
                       s[i])
 
@@ -208,8 +204,7 @@ class FirstCase(TestCase):
 
         s = hp.iso(p)
         x = s.by(hp.Module.dictof.refdby)
-        locals().clear()
-        self.aseq(s & eval(repr(x.kind)), s)
+        self.aseq(s & eval(repr(x.kind), {'hp': hp}, {}), s)
 
     def test_6(self):
         ' Test of .refdby on all others '
@@ -251,13 +246,13 @@ class FirstCase(TestCase):
         hp = self.heapy.Use
 
         rer = repr(er)
-        self.aseq(eval(rer), er)
+        self.aseq(eval(rer, {'hp': hp}, {}), er)
 
         for s in (set,):
             sby = s.by(er)
             sk = sby.kind
             rsk = repr(sk)
-            ske = eval(rsk)
+            ske = eval(rsk, {'hp': hp}, {})
 
             self.aseq(ske, sk, -1)
             self.aseq(s & sk, s, -1)
