@@ -208,6 +208,7 @@ class FirstCase(TestCase):
 
         s = hp.iso(p)
         x = s.by(hp.Module.dictof.refdby)
+        locals().clear()
         self.aseq(s & eval(repr(x.kind)), s)
 
     def test_6(self):
