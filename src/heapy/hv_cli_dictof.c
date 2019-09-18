@@ -32,7 +32,7 @@ PyDoc_STRVAR(hv_cli_dictof_doc,
    the dictof classifier is concerned. So we don't bother about
    subtypes - they can't be 'owned' in any standard way can they (?)
 */
-# define DictofDict_Check(obj)	(Py_TYPE(obj) == &PyDict_Type)
+# define DictofDict_Check(obj) (Py_TYPE(obj) == &PyDict_Type)
 
 typedef struct {
     PyObject_VAR_HEAD
