@@ -135,7 +135,8 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
             }
 
             if (PyObject_IS_GC(obj)) {
-                if (xt_tp_traverse(ta.hv, obj, (visitproc)hv_cli_dictof_update_rec, &ta) == -1)
+                if (Py_TYPE(obj)->tp_traverse(
+                        obj, (visitproc)hv_cli_dictof_update_rec, &ta) == -1)
                     goto err;
             }
         }
