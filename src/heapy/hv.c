@@ -529,7 +529,7 @@ hv_std_relate(NyHeapRelate *hr)
 
 static int
 hv_std_traverse(NyHeapViewObject *hv,
-             PyObject *obj, visitproc visit, void *arg)
+                PyObject *obj, visitproc visit, void *arg)
 {
     return xt_traverse(hv_extra_type(hv, Py_TYPE(obj)), obj, visit, arg);
 }

@@ -69,17 +69,39 @@ hv_cli_dictof_get_static_types_list(NyHeapViewObject *hv) {
     return PySequence_List(hv->static_types);
 }
 
+typedef struct {
+    NyHeapViewObject *hv;
+    NyNodeSetObject *dictsowned;
+    NyNodeGraphObject *rg;
+} DictofTravArg;
+
 static int
-hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
+hv_cli_dictof_update_rec(PyObject *obj, DictofTravArg *ta) {
+    if (DictofDict_Check(obj)) {
+        int setobj = NyNodeSet_setobj(ta->dictsowned, obj);
+        if (setobj == -1)
+            return -1;
+        else if (setobj == 0)
+            if (NyNodeGraph_AddEdge(ta->rg, obj, Py_None) == -1)
+                return -1;
+    }
+    return 0;
+}
+
+static int
+hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
-    NyNodeSetObject *dictsowned = 0;
+    DictofTravArg ta;
+    ta.hv = hv;
+    ta.rg = rg;
+
     PyObject **dp;
     Py_ssize_t i, len;
     int k;
     int result = -1;
     PyObject *lists[2] = {0, 0};
 
-    if (!(dictsowned = NyMutNodeSet_New())) goto err;
+    if (!(ta.dictsowned = NyMutNodeSet_New())) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
     if (!(lists[1] = gc_get_objects())) goto err;
     for (k = 0; k < 2; k++) {
@@ -91,9 +113,9 @@ hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
             PyObject *obj = PyList_GET_ITEM(objects, i);
             dp = hv_cli_dictof_dictptr(obj);
             if (dp && *dp) {
-                if (NyNodeGraph_AddEdge(rg, *dp, obj) == -1)
+                if (NyNodeGraph_AddEdge(ta.rg, *dp, obj) == -1)
                     goto err;
-                if (NyNodeSet_setobj(dictsowned, *dp) == -1)
+                if (NyNodeSet_setobj(ta.dictsowned, *dp) == -1)
                     goto err;
             }
         }
@@ -103,25 +125,25 @@ hv_cli_dictof_update_new_method(NyHeapViewObject *hv, NyNodeGraphObject *rg)
         len = PyList_Size(objects);
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
-            if (DictofDict_Check(obj) && !NyNodeSet_hasobj(dictsowned, obj)) {
-                if (NyNodeGraph_AddEdge(rg, obj, Py_None) == -1)
+            if (DictofDict_Check(obj)) {
+                int setobj = NyNodeSet_setobj(ta.dictsowned, obj);
+                if (setobj == -1)
                     goto err;
+                else if (setobj == 0)
+                    if (NyNodeGraph_AddEdge(ta.rg, obj, Py_None) == -1)
+                        goto err;
             }
+
+            if (hv_std_traverse(ta.hv, obj, (visitproc)hv_cli_dictof_update_rec, &ta) == -1)
+                goto err;
         }
     }
     result = 0;
 err:
-    Py_XDECREF(dictsowned);
+    Py_XDECREF(ta.dictsowned);
     Py_XDECREF(lists[0]);
     Py_XDECREF(lists[1]);
     return result;
-}
-
-
-static int
-hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
-{
-    return hv_cli_dictof_update_new_method(hv, rg);
 }
 
 
