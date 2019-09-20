@@ -1,4 +1,5 @@
 import functools
+import inspect
 
 
 class property_nondata:
@@ -9,3 +10,19 @@ class property_nondata:
 
     def __get__(self, instance, owner=None):
         return self.fget(instance)
+
+
+class property_exp(property):
+    '''@property, but blacklist tab completers like rlcompleter from getattr'''
+    def __get__(self, instance, owner=None):
+        try:
+            frame = inspect.currentframe()
+            try:
+                frame = frame.f_back
+                if frame.f_globals['__name__'] == 'rlcompleter':
+                    return None
+            finally:
+                del frame
+        except Exception:
+            pass
+        return super().__get__(instance, owner)
