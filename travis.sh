@@ -57,4 +57,21 @@ EOF
     esac
     ;;
 
+cpychecker)
+    case "$1" in
+    install)
+        pip install six
+        pushd /tmp
+        git clone --branch v0.17 https://github.com/davidmalcolm/gcc-python-plugin.git gcc-python-plugin
+        cd gcc-python-plugin
+        CC=gcc-6 CXX=g++-6 make plugin
+        popd
+        ;;
+    script)
+        # Not ready yet, permit failure
+        CC_FOR_CPYCHECKER=gcc-6 CC=/tmp/gcc-python-plugin/gcc-with-cpychecker CFLAGS=--cpychecker-verbose pip install -ve . || true
+        ;;
+    esac
+    ;;
+
 esac

@@ -55,6 +55,18 @@ matrix:
       python: 3.7
       env:
         - ACTION=codecov
+    - name: "Python 3.7 on Linux (CPyChecker)"
+      dist: bionic
+      python: 3.7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            # Old GCC needed for refcounting verification
+            - g++-6 gcc-6-plugin-dev libpython3.7 libpython3.7-dev
+      env:
+        - ACTION=cpychecker
 install:
   - which python3 &> /dev/null && export PYTHON=python3 || export PYTHON=python
   - pip3 install --upgrade pip
