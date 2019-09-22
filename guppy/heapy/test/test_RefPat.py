@@ -37,32 +37,6 @@ class TestCase(support.TestCase):
         src = ls
         return src, dst
 
-    def makegraph(self, width, length):
-        # Generate a structure which will yield a high number
-        # of shortest paths.
-        # Returns a pair src, dst which are connected via a noncyclic graph
-        # with many edges.
-        # The length of each path (all shortest), number of edges will be length
-        # The number of nodes will be 2 + width * (length - 1)
-        # The number of paths will be
-        #       width ** length, if width >= 1 and length >= 1
-
-        dst = []
-        ls = []
-        for i in range(width):
-            ls.append([dst])
-        ls = [dst] * width
-        for i in range(length-1):
-            xs = []
-            for j in range(width):
-                ys = []
-                xs.append(ys)
-                for k in range(width):
-                    ys.append(ls[k])
-            ls = xs
-        src = ls
-        return src, dst
-
     def rp(self, dst, src, **kwds):
         iso = self.iso
         if src is not None:
