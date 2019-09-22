@@ -1203,7 +1203,6 @@ class _GLUECLAMP_:
         '_parent.Use:Nothing',
     )
 
-    def _get_AbstractAlgebra(self): return self._parent.AbstractAlgebra
     def _get_UniSet(self): return self._parent.UniSet
     def _get_Doc(self): return self._parent.Doc
     def _get_View(self): return self._parent.View
@@ -1223,9 +1222,6 @@ class _GLUECLAMP_:
             __import__('traceback').print_exc()
             print('no wrap:', name)
         return obj
-
-    def _get_AA(self):
-        return self.AbstractAlgebra
 
     def _get_abstractset(self):
         return self.family(AbstractSetFamily)
