@@ -22,11 +22,6 @@ class _GLUECLAMP_:
     def immnodeset_union(self, sets):
         return self.sets.immnodeset_union(sets, self._hiding_tag_)
 
-    def laxnodeset(self, v):
-        if not (isinstance(v, self.NodeSet) and v._hiding_tag_ is self._hiding_tag_):
-            v = self.sets.immnodeset(v, self._hiding_tag_)
-        return v
-
     def mutnodeset(self, *args, **kwds):
         s = self.sets.mutnodeset(*args, **kwds)
         s._hiding_tag_ = self._hiding_tag_

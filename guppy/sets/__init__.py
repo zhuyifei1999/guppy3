@@ -37,17 +37,6 @@ def immnodeset_union(iterable, *args):
     return immnodeset(set, *args)
 
 
-def laxnodeset(v):
-    """\
-Return a nodeset with elements from the argument.  If the argument is
-already a nodeset, it self will be returned. Otherwise it will be
-converted to a nodeset, that can be mutable or immutable depending on
-what happens to be most effectively implemented."""
-
-    if not isinstance(v, NodeSet):
-        v = immnodeset(v)
-    return v
-
 # Make attributes assignable by reading one;
 # this is getting around a bug in Python 2.3.3
 # and should be harmless in any version.
