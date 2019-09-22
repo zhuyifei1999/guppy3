@@ -289,18 +289,10 @@ def choose(rects, lines=[], gauges=[None]):
                 if r.lnos:
                     return r
 
-    def cmpinit(x, y):
-        wx = x.width
-        wy = y.width
-        c = wy - wx
-        if c:
-            return c
-        c = y.dir - x.dir
-        if c:
-            return c
-        return x.lnos[0], y.lnos[0]
+    def cmpinit(x):
+        return x.width, x.dir, x.lnos[0]
 
-    if gauges[0] == None:
+    if gauges[0] is None:
         gauges = gauges[1:]
 
     lnobyid = dict([(id(line), i) for i, line in enumerate(lines)])
@@ -311,7 +303,7 @@ def choose(rects, lines=[], gauges=[None]):
     for r in rects:
         r.init2(lnobyid, lines)
 
-    rects.sort(key=cmpinit)
+    rects.sort(key=cmpinit, reverse=True)
 
     allnos = immbitrange(len(lines))
 

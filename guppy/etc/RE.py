@@ -79,6 +79,9 @@ class RE(REBASE):
         raise ValueError(
             "Argument to regular expression must be '*' or '+' or '?'")
 
+    def __hash__(self):
+        return hash((self._name, tuple(self)))
+
     def __eq__(a, b):
         return (a._name == b._name and
                 tuple(a) == tuple(b))
@@ -196,9 +199,6 @@ class Seq(RE):
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, ', '.join(['%r' % (x,) for x in self]))
-
-    def __hash__(self):
-        return hash(repr(self))
 
     def apseq(self, ap):
         ap(self)
@@ -460,8 +460,8 @@ gauges = [
 ]
 
 
-def simpleunion(lines, trace=''):
-    choosen = chooserects(lines, gauges, trace)
+def simpleunion(lines):
+    choosen = chooserects(lines, gauges)
     have_epsilon = 0
     while 1:
         if len(choosen) == 1 and (choosen[0].width == 0 or len(choosen[0].lines) == 1):
@@ -488,7 +488,7 @@ def simpleunion(lines, trace=''):
                 have_epsilon = 1
             assert not isinstance(us[-1], str)
 
-        choosen = chooserects(us, gauges, trace)
+        choosen = chooserects(us, gauges)
 
     if len(us) > 1:
         nus = [simple_Concatenation(line) for line in us]
@@ -556,7 +556,7 @@ class Union(RE):
             rs.append(r)
         return ' | '.join(rs)
 
-    def simplified(self, args=None, trace='', *a, **k):
+    def simplified(self, args=None, *a, **k):
         if args is None:
             args = [x.simplified() for x in self.unionsplitted()]
             #args = [x for x in self.unionsplitted()]
@@ -565,7 +565,7 @@ class Union(RE):
         # Assuming args are simplified, non-unions
 
         ch = [a.seqatoms() for a in args]
-        return simpleunion(ch, trace)
+        return simpleunion(ch)
 
     def unionsplitted(self):
         us = []
