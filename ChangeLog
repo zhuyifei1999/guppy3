@@ -1,3 +1,34 @@
+    Version 3.0.7
+
+2019-09-21  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.0.7
+
+2019-09-20  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Simulate recursion with multiple node sets (MutNodeSet) and stacks
+      (PyList) for generating a reference graph, so we don't get a C stack
+      overflow
+    * Make tab completion with rlcompleter on a UniSet not so expensive by
+      using introspection and return if it's being called by rlcompleter
+
+2019-09-19  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Traverse all GC tracked items to find non-GC-tracked dicts in dictof
+      classifier
+
+2019-09-17  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Optimize dictof classifier by using GC data rather than heap traversal
+    * Scope all eval() in tests
+    * Use a stack instead of recursion for heap traversals, except reference
+      graph where a recursion limit is set
+
+2019-09-16  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Disabled malloc hooks because of thread safety issues
+    * Fixed tests if installed as package
+
     Version 3.0.6
 
 2019-09-14  YiFei Zhu  <zhuyifei1999@gmail.com>
