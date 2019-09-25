@@ -1690,7 +1690,7 @@ class IdentitySetFamily(AtomFamily):
         except AttributeError:
             a.fam.View.clear_check()
             p = a.fam.Part.partition(a, a.er)
-            self._partition = p
+            a._partition = p
         return p
 
     def get_str_idpart(self, set, cla):
