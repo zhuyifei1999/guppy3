@@ -743,7 +743,27 @@ class SetPartition(Partition):
             raise IndexError('Partition index out of range.')
 
     def get_rowset(self, idx):
-        return self.get_row(idx).set
+        row = self.get_row(idx)
+        set = row.set
+        try:
+            set._partition
+        except AttributeError:
+            set._partition = self.mod._fast_partition(self, row)
+        return set
+
+
+class FastPartition(SetPartition):
+    def __init__(self, mod, parent, row):
+        Partition.__init__(self, mod, parent.set, parent.er)
+
+        self.count = row.count
+        self.kindheader = parent.kindheader
+        self.kindname = ''
+        self.numrows = 1
+        self.rows = [row]
+        self.size = row.size
+
+        self.init_format(SetFormat)
 
 
 class _GLUECLAMP_:
@@ -782,3 +802,6 @@ class _GLUECLAMP_:
     # Private - Use.load is intended to be used directly.
     def _load_stat(self, get_trows):
         return Stat(self, get_trows)
+
+    def _fast_partition(self, parent, row):
+        return FastPartition(self, parent, row)
