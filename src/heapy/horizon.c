@@ -32,14 +32,19 @@ static struct {
     PyObject *types;
 } rm;
 
+static void horizon_patched_dealloc(PyObject *v);
+
 static destructor
 horizon_get_org_dealloc(PyTypeObject *t)
 {
+    if (!rm.types && t->tp_dealloc != horizon_patched_dealloc)
+        return t->tp_dealloc;
+
     PyObject *d = PyDict_GetItem(rm.types, (PyObject *)t);
-    if (!d) {
-        Py_FatalError("horizon_get_org_dealloc: no original destructor found");
-    }
-    return (destructor)PyLong_AsSsize_t(d);
+    if (d)
+        return (destructor)PyLong_AsSsize_t(d);
+
+    Py_FatalError("horizon_get_org_dealloc: no original destructor found");
 }
 
 static void
@@ -89,7 +94,6 @@ horizon_base(PyObject *v)
 static void
 horizon_patched_dealloc(PyObject *v)
 {
-
     NyHorizonObject *r;
     for (r = rm.horizons; r; r = r->next) {
         if (NyNodeSet_clrobj(r->hs, v) == -1)
