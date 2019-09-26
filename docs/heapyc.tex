@@ -210,7 +210,6 @@ terminated.
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em {\_}hiding{\_}tag{\_}\/}}~{\bf :} {\bf  anything\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em delete{\_}extra{\_}type\/}}~{\bf :} {\bf  anything\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em is{\_}hiding{\_}calling{\_}interpreter\/}}~{\bf :}  {\em boolean\/}\par}
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em is{\_}using{\_}traversing{\_}owner{\_}update\/}}~{\bf :}  {\em boolean\/}\par}
 {\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt HV{\large {\tt .\/} {\em limitframe\/}}~{\bf :}  ({\par \noindent
 {\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt {\bf \raisebox{.6ex}{{\small {\bf  either:\/}}}\/}{[} {\em None\/}{\bf \raisebox{.6ex}{{\small {\bf  or \/}}}\/} {\em frame\/}]\par}
 {\par \noindent  \leftskip = 72 pt  \leftmargini = 96 pt  \leftmarginii = 120 pt  \leftmarginiii = 144 pt  \leftmarginiv = 168 pt  \leftmarginv = 192 pt  \leftmarginvi = 216 pt  )\par}
@@ -609,18 +608,6 @@ interpreter will be monitoring the operation of the other
 interpreter(s). It would set is{\_}hiding{\_}calling{\_}interpreter to True in
 the HV it is using. Its own data will then be hidden from view, making
 memory leak detection more practical.
-\par}
-\par}
-\par}
-{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt HV{\tt .\/}{\bf {\large {\bf is{\_}using{\_}traversing{\_}owner{\_}update\/}}\/}~{\bf :}  {\em boolean\/}\par}
-{\par \noindent  \leftskip = 24 pt  \leftmargini = 48 pt  \leftmarginii = 72 pt  \leftmarginiii = 96 pt  \leftmarginiv = 120 pt  \leftmarginv = 144 pt  \leftmarginvi = 168 pt {\par \noindent
-{\par \noindent  \leftskip = 48 pt  \leftmargini = 72 pt  \leftmarginii = 96 pt  \leftmarginiii = 120 pt  \leftmarginiv = 144 pt  \leftmarginv = 168 pt  \leftmarginvi = 192 pt 
-True if update{\_}dictowners is using a recursive traversal algorithm to
-find the dicts in the heap. When False, the normal case, it will use the
-dicts found in the gc collection structure, by gc.get{\_}objects(). This was
-found to be much faster in usual cases, but the old version is available
-by setting this flag. -{}- It may be removed in a later release!
-
 \par}
 \par}
 \par}

@@ -1813,16 +1813,6 @@ interpreter(s). It would set is_hiding_calling_interpreter to True in\n\
 the HV it is using. Its own data will then be hidden from view, making\n\
 memory leak detection more practical."},
 
-    {"is_using_traversing_owner_update", T_UBYTE, OFF(is_hiding_calling_interpreter), 0,
-"HV.is_using_traversing_owner_update : boolean kind\n\
-\n\
-True if update_dictowners is using a recursive traversal algorithm to\n\
-find the dicts in the heap. When False, the normal case, it will use the\n\
-dicts found in the gc collection structure, by gc.get_objects(). This was\n\
-found to be much faster in usual cases, but the old version is available\n\
-by setting this flag. -- It may be removed in a later release! --"},
-
-
     {"root",     T_OBJECT, OFF(root), 0,
 "HV.root\n\
 \n\

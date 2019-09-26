@@ -370,16 +370,6 @@ interpreter(s). It would set is_hiding_calling_interpreter to True in
 the HV it is using. Its own data will then be hidden from view, making
 memory leak detection more practical.
 
-..attr:: is_using_traversing_owner_update
-...kind of: boolean
-...d:
-True if update_dictowners is using a recursive traversal algorithm to
-find the dicts in the heap. When False, the normal case, it will use the
-dicts found in the gc collection structure, by gc.get_objects(). This was
-found to be much faster in usual cases, but the old version is available
-by setting this flag. -- It may be removed in a later release!
-
-
 ..attr:: limitframe
 ...either: None, frame
 ...d: The traversal limiting frame.

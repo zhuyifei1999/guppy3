@@ -10,7 +10,6 @@ typedef struct {
     PyObject *static_types;
     PyObject *weak_type_callback;
     char is_hiding_calling_interpreter;
-    char is_using_traversing_owner_update;
     struct ExtraType **xt_table;
     int xt_mask;
     size_t xt_size;
