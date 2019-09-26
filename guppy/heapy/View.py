@@ -348,11 +348,15 @@ Return the set of objects in the visible heap.
         # because of common operations.
         if not heap_one_time_initialized:
             heap_one_time_initialized = 1
-            repr(self.idset([[], 'a', 1, 1.23, {'a': 'b'}, self]))
-            x = []
-            repr(self.iso(x).shpaths)
-            repr(self.iso(x).rp)
-            del x
+            old_root = self.root
+            objs = [[], 'a', 1, 1.23, {'a': 'b'}, self]
+            self.root = objs
+            repr(self.idset(objs))
+            repr(self.iso(objs[0]).shpaths)
+            repr(self.iso(objs[0]).rp)
+            del objs
+            self.root = old_root
+            del old_root
 
         self.gc.collect()  # Sealing a leak at particular usage ; Notes Apr 13 2005
         # Exclude current frame by encapsulting in enter(). Note Apr 20 2005
