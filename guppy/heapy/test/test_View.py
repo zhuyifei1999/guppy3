@@ -90,6 +90,23 @@ class FirstCase(TestCase):
         self.aseq(iso(z).referents, iso(y))
         self.aseq(iso(y, z).referents, iso(x, y, y[1]))
 
+    def test_root(self):
+        old_root = self.View.root
+        self.assertIs(self.View.root, old_root)
+        self.assertIs(self.Use.View.root, old_root)
+        self.assertIs(self.View.hv.root, old_root)
+
+        obj = object()
+        self.View.root = obj
+        self.assertIs(self.View.root, obj)
+        self.assertIs(self.Use.View.root, obj)
+        self.assertIs(self.View.hv.root, obj)
+
+        self.View.root = old_root
+        self.assertIs(self.View.root, old_root)
+        self.assertIs(self.Use.View.root, old_root)
+        self.assertIs(self.View.hv.root, old_root)
+
 
 class GCCase(TestCase):
     def test_gc_mechanism(self):
