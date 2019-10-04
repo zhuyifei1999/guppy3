@@ -538,7 +538,7 @@ class _GLUECLAMP_:
 
     _uniset_exports = ('rp',)
     _chgable_ = ('er',
-                 'depth'
+                 'depth',
                  'line_length',
                  )
 
