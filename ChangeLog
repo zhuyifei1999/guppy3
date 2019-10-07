@@ -1,3 +1,36 @@
+    Version 3.0.8
+
+2019-10-07  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.0.8
+
+2019-10-03  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * RefPat.py: Add missing comma in string list [Ehsan Kia]
+
+2019-10-02  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Don't cache Interface attributes because of invalidation is too painful,
+      and it barely makes a difference.
+
+2019-09-26  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Unreachable code cleanup
+    * Use a temporary root object for traversal in initialization, to reduce
+      its performance penalty
+
+2019-09-25  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix get_partition memoization
+    * Create FastPartition for reusing the already-computed partition
+      information after selecting from a single partition.
+    * Fix segfault in Horizon deallocation
+
+2019-09-22  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Unreachable code cleanup
+    * Python 3 fixes RE.py and RE_Rect.py
+
     Version 3.0.7
 
 2019-09-21  YiFei Zhu  <zhuyifei1999@gmail.com>
