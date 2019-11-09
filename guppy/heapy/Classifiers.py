@@ -18,7 +18,7 @@ class Classifier:
             # if not supers specified; init of ByUnity itself depends on this.
             self.super_classifiers |= [mod.Use.Unity.classifier]
 
-        # The classifiers that self depends on.https://wx2.qq.com/?&lang=en
+        # The classifiers that self depends on.
         for d in depends:
             if d.with_referrers:
                 with_referrers = True
@@ -645,7 +645,6 @@ The classification is performed as follows:
     def __init__(self, mod, name):
         a = mod.Type
         d = a.dictof
-        # ad = (a & d).classifier
         ad = (a & d).classifier
         sup = a.classifier
         Classifier.__init__(self, mod, name, cli=None,

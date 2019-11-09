@@ -207,8 +207,8 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     PyObject *res;
 
     if (!NyNodeTuple_Check(v) || !NyNodeTuple_Check(w)) {
-            Py_INCREF(Py_NotImplemented);
-            return Py_NotImplemented;
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
     }
 
     vt = (PyTupleObject *)v;
@@ -233,7 +233,7 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
      */
     for (i = 0; i < vlen && i < wlen; i++) {
         vi = (Py_ssize_t)vt->ob_item[i];
-        wi = (Py_ssize_t)vt->ob_item[i];
+        wi = (Py_ssize_t)wt->ob_item[i];
         if (vi != wi)
             break;
     }
@@ -268,6 +268,7 @@ PyTypeObject NyNodeTuple_Type = {
     "guppy.heapy.heapyc.NodeTuple",
     sizeof(PyTupleObject) - sizeof(PyObject *),
     sizeof(PyObject *),
+    .tp_base           = &PyTuple_Type,
     .tp_hash           = (hashfunc)nodetuple_hash,
     .tp_getattro       = PyObject_GenericGetAttr,
     .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,

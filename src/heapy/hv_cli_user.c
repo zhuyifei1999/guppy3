@@ -22,9 +22,9 @@ static PyObject *
 hv_cli_user_memoized_kind(UserObject * self, PyObject *kind)
 {
     if (self->memoized_kind != Py_None && kind != Py_None) {
-	kind = PyObject_CallFunctionObjArgs(self->memoized_kind, kind, 0);
+        kind = PyObject_CallFunctionObjArgs(self->memoized_kind, kind, 0);
     } else {
-	Py_INCREF(kind);
+        Py_INCREF(kind);
     }
     return kind;
 }
@@ -37,13 +37,13 @@ hv_cli_user_classify(UserObject * self, PyObject *obj)
     if (!kind)
       return 0;
     if (kind != self->cond_kind) {
-	Py_DECREF(kind);
-	kind = Py_None;
-	Py_INCREF(kind);
-	return kind;
+        Py_DECREF(kind);
+        kind = Py_None;
+        Py_INCREF(kind);
+        return kind;
     } else {
-	Py_DECREF(kind);
-	return PyObject_CallFunctionObjArgs(self->classify, obj, 0);
+        Py_DECREF(kind);
+        return PyObject_CallFunctionObjArgs(self->classify, obj, 0);
     }
 }
 
@@ -65,11 +65,11 @@ hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     UserObject *s, tmp;
     PyObject *r;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!OOO:user_defined", kwlist,
-				     &NyObjectClassifier_Type, &tmp.cond_cli,
-				     &tmp.cond_kind,
-				     &tmp.classify,
-				     &tmp.memoized_kind
-				     ))
+                                     &NyObjectClassifier_Type, &tmp.cond_cli,
+                                     &tmp.cond_kind,
+                                     &tmp.classify,
+                                     &tmp.memoized_kind
+                                     ))
       return 0;
 
     s = NYTUPLELIKE_NEW(UserObject);

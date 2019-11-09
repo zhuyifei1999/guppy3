@@ -228,7 +228,6 @@ INITFUNC (void)
 
     Py_TYPE(&_Ny_RootStateStruct) = &NyRootState_Type;
 
-    NyNodeTuple_Type.tp_base = &PyTuple_Type;
     if (nyfills() == -1) {
         goto error;
     }
