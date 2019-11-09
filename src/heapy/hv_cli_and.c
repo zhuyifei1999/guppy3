@@ -268,7 +268,6 @@ PyTypeObject NyNodeTuple_Type = {
     "guppy.heapy.heapyc.NodeTuple",
     sizeof(PyTupleObject) - sizeof(PyObject *),
     sizeof(PyObject *),
-    .tp_base           = &PyTuple_Type,
     .tp_hash           = (hashfunc)nodetuple_hash,
     .tp_getattro       = PyObject_GenericGetAttr,
     .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,

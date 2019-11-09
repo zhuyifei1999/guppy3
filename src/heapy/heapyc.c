@@ -228,6 +228,9 @@ INITFUNC (void)
 
     Py_TYPE(&_Ny_RootStateStruct) = &NyRootState_Type;
 
+    // This has to be here because of 'initializer is not a constant'
+    // build error on Windows.
+    NyNodeTuple_Type.tp_base = &PyTuple_Type;
     if (nyfills() == -1) {
         goto error;
     }
