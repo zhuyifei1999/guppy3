@@ -13,6 +13,10 @@ matrix:
       python: 3.7
       env:
         - ACTION=test
+    - name: "Python 3.8 on Linux"
+      python: 3.7
+      env:
+        - ACTION=test
     - name: "Python 3 on macOS"
       os: osx
       osx_image: xcode11
@@ -24,21 +28,22 @@ matrix:
       language: shell
       before_install:
         - choco install python
+        - python -m ensurepip --upgrade
         - python -m pip install --upgrade pip
       env:
         - ACTION=test
         - PATH=/c/Python37:/c/Python37/Scripts:$PATH
-    - name: "Python 3.7 on Linux (sdist in venv)"
-      python: 3.7
+    - name: "Python 3.8 on Linux (sdist in venv)"
+      python: 3.8
       env:
         - ACTION=sdisttest
-    - name: "Python 3.7 on Linux (Code Coverage)"
-      python: 3.7
+    - name: "Python 3.8 on Linux (Code Coverage)"
+      python: 3.8
       env:
         - ACTION=codecov
-    - name: "Python 3.7 on Linux (CPyChecker)"
+    - name: "Python 3.8 on Linux (CPyChecker)"
       dist: bionic
-      python: 3.7
+      python: 3.8
       addons:
         apt:
           sources:
