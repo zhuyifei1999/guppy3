@@ -406,6 +406,9 @@ started. More tips are very welcome!
 ...li
 ....a:Digging into python memory issues in ckan with heapy
 .....href=https://leastsignificant.blogspot.com/2015/06/digging-into-python-memory-issues-in.html
+...li
+....a: Optimizing memory usage in Python: a case study
+.....href=https://guillaume.segu.in/blog/code/487/optimizing-memory-usage-in-python-a-case-study/
 
 ..a
 ...name=Download
