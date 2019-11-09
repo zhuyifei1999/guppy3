@@ -186,7 +186,7 @@ class SpecialCases(TestCase):
         rcc1 = grc(c1)
         rcdc1 = grc(c1.__dict__)
 
-        clock = self.python.time.time
+        clock = self.python.time.process_time
 
         N = 5
         M = 50
@@ -375,7 +375,7 @@ dict (no owner)
         self.assertTrue(a in self.View.rg.get_domain())
         self.assertTrue(list(b)[0] in self.View.rg.get_domain())
 
-        clock = self.python.time.clock
+        clock = self.python.time.process_time
         s = iso(a)
         N = 1000
         while 1:

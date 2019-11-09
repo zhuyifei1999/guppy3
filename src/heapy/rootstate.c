@@ -103,6 +103,11 @@ char rootstate_doc[] =
 "that is the number of frames it has before it in call order.\n"
 ;
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+# define Py_BUILD_CORE
+#  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+#endif
 
 #define THREAD_ID(ts)    (ts->thread_id)
 
@@ -136,6 +141,10 @@ static struct PyMemberDef is_members[] = {
     MEMBER(codec_search_cache),
     MEMBER(codec_error_registry),
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+    MEMBER(dict),
+#endif
+
     MEMBER(builtins_copy),
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
     MEMBER(import_func),
@@ -149,6 +158,10 @@ static struct PyMemberDef is_members[] = {
 #endif
 
     MEMBER(pyexitmodule),
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+    MEMBER(audit_hooks),
 #endif
     {0} /* Sentinel */
 };
@@ -180,7 +193,10 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(dict),
     MEMBER(async_exc),
     // trash_delete_later not included
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
     MEMBER(coroutine_wrapper),
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
     MEMBER(async_gen_firstiter),
@@ -266,19 +282,27 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(codec_search_cache);
         ISATTR(codec_error_registry);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        ISATTR(dict);
+#endif
+
         ISATTR(builtins_copy);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         ISATTR(import_func);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-#ifdef HAVE_FORK
+# ifdef HAVE_FORK
         ISATTR(before_forkers);
         ISATTR(after_forkers_parent);
         ISATTR(after_forkers_child);
-#endif
+# endif
 
         ISATTR(pyexitmodule);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        ISATTR(audit_hooks);
 #endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
@@ -317,7 +341,10 @@ rootstate_relate(NyHeapRelate *r)
 
             TSATTR(dict);
             TSATTR(async_exc);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
             TSATTR(coroutine_wrapper);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             TSATTR(async_gen_firstiter);
@@ -358,19 +385,27 @@ rootstate_traverse(NyHeapTraverse *ta)
         VISIT(is->codec_search_cache);
         VISIT(is->codec_error_registry);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        VISIT(is->dict);
+#endif
+
         VISIT(is->builtins_copy);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         VISIT(is->import_func);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-#ifdef HAVE_FORK
+# ifdef HAVE_FORK
         VISIT(is->before_forkers);
         VISIT(is->after_forkers_parent);
         VISIT(is->after_forkers_child);
-#endif
+# endif
 
         VISIT(is->pyexitmodule);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        VISIT(is->audit_hooks);
 #endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
@@ -398,7 +433,10 @@ rootstate_traverse(NyHeapTraverse *ta)
 
             VISIT(ts->dict);
             VISIT(ts->async_exc);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
             VISIT(ts->coroutine_wrapper);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             VISIT(ts->async_gen_firstiter);
@@ -583,19 +621,27 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(codec_search_cache);
         ISATTR_DIR(codec_error_registry);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        ISATTR_DIR(dict);
+#endif
+
         ISATTR_DIR(builtins_copy);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         ISATTR_DIR(import_func);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-#ifdef HAVE_FORK
+# ifdef HAVE_FORK
         ISATTR_DIR(before_forkers);
         ISATTR_DIR(after_forkers_parent);
         ISATTR_DIR(after_forkers_child);
-#endif
+# endif
 
         ISATTR_DIR(pyexitmodule);
+#endif
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+        ISATTR_DIR(audit_hooks);
 #endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
@@ -628,7 +674,10 @@ rootstate_dir(PyObject *self, PyObject *args)
 
             TSATTR_DIR(dict);
             TSATTR_DIR(async_exc);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
             TSATTR_DIR(coroutine_wrapper);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             TSATTR_DIR(async_gen_firstiter);
