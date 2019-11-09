@@ -58,8 +58,10 @@ class _GLUECLAMP_:
         '_parent.Use:idset',
         '_parent.Use:iso',
         '_parent.Use:Type',
+        '_root:ctypes',
         '_root:gc',
         '_root:types',
+        '_root.warnings:warn',
     )
 
     _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled')
@@ -139,6 +141,10 @@ class _GLUECLAMP_:
     def _get_gchook_type(self):
         return Gchook_type
 
+    def _get_capsule_type(self):
+        return self.ctypes.cast(
+            self.ctypes.pythonapi.PyCapsule_Type, self.ctypes.py_object).value
+
     def _get_heapdef_modules(self):
         # We touch self.heapyc to import it & its dependent guppy.sets;
         # this is kinda specialcase-hacky but see Notes Apr 8 2005.
@@ -151,6 +157,10 @@ class _GLUECLAMP_:
             try:
                 hd = getattr(m, '_NyHeapDefs_')
             except AttributeError:
+                continue
+            if not hd or not isinstance(hd, self.capsule_type):
+                self.warn('Ignoring non-capsule object '
+                          '{}._NyHeapDefs_'.format(n))
                 continue
             heapdefs.append(hd)
         return tuple(heapdefs)
