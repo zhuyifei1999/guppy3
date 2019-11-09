@@ -40,16 +40,16 @@ matrix:
       python: 3.8
       env:
         - ACTION=codecov
-    - name: "Python 3.8 on Linux (CPyChecker)"
+    - name: "Python 3.7 on Linux (CPyChecker)"
       dist: bionic
-      python: 3.8
+      python: 3.7
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             # Old GCC needed for refcounting verification
-            - g++-6 gcc-6-plugin-dev libpython3.8 libpython3.8-dev
+            - g++-6 gcc-6-plugin-dev libpython3.7 libpython3.7-dev
       env:
         - ACTION=cpychecker
 install:
