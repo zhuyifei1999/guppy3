@@ -14,7 +14,7 @@ matrix:
       env:
         - ACTION=test
     - name: "Python 3.8 on Linux"
-      python: 3.7
+      python: 3.8
       env:
         - ACTION=test
     - name: "Python 3 on macOS"
