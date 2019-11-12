@@ -151,7 +151,7 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
         if (!PyObject_TypeCheck(PyTuple_GET_ITEM(tmp.classifiers, i),
                                 &NyObjectClassifier_Type)) {
             PyErr_SetString(PyExc_TypeError,
-                         "cli_and: classifiers argument must contain classifier objects.");
+                            "cli_and: classifiers argument must contain classifier objects.");
             return 0;
         }
     }
@@ -177,12 +177,12 @@ nodetuple_hash(PyTupleObject *v)
     x = 0x436587L;
     p = v->ob_item;
     while (--len >= 0) {
-            x = (1000003*x) ^ (Py_hash_t)p[0];
-            p++;
+        x = (1000003*x) ^ (Py_hash_t)p[0];
+        p++;
     }
     x ^= Py_SIZE(v);
     if (x == -1)
-            x = -2;
+        x = -2;
     return x;
 }
 

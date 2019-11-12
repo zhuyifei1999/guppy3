@@ -565,6 +565,29 @@ class TestClassifiers(TestCase):
             rg.add_edge(x, r)
         c = cli.classify(x)
 
+    def test_nodetuple_richcompare(self):
+        hv = self.hv
+
+        cli = hv.cli_and((hv.cli_id(),), {})
+
+        a, b = cli.classify(1), cli.classify(2)
+
+        self.assertTrue(a != b)
+        self.assertFalse(a == b)
+        self.assertTrue(a >= b or a <= b)
+        self.assertFalse(a >= b and a <= b)
+        self.assertTrue(a > b or a < b)
+        self.assertFalse(a > b and a < b)
+
+        a, b = cli.classify(1), cli.classify(1)
+
+        self.assertFalse(a != b)
+        self.assertTrue(a == b)
+        self.assertTrue(a >= b or a <= b)
+        self.assertTrue(a >= b and a <= b)
+        self.assertFalse(a > b or a < b)
+        self.assertFalse(a > b and a < b)
+
 
 def test_main(debug=False):
     support.run_unittest(TestClassifiers, debug)
