@@ -5,7 +5,7 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 "\n"
 "Return a classifier that classifes by \"producer\".\n"
 "\n"
-"The classification of an object is the fine name and line number\n"
+"The classification of an object is the file name and line number\n"
 "in which the object is produced (allocated).\n"
 "\n"
 "    memo        A dict object used to\n"
@@ -83,14 +83,14 @@ Err:
 static PyObject *
 hv_cli_prod_classify(ProdObject *self, PyObject *obj)
 {
+    PyObject *result;
+    PyObject *kind = NULL, *tb = NULL;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
     Py_uintptr_t ptr;
-    PyTypeObject *type;
-    PyObject *kind = NULL;
-    PyObject *tb, *result;
 
     // Refer to _tracemalloc.c:_tracemalloc__get_object_traceback
-    type = Py_TYPE(obj);
-    if (PyType_IS_GC(type)) {
+    if (PyType_IS_GC(Py_TYPE(obj))) {
         ptr = (Py_uintptr_t)((char *)obj - sizeof_PyGC_Head);
     } else {
         ptr = (Py_uintptr_t)obj;
@@ -107,6 +107,39 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
         kind = Py_None;
         Py_INCREF(Py_None);
     }
+#else
+    PyObject *tracemalloc = PyImport_ImportModule("tracemalloc");
+    if (!tracemalloc)
+        return NULL;
+
+    tb = PyObject_CallMethod(tracemalloc, "get_object_traceback", "(O)", obj);
+
+    Py_DECREF(tracemalloc);
+
+    if (PySequence_Check(tb) && PySequence_Length(tb)) {
+        // It became most recent last in Python 3.7
+        PyObject *most_recent = PySequence_GetItem(tb, 0);
+
+        if (most_recent) {
+            PyObject *filename = PyObject_GetAttrString(most_recent, "filename"),
+                     *lineno = PyObject_GetAttrString(most_recent, "lineno");
+
+            if (filename && lineno)
+                kind = PyTuple_Pack(2, filename, lineno);
+
+            Py_XDECREF(filename);
+            Py_XDECREF(lineno);
+        }
+
+        Py_XDECREF(most_recent);
+    } else {
+        kind = Py_None;
+        Py_INCREF(Py_None);
+    }
+#endif
+
+    if (!kind)
+        goto Err;
 
     result = hv_cli_prod_memoized_kind(self, kind);
     Py_DECREF(tb);
