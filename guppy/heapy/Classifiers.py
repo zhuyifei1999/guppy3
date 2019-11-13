@@ -1167,6 +1167,38 @@ class ByFindex(Classifier):
         return 'First Matching Kind / Index'
 
 
+class ProdFamily:
+    def __init__(self, mod, classifier):
+        self.defrefining(mod.Use.Anything)
+        self.classifier = classifier
+        self.range = mod.fam_Family(self)
+
+    def c_get_brief(self, a):
+        if a.arg is None:
+            return 'None'
+        else:
+            return '%s:%d' % a.arg
+
+    def c_repr(self, a):
+        return '%s(%r)' % (self.classifier.get_reprname(), a.arg)
+
+
+class ByProd(Classifier):
+    def __init__(self, mod, name):
+        Classifier.__init__(self, mod, name)
+        self.family = mod.fam_mixin_argatom(ProdFamily, self)
+
+    def get_byname(self):
+        return 'producer'
+
+    def get_cli(self):
+        memo = {}
+        return self.mod.hv.cli_prod(memo)
+
+    def get_tabheader(self, ctx=''):
+        return 'Producer (line of allocation)'
+
+
 class _GLUECLAMP_:
     _imports_ = (
         '_parent:ImpSet',
@@ -1197,6 +1229,9 @@ class _GLUECLAMP_:
 
     def _get_Module(self):
         return self._er_by_(ByModule, self, name='Module')
+
+    def _get_Prod(self):
+        return self._er_by_(ByProd, self, name='Prod')
 
     def _get_Unity(self):
         return self._er_by_(ByUnity, self, name='Unity')

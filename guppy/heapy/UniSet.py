@@ -424,6 +424,9 @@ A copy of self, but with 'Id' as the equivalence relation.""")
     bymodule = property_exp(lambda self: self.by('Module'), doc="""\
 A copy of self, but with 'Module' as the equivalence relation.""")
 
+    byprod = property_exp(lambda self: self.by('Prod'), doc="""\
+A copy of self, but with 'Prod' as the equivalence relation.""")
+
     byrcs = property_exp(lambda self: self.by('Rcs'), doc="""\
 A copy of self, but with 'Rcs' as the equivalence relation.""")
 

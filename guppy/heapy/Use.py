@@ -7,7 +7,7 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
                  'relheap', 'relheapg', 'relheapu', '__doc__')
     _dir_ = (
         'Anything', 'Clodo', 'Id', 'Idset', 'Module',
-        'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
+        'Nothing', 'Prod', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
         'Via', 'doc', 'findex', 'heap', 'heapu',
         'idset', 'iso', 'load', 'monitor', 'pb',
         'setref', 'test')
@@ -367,6 +367,7 @@ Argument
         '_parent.Classifiers:Id',
         '_parent.Classifiers:Idset',
         '_parent.Classifiers:Module',
+        '_parent.Classifiers:Prod',
         '_parent.Classifiers:Rcs',
         '_parent.Classifiers:Size',
         '_parent.Classifiers:Type',
@@ -473,6 +474,17 @@ The empty set.
 
 References
     [0] heapy_Use.html#heapykinds.Use.Nothing"""
+
+    _doc_Prod = """\
+Prod: EquivalenceRelation
+Prod(filename:str+, lineno: notnegative+) -> KindOfProdFamily[1])
+
+In this equivalence relation, objects are classified by the producer,
+the line in which the object was allocated.
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Prod
+    [1] heapy_UniSet.html#heapykinds.KindOfProdFamily"""
 
     _doc_Rcs = """Rcs: EquivalenceRelation
 Rcs ( 0..*: alt:[kind: Kind+ or sok: SetOfKind+]) -> KindOfRetClaSetFamily
