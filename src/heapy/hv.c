@@ -81,7 +81,6 @@ PyDoc_STRVAR(hv_doc,
 /* Forward declarations */
 
 static PyObject *hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds);
-PyObject **hv_cli_dictof_dictptr(PyObject *obj);
 
 static ExtraType *hv_new_extra_type(NyHeapViewObject *hv, PyTypeObject *type);
 
@@ -243,8 +242,7 @@ xt_default_relate(struct ExtraType *xt, NyHeapRelate *r)
     PyObject **dictptr;
     if (owht_relate(r, type))
         return 1;
-    /* dictptr = _PyObject_GetDictPtr(r->src); */
-    dictptr = hv_cli_dictof_dictptr(r->src);    /* I think this is better xxx verify? Apr 13 2005 */
+    dictptr = _PyObject_GetDictPtr(r->src);
     if (dictptr) {
         if (*dictptr == r->tgt) {
             if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString("__dict__"), r))
