@@ -64,10 +64,9 @@ class _GLUECLAMP_:
         '_root.warnings:warn',
     )
 
-    _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled')
-    _setable_ = ('_hiding_tag_', 'target', 'is_hiding_calling_interpreter',
-
-                 )
+    _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled',
+                 'root',)
+    _setable_ = ('_hiding_tag_', 'target', 'is_hiding_calling_interpreter',)
 
     is_hiding_calling_interpreter = False
     is_rg_update_all = False
