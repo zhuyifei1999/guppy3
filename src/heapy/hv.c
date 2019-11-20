@@ -860,7 +860,7 @@ typedef struct {
 static int
 hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     int r;
-    if (hv_is_obj_hidden(ta->hv, obj) && obj->ob_type != &NyRootState_Type)
+    if (hv_is_obj_hidden(ta->hv, obj) && Py_TYPE(obj) != &NyRootState_Type)
         return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
