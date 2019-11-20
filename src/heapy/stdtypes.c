@@ -65,7 +65,8 @@ dict_relate(NyHeapRelate *r)
 }
 
 static int
-dict_traverse(NyHeapTraverse *ta) {
+dict_traverse(NyHeapTraverse *ta)
+{
     PyObject *v = (void *)ta->obj;
     if (PyDict_GetItem(v, _hiding_tag__name) == ta->_hiding_tag_)
         return 0;

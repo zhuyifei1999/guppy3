@@ -577,6 +577,11 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
     } else if (type == &NyRootState_Type) {
         /* Fixes a dominos confusion; see Notes Apr 20 2005 */
         return 1;
+    } else {
+        PyObject **dp = _PyObject_GetDictPtr(obj);
+        if (dp && *dp && PyDict_GetItem(*dp, _hiding_tag__name) == hv->_hiding_tag_) {
+            return 1;
+        }
     }
     return 0;
 }
@@ -857,6 +862,8 @@ typedef struct {
 static int
 hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     int r;
+    if (hv_is_obj_hidden(ta->hv, obj) && obj->ob_type != &NyRootState_Type)
+        return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
         return r < 0 ? r : 0;
