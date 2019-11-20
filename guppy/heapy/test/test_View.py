@@ -38,6 +38,10 @@ class FirstCase(TestCase):
         self.assertTrue(cs.referrers.kind == type(
             self.guppy.sets.immnodeset()))
 
+        h = self.View.heap()
+        self.aseq(h & self.iso(self.Use), self.Use.Nothing)
+        self.aseq(h & self.iso(self.Use.__dict__), self.Use.Nothing)
+
     def test_dominos(self):
         # Test dominos and domisize
         iso = self.iso
