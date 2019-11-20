@@ -1,6 +1,6 @@
 /* Classifier implementations */
 
-#define NYTUPLELIKE_NEW(t) ((t *)PyTuple_New((sizeof(t) - sizeof(PyTupleObject)) / 4 + 1))
+#define NYTUPLELIKE_NEW(t) ((t *)PyTuple_New((sizeof(t) - sizeof(PyTupleObject)) / sizeof(PyObject *) + 1))
 
 #include "hv_cli_and.c"
 #include "hv_cli_dictof.c"
