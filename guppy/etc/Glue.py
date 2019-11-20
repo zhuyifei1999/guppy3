@@ -60,15 +60,15 @@ class Owner:
         self.salog = {}
         self.inters = {}
 
-    def log_getattr(self, dct, name):
-        name = dotname(dct['_name'], name)
+    def log_getattr(self, cache, name):
+        name = dotname(cache['_name'], name)
         self.galog[name] = 1
 
     def log_setattr(self, name):
         self.salog[name] = 1
 
-    def makeInterface(self, dct, share, name):
-        name = dotname(dct['_name'], name)
+    def makeInterface(self, cache, share, name):
+        name = dotname(cache['_name'], name)
         if share not in self.inters:
             Clamp = share.Clamp
             if Clamp is not None and issubclass(Clamp, Interface):
@@ -205,13 +205,15 @@ class Share:
 
     def getattr(self, inter, name):
         owner = inter._owner
-        dct = inter.__dict__
-        d = self.getattr2(inter, dct, owner, name)
+        cache = inter.__dict__
+        d = self.getattr2(inter, cache, owner, name)
+        if name not in self.chgable:
+            cache[name] = d
         return d
 
-    def getattr2(self, inter, dct, owner, name):
+    def getattr2(self, inter, cache, owner, name):
         if self.has_getattr_logging_enabled:
-            owner.log_getattr(dct, name)
+            owner.log_getattr(cache, name)
         try:
             x = self.data[name]
         except KeyError:
@@ -245,7 +247,7 @@ class Share:
             finally:
                 self.recursion -= 1
         if isinstance(x, Share):
-            x = owner.makeInterface(dct, x, name)
+            x = owner.makeInterface(cache, x, name)
         return x
 
     def getattr_module(self, inter, name):
@@ -370,6 +372,7 @@ class Share:
         if im is not None:
             im(inter, value)
             self.data[name] = value
+            inter.__dict__[name] = value
             return
         setable = self.setable
         chgable = self.chgable
@@ -381,6 +384,8 @@ because it is not in _setable_ or _chgable_ and no _set_%s is defined.""" % (nam
             raise ValueError("""Can not change attribute %r,
 because it is already set and not in _chgable_.""" % name)
         self.data[name] = value
+        if name not in chgable:  # This is a pain, I suppose. Should we track interfaces?
+            inter.__dict__[name] = value
 
 
 class Test:
