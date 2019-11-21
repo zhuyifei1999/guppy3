@@ -368,21 +368,21 @@ class Share:
         if Clamp is None:
             raise ValueError(
                 'Can not change attribute %r because no _GLUECLAMP_ defined.' % name)
-        im = getattr(Clamp, '_set_%s' % name, None)
-        if im is not None:
-            im(inter, value)
-            self.data[name] = value
-            inter.__dict__[name] = value
-            return
+
         setable = self.setable
         chgable = self.chgable
         if (name not in setable and name not in chgable and
                 (not (name in self.data and self.data[name] is value))):
             raise ValueError("""Can not change attribute %r,
-because it is not in _setable_ or _chgable_ and no _set_%s is defined.""" % (name, name))
+because it is not in _setable_ or _chgable_.""" % name)
         if name in self.data and self.data[name] is not value and name not in chgable:
             raise ValueError("""Can not change attribute %r,
 because it is already set and not in _chgable_.""" % name)
+
+        im = getattr(Clamp, '_set_%s' % name, None)
+        if im is not None:
+            im(inter, value)
+
         self.data[name] = value
         if name not in chgable:  # This is a pain, I suppose. Should we track interfaces?
             inter.__dict__[name] = value
