@@ -356,16 +356,20 @@ Return the set of objects in the visible heap.
         # the heap will contain things that may likely be loaded later
         # because of common operations.
         if not heap_one_time_initialized:
-            heap_one_time_initialized = 1
             old_root = self.root
             objs = [[], 'a', 1, 1.23, {'a': 'b'}, self]
+
             self.root = objs
-            repr(self.idset(objs))
-            repr(self.iso(objs[0]).shpaths)
-            repr(self.iso(objs[0]).rp)
+            try:
+                repr(self.idset(objs))
+                repr(self.iso(objs[0]).shpaths)
+                repr(self.iso(objs[0]).rp)
+            finally:
+                self.root = old_root
+
             del objs
-            self.root = old_root
             del old_root
+            heap_one_time_initialized = True
 
         self.gc.collect()  # Sealing a leak at particular usage ; Notes Apr 13 2005
         # Exclude current frame by encapsulting in enter(). Note Apr 20 2005
@@ -571,4 +575,4 @@ prime_builtin_types()
 # having to do that we want to do import and init things
 # but only if heap is actually called
 
-heap_one_time_initialized = 0
+heap_one_time_initialized = False
