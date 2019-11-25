@@ -122,6 +122,15 @@ class Share:
             raise TypeError(self.message(
                 'the _chgable_ attribute must be a tuple'))
 
+        if Clamp is not None:
+            for attr in Clamp.__dict__:
+                if attr.startswith('_set_'):
+                    attr = attr[len('_set_'):]
+                    if attr not in self.setable and attr not in self.chgable:
+                        raise TypeError(self.message(
+                            '%s must be in either _setable_ or _chgable_ '
+                            'for _set_%s to work' % (attr, attr)))
+
         imports = getattr(Clamp, '_imports_', ())
         if not isinstance(imports, tuple):
             raise TypeError(self.message(
