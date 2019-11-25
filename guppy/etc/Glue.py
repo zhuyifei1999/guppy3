@@ -223,9 +223,8 @@ class Share:
     def getattr2(self, inter, cache, owner, name):
         if self.has_getattr_logging_enabled:
             owner.log_getattr(cache, name)
-        try:
-            x = self.data[name]
-        except KeyError:
+
+        if name not in self.data:
             try:
                 self.recursion += 1
                 try:
@@ -255,6 +254,8 @@ class Share:
                 self.data[name] = x
             finally:
                 self.recursion -= 1
+
+        x = self.data[name]
         if isinstance(x, Share):
             x = owner.makeInterface(cache, x, name)
         return x
@@ -288,54 +289,60 @@ class Share:
         Clamp = self.Clamp
         if Clamp is None:
             raise NoSuchAttributeError(name)
+
         try:
             x = getattr(Clamp, name)
         except AttributeError:
-            try:
-                im = getattr(Clamp, '_get_%s' % name)
-            except AttributeError:
-                if name in self.importedfrom:
-                    prepa = self.importedfrom[name]
-                    hdo, ta, pa = prepa
-                    if pa is None:
-                        pa = hdo
-                        tas = ta.split('.')
-                        for at in tas:
-                            pa = getattr(pa, at)
-                        prepa[2] = pa
-                    x = getattr(pa, name)
-                    return x
-
-                gp = getattr(Clamp, '_GLUEPATH_', None)
-                if gp is None:
-                    raise NoSuchAttributeError(name)
-                if hasattr(gp, 'split'):
-                    gp = gp.split(',')
-                for a in gp:
-                    a = a.strip()
-                    bs = a.split('.')
-                    ii = inter
-                    for b in bs:
-                        b = b.strip()
-                        ii = getattr(ii, b)
-                    try:
-                        x = getattr(ii, name)
-                    except AttributeError:
-                        continue
-                    else:
-                        return x
-                raise NoSuchAttributeError(name)
-            else:
-                owner = self.makeOwner(name)
-                inter = Interface(self, owner, '')
-                f = types.MethodType(im, inter)
-                x = f()
-                if isinstance(x, Interface):
-                    x = x.__dict__['_share']
+            pass
         else:
             if isinstance(x, types.FunctionType):
                 x = types.MethodType(x, inter)
-        return x
+            return x
+
+        try:
+            im = getattr(Clamp, '_get_%s' % name)
+        except AttributeError:
+            pass
+        else:
+            owner = self.makeOwner(name)
+            inter = Interface(self, owner, '')
+            f = types.MethodType(im, inter)
+            x = f()
+            if isinstance(x, Interface):
+                x = x.__dict__['_share']
+            return x
+
+        if name in self.importedfrom:
+            prepa = self.importedfrom[name]
+            hdo, ta, pa = prepa
+            if pa is None:
+                pa = hdo
+                tas = ta.split('.')
+                for at in tas:
+                    pa = getattr(pa, at)
+                prepa[2] = pa
+            x = getattr(pa, name)
+            return x
+
+        gp = getattr(Clamp, '_GLUEPATH_', None)
+        if gp is None:
+            raise NoSuchAttributeError(name)
+        if hasattr(gp, 'split'):
+            gp = gp.split(',')
+        for a in gp:
+            a = a.strip()
+            bs = a.split('.')
+            ii = inter
+            for b in bs:
+                b = b.strip()
+                ii = getattr(ii, b)
+            try:
+                x = getattr(ii, name)
+            except AttributeError:
+                continue
+            else:
+                return x
+        raise NoSuchAttributeError(name)
 
     def makeModule(self, module, name):
         Clamp = getattr(module, '_GLUECLAMP_', None)
