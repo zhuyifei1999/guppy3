@@ -14,6 +14,17 @@ test)
     esac
     ;;
 
+tracemalloctest)
+    case "$1" in
+    install)
+        pip install -ve .
+        ;;
+    script)
+        $PYTHON -X tracemalloc -c '__import__("faulthandler").enable(); __import__("guppy").hpy().test(); __import__("guppy").heapy.heapyc.xmemstats()'
+        ;;
+    esac
+    ;;
+
 sdisttest)
     case "$1" in
     install)

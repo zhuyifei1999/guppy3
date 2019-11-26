@@ -36,6 +36,10 @@ matrix:
       python: 3.8
       env:
         - ACTION=sdisttest
+    - name: "Python 3.8 on Linux (tracemalloc enabled)"
+      python: 3.8
+      env:
+        - ACTION=tracemalloctest
     - name: "Python 3.8 on Linux (Code Coverage)"
       python: 3.8
       env:
