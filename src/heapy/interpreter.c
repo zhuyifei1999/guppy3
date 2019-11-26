@@ -33,6 +33,68 @@ static char hp_set_async_exc_doc[] =
 #include "pythread.h"
 #include "eval.h"
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+# define Py_BUILD_CORE
+/* _PyMem_SetDefaultAllocator */
+#  include <internal/pycore_pymem.h>
+# undef Py_BUILD_CORE
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+PyAPI_FUNC(int) _PyMem_SetDefaultAllocator(
+    PyMemAllocatorDomain domain,
+    PyMemAllocatorEx *old_alloc);
+#else
+// source: cpython: Objects/obmalloc.c
+static void *
+_PyMem_RawMalloc(void *ctx, size_t size)
+{
+    if (size == 0)
+        size = 1;
+    return malloc(size);
+}
+
+static void *
+_PyMem_RawCalloc(void *ctx, size_t nelem, size_t elsize)
+{
+    if (nelem == 0 || elsize == 0) {
+        nelem = 1;
+        elsize = 1;
+    }
+    return calloc(nelem, elsize);
+}
+
+static void *
+_PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
+{
+    if (size == 0)
+        size = 1;
+    return realloc(ptr, size);
+}
+
+static void
+_PyMem_RawFree(void *ctx, void *ptr)
+{
+    free(ptr);
+}
+
+static int _PyMem_SetDefaultAllocator(
+    PyMemAllocatorDomain domain,
+    PyMemAllocatorEx *old_alloc)
+{
+    assert(domain == PYMEM_DOMAIN_RAW);
+    PyMem_GetAllocator(domain, old_alloc);
+
+    PyMemAllocatorEx alloc = {
+        .malloc  = _PyMem_RawMalloc,
+        .calloc  = _PyMem_RawCalloc,
+        .realloc = _PyMem_RawRealloc,
+        .free    = _PyMem_RawFree,
+        .ctx     = NULL
+    };
+    PyMem_SetAllocator(domain, &alloc);
+    return 0;
+}
+#endif
+
 struct bootstate {
     PyObject *cmd;
     PyObject *locals;
@@ -49,10 +111,16 @@ t_bootstrap(void *boot_raw)
     int res = 0;
     const char *str;
 
+    // This is needed so that tracemalloc won't deadlock on us
+    PyMemAllocatorEx old_alloc;
+    _PyMem_SetDefaultAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
+
     // borrow GIL from parent
     PyThreadState *save_tstate = PyThreadState_Swap(NULL);
     tstate = Py_NewInterpreter();
     PyThreadState_Swap(save_tstate);
+
+    PyMem_SetAllocator(PYMEM_DOMAIN_RAW, &old_alloc);
 
     if (!tstate) {
         Py_DECREF(boot->cmd);

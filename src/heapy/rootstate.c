@@ -105,6 +105,7 @@ char rootstate_doc[] =
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
 # define Py_BUILD_CORE
+/* PyInterpreterState */
 #  include <internal/pycore_pystate.h>
 # undef Py_BUILD_CORE
 #endif
