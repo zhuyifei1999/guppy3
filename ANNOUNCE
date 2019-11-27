@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.0.8
+I am happy to announce Guppy 3 3.0.9
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -12,9 +12,11 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The main news in this release:
 
-o Reuse IdentitySet partition on repr and selection
-o Use temporary root for traversal in initialization
-o Bug fixes
+o Python 3.8 support
+o Guppy internals are again properly hidden from heap traversal
+o Collapse Glue.py exception tracebacks
+o Workaround multi-interpreter initialization with tracemalloc so we don't
+  deadlock
 
 License: MIT
 
