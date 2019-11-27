@@ -4,7 +4,7 @@ trigger:
     - v*
 pr: none
 variables:
-  CIBW_BUILD: 'cp3[567]-*'
+  CIBW_BUILD: 'cp3[5678]-*'
 jobs:
 - job: linux
   pool: {vmImage: 'Ubuntu-16.04'}
@@ -12,7 +12,7 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
@@ -22,22 +22,17 @@ jobs:
     - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
 - job: windows
   pool: {vmImage: 'vs2017-win2016'}
   steps:
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.5', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.6', architecture: x64}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x86}}
-    - {task: UsePythonVersion@0, inputs: {versionSpec: '3.7', architecture: x64}}
+    - task: UsePythonVersion@0
     - bash: |
         python -m pip install --upgrade pip
-        pip install cibuildwheel==0.11.1
+        pip install cibuildwheel==1.0.0
         cibuildwheel --output-dir wheelhouse .
     - task: PublishBuildArtifacts@1
       inputs: {pathtoPublish: 'wheelhouse'}
