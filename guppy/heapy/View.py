@@ -252,15 +252,8 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
         elif self.hv.limitframe is not None:
             return func()
         else:
-            import sys
-            try:
-                1/0
-            except ZeroDivisionError:
-                type, value, traceback = sys.exc_info()
-                limitframe = traceback.tb_frame.f_back.f_back
-            sys.last_traceback = None
-            del type, value, traceback
-            self.hv.limitframe = limitframe
+            import inspect
+            self.hv.limitframe = inspect.currentframe().f_back.f_back
 
         try:
             retval = func()
