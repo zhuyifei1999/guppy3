@@ -539,7 +539,7 @@ def prime_builtin_types():
     import weakref
 
     for mod in list(sys.modules.values()):
-        if mod is None:
+        if mod is None or getattr(mod, '__dict__', None) is None:
             continue
         for t in list(mod.__dict__.values()):
             if isinstance(t, type):
