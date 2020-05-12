@@ -90,6 +90,7 @@ cibuildwheel-source)
     install)
         ;;
     script)
+        $PYTHON setup.py sdist --formats=gztar
         ;;
     after_success)
         pip install twine

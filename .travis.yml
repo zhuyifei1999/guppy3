@@ -70,8 +70,6 @@ jobs:
 
     - stage: deploy
       name: Deploy source distribution
-      install: skip
-      script: python3 setup.py sdist --formats=gztar
       env:
         - ACTION=cibuildwheel-source
     - stage: deploy
