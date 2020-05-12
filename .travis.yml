@@ -3,7 +3,7 @@ language: python
 stages:
   - test
   - name: deploy
-    # if: tag IS PRESENT AND repo = zhuyifei1999/guppy3
+    if: tag IS PRESENT AND repo = zhuyifei1999/guppy3
 
 before_install:
   - |
