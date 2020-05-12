@@ -73,7 +73,7 @@ jobs:
       install: skip
       script: python3 setup.py sdist --formats=gztar
       env:
-        - ACTION=cibuildwheel
+        - ACTION=cibuildwheel-source
     - stage: deploy
       name: Build and deploy Linux wheels
       services: docker

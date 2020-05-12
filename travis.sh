@@ -85,6 +85,18 @@ cpychecker)
     esac
     ;;
 
+cibuildwheel-source)
+    case "$1" in
+    install)
+        ;;
+    script)
+        ;;
+    after_success)
+        pip install twine
+        TWINE_USERNAME=__token__ twine upload --skip-existing dist/*.tar.gz
+        ;;
+    esac
+    ;;
 cibuildwheel)
     case "$1" in
     install)
