@@ -35,7 +35,7 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
         long_description = f.read()
 
     setup(name="guppy3",
-          version="3.0.9",
+          version="3.0.10",
           description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description=long_description,
           long_description_content_type='text/markdown',

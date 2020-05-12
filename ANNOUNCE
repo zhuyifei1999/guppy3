@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.0.9
+I am happy to announce Guppy 3 3.0.10
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -12,11 +12,8 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The main news in this release:
 
-o Python 3.8 support
-o Guppy internals are again properly hidden from heap traversal
-o Collapse Glue.py exception tracebacks
-o Workaround multi-interpreter initialization with tracemalloc so we don't
-  deadlock
+o Skip modules that don't have __dict__ attributes [Bob Haddleton]
+o Replace a few instances of ZeroDivisionError with inspect.currentframe()
 
 License: MIT
 

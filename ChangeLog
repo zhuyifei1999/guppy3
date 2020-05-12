@@ -1,3 +1,17 @@
+    Version 3.0.10
+
+2019-05-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.0.10
+
+2019-03-01  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Skip modules that don't have __dict__ attributes [Bob Haddleton]
+
+2019-11-28  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Replace a few instances of ZeroDivisionError with inspect.currentframe()
+
     Version 3.0.9
 
 2019-11-27  YiFei Zhu  <zhuyifei1999@gmail.com>
