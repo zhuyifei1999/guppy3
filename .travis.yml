@@ -1,61 +1,97 @@
 language: python
-matrix:
+
+stages:
+  - test
+  - name: deploy
+    # if: tag IS PRESENT AND repo = zhuyifei1999/guppy3
+
+before_install:
+  - |
+    if [[ "$TRAVIS_OS_NAME" = windows ]]; then
+        choco install python --version 3.8.0
+        export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+        ln -s /c/Python38/python.exe /c/Python38/python3.exe
+        python -m pip install --upgrade pip
+    fi
+
+jobs:
   include:
-    - name: "Python 3.5 on Linux"
+    - name: Python 3.5 on Linux
       python: 3.5
       env:
         - ACTION=test
-    - name: "Python 3.6 on Linux"
+    - name: Python 3.6 on Linux
       python: 3.6
       env:
         - ACTION=test
-    - name: "Python 3.7 on Linux"
+    - name: Python 3.7 on Linux
       python: 3.7
       env:
         - ACTION=test
-    - name: "Python 3.8 on Linux"
+    - name: Python 3.8 on Linux
       python: 3.8
       env:
         - ACTION=test
-    - name: "Python 3 on macOS"
+    - name: Python 3 on macOS
       os: osx
       osx_image: xcode11
       language: shell
       env:
         - ACTION=test
-    - name: "Python 3.8 on Windows"
+    - name: Python 3.8 on Windows
       os: windows
       language: shell
-      before_install:
-        - choco install python
-        - python -m pip install --upgrade pip
       env:
         - ACTION=test
-        - PATH=/c/Python38:/c/Python38/Scripts:$PATH
-    - name: "Python 3.8 on Linux (sdist in venv)"
+    - name: Python 3.8 on Linux (sdist in venv)
       python: 3.8
       env:
         - ACTION=sdisttest
-    - name: "Python 3.8 on Linux (tracemalloc enabled)"
+    - name: Python 3.8 on Linux (tracemalloc enabled)
       python: 3.8
       env:
         - ACTION=tracemalloctest
-    - name: "Python 3.8 on Linux (Code Coverage)"
+    - name: Python 3.8 on Linux (Code Coverage)
       python: 3.8
       env:
         - ACTION=codecov
-    - name: "Python 3.7 on Linux (CPyChecker)"
-      dist: bionic
-      python: 3.7
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            # Old GCC needed for refcounting verification
-            - g++-6 gcc-6-plugin-dev libpython3.7 libpython3.7-dev
+    # - name: Python 3.7 on Linux (CPyChecker)
+    #   dist: bionic
+    #   python: 3.7
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         # Old GCC needed for refcounting verification
+    #         - g++-6 gcc-6-plugin-dev libpython3.7 libpython3.7-dev
+    #   env:
+    #     - ACTION=cpychecker
+
+    - stage: deploy
+      name: Deploy source distribution
+      install: skip
+      script: python3 setup.py sdist --formats=gztar
       env:
-        - ACTION=cpychecker
+        - ACTION=cibuildwheel
+    - stage: deploy
+      name: Build and deploy Linux wheels
+      services: docker
+      env:
+        - ACTION=cibuildwheel
+    - stage: deploy
+      name: Build and deploy macOS wheels
+      os: osx
+      language: shell
+      env:
+        - ACTION=cibuildwheel
+    - stage: deploy
+      name: Build and deploy Windows wheels
+      os: windows
+      language: shell
+      env:
+        - ACTION=cibuildwheel
+
 install:
   - which python3 &> /dev/null && export PYTHON=python3 || export PYTHON=python
   - pip3 install --upgrade pip

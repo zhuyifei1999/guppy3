@@ -85,4 +85,19 @@ cpychecker)
     esac
     ;;
 
+cibuildwheel)
+    case "$1" in
+    install)
+        pip install cibuildwheel==1.4.1
+        ;;
+    script)
+        CIBW_BUILD='cp3[5678]-*' cibuildwheel --output-dir wheelhouse
+        ;;
+    after_success)
+        pip install twine
+        TWINE_USERNAME=__token__ twine upload --skip-existing wheelhouse/*.whl
+        ;;
+    esac
+    ;;
+
 esac
