@@ -1,6 +1,6 @@
 # Guppy 3
-[![Build Status](https://img.shields.io/travis/com/zhuyifei1999/guppy3?label=tests)](https://travis-ci.com/zhuyifei1999/guppy3) [![Codecov](https://img.shields.io/codecov/c/github/zhuyifei1999/guppy3)](https://codecov.io/gh/zhuyifei1999/guppy3) [![PyPI version](https://img.shields.io/pypi/v/guppy3)](https://pypi.org/project/guppy3/)  
-[![PyPI - Implementation](https://img.shields.io/pypi/implementation/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - License](https://img.shields.io/pypi/l/guppy3)](https://pypi.org/project/guppy3/)
+[![Build Status](https://img.shields.io/travis/com/zhuyifei1999/guppy3?label=tests)](https://travis-ci.com/zhuyifei1999/guppy3) [![Codecov](https://img.shields.io/codecov/c/github/zhuyifei1999/guppy3)](https://codecov.io/gh/zhuyifei1999/guppy3) [![PyPI version](https://img.shields.io/pypi/v/guppy3)](https://pypi.org/project/guppy3/) [![Repology - Repositories](https://img.shields.io/repology/repositories/python:guppy3)](https://repology.org/project/python:guppy3/versions)
+[![PyPI - Implementation](https://img.shields.io/pypi/implementation/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/guppy3)](https://pypistats.org/packages/guppy3) [![PyPI - License](https://img.shields.io/pypi/l/guppy3)](https://github.com/zhuyifei1999/guppy3/blob/master/LICENSE)
 
 A Python Programming Environment & Heap analysis toolset.
 
@@ -103,7 +103,7 @@ There will be several more tests. Some tests may take a while.
 ## License
 
 Copyright (C) 2005-2013 Sverker Nilsson, S. Nilsson Computer System AB  
-Copyright (C) 2019 YiFei Zhu
+Copyright (C) 2019-2020 YiFei Zhu
 
 The right is granted to copy, use, modify and redistribute this code
 according to the rules in what is commonly referred to as an MIT
