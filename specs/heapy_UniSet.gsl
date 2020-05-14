@@ -506,6 +506,12 @@ representation of x. The object returned, a MorePrinter instance,
 has a string representation that continues after the end of
 the representation of x.
 
+..attr:: all
+...kind of: MorePrinter
+
+...d: An object that can be used to show all lines of the string
+representation of x.
+
 ..attr:: nodes
 ...kind of: ImmNodeSet
 

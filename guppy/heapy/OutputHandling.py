@@ -12,17 +12,20 @@ class _MetaAttrProxy(type):
     def _add_proxy_attr(self, attr):
         if not attr.startswith('__') or not attr.endswith('__'):
             return
-        if attr in self.__dict__:
-            return
+        for cls in self.__mro__:
+            if cls is object:
+                break
+            if attr in cls.__dict__:
+                return
         if attr in ('__new__', '__init__', '__getattr__',
                     '__getattribute__', '__setattr__', '__delattr__',
                     ):
             return
 
         def closure(attr):
-            def generated_function(self, *args, **kwargs):
+            def generated_function(self, *args, **kwds):
                 func = self.__getattr__(attr)
-                return func(*args, **kwargs)
+                return func(*args, **kwds)
 
             return generated_function
 
@@ -52,7 +55,7 @@ class OutputBuffer:
         self.mod = mod
         self.strio = mod._root.io.StringIO()
 
-        if opts == None:
+        if opts is None:
             opts = {}
         self.opts = opts
 
@@ -245,35 +248,47 @@ class Printer:
         self.line_iter = None
 
 
-class BasicMorePrinter(metaclass=_MetaAttrProxy):
-    def __init__(self, mod, top, handler, startindex=None):
+class BasicPrinter(metaclass=_MetaAttrProxy):
+    def __init__(self, mod, top, handler, startindex, limit):
         self.mod = mod
         self.top = top
-
         self.handler = handler
-        if startindex is None:
-            startindex = handler.get_more_index()
+
         self.startindex = startindex
+        self.limit = limit
         self._hiding_tag_ = mod._hiding_tag_
 
     def __getattr__(self, attr):
-        if attr == 'more':
-            return self.__class__(self.mod, self.top, self.handler,
-                                  self.handler.get_more_index(self.startindex))
-        else:
-            return getattr(self.top, attr)
+        return getattr(self.top, attr)
 
     def __repr__(self):
         ob = self.mod.output_buffer()
-        self.handler.ppob(ob, self.startindex)
+        self.handler.ppob(ob, self.startindex, self.limit)
         return ob.getvalue().rstrip()
 
     # This __str__ is not optional as it may get overridden by _MetaAttrProxy
     __str__ = __repr__
 
+
+class BasicAllPrinter(BasicPrinter):
+    def __init__(self, mod, top, handler):
+        super().__init__(mod, top, handler, -1, None)
+
+
+class BasicMorePrinter(BasicPrinter):
+    def __init__(self, mod, top, handler, startindex=None, limit=10):
+        if startindex is None:
+            startindex = limit
+
+        super().__init__(mod, top, handler, startindex, limit)
+
+    @property
+    def more(self):
+        return self.at(self.startindex + self.limit)
+
     def at(self, idx):
         return self.__class__(self.mod, self.top, self.handler,
-                              idx)
+                              idx, self.limit)
 
 
 class _GLUECLAMP_:
@@ -314,8 +329,12 @@ class _GLUECLAMP_:
         if '__repr__' not in cls.__dict__:
             cls.__repr__ = reprfunc
 
-    def basic_more_printer(self, top, handler, startindex=None):
+    def basic_more_printer(self, top, *args, **kwds):
         BasicMorePrinter._add_proxy_class(top.__class__)
-        return BasicMorePrinter(self, top, handler, startindex)
+        return BasicMorePrinter(self, top, *args, **kwds)
+
+    def basic_all_printer(self, top, *args, **kwds):
+        BasicAllPrinter._add_proxy_class(top.__class__)
+        return BasicAllPrinter(self, top, *args, **kwds)
 
     def _get_stdout(self): return self._root.sys.stdout
