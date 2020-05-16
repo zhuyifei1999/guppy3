@@ -1101,6 +1101,7 @@ class AltFamily:
         if altcode not in ('<', '<=', '==', '!=', '>', '>='):
             raise ValueError('No such comparison symbol: %r' % altcode)
         self.altcode = altcode
+        self.disjoints -= [self]
 
     def c_get_brief(self, a):
         return a.arg.fam.c_get_brief_alt(a.arg, self.altcode)
@@ -1197,10 +1198,51 @@ class ByProd(Classifier):
     def get_tabheader(self, ctx=''):
         return 'Producer (line of allocation)'
 
-    def get_userkind(self, filename=None, lineno=None):
-        if filename is None and lineno is None:
+    def get_userkind(self, *args, **kwds):
+        if args and kwds:
+            raise TypeError(
+                '{}() takes either positional or keyword arguments'.format(
+                    self.get_reprname()))
+        if kwds:
+            if set(kwds.keys()) != {'filename', 'lineno'}:
+                raise TypeError(
+                    '{}() keyword arguments must be '
+                    '"filename" and "lineno"'.format(
+                        self.get_reprname()))
+            return self.family((kwds['filename'], kwds['lineno']))
+
+        if len(args) == 0:
             return self.family(None)
-        return self.family((filename, lineno))
+        elif len(args) == 1:
+            arg, = args
+            if isinstance(arg, str):
+                # filename
+                return self.family((arg, None)).alt('<')
+
+            filename = self.mod.inspect.getsourcefile(arg)
+            lines, lnum = self.mod.inspect.getsourcelines(arg)
+            lines, lnum = len(lines), max(lnum, 1)
+
+            return (
+                self.family((filename, None)).alt('<') &
+                self.family((None, lnum)).alt('>=') &
+                self.family((None, lnum + lines)).alt('<'))
+        elif len(args) == 2:
+            filename, lineno = args
+            if filename is not None and not isinstance(filename, str):
+                raise TypeError(
+                    '{}() argument 1 must be string or None'.format(
+                        self.get_reprname()))
+            if lineno is not None and not isinstance(lineno, int):
+                raise TypeError(
+                    '{}() argument 2 must be integer or None'.format(
+                        self.get_reprname()))
+            return self.family((filename, lineno))
+        else:
+            raise TypeError(
+                '{}() takes from 0 to 2 positional arguments '
+                'but {} were given'.format(
+                    self.get_reprname(), len(args)))
 
     def get_userkindargrepr(self, kind):
         if kind.arg is None:
@@ -1217,6 +1259,7 @@ class _GLUECLAMP_:
         '_parent.UniSet:fam_mixin_argatom',
         '_parent:Use',
         '_root.guppy.etc.etc:str2int',
+        '_root:inspect',
         '_root:re',
         '_root:types',
         '_root:builtins',
