@@ -16,16 +16,13 @@ class FirstCase(support.TestCase):
                         yield '%d' % i
 
                 self.mod = mod
-                self.more = mod.more_printer(
+                mod.setup_printing(
                     self,
                     get_line_iter=get_line_iter,
                     max_top_lines=4,
                     max_more_lines=3,
                     get_num_lines=get_num_lines,
                     get_more_msg=get_more_msg)
-
-            def __repr__(self):
-                return self.more._oh_printer.get_str_of_top()
 
         self.aseq(str(T(self, 4)), '0\n1\n2\n3')
 
@@ -37,6 +34,9 @@ class FirstCase(support.TestCase):
         self.aseq(str(x), '4\n5')
         self.aseq(
             str(x.top), "0\n1\n2\n3\n<Lines 0..3 of 6. Type e.g. '_.more' for more.>")
+
+        self.aseq(
+            str(x.all), "0\n1\n2\n3\n4\n5")
 
         t = T(self, 6, get_more_msg=lambda f, t: '<%d more rows>' % (6-t))
         self.aseq(str(t), '0\n1\n2\n3\n<3 more rows>')

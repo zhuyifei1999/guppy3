@@ -601,6 +601,12 @@ The one object in a singleton set. In case the set does not contain
 exactly one object, the exception ValueError will be raised.
 """)
 
+    prod = property_exp(lambda self: self.fam.get_prod(self), doc="""\
+theone: MorePrinter
+
+The traceback for the producer for the one object in a singleton set.
+""")
+
 
 class IdentitySetMulti(IdentitySet):
     __slots__ = 'nodes',
@@ -1775,6 +1781,29 @@ class IdentitySetFamily(AtomFamily):
             return list(set.nodes)[0]
         raise ValueError('theone requires a singleton set')
 
+    def get_prod(self, set):
+        obj = self.get_theone(set)
+        tb = self.mod.tracemalloc.get_object_traceback(obj)
+        if tb is None:
+            return
+
+        try:
+            frames = tb.format(most_recent_first=True)
+        except TypeError:
+            # Py < 3.7
+            frames = tb.format()
+
+        # TODO: move to a delicated file
+        class Printer:
+            def _oh_get_line_iter(self):
+                yield 'Traceback (most recent call first):'
+                yield from frames
+
+        printer = Printer()
+        printer.mod = self.mod
+        self.mod.OutputHandling.setup_printing(printer)
+        return printer
+
 
 class EmptyFamily(IdentitySetFamily):
     # Inherits from IdentitySetFamily because the special exported methods
@@ -2105,6 +2134,7 @@ class _GLUECLAMP_:
         '_parent.View:_hiding_tag_',
         '_parent.View:hv',
         '_parent:Use',
+        '_root:tracemalloc',
         '_root:types',
     )
 

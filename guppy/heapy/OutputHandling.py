@@ -83,6 +83,26 @@ class OutputBuffer:
         self.lines[self.line_no] += s
 
 
+class AllPrinter(metaclass=_MetaAttrProxy):
+    _oh_next_lineno = None
+
+    def __init__(self, printer):
+        self._oh_printer = printer
+        self._hiding_tag_ = printer._hiding_tag_
+
+    def __getattr__(self, attr):
+        return self._oh_printer.getattr(self, attr)
+
+    def _oh_get_next_lineno(self):
+        return 0
+
+    def _oh_get_start_lineno(self):
+        return 0
+
+    def _oh_get_max_lines(self, max_lines):
+        return None
+
+
 class MorePrinter(metaclass=_MetaAttrProxy):
     _oh_next_lineno = None
 
@@ -103,6 +123,9 @@ class MorePrinter(metaclass=_MetaAttrProxy):
 
     def _oh_get_start_lineno(self):
         return self._oh_previous._oh_get_next_lineno()
+
+    def _oh_get_max_lines(self, max_lines):
+        return max_lines
 
 
 class Printer:
@@ -177,6 +200,9 @@ class Printer:
     def _get_more(self, mp):
         return MorePrinter(self, mp)
 
+    def _get_all(self, mp):
+        return AllPrinter(self)
+
     def _oh_get_next_lineno(self):
         next_lineno = getattr(self, '_oh_next_lineno', None)
         if next_lineno is None:
@@ -189,6 +215,9 @@ class Printer:
 
     def _oh_get_start_lineno(self):
         return 0
+
+    def _oh_get_max_lines(self, max_lines):
+        return max_lines
 
     def _get_top(self, mp):
         return self.client
@@ -218,12 +247,13 @@ class Printer:
         def f():
             _hiding_tag_ = printer._hiding_tag_
             start_lineno = printer._oh_get_start_lineno()
+            m_max_lines = printer._oh_get_max_lines(max_lines)
             ob = self.mod.output_buffer()
             it = self.lines_from(start_lineno)
             numlines = 0
             lineno = start_lineno
             for line in it:
-                if (numlines >= max_lines and
+                if (m_max_lines is not None and numlines >= m_max_lines and
                         ((not self.stop_only_when_told) or self.stop_linenos.get(lineno-1))):
                     try:
                         self.line_at(lineno+1)
@@ -318,6 +348,7 @@ class _GLUECLAMP_:
         more = self.more_printer(client, **kwds)
         printer = more._oh_printer
         client.more = more
+        client.all = more.all
         client.printer = printer
 
         def reprfunc(self):
