@@ -64,10 +64,9 @@ class _GLUECLAMP_:
         '_root.warnings:warn',
     )
 
-    _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled')
-    _setable_ = ('_hiding_tag_', 'target', 'is_hiding_calling_interpreter',
-
-                 )
+    _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled',
+                 'root',)
+    _setable_ = ('_hiding_tag_', 'target', 'is_hiding_calling_interpreter',)
 
     is_hiding_calling_interpreter = False
     is_rg_update_all = False
@@ -253,15 +252,8 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
         elif self.hv.limitframe is not None:
             return func()
         else:
-            import sys
-            try:
-                1/0
-            except ZeroDivisionError:
-                type, value, traceback = sys.exc_info()
-                limitframe = traceback.tb_frame.f_back.f_back
-            sys.last_traceback = None
-            del type, value, traceback
-            self.hv.limitframe = limitframe
+            import inspect
+            self.hv.limitframe = inspect.currentframe().f_back.f_back
 
         try:
             retval = func()
@@ -357,16 +349,20 @@ Return the set of objects in the visible heap.
         # the heap will contain things that may likely be loaded later
         # because of common operations.
         if not heap_one_time_initialized:
-            heap_one_time_initialized = 1
             old_root = self.root
             objs = [[], 'a', 1, 1.23, {'a': 'b'}, self]
+
             self.root = objs
-            repr(self.idset(objs))
-            repr(self.iso(objs[0]).shpaths)
-            repr(self.iso(objs[0]).rp)
+            try:
+                repr(self.idset(objs))
+                repr(self.iso(objs[0]).shpaths)
+                repr(self.iso(objs[0]).rp)
+            finally:
+                self.root = old_root
+
             del objs
-            self.root = old_root
             del old_root
+            heap_one_time_initialized = True
 
         self.gc.collect()  # Sealing a leak at particular usage ; Notes Apr 13 2005
         # Exclude current frame by encapsulting in enter(). Note Apr 20 2005
@@ -543,7 +539,7 @@ def prime_builtin_types():
     import weakref
 
     for mod in list(sys.modules.values()):
-        if mod is None:
+        if mod is None or getattr(mod, '__dict__', None) is None:
             continue
         for t in list(mod.__dict__.values()):
             if isinstance(t, type):
@@ -572,4 +568,4 @@ prime_builtin_types()
 # having to do that we want to do import and init things
 # but only if heap is actually called
 
-heap_one_time_initialized = 0
+heap_one_time_initialized = False

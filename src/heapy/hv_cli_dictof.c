@@ -43,19 +43,6 @@ typedef struct {
     PyObject *notownedkind;
 } DictofObject;
 
-/* Code for update_dictowners */
-
-PyObject **
-hv_cli_dictof_dictptr(PyObject *obj)
-{
-    PyObject **dp;
-    if (PyType_Check(obj)) /* Doesnt work generally; Note Apr 8 2005 */
-        dp = &((PyTypeObject *)obj)->tp_dict;
-    else
-        dp = _PyObject_GetDictPtr(obj);
-    return dp;
-}
-
 /* Code for new dict-owner update method. Notes Apr 7 2005. */
 
 static PyObject *
@@ -111,7 +98,7 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
             goto err;
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
-            dp = hv_cli_dictof_dictptr(obj);
+            dp = _PyObject_GetDictPtr(obj);
             if (dp && *dp) {
                 if (NyNodeGraph_AddEdge(ta.rg, *dp, obj) == -1)
                     goto err;

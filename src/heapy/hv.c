@@ -81,7 +81,6 @@ PyDoc_STRVAR(hv_doc,
 /* Forward declarations */
 
 static PyObject *hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds);
-PyObject **hv_cli_dictof_dictptr(PyObject *obj);
 
 static ExtraType *hv_new_extra_type(NyHeapViewObject *hv, PyTypeObject *type);
 
@@ -243,8 +242,7 @@ xt_default_relate(struct ExtraType *xt, NyHeapRelate *r)
     PyObject **dictptr;
     if (owht_relate(r, type))
         return 1;
-    /* dictptr = _PyObject_GetDictPtr(r->src); */
-    dictptr = hv_cli_dictof_dictptr(r->src);    /* I think this is better xxx verify? Apr 13 2005 */
+    dictptr = _PyObject_GetDictPtr(r->src);
     if (dictptr) {
         if (*dictptr == r->tgt) {
             if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString("__dict__"), r))
@@ -577,6 +575,11 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
     } else if (type == &NyRootState_Type) {
         /* Fixes a dominos confusion; see Notes Apr 20 2005 */
         return 1;
+    } else {
+        PyObject **dp = _PyObject_GetDictPtr(obj);
+        if (dp && *dp && PyDict_GetItem(*dp, _hiding_tag__name) == hv->_hiding_tag_) {
+            return 1;
+        }
     }
     return 0;
 }
@@ -857,6 +860,8 @@ typedef struct {
 static int
 hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     int r;
+    if (hv_is_obj_hidden(ta->hv, obj) && Py_TYPE(obj) != &NyRootState_Type)
+        return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
         return r < 0 ? r : 0;

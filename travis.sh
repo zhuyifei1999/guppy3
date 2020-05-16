@@ -14,6 +14,17 @@ test)
     esac
     ;;
 
+tracemalloctest)
+    case "$1" in
+    install)
+        pip install -ve .
+        ;;
+    script)
+        $PYTHON -X tracemalloc -c '__import__("faulthandler").enable(); __import__("guppy").hpy().test(); __import__("guppy").heapy.heapyc.xmemstats()'
+        ;;
+    esac
+    ;;
+
 sdisttest)
     case "$1" in
     install)
@@ -70,6 +81,34 @@ cpychecker)
     script)
         # Not ready yet, permit failure
         CC_FOR_CPYCHECKER=gcc-6 CC=/tmp/gcc-python-plugin/gcc-with-cpychecker CFLAGS=--cpychecker-verbose pip install -ve . || true
+        ;;
+    esac
+    ;;
+
+cibuildwheel-source)
+    case "$1" in
+    install)
+        ;;
+    script)
+        $PYTHON setup.py sdist --formats=gztar
+        ;;
+    after_success)
+        pip install twine
+        TWINE_USERNAME=__token__ twine upload --skip-existing dist/*.tar.gz
+        ;;
+    esac
+    ;;
+cibuildwheel)
+    case "$1" in
+    install)
+        pip install cibuildwheel==1.4.1
+        ;;
+    script)
+        CIBW_BUILD='cp3[5678]-*' cibuildwheel --output-dir wheelhouse
+        ;;
+    after_success)
+        pip install twine
+        TWINE_USERNAME=__token__ twine upload --skip-existing wheelhouse/*.whl
         ;;
     esac
     ;;

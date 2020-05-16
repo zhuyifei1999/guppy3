@@ -355,7 +355,6 @@ Methods
 
 
 """
-    maxprint = 10
 
     def __init__(self, mod, set, depth, er, relimg, bf, stopkind, nocyc):
         self.mod = mod

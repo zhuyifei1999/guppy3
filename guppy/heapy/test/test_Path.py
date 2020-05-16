@@ -1,5 +1,5 @@
 from guppy.heapy.test import support
-import sys
+import inspect
 import unittest
 
 
@@ -52,18 +52,6 @@ class TestCase(support.TestCase):
 class RelationTestCase(TestCase):
     # Test relations from standard types and some simple paths
 
-    def test_list_relation(self):
-        v1 = 'v1'
-        v2 = 'v2'
-        v3 = list(range(100, 200))
-        x = [v1, v2, v3]
-        # xxx Why are these commented out?
-        # It works when I remove the first comment...
-        # Didn't it work in some other arch?
-        #self.chkrel(x, v1, '%s[0]')
-        #self.chkrel(x, v2, '%s[1]')
-        #self.chkrel(x, v3, '%s[2]')
-
     def test_cell_relation(self):
         cellvalue = []
 
@@ -111,11 +99,7 @@ class RelationTestCase(TestCase):
         self.chkrel(x, v1, "%s['k1']")
 
     def test_frame_relation(self):
-        try:
-            1/0
-        except ZeroDivisionError:
-            type, value, traceback = sys.exc_info()
-            f = traceback.tb_frame
+        f = inspect.currentframe()
         f.f_trace = lambda: None
         self.chkrelattr(f, 'f_back', 'f_builtins', 'f_code', 'f_globals',
                         'f_locals', 'f_trace')
@@ -132,11 +116,7 @@ class RelationTestCase(TestCase):
         z = []
 
         def func(x, y=3):
-            try:
-                1/0
-            except ZeroDivisionError:
-                type, value, traceback = sys.exc_info()
-                frame = traceback.tb_frame
+            frame = inspect.currentframe()
             return self, frame, z
         _, frame, __ = func(0)
         del _, __
@@ -176,10 +156,8 @@ class RelationTestCase(TestCase):
         self.chkrel(x, v2, '%s[1]')
         self.chkrel(x, v3, '%s[2]')
 
-#
     def test_meth_relation(self):
         x = []
-        #self.chkrel(x.append, x, '%s->m_self')
         self.chkrel(x.append, x, '%s.__self__')
 
     def test_module_relation(self):
@@ -276,6 +254,7 @@ class RelationTestCase(TestCase):
                      "%s->ob_type.__base__.__dict__['__slots__']")
 
     def test_traceback_relation(self):
+        import sys
         try:
             def g():
                 1/0
@@ -360,7 +339,6 @@ class RootTestCase(TestCase):
             rel = str(self.relation(root, frame))
             self.assertTrue(rel.endswith('_f0'))
             rel = str(self.relation(root, exc_traceback.tb_frame))
-            import re
             self.asis(eval(rel % 'root'), exc_traceback.tb_frame)
             self.assertTrue(rel.endswith('_f%d' % level))
 
@@ -374,6 +352,7 @@ class RootTestCase(TestCase):
         root = self.View.root
 
         def task(self):
+            import sys
             try:
                 1/0
             except ZeroDivisionError:

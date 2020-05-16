@@ -514,6 +514,10 @@ representation of self. The object returned, a MorePrinter instance,
 has a string representation that continues after the end of the
 representation of self.""")
 
+    all = property_exp(lambda self: self.fam.get_all(self), doc="""\
+An object that can be used to show all lines of the string
+representation of self.""")
+
     owners = property_exp(lambda self: self.fam.get_owners(self), doc="""\
 The set of objects that 'own' objects in self. The owner is defined
 for an object of type dict, as the object (if any) that refers to the
@@ -1602,9 +1606,7 @@ class IdentitySetFamily(AtomFamily):
         return a.partition.get_set(idx)
 
     def c_str(self, a):
-        ob = self.mod._parent.OutputHandling.output_buffer()
-        a.fam.get_partition(a).ppob(ob)
-        return ob.getvalue().rstrip()
+        return str(self.get_more(a).at(-1))
 
     def maprox_getattr(self, set, name):
         ns = self.mod.mutnodeset()
@@ -1683,6 +1685,9 @@ class IdentitySetFamily(AtomFamily):
 
     def get_more(self, a):
         return self.mod.OutputHandling.basic_more_printer(a, a.partition)
+
+    def get_all(self, a):
+        return self.mod.OutputHandling.basic_all_printer(a, a.partition)
 
     def get_owners(self, a):
         return self.mod.Use.Clodo.classifier.owners(a)

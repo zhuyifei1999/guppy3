@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.0.8
+I am happy to announce Guppy 3 3.0.10
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -12,9 +12,8 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 The main news in this release:
 
-o Reuse IdentitySet partition on repr and selection
-o Use temporary root for traversal in initialization
-o Bug fixes
+o Skip modules that don't have __dict__ attributes [Bob Haddleton]
+o Replace a few instances of ZeroDivisionError with inspect.currentframe()
 
 License: MIT
 

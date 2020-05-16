@@ -14,6 +14,10 @@ class property_nondata:
 
 class property_exp(property):
     '''@property, but blacklist tab completers like rlcompleter from getattr'''
+    def __init__(self, fget, *, doc=None):
+        super().__init__(fget)
+        self.__doc__ = doc
+
     def __get__(self, instance, owner=None):
         try:
             frame = inspect.currentframe()

@@ -60,15 +60,15 @@ class Owner:
         self.salog = {}
         self.inters = {}
 
-    def log_getattr(self, dct, name):
-        name = dotname(dct['_name'], name)
+    def log_getattr(self, cache, name):
+        name = dotname(cache['_name'], name)
         self.galog[name] = 1
 
     def log_setattr(self, name):
         self.salog[name] = 1
 
-    def makeInterface(self, dct, share, name):
-        name = dotname(dct['_name'], name)
+    def makeInterface(self, cache, share, name):
+        name = dotname(cache['_name'], name)
         if share not in self.inters:
             Clamp = share.Clamp
             if Clamp is not None and issubclass(Clamp, Interface):
@@ -121,6 +121,15 @@ class Share:
         if not isinstance(self.chgable, tuple):
             raise TypeError(self.message(
                 'the _chgable_ attribute must be a tuple'))
+
+        if Clamp is not None:
+            for attr in Clamp.__dict__:
+                if attr.startswith('_set_'):
+                    attr = attr[len('_set_'):]
+                    if attr not in self.setable and attr not in self.chgable:
+                        raise TypeError(self.message(
+                            '%s must be in either _setable_ or _chgable_ '
+                            'for _set_%s to work' % (attr, attr)))
 
         imports = getattr(Clamp, '_imports_', ())
         if not isinstance(imports, tuple):
@@ -205,16 +214,17 @@ class Share:
 
     def getattr(self, inter, name):
         owner = inter._owner
-        dct = inter.__dict__
-        d = self.getattr2(inter, dct, owner, name)
+        cache = inter.__dict__
+        d = self.getattr2(inter, cache, owner, name)
+        if name not in self.chgable:
+            cache[name] = d
         return d
 
-    def getattr2(self, inter, dct, owner, name):
+    def getattr2(self, inter, cache, owner, name):
         if self.has_getattr_logging_enabled:
-            owner.log_getattr(dct, name)
-        try:
-            x = self.data[name]
-        except KeyError:
+            owner.log_getattr(cache, name)
+
+        if name not in self.data:
             try:
                 self.recursion += 1
                 try:
@@ -244,8 +254,10 @@ class Share:
                 self.data[name] = x
             finally:
                 self.recursion -= 1
+
+        x = self.data[name]
         if isinstance(x, Share):
-            x = owner.makeInterface(dct, x, name)
+            x = owner.makeInterface(cache, x, name)
         return x
 
     def getattr_module(self, inter, name):
@@ -277,54 +289,60 @@ class Share:
         Clamp = self.Clamp
         if Clamp is None:
             raise NoSuchAttributeError(name)
+
         try:
             x = getattr(Clamp, name)
         except AttributeError:
-            try:
-                im = getattr(Clamp, '_get_%s' % name)
-            except AttributeError:
-                if name in self.importedfrom:
-                    prepa = self.importedfrom[name]
-                    hdo, ta, pa = prepa
-                    if pa is None:
-                        pa = hdo
-                        tas = ta.split('.')
-                        for at in tas:
-                            pa = getattr(pa, at)
-                        prepa[2] = pa
-                    x = getattr(pa, name)
-                    return x
-
-                gp = getattr(Clamp, '_GLUEPATH_', None)
-                if gp is None:
-                    raise NoSuchAttributeError(name)
-                if hasattr(gp, 'split'):
-                    gp = gp.split(',')
-                for a in gp:
-                    a = a.strip()
-                    bs = a.split('.')
-                    ii = inter
-                    for b in bs:
-                        b = b.strip()
-                        ii = getattr(ii, b)
-                    try:
-                        x = getattr(ii, name)
-                    except AttributeError:
-                        continue
-                    else:
-                        return x
-                raise NoSuchAttributeError(name)
-            else:
-                owner = self.makeOwner(name)
-                inter = Interface(self, owner, '')
-                f = types.MethodType(im, inter)
-                x = f()
-                if isinstance(x, Interface):
-                    x = x.__dict__['_share']
+            pass
         else:
             if isinstance(x, types.FunctionType):
                 x = types.MethodType(x, inter)
-        return x
+            return x
+
+        try:
+            im = getattr(Clamp, '_get_%s' % name)
+        except AttributeError:
+            pass
+        else:
+            owner = self.makeOwner(name)
+            inter = Interface(self, owner, '')
+            f = types.MethodType(im, inter)
+            x = f()
+            if isinstance(x, Interface):
+                x = x.__dict__['_share']
+            return x
+
+        if name in self.importedfrom:
+            prepa = self.importedfrom[name]
+            hdo, ta, pa = prepa
+            if pa is None:
+                pa = hdo
+                tas = ta.split('.')
+                for at in tas:
+                    pa = getattr(pa, at)
+                prepa[2] = pa
+            x = getattr(pa, name)
+            return x
+
+        gp = getattr(Clamp, '_GLUEPATH_', None)
+        if gp is None:
+            raise NoSuchAttributeError(name)
+        if hasattr(gp, 'split'):
+            gp = gp.split(',')
+        for a in gp:
+            a = a.strip()
+            bs = a.split('.')
+            ii = inter
+            for b in bs:
+                b = b.strip()
+                ii = getattr(ii, b)
+            try:
+                x = getattr(ii, name)
+            except AttributeError:
+                continue
+            else:
+                return x
+        raise NoSuchAttributeError(name)
 
     def makeModule(self, module, name):
         Clamp = getattr(module, '_GLUECLAMP_', None)
@@ -366,21 +384,24 @@ class Share:
         if Clamp is None:
             raise ValueError(
                 'Can not change attribute %r because no _GLUECLAMP_ defined.' % name)
-        im = getattr(Clamp, '_set_%s' % name, None)
-        if im is not None:
-            im(inter, value)
-            self.data[name] = value
-            return
+
         setable = self.setable
         chgable = self.chgable
         if (name not in setable and name not in chgable and
                 (not (name in self.data and self.data[name] is value))):
             raise ValueError("""Can not change attribute %r,
-because it is not in _setable_ or _chgable_ and no _set_%s is defined.""" % (name, name))
+because it is not in _setable_ or _chgable_.""" % name)
         if name in self.data and self.data[name] is not value and name not in chgable:
             raise ValueError("""Can not change attribute %r,
 because it is already set and not in _chgable_.""" % name)
+
+        im = getattr(Clamp, '_set_%s' % name, None)
+        if im is not None:
+            im(inter, value)
+
         self.data[name] = value
+        if name not in chgable:  # This is a pain, I suppose. Should we track interfaces?
+            inter.__dict__[name] = value
 
 
 class Test:

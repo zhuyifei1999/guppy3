@@ -23,12 +23,6 @@ class Format(object):
                 subsequent_indent=subsequent_indent))
         return '\n'.join(rows)
 
-    def get_more_index(self, idx=None):
-        if idx is None:
-            idx = 0
-        idx += 10
-        return idx
-
     def get_row_header(self):
         impl = self.impl
         if not (impl.count or impl.size):
@@ -54,24 +48,21 @@ class Format(object):
         impl.cum_size += size
         return StatRow(1, size, kind, impl.cur_index, impl.cum_size)
 
-    def ppob(self, ob, idx=None):
+    def ppob(self, ob, idx, limit):
         impl = self.impl
-        if idx is None:
+        if idx == -1:
             label = self.get_label()
             if label is not None:
                 print(label, file=ob)
             idx = 0
-        if idx < 0:
-            idx = impl.numrows + startindex
 
         it = impl.get_rows(idx)
         print(self.get_row_header(), file=ob)
-        numrows = 0
-        for row in it:
+
+        for numrows, row in enumerate(it):
             form = self.get_formatted_row(row)
             print(form, file=ob)
-            numrows += 1
-            if numrows >= 10:
+            if limit is not None and numrows + 1 >= limit:
                 nummore = impl.numrows - 1 - row.index
                 if nummore > 1:
                     print("<%d more rows. Type e.g. '_.more' to view.>" %
@@ -378,9 +369,6 @@ class Stat:
 
     more = property(_get_more)
 
-    def get_more_index(self, idx=None):
-        return self.format.get_more_index(idx)
-
     def get_next(self):
         try:
             r = next(self.it)
@@ -396,9 +384,7 @@ class Stat:
             self.parse_next_row()
         return self.rows[idx]
 
-    def get_rows(self, idx=None):
-        if idx is None:
-            idx = 0
+    def get_rows(self, idx=0):
         while idx < self.numrows:
             try:
                 row = self.get_row(idx)
@@ -505,8 +491,8 @@ class Stat:
         else:
             raise SyntaxError
 
-    def ppob(self, ob, idx=None):
-        return self.format.ppob(ob, idx)
+    def ppob(self, *args, **kwds):
+        return self.format.ppob(*args, **kwds)
 
 
 class Partition:
@@ -521,9 +507,6 @@ class Partition:
         # The default iteration is over the sets
         # To iterate over rows (if more info is needed), get_rows() is available.
         return self.get_sets()
-
-    def get_more_index(self, idx=None):
-        return self.format.get_more_index(idx)
 
     def get_rows(self, rowindex=None):
         # Iterator over rows
@@ -575,8 +558,8 @@ class Partition:
     def init_format(self, FormatClass):
         self.format = FormatClass(self)
 
-    def ppob(self, ob, idx=None):
-        return self.format.ppob(ob, idx)
+    def ppob(self, *args, **kwds):
+        return self.format.ppob(*args, **kwds)
 
 
 class IdentityPartitionCluster(object):
