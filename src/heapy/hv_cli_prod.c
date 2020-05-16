@@ -13,7 +13,7 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 );
 
 // The sizeof of PyGC_Head is not to be trusted upon even across Python minor
-// released. Eg: python/cpython@8766cb7
+// releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
 static void lazy_init_hv_cli_prod()
@@ -155,7 +155,55 @@ Err:
 static int
 hv_cli_prod_le(PyObject * self, PyObject *a, PyObject *b)
 {
-    return PyObject_RichCompareBool(a, b, Py_LE);
+    if (a == Py_None || b == Py_None)
+        return a == Py_None && b == Py_None;
+
+    if (!PyTuple_Check(a) || !PyTuple_Check(b))
+        return 0;
+
+    Py_ssize_t i;
+    PyObject *a_elem, *b_elem;
+    for (i = 0; i < 2; i++) {
+        a_elem = PyTuple_GetItem(a, i);
+        b_elem = PyTuple_GetItem(b, i);
+        if (!a_elem || !b_elem)
+            return -1;
+
+        if (a_elem == Py_None || b_elem == Py_None)
+            continue;
+
+        int k = PyObject_RichCompareBool(a_elem, b_elem, Py_EQ);
+        if (k < 0)
+            return k;
+        if (k)
+            continue;
+
+        switch (i) {
+        case 0:
+            // filename: a.startswith(b)
+            if (!PySequence_Check(a_elem) || !PySequence_Check(b_elem))
+                return 0;
+
+            Py_ssize_t len = PySequence_Length(b_elem);
+            if (len < 0)
+                return len;
+            PyObject *substr = PySequence_GetSlice(a_elem, 0, len);
+            if (!substr)
+                return -1;
+            k = PyObject_RichCompareBool(substr, b_elem, Py_EQ);
+            Py_DECREF(substr);
+            break;
+        case 1:
+            // lineno
+            k = PyObject_RichCompareBool(a_elem, b_elem, Py_LE);
+            break;
+        }
+
+        if (k <= 0)
+            return k;
+    }
+
+    return 1;
 }
 
 static NyObjectClassifierDef hv_cli_prod_def = {

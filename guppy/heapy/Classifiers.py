@@ -721,18 +721,6 @@ class RetClaSetFamily:
         self.defrefining(mod.Use.Anything)
         self.classifier = classifier
 
-    def _ge_ATOM(self, a, b):
-        # b is known to not be Nothing since its c_le doesn't call back
-        if self is b.fam:
-            return a.arg == b.arg
-        return b.fam.supercl is not None and b.fam.supercl <= a
-
-    def _le_ATOM(self, a, b):
-        # b is known to not be Nothing since its c_ge doesn't call back
-        if self is b.fam:
-            return a.arg == b.arg
-        return self.supercl is not None and self.supercl <= b
-
     def c_alt(self, a, alt):
         return a.arg.classifier.er.refdby.classifier.get_alt(a, alt)
 
@@ -1173,14 +1161,18 @@ class ProdFamily:
         self.classifier = classifier
         self.range = mod.fam_Family(self)
 
+    def c_alt(self, a, alt):
+        return self.classifier.get_alt(a, alt)
+
     def c_get_brief(self, a):
         if a.arg is None:
-            return 'None'
+            return 'unknown'
         else:
             return '%s:%d' % a.arg
 
     def c_repr(self, a):
-        return '%s(%r)' % (self.classifier.get_reprname(), a.arg)
+        return '%s(%s)' % (self.classifier.get_reprname(),
+                           self.classifier.get_userkindargrepr(a))
 
 
 class ByProd(Classifier):
@@ -1195,8 +1187,25 @@ class ByProd(Classifier):
         memo = {}
         return self.mod.hv.cli_prod(memo)
 
+    def get_kindarg(self, kind):
+        if kind is self.not_module:
+            return None
+        else:
+            assert kind.fam is self.family
+            return kind.arg
+
     def get_tabheader(self, ctx=''):
         return 'Producer (line of allocation)'
+
+    def get_userkind(self, filename=None, lineno=None):
+        if filename is None and lineno is None:
+            return self.family(None)
+        return self.family((filename, lineno))
+
+    def get_userkindargrepr(self, kind):
+        if kind.arg is None:
+            return ''
+        return '%r, %r' % kind.arg
 
 
 class _GLUECLAMP_:
