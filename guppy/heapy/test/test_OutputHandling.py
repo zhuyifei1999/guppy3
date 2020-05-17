@@ -35,8 +35,7 @@ class FirstCase(support.TestCase):
         self.aseq(
             str(x.top), "0\n1\n2\n3\n<Lines 0..3 of 6. Type e.g. '_.more' for more.>")
 
-        self.aseq(
-            str(x.all), "0\n1\n2\n3\n4\n5")
+        self.aseq(str(x.all), "0\n1\n2\n3\n4\n5")
 
         t = T(self, 6, get_more_msg=lambda f, t: '<%d more rows>' % (6-t))
         self.aseq(str(t), '0\n1\n2\n3\n<3 more rows>')
