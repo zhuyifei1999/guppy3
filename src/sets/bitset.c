@@ -405,6 +405,13 @@ PyTypeObject NyBitSet_Type = {
 
 /* */
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+# ifndef Py_TRACE_REFS
+#  define _Py_ForgetReference(op) do {} while (0)
+#  define _Py_DEC_REFTOTAL do {} while (0)
+# endif
+#endif
+
 #define NOSET  0
 #define BITSET  1
 #define CPLSET  2
@@ -893,7 +900,7 @@ union_realloc(NyUnionObject *self, NyBit size)
         _Py_ForgetReference((PyObject *)self);
         _Py_DEC_REFTOTAL;
         ret = PyObject_Realloc(self,
-         Py_TYPE(self)->tp_basicsize + Py_TYPE(self)->tp_itemsize * size);
+            Py_TYPE(self)->tp_basicsize + Py_TYPE(self)->tp_itemsize * size);
         ret = (void *) PyObject_InitVar((void *)ret, Py_TYPE(ret), size);
         return ret;
     }

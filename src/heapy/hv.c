@@ -69,8 +69,12 @@ PyDoc_STRVAR(hv_doc,
 "  on the kind of memory allocator, the requested size, etc.\n"
 );
 
-
-
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+# define Py_BUILD_CORE
+/* PyGC_Head */
+#  include <internal/pycore_gc.h>
+# undef Py_BUILD_CORE
+#endif
 
 #define ALIGN  sizeof(void *)
 #define ALIGN_MASK (ALIGN - 1)

@@ -103,10 +103,15 @@ char rootstate_doc[] =
 "that is the number of frames it has before it in call order.\n"
 ;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION == 8
 # define Py_BUILD_CORE
 /* PyInterpreterState */
 #  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+# define Py_BUILD_CORE
+/* PyInterpreterState */
+#  include <internal/pycore_interp.h>
 # undef Py_BUILD_CORE
 #endif
 
