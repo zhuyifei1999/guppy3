@@ -404,6 +404,13 @@ in the following way.
 ....ref: .myfile.Use.Module
 ....t: as the equivalence relation.
 
+..attr:: byprod
+...kind of: IdentitySet
+
+...d: A copy of x, but with
+....ref: .myfile.Use.Prod
+....t: as the equivalence relation.
+
 ..attr:: byrcs
 ...kind of: IdentitySet
 
