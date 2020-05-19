@@ -16,7 +16,8 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
                  'dumph', 'gcobjs', 'heapg', 'loadc', 'relheap', 'relheapg',
                  'relheapu', 'reprefix', 'setrelheap', 'setrelheapg',
                  'setrelheapu', 'tc_adapt', 'tc_repr', 'union',
-                 'uniset_from_setcsatable', 'warnings', 'Stat'
+                 'uniset_from_setcsatable', 'warnings', '_warn_tracemalloc',
+                 'Stat'
                  )
 
     default_reprefix = 'hpy().'
@@ -362,6 +363,12 @@ Argument
 
         self._parent.test.test_all.test_main(debug)
 
+    def _warn_tracemalloc(self):
+        if self.sys.version_info < (3, 8):
+            self.warnings.warn(
+                "Python 3.7 and below tracemalloc may not record accurate "
+                "producer trace. See https://bugs.python.org/issue35053")
+
     _imports_ = (
         '_parent.Classifiers:Clodo',
         '_parent.Classifiers:Id',
@@ -390,6 +397,7 @@ Argument
         '_parent:View',
         '_parent.View:_hiding_tag_',
         '_root.time:ctime',
+        '_root:sys',
         '_root:warnings',
     )
 
