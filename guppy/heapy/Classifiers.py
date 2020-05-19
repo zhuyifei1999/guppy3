@@ -1189,13 +1189,6 @@ class ByProd(Classifier):
         memo = {}
         return self.mod.hv.cli_prod(memo)
 
-    def get_kindarg(self, kind):
-        if kind is self.not_module:
-            return None
-        else:
-            assert kind.fam is self.family
-            return kind.arg
-
     def get_tabheader(self, ctx=''):
         return 'Producer (line of allocation)'
 

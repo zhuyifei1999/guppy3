@@ -368,6 +368,9 @@ Argument
             self.warnings.warn(
                 "Python 3.7 and below tracemalloc may not record accurate "
                 "producer trace. See https://bugs.python.org/issue35053")
+        if not self.tracemalloc.is_tracing():
+            self.warnings.warn(
+                "Tracemalloc is not tracing. No producer profile available")
 
     _imports_ = (
         '_parent.Classifiers:Clodo',
@@ -396,8 +399,9 @@ Argument
         '_parent.UniSet:uniset_from_setcastable',
         '_parent:View',
         '_parent.View:_hiding_tag_',
-        '_root.time:ctime',
         '_root:sys',
+        '_root:tracemalloc',
+        '_root.time:ctime',
         '_root:warnings',
     )
 
