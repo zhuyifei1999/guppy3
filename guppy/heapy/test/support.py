@@ -2,9 +2,11 @@
 Addapted from Python standard module test_support.
 """
 
+import contextlib
 import unittest
 import pdb
 import sys
+import tracemalloc
 
 
 class Error(Exception):
@@ -114,3 +116,24 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    @contextlib.contextmanager
+    def tracemalloc_state(enabled=True):
+        orig_enabled = tracemalloc.is_tracing()
+
+        def set_enabled(new_enabled):
+            cur_enabled = tracemalloc.is_tracing()
+            if cur_enabled == new_enabled:
+                return
+
+            if new_enabled:
+                tracemalloc.start()
+            else:
+                tracemalloc.stop()
+
+        set_enabled(enabled)
+
+        try:
+            yield
+        finally:
+            set_enabled(orig_enabled)
