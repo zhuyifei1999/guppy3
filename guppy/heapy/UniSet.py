@@ -1783,7 +1783,7 @@ class IdentitySetFamily(AtomFamily):
 
     def get_prod(self, set):
         obj = self.get_theone(set)
-        self.mod.Use._warn_tracemalloc()
+        self.mod.Use._check_tracemalloc()
         tb = self.mod.tracemalloc.get_object_traceback(obj)
         if tb is None:
             return

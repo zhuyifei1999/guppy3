@@ -1185,7 +1185,7 @@ class ByProd(Classifier):
         return 'producer'
 
     def get_cli(self):
-        self.mod.Use._warn_tracemalloc()
+        self.mod.Use._check_tracemalloc()
         memo = {}
         return self.mod.hv.cli_prod(memo)
 

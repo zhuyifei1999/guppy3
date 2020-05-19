@@ -12,12 +12,12 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
         'idset', 'iso', 'load', 'monitor', 'pb',
         'setref', 'test')
 
-    _private_ = ('View', '_hiding_tag_', '_load_stat', 'ctime', 'default_reprefix',
-                 'dumph', 'gcobjs', 'heapg', 'loadc', 'relheap', 'relheapg',
-                 'relheapu', 'reprefix', 'setrelheap', 'setrelheapg',
-                 'setrelheapu', 'tc_adapt', 'tc_repr', 'union',
-                 'uniset_from_setcsatable', 'warnings', '_warn_tracemalloc',
-                 'Stat'
+    _private_ = ('View', '_hiding_tag_', '_load_stat',  '_check_tracemalloc',
+                 'ctime', 'default_reprefix', 'dumph', 'gcobjs', 'heapg',
+                 'loadc', 'relheap', 'relheapg', 'relheapu', 'reprefix',
+                 'setrelheap', 'setrelheapg', 'setrelheapu',
+                 'tc_adapt', 'tc_repr', 'union', 'uniset_from_setcsatable',
+                 'warnings', 'Stat'
                  )
 
     default_reprefix = 'hpy().'
@@ -115,6 +115,15 @@ References
 Top level interface to Heapy. Available attributes:""",
                                              footer="""\
 Use eg: %sdoc.<attribute> for info on <attribute>.""" % self.reprefix)
+
+    def _check_tracemalloc(self):
+        if self.sys.version_info < (3, 8):
+            self.warnings.warn(
+                "Python 3.7 and below tracemalloc may not record accurate "
+                "producer trace. See https://bugs.python.org/issue35053")
+        if not self.tracemalloc.is_tracing():
+            raise RuntimeError(
+                "Tracemalloc is not tracing. No producer profile available")
 
     def heapg(self, rma=1):
         """ DEPRECATED """
@@ -362,15 +371,6 @@ Argument
         can be examined with pdb.pm() after the first exception."""
 
         self._parent.test.test_all.test_main(debug)
-
-    def _warn_tracemalloc(self):
-        if self.sys.version_info < (3, 8):
-            self.warnings.warn(
-                "Python 3.7 and below tracemalloc may not record accurate "
-                "producer trace. See https://bugs.python.org/issue35053")
-        if not self.tracemalloc.is_tracing():
-            self.warnings.warn(
-                "Tracemalloc is not tracing. No producer profile available")
 
     _imports_ = (
         '_parent.Classifiers:Clodo',
