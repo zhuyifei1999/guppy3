@@ -4,7 +4,7 @@
 .import:: Use
 ..from: heapy_Use
 
-.import:: UniSet, Kind, KindWithAlt, KindOfTypeFamily, KindOfSizeFamily,
+.import:: UniSet, Kind, KindWithAlt, KindOfProdFamily, KindOfTypeFamily, KindOfSizeFamily,
 KindOfRetClaSetFamily,KindOfInViaFamily,IdentitySet,IdentitySetNotEmpty,IdentitySetSingleton
 ..from: heapy_UniSet
 
@@ -23,6 +23,7 @@ KindOfRetClaSetFamily,KindOfInViaFamily,IdentitySet,IdentitySetNotEmpty,Identity
 ..man page of: UniSet
 ..man page of: Kind
 ..man page of: KindWithAlt
+..man page of: KindOfProdFamily
 ..man page of: KindOfTypeFamily
 ..man page of: KindOfSizeFamily
 ..man page of: KindOfRetClaSetFamily

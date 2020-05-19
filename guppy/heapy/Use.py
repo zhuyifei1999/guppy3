@@ -489,10 +489,35 @@ References
 
     _doc_Prod = """\
 Prod: EquivalenceRelation
-Prod(filename:str+, lineno: notnegative+) -> KindOfProdFamily[1])
+Prod() -> KindOfProdFamily[1]
+Prod(path_prefix: string+) -> Kind
+Prod(scope: Anything+) -> Kind
+Prod(seq: [filename: string+, alt: positive+]) -> KindOfProdFamily[1]
 
 In this equivalence relation, objects are classified by the producer,
 the line in which the object was allocated.
+
+In zero-argument form, the equivalence relation creates a Kind matching
+objects whose producer is unknown.
+
+In one-argument form, the equivalence relation constructor creates an
+alternative equivalence relation and has two possible types of arguments:
+
+    path_prefix: string+
+        A path prefix filter on the file name
+    scope: Anything+
+        Anything that can be used by inspect.getsourcelines()
+
+In the two-argument form, the equivalence relation creates a Kind matching
+objects whose producer matches exactly the given arguments:
+
+    filename: string+
+        File name of the producer
+    lineno: positive+
+        Line number of producer
+
+With None arguments, the default equivalence relation will never match, but
+alternate equivalence relations may, as described in KindOfProdFamily[1].
 
 References
     [0] heapy_Use.html#heapykinds.Use.Prod

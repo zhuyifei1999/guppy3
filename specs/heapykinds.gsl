@@ -6,6 +6,7 @@
 .kind:: IdentitySetSingleton
 .kind:: Kind
 .kind:: KindOfRetClaSetFamily
+.kind:: KindOfProdFamily
 .kind:: KindOfSizeFamily
 .kind:: KindOfTypeFamily
 .kind:: KindOfInViaFamily

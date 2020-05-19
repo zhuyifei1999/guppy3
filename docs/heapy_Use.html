@@ -57,6 +57,14 @@
        <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
        <dd><a href='#heapy_Use.Use.Module.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;( <sup><strong>draw:</strong></sup>[<code>name</code><strong>&nbsp;=&nbsp;</strong><em>modulename+</em> , <code>at</code><strong>&nbsp;=&nbsp;</strong><em>moduleaddress+</em>]) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a></dd>
        <dd> )</dd></dl></dd>
+     <dd><big><a href='#heapykinds.Use.Prod'>Prod</a></big><code>:</code>&nbsp; (
+      <dl>
+       <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
+       <dd><a href='#heapy_Use.Use.Prod.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;() <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfProdFamily'>KindOfProdFamily</a></dd>
+       <dd><a href='#heapy_Use.Use.Prod.-60-3-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>path_prefix</var><code>:</code>&nbsp;<em>string+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a></dd>
+       <dd><a href='#heapy_Use.Use.Prod.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>scope</var><code>:</code>&nbsp;<em>Any+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a></dd>
+       <dd><a href='#heapy_Use.Use.Prod.-60-5-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>filename</var><code>:</code>&nbsp;<em>string+</em>, <var>lineno</var><code>:</code>&nbsp;<em>positive+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfProdFamily'>KindOfProdFamily</a></dd>
+       <dd> )</dd></dl></dd>
      <dd><big><a href='#heapykinds.Use.Rcs'>Rcs</a></big><code>:</code>&nbsp; (
       <dl>
        <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
@@ -576,6 +584,61 @@ other objects.
 alternative or together with the name.
 </dd></dl></dd></dl></dd></dl></dd>
      <dd> )</dd></dl></dd>
+   <dd><a name='heapykinds.Use.Prod'><strong><big>Prod</big></strong></a></dd>
+   <dd>
+    <dl>
+     <dd>
+ In this equivalence relation, objects are classified by the producer,
+the line in which the object was allocated.
+</dd></dl></dd>
+   <dd><strong><big>Prod</big></strong><code>:</code>&nbsp; (
+    <dl>
+     <dd><a href='heapy_UniSet.html#heapykinds.EquivalenceRelation'>EquivalenceRelation</a></dd>
+     <dd><a name='heapy_Use.Use.Prod.-60-2-62-'><strong>callable</strong></a><code>:</code>&nbsp;() <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfProdFamily'>KindOfProdFamily</a>
+      <dl>
+       <dd> Create a Kind that matches objects whose producer is unknown.</dd></dl></dd>
+     <dd><a name='heapy_Use.Use.Prod.-60-3-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>path_prefix</var><code>:</code>&nbsp;<em>string+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a>
+      <dl>
+       <dd>
+ Create a Kind that matches objects whose producer has a path that
+starts with the given prefix.</dd>
+       <dd>
+        <dl>
+         <dt><strong>Argument</strong></dt>
+         <dd>
+          <dl>
+           <dt><var>path_prefix</var><code>:</code>&nbsp;<em>string+</em></dt>
+           <dd> A path prefix filter on the file name</dd></dl></dd></dl></dd></dl></dd>
+     <dd><a name='heapy_Use.Use.Prod.-60-4-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>scope</var><code>:</code>&nbsp;<em>Any+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.Kind'>Kind</a>
+      <dl>
+       <dd>
+ Create a Kind that matches objects whose producer has is within
+the given scope</dd>
+       <dd>
+        <dl>
+         <dt><strong>Argument</strong></dt>
+         <dd>
+          <dl>
+           <dt><var>scope</var><code>:</code>&nbsp;<em>Any+</em></dt>
+           <dd> Anything that can be used by inspect.getsourcelines()</dd></dl></dd></dl></dd></dl></dd>
+     <dd><a name='heapy_Use.Use.Prod.-60-5-62-'><strong>callable</strong></a><code>:</code>&nbsp;(<var>filename</var><code>:</code>&nbsp;<em>string+</em>, <var>lineno</var><code>:</code>&nbsp;<em>positive+</em>) <strong>-></strong> <a href='heapy_UniSet.html#heapykinds.KindOfProdFamily'>KindOfProdFamily</a>
+      <dl>
+       <dd>
+ Create a Kind that matches objects matches the given producer. Arguments
+may be None but will need alternative equivalence relations from alt() method
+to match.</dd>
+       <dd>
+        <dl>
+         <dt><strong>Arguments</strong></dt>
+         <dd>
+          <dl>
+           <dt><var>filename</var><code>:</code>&nbsp;<em>string+</em></dt>
+           <dd> File name of the producer</dd>
+           <dt><var>lineno</var><code>:</code>&nbsp;<em>positive+</em></dt>
+           <dd>
+ Line number of the producer
+</dd></dl></dd></dl></dd></dl></dd>
+     <dd> )</dd></dl></dd>
    <dd><a name='heapykinds.Use.Rcs'><strong><big>Rcs</big></strong></a></dd>
    <dd>
     <dl>
@@ -759,4 +822,4 @@ in the web browser the doc for the heap method one can do:
       <pre>
 &gt;&gt;&gt; hp.doc.heap[0]
 </pre></dd></dl></dd></dl>
-  <hr>Generated by <a href="https://zhuyifei1999.github.io/guppy3/gsl.html">GSL-HTML 3.0.1</a> on Thu May 14 11:30:44 2020</div></body></html>
+  <hr>Generated by <a href="https://zhuyifei1999.github.io/guppy3/gsl.html">GSL-HTML 3.0.1</a> on Tue May 19 07:32:28 2020</div></body></html>

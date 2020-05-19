@@ -7,7 +7,7 @@
 .import:: EquivalenceRelation, Helper,
 
 IdentitySet, IdentitySetNotEmpty, IdentitySetSingleton,
-Kind, KindOfSizeFamily, KindOfInViaFamily,
+Kind, KindOfProdFamily, KindOfSizeFamily, KindOfInViaFamily,
 KindOfRetClaSetFamily,
 KindOfTypeFamily, KindWithAlt,
 MappingProxy,
@@ -256,6 +256,38 @@ family of the original kind. See the particular kind family.
 
 ...arg: operator: AltOperator+
 ...returns: Kind
+
+.and: KindOfProdFamily
+..subkind of: KindWithAlt
+
+..d: A kind of this family includes all objects whose producer matches the
+given file name and line number. Arguments are treated separately and conditions
+are AND-ed. A None argument to the kind returned by an alt ignores the
+condition.
+
+..d: The kind returned by the alt method depends on its operator argument
+in the following way.
+...table
+....tr
+.....th: Operator
+.....th: Returned kind in terms of original file name
+.....th: Returned kind in terms of original line number
+....tr
+.....td: <
+.....td: file name starts with original
+.....td: line number < original
+....tr
+.....td: <=
+.....td: file name starts with original
+.....td: line number <= original
+....tr
+.....td: >=
+.....td: original starts with file name
+.....td: line number >= original
+....tr
+.....td: >
+.....td: original starts with file name
+.....td: line number > original
 
 .and: KindOfTypeFamily
 ..subkind of: KindWithAlt
@@ -794,6 +826,9 @@ size first, so for example
 ..self: x
 ..subkind of: IdentitySetNotEmpty
 ..d: Sets that contain exactly one object.
+..attr:: prod
+...kind of: MorePrinter
+...d: The traceback for the producer for the one object.
 ..attr:: theone
 ...kind of: Any
 ...d: The actual object that the set contains.
