@@ -123,7 +123,8 @@ Use eg: %sdoc.<attribute> for info on <attribute>.""" % self.reprefix)
                 "producer trace. See https://bugs.python.org/issue35053")
         if not self.tracemalloc.is_tracing():
             raise RuntimeError(
-                "Tracemalloc is not tracing. No producer profile available")
+                "Tracemalloc is not tracing. No producer profile available. "
+                "See https://docs.python.org/3/library/tracemalloc.html")
 
     def heapg(self, rma=1):
         """ DEPRECATED """
