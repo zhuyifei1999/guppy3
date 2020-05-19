@@ -407,9 +407,9 @@ Size&Type  F       F       F       F       F       F       T       T       T    
 
     def test_10(self):
         ' Test of producer profile '
-        with self.tracemalloc_state():
-            hp = self.heapy.Use
+        hp = self.heapy.Use
 
+        with self.tracemalloc_state():
             class C:
                 pass
 
@@ -443,6 +443,24 @@ Size&Type  F       F       F       F       F       F       T       T       T    
             self.aseq(isod & hp.Prod(None, test_aloc_line).alt('>=') &
                       hp.Prod(None, test_aloc_line).alt('<='),
                       hp.iso(test_aloc))
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', lineno=1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(filename='', line=1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(None)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(1, 1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', '')
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', 1, 2)
 
 
 def test_main(debug=0):
