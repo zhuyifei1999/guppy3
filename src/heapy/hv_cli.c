@@ -6,6 +6,7 @@
 #include "hv_cli_dictof.c"
 #include "hv_cli_id.c"
 #include "hv_cli_idset.c"
+#include "hv_cli_prod.c"
 #include "hv_cli_rcs.c"
 #include "hv_cli_indisize.c"
 #include "hv_cli_findex.c"

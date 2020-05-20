@@ -7,16 +7,17 @@ class _GLUECLAMP_(guppy.etc.Glue.Interface):
                  'relheap', 'relheapg', 'relheapu', '__doc__')
     _dir_ = (
         'Anything', 'Clodo', 'Id', 'Idset', 'Module',
-        'Nothing', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
+        'Nothing', 'Prod', 'Rcs', 'Root', 'Size', 'Type', 'Unity',
         'Via', 'doc', 'findex', 'heap', 'heapu',
         'idset', 'iso', 'load', 'monitor', 'pb',
         'setref', 'test')
 
-    _private_ = ('View', '_hiding_tag_', '_load_stat', 'ctime', 'default_reprefix',
-                 'dumph', 'gcobjs', 'heapg', 'loadc', 'relheap', 'relheapg',
-                 'relheapu', 'reprefix', 'setrelheap', 'setrelheapg',
-                 'setrelheapu', 'tc_adapt', 'tc_repr', 'union',
-                 'uniset_from_setcsatable', 'warnings', 'Stat'
+    _private_ = ('View', '_hiding_tag_', '_load_stat',  '_check_tracemalloc',
+                 'ctime', 'default_reprefix', 'dumph', 'gcobjs', 'heapg',
+                 'loadc', 'relheap', 'relheapg', 'relheapu', 'reprefix',
+                 'setrelheap', 'setrelheapg', 'setrelheapu',
+                 'tc_adapt', 'tc_repr', 'union', 'uniset_from_setcsatable',
+                 'warnings', 'Stat'
                  )
 
     default_reprefix = 'hpy().'
@@ -114,6 +115,16 @@ References
 Top level interface to Heapy. Available attributes:""",
                                              footer="""\
 Use eg: %sdoc.<attribute> for info on <attribute>.""" % self.reprefix)
+
+    def _check_tracemalloc(self):
+        if self.sys.version_info < (3, 8):
+            self.warnings.warn(
+                "Python 3.7 and below tracemalloc may not record accurate "
+                "producer trace. See https://bugs.python.org/issue35053")
+        if not self.tracemalloc.is_tracing():
+            raise RuntimeError(
+                "Tracemalloc is not tracing. No producer profile available. "
+                "See https://docs.python.org/3/library/tracemalloc.html")
 
     def heapg(self, rma=1):
         """ DEPRECATED """
@@ -367,6 +378,7 @@ Argument
         '_parent.Classifiers:Id',
         '_parent.Classifiers:Idset',
         '_parent.Classifiers:Module',
+        '_parent.Classifiers:Prod',
         '_parent.Classifiers:Rcs',
         '_parent.Classifiers:Size',
         '_parent.Classifiers:Type',
@@ -388,6 +400,8 @@ Argument
         '_parent.UniSet:uniset_from_setcastable',
         '_parent:View',
         '_parent.View:_hiding_tag_',
+        '_root:sys',
+        '_root:tracemalloc',
         '_root.time:ctime',
         '_root:warnings',
     )
@@ -473,6 +487,42 @@ The empty set.
 
 References
     [0] heapy_Use.html#heapykinds.Use.Nothing"""
+
+    _doc_Prod = """\
+Prod: EquivalenceRelation
+Prod() -> KindOfProdFamily[1]
+Prod(path_prefix: string+) -> Kind
+Prod(scope: Anything+) -> Kind
+Prod(seq: [filename: string+, alt: positive+]) -> KindOfProdFamily[1]
+
+In this equivalence relation, objects are classified by the producer,
+the line in which the object was allocated.
+
+In zero-argument form, the equivalence relation creates a Kind matching
+objects whose producer is unknown.
+
+In one-argument form, the equivalence relation constructor creates an
+alternative equivalence relation and has two possible types of arguments:
+
+    path_prefix: string+
+        A path prefix filter on the file name
+    scope: Anything+
+        Anything that can be used by inspect.getsourcelines()
+
+In the two-argument form, the equivalence relation creates a Kind matching
+objects whose producer matches exactly the given arguments:
+
+    filename: string+
+        File name of the producer
+    lineno: positive+
+        Line number of producer
+
+With None arguments, the default equivalence relation will never match, but
+alternate equivalence relations may, as described in KindOfProdFamily[1].
+
+References
+    [0] heapy_Use.html#heapykinds.Use.Prod
+    [1] heapy_UniSet.html#heapykinds.KindOfProdFamily"""
 
     _doc_Rcs = """Rcs: EquivalenceRelation
 Rcs ( 0..*: alt:[kind: Kind+ or sok: SetOfKind+]) -> KindOfRetClaSetFamily

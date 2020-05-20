@@ -721,18 +721,6 @@ class RetClaSetFamily:
         self.defrefining(mod.Use.Anything)
         self.classifier = classifier
 
-    def _ge_ATOM(self, a, b):
-        # b is known to not be Nothing since its c_le doesn't call back
-        if self is b.fam:
-            return a.arg == b.arg
-        return b.fam.supercl is not None and b.fam.supercl <= a
-
-    def _le_ATOM(self, a, b):
-        # b is known to not be Nothing since its c_ge doesn't call back
-        if self is b.fam:
-            return a.arg == b.arg
-        return self.supercl is not None and self.supercl <= b
-
     def c_alt(self, a, alt):
         return a.arg.classifier.er.refdby.classifier.get_alt(a, alt)
 
@@ -1113,6 +1101,7 @@ class AltFamily:
         if altcode not in ('<', '<=', '==', '!=', '>', '>='):
             raise ValueError('No such comparison symbol: %r' % altcode)
         self.altcode = altcode
+        self.disjoints -= [self]
 
     def c_get_brief(self, a):
         return a.arg.fam.c_get_brief_alt(a.arg, self.altcode)
@@ -1167,6 +1156,94 @@ class ByFindex(Classifier):
         return 'First Matching Kind / Index'
 
 
+class ProdFamily:
+    def __init__(self, mod, classifier):
+        self.defrefining(mod.Use.Anything)
+        self.classifier = classifier
+        self.range = mod.fam_Family(self)
+
+    def c_alt(self, a, alt):
+        return self.classifier.get_alt(a, alt)
+
+    def c_get_brief(self, a):
+        if a.arg is None:
+            return 'unknown'
+        else:
+            return '%s:%d' % a.arg
+
+    def c_repr(self, a):
+        return '%s(%s)' % (self.classifier.get_reprname(),
+                           self.classifier.get_userkindargrepr(a))
+
+
+class ByProd(Classifier):
+    def __init__(self, mod, name):
+        Classifier.__init__(self, mod, name)
+        self.family = mod.fam_mixin_argatom(ProdFamily, self)
+
+    def get_byname(self):
+        return 'producer'
+
+    def get_cli(self):
+        self.mod.Use._check_tracemalloc()
+        memo = {}
+        return self.mod.hv.cli_prod(memo)
+
+    def get_tabheader(self, ctx=''):
+        return 'Producer (line of allocation)'
+
+    def get_userkind(self, *args, **kwds):
+        if args and kwds:
+            raise TypeError(
+                '{}() takes either positional or keyword arguments'.format(
+                    self.get_reprname()))
+        if kwds:
+            if set(kwds.keys()) != {'filename', 'lineno'}:
+                raise TypeError(
+                    '{}() keyword arguments must be '
+                    '"filename" and "lineno"'.format(
+                        self.get_reprname()))
+            return self.family((kwds['filename'], kwds['lineno']))
+
+        if len(args) == 0:
+            return self.family(None)
+        elif len(args) == 1:
+            arg, = args
+            if isinstance(arg, str):
+                # filename
+                return self.family((arg, None)).alt('<')
+
+            filename = self.mod.inspect.getsourcefile(arg)
+            lines, lnum = self.mod.inspect.getsourcelines(arg)
+            lines, lnum = len(lines), max(lnum, 1)
+
+            return (
+                self.family((filename, None)).alt('<') &
+                self.family((None, lnum)).alt('>=') &
+                self.family((None, lnum + lines)).alt('<'))
+        elif len(args) == 2:
+            filename, lineno = args
+            if filename is not None and not isinstance(filename, str):
+                raise TypeError(
+                    '{}() argument 1 must be string or None'.format(
+                        self.get_reprname()))
+            if lineno is not None and not isinstance(lineno, int):
+                raise TypeError(
+                    '{}() argument 2 must be integer or None'.format(
+                        self.get_reprname()))
+            return self.family((filename, lineno))
+        else:
+            raise TypeError(
+                '{}() takes from 0 to 2 positional arguments '
+                'but {} were given'.format(
+                    self.get_reprname(), len(args)))
+
+    def get_userkindargrepr(self, kind):
+        if kind.arg is None:
+            return ''
+        return '%r, %r' % kind.arg
+
+
 class _GLUECLAMP_:
     _imports_ = (
         '_parent:ImpSet',
@@ -1176,6 +1253,7 @@ class _GLUECLAMP_:
         '_parent.UniSet:fam_mixin_argatom',
         '_parent:Use',
         '_root.guppy.etc.etc:str2int',
+        '_root:inspect',
         '_root:re',
         '_root:types',
         '_root:builtins',
@@ -1197,6 +1275,9 @@ class _GLUECLAMP_:
 
     def _get_Module(self):
         return self._er_by_(ByModule, self, name='Module')
+
+    def _get_Prod(self):
+        return self._er_by_(ByProd, self, name='Prod')
 
     def _get_Unity(self):
         return self._er_by_(ByUnity, self, name='Unity')

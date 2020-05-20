@@ -1,11 +1,11 @@
-.import:: Any+, boolean+, notnegative+, type+, iterable+
+.import:: Any+, boolean+, notnegative+, type+, iterable+, positive+, string+
 ..from: kindnames
 
 .import:: guppy
 ..from: guppy
 
 .import:: EquivalenceRelation, IdentitySet, IdentitySetSingleton, Kind, UniSet, Use,
-KindOfRetClaSetFamily, KindOfSizeFamily, KindOfTypeFamily,
+KindOfRetClaSetFamily, KindOfProdFamily, KindOfSizeFamily, KindOfTypeFamily,
 KindOfInViaFamily, RootStateType, SetOfKind, Stat
 
 ..from: heapykinds
@@ -127,6 +127,38 @@ other objects.
 .....key arg: at: moduleaddress+
 ......d: The address may also be specified, as an
 alternative or together with the name.
+
+..attr:: Prod
+
+...d: In this equivalence relation, objects are classified by the producer,
+the line in which the object was allocated.
+
+...kind of: EquivalenceRelation
+...mapping:
+....d: Create a Kind that matches objects whose producer is unknown.
+....returns: KindOfProdFamily
+...mapping:
+....d: Create a Kind that matches objects whose producer has a path that
+starts with the given prefix.
+....returns: Kind
+....arg: path_prefix: string+
+.....d: A path prefix filter on the file name
+...mapping:
+....d: Create a Kind that matches objects whose producer has is within
+the given scope
+....returns: Kind
+....arg: scope: Any+
+.....d: Anything that can be used by inspect.getsourcelines()
+...mapping:
+....d: Create a Kind that matches objects matches the given producer. Arguments
+may be None but will need alternative equivalence relations from alt() method
+to match.
+....returns: KindOfProdFamily
+....seq
+.....arg: filename: string+
+......d: File name of the producer
+.....arg: lineno: positive+
+......d: Line number of the producer
 
 ..attr:: Rcs
 ...d: (Referrer classification set.)

@@ -424,6 +424,9 @@ A copy of self, but with 'Id' as the equivalence relation.""")
     bymodule = property_exp(lambda self: self.by('Module'), doc="""\
 A copy of self, but with 'Module' as the equivalence relation.""")
 
+    byprod = property_exp(lambda self: self.by('Prod'), doc="""\
+A copy of self, but with 'Prod' as the equivalence relation.""")
+
     byrcs = property_exp(lambda self: self.by('Rcs'), doc="""\
 A copy of self, but with 'Rcs' as the equivalence relation.""")
 
@@ -596,6 +599,12 @@ theone: Anything
 
 The one object in a singleton set. In case the set does not contain
 exactly one object, the exception ValueError will be raised.
+""")
+
+    prod = property_exp(lambda self: self.fam.get_prod(self), doc="""\
+theone: MorePrinter
+
+The traceback for the producer for the one object in a singleton set.
 """)
 
 
@@ -1772,6 +1781,30 @@ class IdentitySetFamily(AtomFamily):
             return list(set.nodes)[0]
         raise ValueError('theone requires a singleton set')
 
+    def get_prod(self, set):
+        obj = self.get_theone(set)
+        self.mod.Use._check_tracemalloc()
+        tb = self.mod.tracemalloc.get_object_traceback(obj)
+        if tb is None:
+            return
+
+        try:
+            frames = tb.format(most_recent_first=True)
+        except TypeError:
+            # Py < 3.7
+            frames = tb.format()
+
+        # TODO: move to a delicated file
+        class Printer:
+            def _oh_get_line_iter(self):
+                yield 'Traceback (most recent call first):'
+                yield from frames
+
+        printer = Printer()
+        printer.mod = self.mod
+        self.mod.OutputHandling.setup_printing(printer)
+        return printer
+
 
 class EmptyFamily(IdentitySetFamily):
     # Inherits from IdentitySetFamily because the special exported methods
@@ -2102,6 +2135,7 @@ class _GLUECLAMP_:
         '_parent.View:_hiding_tag_',
         '_parent.View:hv',
         '_parent:Use',
+        '_root:tracemalloc',
         '_root:types',
     )
 

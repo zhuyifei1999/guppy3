@@ -34,15 +34,15 @@ hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)
 {
     PyObject *result = PyDict_GetItem(self->memo, kind);
     if (!result) {
-	if (PyErr_Occurred())
-	  goto Err;
-	if (PyDict_SetItem(self->memo, kind, kind) == -1)
-	  goto Err;
-	result = kind;
+        if (PyErr_Occurred())
+            goto Err;
+        if (PyDict_SetItem(self->memo, kind, kind) == -1)
+            goto Err;
+        result = kind;
     }
     Py_INCREF(result);
     return result;
-  Err:
+Err:
     return 0;
 }
 
@@ -56,10 +56,10 @@ rcs_visit_memoize_sub(PyObject *obj, MemoRcsArg *arg)
 {
     obj = arg->cli->def->memoized_kind(arg->cli->self, obj);
     if (!obj)
-	return -1;
+       return -1;
     if (NyNodeSet_setobj(arg->ns, obj) == -1) {
-	Py_DECREF(obj);
-	return -1;
+       Py_DECREF(obj);
+       return -1;
     }
     Py_DECREF(obj);
     return 0;
@@ -69,30 +69,30 @@ static PyObject *
 hv_cli_rcs_memoized_kind(RetclasetObject * self, PyObject *kind)
 {
     if (!NyNodeSet_Check(kind)) {
-	PyErr_SetString(PyExc_TypeError,
-			"hv_cli_rcs_memoized_kind: nodeset object (immutable) expected.");
-	return 0;
+        PyErr_SetString(PyExc_TypeError,
+                        "hv_cli_rcs_memoized_kind: nodeset object (immutable) expected.");
+        return 0;
     }
     if (!self->cli->def->memoized_kind) {
-	return hv_cli_rcs_fast_memoized_kind(self, kind);
+        return hv_cli_rcs_fast_memoized_kind(self, kind);
     } else {
-	MemoRcsArg arg;
-	PyObject *result;
-	arg.cli = self->cli;
-	arg.ns = hv_mutnodeset_new(self->hv);
-	if (!arg.ns)
-	  return 0;
-	if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
-	  goto Err;
-	if (NyNodeSet_be_immutable(&arg.ns) == -1)
-	  goto Err;
-	result = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)arg.ns);
-      Ret:
-	Py_DECREF(arg.ns);
-	return result;
-      Err:
-	result = 0;
-	goto Ret;
+        MemoRcsArg arg;
+        PyObject *result;
+        arg.cli = self->cli;
+        arg.ns = hv_mutnodeset_new(self->hv);
+        if (!arg.ns)
+            return 0;
+        if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
+            goto Err;
+        if (NyNodeSet_be_immutable(&arg.ns) == -1)
+            goto Err;
+        result = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)arg.ns);
+Ret:
+        Py_DECREF(arg.ns);
+        return result;
+Err:
+        result = 0;
+        goto Ret;
     }
 }
 
@@ -108,25 +108,25 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
     if (!Ri)
       goto Err;
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1) {
-	goto Err;
+       goto Err;
     }
     for (cur = lo; cur < hi; cur++) {
-	if (cur->tgt == Py_None)
-	  continue;
-	kind = self->cli->def->classify(self->cli->self, cur->tgt);
-	if (!kind)
-	  goto Err;
-	if (NyNodeSet_setobj(Ri, kind) == -1)
-	  goto Err;
-	Py_DECREF(kind);
+        if (cur->tgt == Py_None)
+            continue;
+        kind = self->cli->def->classify(self->cli->self, cur->tgt);
+        if (!kind)
+            goto Err;
+        if (NyNodeSet_setobj(Ri, kind) == -1)
+            goto Err;
+        Py_DECREF(kind);
     }
     if (NyNodeSet_be_immutable(&Ri) == -1)
       goto Err;
     kind = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)Ri);
     Py_DECREF(Ri);
     return kind;
-    
-  Err:
+
+Err:
     Py_XDECREF(kind);
     Py_XDECREF(Ri);
     return 0;
@@ -154,15 +154,15 @@ hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     RetclasetObject *s, tmp;
-    if (!PyArg_ParseTuple(args, "O!O!O!:cli_rcs", 
-			  &NyNodeGraph_Type, &tmp.rg,
-			  &NyObjectClassifier_Type, &tmp.cli,
-			  &PyDict_Type, &tmp.memo)) {
-	return 0;
+    if (!PyArg_ParseTuple(args, "O!O!O!:cli_rcs",
+                          &NyNodeGraph_Type, &tmp.rg,
+                          &NyObjectClassifier_Type, &tmp.cli,
+                          &PyDict_Type, &tmp.memo)) {
+        return 0;
     }
     s = NYTUPLELIKE_NEW(RetclasetObject);
     if (!s)
-      return 0;
+        return 0;
 
     s->hv = hv;
     Py_INCREF(hv);
@@ -176,8 +176,3 @@ hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
     Py_DECREF(s);
     return r;
 }
-
-
-
-
-

@@ -1763,6 +1763,7 @@ static PyMethodDef hv_methods[] = {
     {"cli_indisize", (PyCFunction)hv_cli_indisize, METH_VARARGS, hv_cli_indisize_doc},
     {"cli_inrel", (PyCFunction)hv_cli_inrel, METH_VARARGS, hv_cli_inrel_doc},
     {"cli_none", (PyCFunction)hv_cli_none, METH_NOARGS, hv_cli_none_doc},
+    {"cli_prod", (PyCFunction)hv_cli_prod, METH_VARARGS, hv_cli_prod_doc},
     {"cli_rcs", (PyCFunction)hv_cli_rcs, METH_VARARGS, hv_cli_rcs_doc},
     {"cli_type", (PyCFunction)hv_cli_type, METH_NOARGS, hv_cli_type_doc},
     {"cli_user_defined", (PyCFunction)hv_cli_user_defined, METH_VARARGS|METH_KEYWORDS, hv_cli_user_defined_doc},

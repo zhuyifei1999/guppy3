@@ -9,6 +9,8 @@
 # o Intersection of ER's
 
 from guppy.heapy.test import support
+import inspect
+import os.path
 
 
 class TestCase(support.TestCase):
@@ -75,6 +77,14 @@ class FirstCase(TestCase):
             'hp.Clodo(T)',
             'hp.Id(id(c))',
             'hp.Module("sys")',
+
+            'hp.Prod()',
+            'hp.Prod("<string>")',
+            'hp.Prod(T)',
+            'hp.Prod("/foo.py", 1)',
+            'hp.Prod("/foo.py", None)',
+            'hp.Prod(None, 1)',
+
             'hp.Rcs(hp.Clodo.sokind(int)(dictof=C))',
             'hp.Size(hp.iso(c).indisize)',
             'hp.Size(hp.iso(C).indisize).dictof',
@@ -208,38 +218,39 @@ class FirstCase(TestCase):
 
     def test_6(self):
         ' Test of .refdby on all others '
+        with self.tracemalloc_state():
+            class C:
+                pass
 
-        class C:
-            pass
+            c = C()
+            d = {}
+            cref = [c]
+            cref.append(cref)
+            c.cref = cref
 
-        c = C()
-        d = {}
-        cref = [c]
-        cref.append(cref)
-        c.cref = cref
+            hp = self.heapy.Use
+            hp.reprefix = 'hp.'
 
-        hp = self.heapy.Use
-        hp.reprefix = 'hp.'
+            import sys
+            s = hp.iso(C.__dict__, C, c, c.__dict__, d, sys)
 
-        import sys
-        s = hp.iso(C.__dict__, C, c, c.__dict__, d, sys)
-
-        for pre in (
-            'Unity',
-            'Clodo',
-            'Id',
-            'Module',
-            ('Rcs', 0),
-            'Size',
-            'Type',
-            'Via'
-        ):
-            if isinstance(pre, tuple):
-                pre, level = pre
-            else:
-                level = 1
-            er = getattr(hp, pre)
-            self.er_test(er, s, level)
+            for pre in (
+                'Unity',
+                'Clodo',
+                'Id',
+                'Module',
+                'Prod',
+                ('Rcs', 0),
+                'Size',
+                'Type',
+                'Via'
+            ):
+                if isinstance(pre, tuple):
+                    pre, level = pre
+                else:
+                    level = 1
+                er = getattr(hp, pre)
+                self.er_test(er, s, level)
 
     def er_test(self, er, set, level=1):
         # Tests what any eqv. rel. er should do
@@ -359,8 +370,8 @@ class FirstCase(TestCase):
         ' Test the subrelation relation '
 
         from guppy import hpy
-        ernames = ['Clodo', 'Id', 'Idset',
-                   'Module', 'Rcs', 'Size', 'Type',
+        ernames = ['Clodo', 'Id', 'Idset', 'Module',
+                   'Prod', 'Rcs', 'Size', 'Type',
                    'Unity']
 
         hp = hpy()
@@ -381,17 +392,75 @@ class FirstCase(TestCase):
                 print(str((a[1] < b[1]))[:1].ljust(7), end=' ', file=f)
             print(file=f)
         self.aseq(f.getvalue(), """\
-           Clodo   Id      Idset   Module  Rcs     Size    Type    Unity   Size&Type \n\
-Clodo      F       F       F       F       F       F       T       T       F       \n\
-Id         F       F       F       F       F       F       F       T       F       \n\
-Idset      F       F       F       F       F       F       F       T       F       \n\
-Module     F       F       F       F       F       F       F       T       F       \n\
-Rcs        F       F       F       F       F       F       F       T       F       \n\
-Size       F       F       F       F       F       F       F       T       F       \n\
-Type       F       F       F       F       F       F       F       T       F       \n\
-Unity      F       F       F       F       F       F       F       F       F       \n\
-Size&Type  F       F       F       F       F       T       T       T       F       \n\
+           Clodo   Id      Idset   Module  Prod    Rcs     Size    Type    Unity   Size&Type \n\
+Clodo      F       F       F       F       F       F       F       T       T       F       \n\
+Id         F       F       F       F       F       F       F       F       T       F       \n\
+Idset      F       F       F       F       F       F       F       F       T       F       \n\
+Module     F       F       F       F       F       F       F       F       T       F       \n\
+Prod       F       F       F       F       F       F       F       F       T       F       \n\
+Rcs        F       F       F       F       F       F       F       F       T       F       \n\
+Size       F       F       F       F       F       F       F       F       T       F       \n\
+Type       F       F       F       F       F       F       F       F       T       F       \n\
+Unity      F       F       F       F       F       F       F       F       F       F       \n\
+Size&Type  F       F       F       F       F       F       T       T       T       F       \n\
 """)
+
+    def test_10(self):
+        ' Test of producer profile '
+        hp = self.heapy.Use
+
+        with self.tracemalloc_state():
+            class C:
+                pass
+
+            file = inspect.currentframe().f_code.co_filename
+
+            def lineno():
+                return inspect.currentframe().f_back.f_lineno
+
+            str_aloc = eval('C()', {'C': C}, {})
+            test_aloc, test_aloc_line = C(), lineno()
+
+            def subf():
+                return C(), lineno()
+
+            subf_aloc, subf_aloc_line = subf()
+
+            isod = hp.iso(None, str_aloc, test_aloc, subf_aloc)
+
+            self.aseq(isod & hp.Prod(), hp.iso(None))
+            self.aseq(isod & hp.Prod('<string>', 1), hp.iso(str_aloc))
+            self.aseq(isod & hp.Prod(file, test_aloc_line), hp.iso(test_aloc))
+            self.aseq(isod & hp.Prod(file, subf_aloc_line), hp.iso(subf_aloc))
+
+            self.aseq(isod & hp.Prod(file), hp.iso(test_aloc, subf_aloc))
+            self.aseq(isod & hp.Prod(os.path.dirname(file)),
+                      hp.iso(test_aloc, subf_aloc))
+
+            self.aseq(isod & hp.Prod(self.test_10), hp.iso(test_aloc, subf_aloc))
+            self.aseq(isod & hp.Prod(subf), hp.iso(subf_aloc))
+
+            self.aseq(isod & hp.Prod(None, test_aloc_line).alt('>=') &
+                      hp.Prod(None, test_aloc_line).alt('<='),
+                      hp.iso(test_aloc))
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', lineno=1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(filename='', line=1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(None)
+
+        with self.assertRaises(TypeError):
+            hp.Prod(1, 1)
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', '')
+
+        with self.assertRaises(TypeError):
+            hp.Prod('', 1, 2)
 
 
 def test_main(debug=0):

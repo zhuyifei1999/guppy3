@@ -61,7 +61,6 @@ class _GLUECLAMP_:
         '_root:ctypes',
         '_root:gc',
         '_root:types',
-        '_root.warnings:warn',
     )
 
     _chgable_ = ('is_rg_update_all', 'referrers_lock', '_is_clear_drg_enabled',
@@ -158,8 +157,6 @@ class _GLUECLAMP_:
             except AttributeError:
                 continue
             if not hd or not isinstance(hd, self.capsule_type):
-                self.warn('Ignoring non-capsule object '
-                          '{}._NyHeapDefs_'.format(n))
                 continue
             heapdefs.append(hd)
         return tuple(heapdefs)
