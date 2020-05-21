@@ -73,7 +73,7 @@ static NyHeapDef nysets_heapdefs[] = {
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     MODNAME,
-    NULL,
+    PyDoc_STR(sets_doc),
     -1,
     module_methods
 };
@@ -95,8 +95,6 @@ INITFUNC (void)
     if (fsb_dx_nybitset_init(m) == -1)
         goto Error;
     if (fsb_dx_nynodeset_init(m) == -1)
-        goto Error;
-    if (PyModule_SetDocString(m, sets_doc) == -1)
         goto Error;
     if (PyDict_SetItemString(d,
              "_NyHeapDefs_",

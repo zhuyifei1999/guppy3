@@ -202,7 +202,7 @@ NyHeapDef NyHvTypes_HeapDef[] = {
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     MODNAME,
-    NULL,
+    PyDoc_STR(heapyc_doc),
     -1,
     module_methods
 };
@@ -242,7 +242,6 @@ INITFUNC (void)
         goto error;
     this_module = m;
     d = PyModule_GetDict(m);
-    PyModule_SetDocString(m, heapyc_doc);
     PyDict_SetItemString(d, "HeapView",
                          (PyObject *)&NyHeapView_Type);
     PyDict_SetItemString(d, "Horizon",
