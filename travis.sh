@@ -50,7 +50,8 @@ sdisttest)
 codecov)
     case "$1" in
     install)
-        pip install coverage codecov
+        # https://github.com/codecov/codecov-python/issues/250
+        pip install coverage codecov==2.0.15
         CFLAGS=-coverage pip install -ve .
         ;;
     script)
