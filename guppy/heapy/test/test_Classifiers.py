@@ -430,7 +430,6 @@ dict (no owner)
 
 
 class RenderCase(TestCase):
-
     def test_rendering(self):
         import sys
         import types
@@ -577,7 +576,6 @@ Partition of a set of 1 object. Total size = 32 bytes.
 
 
 class BaseCase(TestCase):
-
     def test_minmax(self):
         s = self.guppy.sets.immbitset
         min = self.US.minimals
@@ -866,7 +864,6 @@ class LawsCase(TestCase):
 
 
 class ClassificationCase(TestCase):
-
     def test_classification(self):
         # Test classification by the standard classifiers
         self.View.is_rg_update_all = True  # Tricky details Note Apr 22 2005

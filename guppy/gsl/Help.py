@@ -13,12 +13,12 @@ class _GLUECLAMP_:
         for the distributed and installed package.
         for I couldn't have the data among the modules themselves.
 
-    Get documentation about a subject or generally about the Guppy system.
-    It will show the documentation in the system web browser.
-    If the subject argument is an object that the documentation system
-    recognizes, it will bring up the documentation for that kind of object.
-    Otherwise it will bring up a general documentation page.
-    """
+        Get documentation about a subject or generally about the Guppy system.
+        It will show the documentation in the system web browser.
+        If the subject argument is an object that the documentation system
+        recognizes, it will bring up the documentation for that kind of object.
+        Otherwise it will bring up a general documentation page.
+        """
 
         self.doc_default()
 
