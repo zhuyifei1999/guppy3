@@ -50,8 +50,57 @@ sdisttest)
 codecov)
     case "$1" in
     install)
+        pip install coverage codecov
         # https://github.com/codecov/codecov-python/issues/250
-        pip install coverage codecov==2.0.15
+        patch "$(python -c 'import codecov; print(codecov.__file__)')" << 'EOF'
+diff --git a/codecov/__init__.py b/codecov/__init__.py
+index 2a2a3f6..a0c724c 100644
+--- a/codecov/__init__.py
++++ b/codecov/__init__.py
+@@ -4,6 +4,7 @@ import os
+ import re
+ import sys
+ import glob
++import itertools
+ import requests
+ import argparse
+ from time import sleep
+@@ -869,21 +870,27 @@ def main(*argv, **kwargs):
+             write("XX> Skip processing gcov")
+ 
+         else:
+-            dont_search_here = (
+-                "-not -path './bower_components/**' "
+-                "-not -path './node_modules/**' "
+-                "-not -path './vendor/**'"
+-            )
++            dont_search_here = [
++                "-not",
++                "-path",
++                "./bower_components/**",
++                "-not",
++                "-path",
++                "./node_modules/**",
++                "-not",
++                "-path",
++                "./vendor/**",
++            ]
+             write("==> Processing gcov (disable by -X gcov)")
+             cmd = [
+                 "find",
+                 (sanitize_arg("", codecov.gcov_root or root)),
+-                dont_search_here,
++                *dont_search_here,
+                 "-type",
+                 "f",
+                 "-name",
+                 "*.gcno",
+-                " ".join(map(lambda a: "-not -path '%s'" % a, codecov.gcov_glob)),
++                *itertools.chain(*(["-not", "-path", a] for a in codecov.gcov_glob)),
+                 "-exec",
+                 (sanitize_arg("", codecov.gcov_exec or "")),
+                 "-pb",
+EOF
         CFLAGS=-coverage pip install -ve .
         ;;
     script)
