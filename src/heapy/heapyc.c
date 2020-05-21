@@ -242,7 +242,7 @@ INITFUNC (void)
         goto error;
     this_module = m;
     d = PyModule_GetDict(m);
-    PyDict_SetItemString(d, "__doc__", PyUnicode_FromString(heapyc_doc));
+    PyModule_SetDocString(m, heapyc_doc);
     PyDict_SetItemString(d, "HeapView",
                          (PyObject *)&NyHeapView_Type);
     PyDict_SetItemString(d, "Horizon",

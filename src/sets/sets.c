@@ -96,7 +96,7 @@ INITFUNC (void)
         goto Error;
     if (fsb_dx_nynodeset_init(m) == -1)
         goto Error;
-    if (PyDict_SetItemString(d, "__doc__", PyUnicode_FromString(sets_doc)) == -1)
+    if (PyModule_SetDocString(m, sets_doc) == -1)
         goto Error;
     if (PyDict_SetItemString(d,
              "_NyHeapDefs_",
