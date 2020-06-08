@@ -982,31 +982,18 @@ hv_relate_visit(unsigned int relatype, PyObject *relator, NyHeapRelate *arg_)
 }
 
 typedef struct {
-    NyHeapRelate hr;
+    PyObject *src;
+    PyObject *tgt;
     Py_ssize_t ne;
-    int err;
 }
 NETravArg;
 
-#define NETRAV 1
-
-#if NETRAV
 static int
 hv_ne_rec(PyObject *obj, NETravArg *ta)
 {
-    if (obj == ta->hr.tgt)
+    if (obj == ta->tgt)
         ta->ne++;
     return 0;
-}
-#endif
-
-static int
-hv_ne_visit(unsigned int relatype, PyObject *relator, NyHeapRelate *arg_)
-{
-    NETravArg *ta = (void *)arg_;
-    Py_XDECREF(relator);
-    ta->ne++;
-    return ta->err;
 }
 
 PyDoc_STRVAR(hv_numedges_doc,
@@ -1018,18 +1005,10 @@ static PyObject *
 hv_numedges(NyHeapViewObject *self, PyObject *args)
 {
     NETravArg ta;
-    if (!PyArg_ParseTuple(args, "OO:numedges", &ta.hr.src, &ta.hr.tgt))
+    if (!PyArg_ParseTuple(args, "OO:numedges", &ta.src, &ta.tgt))
         return NULL;
-    ta.hr.flags = 0;
-    ta.hr.hv = (void *)self;
-    ta.hr.visit = hv_ne_visit;
-    ta.err = 0;
     ta.ne = 0;
-#if NETRAV
-    if (hv_std_traverse(self, ta.hr.src, (visitproc)hv_ne_rec, &ta) == -1)
-#else
-    if (hv_std_relate(&ta.hr) == -1 || ta.err)
-#endif
+    if (hv_std_traverse(self, ta.src, (visitproc)hv_ne_rec, &ta) == -1)
         return 0;
     return PyLong_FromSsize_t(ta.ne);
 }
