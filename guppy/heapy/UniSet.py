@@ -2193,7 +2193,7 @@ class _GLUECLAMP_:
                         mod.ArgAtomFamily.__init__(self, mod)
                         Mixin.__init__(self, mod, *args, **kwds)
 
-                C.__name__ = Mixin.__name__
+                C.__qualname__ = C.__name__ = Mixin.__name__
                 memo[Mixin] = C
             return C(self, *args, **kwds)
         return f

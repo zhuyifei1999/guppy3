@@ -433,7 +433,7 @@ class _GLUECLAMP_:
                 class r(c, self.RelationBase):
                     repr = self.saferepr
                     saferepr = self.saferepr
-                r.__name__ = 'Based_'+name
+                r.__qualname__ = r.__name__ = 'Based_'+name
                 table[c.code] = r
         return table
 
