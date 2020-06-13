@@ -106,6 +106,9 @@ class Paths:
             row = row.parent
             indent += indinc
 
+    def _oh_get_label(self):
+        return 'Paths from source %r to target %r.' % (self.srcrow.ixlstr, '_')
+
     def _oh_get_line_iter(self):
         return getattr(self, 'get_line_iter_%s' % (self.variant,))()
 
@@ -119,8 +122,6 @@ class Paths:
 
         srcrow = self.srcrow
         srcset = srcrow.set
-
-        yield 'Paths from source %r to target %r.' % (srcrow.ixlstr, '_')
 
         indinc = 2
         if srcrow.depth >= 10:
@@ -180,9 +181,6 @@ class Paths:
         mod = self.mod
 
         srcrow = self.srcrow
-        srcset = srcrow.set
-
-        yield 'Paths from source %r to target %r.' % (srcrow.ixlstr, '_')
 
         indinc = 1
         if srcrow.depth >= 10:
@@ -375,9 +373,7 @@ Methods
         self.relimg = relimg
         self.top = self
 
-        mod.OutputHandling.setup_printing(
-            self,
-            max_top_lines=mod.OutputHandling.max_top_lines+1)
+        mod.OutputHandling.setup_printing(self)
         self.View.referrers_add_target(self)
         self.reset_nogc()
         self.is_initialized = 1
@@ -406,30 +402,17 @@ Methods
         self.generate()
         return len(self.lines)
 
-    def _cv_getheader(self):
-        return ('Reference Pattern by <' + self.er.classifier.get_byname() + '>.')
-
-    def _cv_getlabel(self):
-        return self._cv_getheader()
-
-    def _cv_print(self, file):
-        label = self._cv_getlabel()
-        print(label, file=file)
-
-        for line in self:
-            print(line, file=file)
+    def _oh_get_label(self):
+        return 'Reference Pattern by <' + self.er.classifier.get_byname() + '>.'
 
     def _oh_get_more_state_msg(self, startindex, lastindex):
         if self.isfullygenerated:
-            msg = '%d more lines. ' % (len(self.lines)+len(self._cv_getlabel().split('\n'))
-                                       - 1-lastindex,)
+            msg = '%d more lines. ' % (len(self.lines) - 1-lastindex,)
         else:
             msg = ''
         return msg
 
     def _oh_get_line_iter(self):
-        for line in self._cv_getlabel().split('\n'):
-            yield line
         it = self.iterlines(0)
         for el in it:
             yield str(el)

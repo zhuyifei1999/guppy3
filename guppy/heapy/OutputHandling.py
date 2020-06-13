@@ -19,6 +19,7 @@ class _MetaAttrProxy(type):
                 return
         if attr in ('__new__', '__init__', '__getattr__',
                     '__getattribute__', '__setattr__', '__delattr__',
+                    '__str__',
                     ):
             return
 
@@ -93,6 +94,9 @@ class AllPrinter(metaclass=_MetaAttrProxy):
     def __getattr__(self, attr):
         return self._oh_printer.getattr(self, attr)
 
+    def __repr__(self):
+        return self._oh_printer.get_str(self, True)
+
     def _oh_get_next_lineno(self):
         return 0
 
@@ -129,35 +133,63 @@ class MorePrinter(metaclass=_MetaAttrProxy):
 
 
 class Printer:
-    def __init__(self, mod, client,  get_line_iter=None, max_top_lines=None, max_more_lines=None,
+    def __init__(self, mod, client, handler,
+                 get_line_iter=None,
+                 max_more_lines=None,
                  get_num_lines=None,
+                 get_label=None,
+                 get_row_header=None,
                  get_more_msg=None,
                  get_more_state_msg=None,
+                 get_empty_msg=None,
                  stop_only_when_told=None
                  ):
+        try:
+            handler = handler.printer.handler
+        except AttributeError:
+            pass
 
         if get_line_iter is None:
-            get_line_iter = client._oh_get_line_iter
-        if max_top_lines is None:
-            max_top_lines = mod.max_top_lines
+            get_line_iter = handler._oh_get_line_iter
         if max_more_lines is None:
             max_more_lines = mod.max_more_lines
 
         self.mod = mod
         self._hiding_tag_ = mod._hiding_tag_
         self.client = client
+        self.handler = handler
         self.get_line_iter = get_line_iter
-        self.max_top_lines = max_top_lines
         self.max_more_lines = max_more_lines
+        if get_num_lines is None:
+            get_num_lines = getattr(
+                handler, '_oh_get_num_lines', None)
         if get_num_lines is not None:
             self.get_num_lines = get_num_lines
+        if get_label is None:
+            get_label = getattr(
+                handler, '_oh_get_label', None)
+        if get_label is not None:
+            self.get_label = get_label
+        if get_row_header is None:
+            get_row_header = getattr(
+                handler, '_oh_get_row_header', None)
+        if get_row_header is not None:
+            self.get_row_header = get_row_header
+        if get_more_msg is None:
+            get_more_msg = getattr(
+                handler, '_oh_get_more_msg', None)
         if get_more_msg is not None:
             self.get_more_msg = get_more_msg
         if get_more_state_msg is None:
             get_more_state_msg = getattr(
-                client, '_oh_get_more_state_msg', None)
+                handler, '_oh_get_more_state_msg', None)
         if get_more_state_msg is not None:
             self.get_more_state_msg = get_more_state_msg
+        if get_empty_msg is None:
+            get_empty_msg = getattr(
+                handler, '_oh_get_empty_msg', None)
+        if get_empty_msg is not None:
+            self.get_empty_msg = get_empty_msg
         self.stop_only_when_told = stop_only_when_told
         self.reset()
 
@@ -223,10 +255,16 @@ class Printer:
         return self.client
 
     def _get___repr__(self, mp):
-        return lambda: self.get_str(mp, self.max_more_lines)
+        return lambda: self.get_str(mp, False)
+
+    def get_label(self):
+        return None
+
+    def get_row_header(self):
+        return None
 
     def get_str_of_top(self):
-        return self.get_str(self, self.max_top_lines)
+        return self.get_str(self, True)
 
     def get_more_state_msg(self, start_lineno, end_lineno):
         num_lines = self.get_num_lines()
@@ -240,37 +278,60 @@ class Printer:
         state_msg = self.get_more_state_msg(start_lineno, end_lineno)
         return "<%sType e.g. '_.more' for more.>" % (state_msg)
 
+    def get_empty_msg(self):
+        return None
+
     def get_num_lines(self):
         return None
 
-    def get_str(self, printer, max_lines):
+    def get_str(self, printer, is_top):
         def f():
             _hiding_tag_ = printer._hiding_tag_
             start_lineno = printer._oh_get_start_lineno()
-            m_max_lines = printer._oh_get_max_lines(max_lines)
+            m_max_lines = printer._oh_get_max_lines(self.max_more_lines)
             ob = self.mod.output_buffer()
             it = self.lines_from(start_lineno)
-            numlines = 0
-            lineno = start_lineno
-            for line in it:
-                if (m_max_lines is not None and numlines >= m_max_lines and
-                        ((not self.stop_only_when_told) or self.stop_linenos.get(lineno-1))):
-                    try:
-                        self.line_at(lineno+1)
-                    except IndexError:
-                        print(line, file=ob)
-                        lineno += 1
-                        break
-                    else:
-                        print(self.get_more_msg(start_lineno, lineno-1), file=ob)
-                        break
-                numlines += 1
-                print(line, file=ob)
-                lineno += 1
-            printer._oh_next_lineno = lineno
+
+            if is_top:
+                msg = self.get_label()
+                if msg is not None:
+                    print(msg, file=ob)
+                printer._oh_next_lineno = start_lineno
+
+            try:
+                nxt = next(it)
+            except StopIteration:
+                msg = self.get_empty_msg()
+                if msg is not None:
+                    print(msg, file=ob)
+                printer._oh_next_lineno = start_lineno
+            else:
+                msg = self.get_row_header()
+                if msg is not None:
+                    print(msg, file=ob)
+
+                it = self.mod.itertools.chain((nxt,), it)
+                numlines = 0
+                lineno = start_lineno
+                for line in it:
+                    if (m_max_lines is not None and numlines >= m_max_lines and
+                            ((not self.stop_only_when_told) or self.stop_linenos.get(lineno-1))):
+                        try:
+                            self.line_at(lineno+1)
+                        except IndexError:
+                            print(line, file=ob)
+                            lineno += 1
+                            break
+                        else:
+                            print(self.get_more_msg(start_lineno, lineno-1), file=ob)
+                            break
+                    numlines += 1
+                    print(line, file=ob)
+                    lineno += 1
+                printer._oh_next_lineno = lineno
             return ob.getvalue().rstrip()
 
-        return printer.mod._parent.View.enter(lambda: f())
+        return self.mod.View.enter(lambda: f())
 
     def reset(self):
         self.lines_seen = []
@@ -278,61 +339,24 @@ class Printer:
         self.line_iter = None
 
 
-class BasicPrinter(metaclass=_MetaAttrProxy):
-    def __init__(self, mod, top, handler, startindex, limit):
-        self.mod = mod
-        self.top = top
-        self.handler = handler
-
-        self.startindex = startindex
-        self.limit = limit
-        self._hiding_tag_ = mod._hiding_tag_
-
-    def __getattr__(self, attr):
-        return getattr(self.top, attr)
-
-    def __repr__(self):
-        ob = self.mod.output_buffer()
-        self.handler.ppob(ob, self.startindex, self.limit)
-        return ob.getvalue().rstrip()
-
-    # This __str__ is not optional as it may get overridden by _MetaAttrProxy
-    __str__ = __repr__
-
-
-class BasicAllPrinter(BasicPrinter):
-    def __init__(self, mod, top, handler):
-        super().__init__(mod, top, handler, -1, None)
-
-
-class BasicMorePrinter(BasicPrinter):
-    def __init__(self, mod, top, handler, startindex=None, limit=10):
-        if startindex is None:
-            startindex = limit
-
-        super().__init__(mod, top, handler, startindex, limit)
-
-    @property
-    def more(self):
-        return self.at(self.startindex + self.limit)
-
-    def at(self, idx):
-        return self.__class__(self.mod, self.top, self.handler,
-                              idx, self.limit)
-
-
 class _GLUECLAMP_:
-    _chgable_ = 'output_file', 'max_top_lines', 'max_more_lines',
+    _chgable_ = 'output_file', 'max_more_lines',
     _preload_ = ('_hiding_tag_',)
 
-    max_top_lines = 10
+    _imports_ = (
+        '_parent:View',
+        '_root:itertools',
+    )
+
     max_more_lines = 10
 
     def _get__hiding_tag_(self): return self._parent.View._hiding_tag_
     def _get_output_file(self): return self._root.sys.stdout
 
-    def more_printer(self, client, **kwds):
-        printer = Printer(self, client, **kwds)
+    def more_printer(self, client, handler=None, **kwds):
+        if handler is None:
+            handler = client
+        printer = Printer(self, client, handler, **kwds)
         MorePrinter._add_proxy_class(client.__class__)
         return MorePrinter(printer, printer)
 
@@ -344,8 +368,10 @@ class _GLUECLAMP_:
             output_file = self.output_file
         return OutputHandler(self, output_file)
 
-    def setup_printing(self, client, **kwds):
-        more = self.more_printer(client, **kwds)
+    def setup_printing(self, client, handler=None, **kwds):
+        if handler is None:
+            handler = client
+        more = self.more_printer(client, handler, **kwds)
         printer = more._oh_printer
         client.more = more
         client.all = more.all
@@ -359,13 +385,5 @@ class _GLUECLAMP_:
         cls = client.__class__
         if '__repr__' not in cls.__dict__:
             cls.__repr__ = reprfunc
-
-    def basic_more_printer(self, top, *args, **kwds):
-        BasicMorePrinter._add_proxy_class(top.__class__)
-        return BasicMorePrinter(self, top, *args, **kwds)
-
-    def basic_all_printer(self, top, *args, **kwds):
-        BasicAllPrinter._add_proxy_class(top.__class__)
-        return BasicAllPrinter(self, top, *args, **kwds)
 
     def _get_stdout(self): return self._root.sys.stdout

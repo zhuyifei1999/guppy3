@@ -23,16 +23,6 @@ class Format(object):
                 subsequent_indent=subsequent_indent))
         return '\n'.join(rows)
 
-    def get_row_header(self):
-        impl = self.impl
-        if not (impl.count or impl.size):
-            return ''
-        sh = self.get_stat_header()
-        return self.mod.fill(
-            sh + self.impl.kindheader,
-            width=self.mod.line_length,
-            subsequent_indent=' '*len(sh))
-
     def load_statrow_csk(self, r):
         impl = self.impl
         count, size, kind = r.split(' ', 2)
@@ -48,26 +38,29 @@ class Format(object):
         impl.cum_size += size
         return StatRow(1, size, kind, impl.cur_index, impl.cum_size)
 
-    def ppob(self, ob, idx, limit):
+    def _oh_get_num_lines(self):
+        return self.impl.numrows
+
+    def _oh_get_label(self):
+        return self.get_label()
+
+    def _oh_get_row_header(self):
         impl = self.impl
-        if idx == -1:
-            label = self.get_label()
-            if label is not None:
-                print(label, file=ob)
-            idx = 0
+        if not (impl.count or impl.size):
+            return ''
+        sh = self.get_stat_header()
+        return self.mod.fill(
+            sh + self.impl.kindheader,
+            width=self.mod.line_length,
+            subsequent_indent=' '*len(sh))
 
-        it = impl.get_rows(idx)
-        print(self.get_row_header(), file=ob)
+    def _oh_get_more_msg(self, start_lineno, end_lineno):
+        nummore = self.impl.numrows-(end_lineno+1)
+        return "<%d more rows. Type e.g. '_.more' to view.>" % nummore
 
-        for numrows, row in enumerate(it):
-            form = self.get_formatted_row(row)
-            print(form, file=ob)
-            if limit is not None and numrows + 1 >= limit:
-                nummore = impl.numrows - 1 - row.index
-                if nummore > 1:
-                    print("<%d more rows. Type e.g. '_.more' to view.>" %
-                          nummore, file=ob)
-                    break
+    def _oh_get_line_iter(self):
+        for numrows, row in enumerate(self.impl.get_rows()):
+            yield self.get_formatted_row(row)
 
 
 class SetFormat(Format):
@@ -277,11 +270,6 @@ class Stat:
     def __len__(self):
         return self.numrows
 
-    def __repr__(self):
-        ob = self.mod.output_buffer()
-        self.ppob(ob)
-        return self.firstheader + ob.getvalue().rstrip()
-
     def __sub__(self, other):
         if not isinstance(other, Stat):
             raise TypeError(
@@ -363,11 +351,6 @@ class Stat:
         finally:
             if f is not fn:
                 f.close()
-
-    def _get_more(self):
-        return self.mod.basic_more_printer(self, self)
-
-    more = property(_get_more)
 
     def get_next(self):
         try:
@@ -491,9 +474,6 @@ class Stat:
         else:
             raise SyntaxError
 
-    def ppob(self, *args, **kwds):
-        return self.format.ppob(*args, **kwds)
-
 
 class Partition:
     def __init__(self, mod, set, er):
@@ -558,8 +538,7 @@ class Partition:
     def init_format(self, FormatClass):
         self.format = FormatClass(self)
 
-    def ppob(self, *args, **kwds):
-        return self.format.ppob(*args, **kwds)
+        self.mod.OutputHandling.setup_printing(self, self.format)
 
 
 class IdentityPartitionCluster(object):
@@ -753,9 +732,8 @@ class _GLUECLAMP_:
     _preload_ = ('_hiding_tag_',)
     _chgable_ = ('line_length', 'backup_suffix')
     _imports_ = (
-        '_parent.OutputHandling:output_buffer',
-        '_parent.OutputHandling:basic_more_printer',
         '_parent.ImpSet:mutnodeset',
+        '_parent:OutputHandling',
         '_parent.Use:Id',
         '_parent.Use:Size',
         '_parent.Use:idset',

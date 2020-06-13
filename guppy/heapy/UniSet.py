@@ -325,8 +325,13 @@ class Kind(UniSet):
 
 
 class IdentitySet(UniSet):
-    __slots__ = '_er', '_partition'
+    __slots__ = '_er', '_partition', '_more'
     _help_url_ = 'heapy_UniSet.html#heapykinds.IdentitySet'
+
+    def __init__(self, fam):
+        self.fam = fam
+        self._hiding_tag_ = fam._hiding_tag_
+        self._origin_ = None
 
     def __getitem__(self, idx): return self.fam.c_getitem(self, idx)
     def __len__(self): return self.fam.c_len(self)
@@ -612,10 +617,8 @@ class IdentitySetMulti(IdentitySet):
     __slots__ = 'nodes',
 
     def __init__(self, fam, nodes):
-        self.fam = fam
-        self._hiding_tag_ = fam._hiding_tag_
+        super().__init__(fam)
         self.nodes = nodes
-        self._origin_ = None
 
 
 class IdentitySetSingleton(IdentitySet):
@@ -623,10 +626,8 @@ class IdentitySetSingleton(IdentitySet):
     _help_url_ = 'heapy_UniSet.html#heapykinds.IdentitySetSingleton'
 
     def __init__(self, fam, node):
-        self.fam = fam
-        self._hiding_tag_ = fam._hiding_tag_
+        super().__init__(fam)
         self._node = node
-        self._origin_ = None
 
     # RefPat (eg) depends on this being usable as a hashable key.
     nodes = property_exp(lambda self: self.fam.immnodeset((self._node,)), doc="""\
@@ -1528,8 +1529,8 @@ class IdentitySetFamily(AtomFamily):
         if not arg:
             return self.mod.Nothing
 
-        # elif len(arg) == 1: # Not using special case. Screws up some things Note 27 Oct 2005
-        #     r = IdentitySetSingleton(self, tuple(arg)[0])
+        elif len(arg) == 1:
+            r = IdentitySetSingleton(self, tuple(arg)[0])
         else:
             r = IdentitySetMulti(self, arg)
         if er is not None:
@@ -1612,7 +1613,7 @@ class IdentitySetFamily(AtomFamily):
         return a.partition.get_set(idx)
 
     def c_str(self, a):
-        return str(self.get_more(a).at(-1))
+        return a.more._oh_printer.get_str_of_top()
 
     def maprox_getattr(self, set, name):
         ns = self.mod.mutnodeset()
@@ -1690,10 +1691,15 @@ class IdentitySetFamily(AtomFamily):
         return er
 
     def get_more(self, a):
-        return self.mod.OutputHandling.basic_more_printer(a, a.partition)
+        try:
+            m = a._more
+        except AttributeError:
+            m = self.mod.OutputHandling.more_printer(a, a.partition)
+            a._more = m
+        return m
 
     def get_all(self, a):
-        return self.mod.OutputHandling.basic_all_printer(a, a.partition)
+        return a.more.all
 
     def get_owners(self, a):
         return self.mod.Use.Clodo.classifier.owners(a)

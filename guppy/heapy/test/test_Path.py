@@ -564,16 +564,14 @@ class PathTestCase(TestCase):
         src, dst = self.makegraph(width, length)
         p = self.shpaths(dst, src)
         p.maxpaths = 2
-        p.pp()
-        p.more()
-        self.aseq(output.getvalue(), """\
+        self.aseq(str(p), """\
  0: Src[0][0][0][0]
  1: Src[0][0][0][1]
-<... 14639 more paths ...>
+<... 14639 more paths ...>""")
+        self.aseq(str(p.more), """\
  2: Src[0][0][0][2]
  3: Src[0][0][0][3]
-<... 14637 more paths ...>
-""")
+<... 14637 more paths ...>""")
 
     def test_subscript(self):
         # Test subscripting
@@ -598,30 +596,26 @@ class PathTestCase(TestCase):
 class MultiTestCase(TestCase):
     def test_pp(self):
         # Test printing of multi relations
-        self.Path.output = self.Path._root.io.StringIO()
         iso = self.iso
         dst = [[], []]
         src = iso(dst[:]*2)
         dst = [iso(x) for x in dst]
         p = self.Path.shpgraph(dst, src)
-        p.pp()
-        p = self.Path.shpgraph(dst, src, srcname='A', dstname='B')
-        p.pp()
-
-        self.aseq(self.Path.output.getvalue(), """\
+        self.aseq(str(p), """\
 --- Dst[0] ---
  0: Src[0]
  1: Src[2]
 --- Dst[1] ---
  0: Src[1]
- 1: Src[3]
+ 1: Src[3]""")
+        p = self.Path.shpgraph(dst, src, srcname='A', dstname='B')
+        self.aseq(str(p), """\
 --- B[0] ---
  0: A[0]
  1: A[2]
 --- B[1] ---
  0: A[1]
- 1: A[3]
-""")
+ 1: A[3]""")
 
 
 class AvoidTestCase(TestCase):

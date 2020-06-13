@@ -19,8 +19,7 @@ class FirstCase(support.TestCase):
                 mod.setup_printing(
                     self,
                     get_line_iter=get_line_iter,
-                    max_top_lines=4,
-                    max_more_lines=3,
+                    max_more_lines=4,
                     get_num_lines=get_num_lines,
                     get_more_msg=get_more_msg)
 

@@ -117,11 +117,10 @@ class MultiRelation(RelationBase):
 
 @functools.total_ordering
 class Path:
-    def __init__(self, mod, path, index, output, srcname):
+    def __init__(self, mod, path, index, srcname):
         self.mod = mod
         self.path = path[1:]
         self.index = index
-        self.output = output
         self.src = path[1]
         self.tgt = path[-1]
         self.strprefix = '%s'
@@ -154,10 +153,8 @@ class Path:
     def __repr__(self):
         return repr(str(self))
 
-    def pp(self, output=None):
-        if output is None:
-            output = self.output
-        print('%2d:' % self.index, str(self) % self.srcname, file=output)
+    def _oh_get_line_iter(self, output=None):
+        yield '%2d: %s' % (self.index, str(self) % self.srcname)
 
     def types(self):
         return [type(x) for x in self.path]
@@ -221,7 +218,7 @@ class PathsIter:
             rel, dst = sr[col]
             path.append(rel)
             path.append(dst)
-        rp = self.mod.Path(paths, path, self.pos, paths.output, paths.srcname)
+        rp = self.mod.Path(paths, path, self.pos, paths.srcname)
         self.pos += 1
         while row >= 0:
             self.idxs[row] += 1
@@ -237,53 +234,13 @@ class PathsIter:
         return rp
 
 
-class MorePrinter:
-    def __init__(self, top, prev=None):
-        self.top = top
-        if prev is None:
-            prev = top
-        self.prev = prev
-        self.mod = top.mod
-        self.firstpath = self.prev.firstpath + self.maxpaths
-        self._hiding_tag_ = self.mod._hiding_tag_
-
-    def __call__(self, start=None, output=None):
-        it = self.moreiterator
-        if it is None:
-            it = self.iter(start)
-        else:
-            if start is not None:
-                it.reset(start)
-        self.printiter(it, output)
-
-    def __getattr__(self, attr):
-        if attr == 'more':
-            return MorePrinter(self.top, self)
-        else:
-            return getattr(self.top, attr)
-
-    def __repr__(self):
-        it = self.iter(self.firstpath)
-        output = self.top.mod._root.io.StringIO()
-        self.printiter(it, output)
-        x = output.getvalue().rstrip()
-        if not x:
-            x = '<No more paths>'
-        return x
-
-
 class ShortestPaths:
-    firstpath = 0
-    maxpaths = 10
-
     def __init__(self, sg, Dst):
         self.sg = sg
         self.Dst = Dst
         self.mod = mod = sg.mod
         self._hiding_tag_ = mod._hiding_tag_
         self.srcname = sg.srcname
-        self.output = mod.output
-        self.moreiterator = None
         self.top = self
 
         self.IG = IG = mod.nodegraph()
@@ -310,7 +267,9 @@ class ShortestPaths:
             sets.append(mod.idset(e.get_range()))
         self.sets = tuple(sets)
 
-        self.more = MorePrinter(self)
+        mod.OutputHandling.setup_printing(self)
+
+        self.maxpaths = 10
 
     def __getitem__(self, idx):
         try:
@@ -321,25 +280,11 @@ class ShortestPaths:
     def __iter__(self):
         return self.iter()
 
-    def __repr__(self):
-        f = self.mod._root.io.StringIO()
-        self.pp(output=f)
-        return f.getvalue().rstrip()
-
     def iter(self, start=0, stop=None):
         return PathsIter(self, start, stop)
 
-    def aslist(self, maxpaths=None, firstpath=None):
-        if maxpaths is None:
-            maxpaths = self.maxpaths
-        if firstpath is None:
-            firstpath = self.firstpath
-        li = list(self.iter(firstpath, firstpath+maxpaths))
-        if len(li) >= maxpaths:
-            more = (self.numpaths - (firstpath + len(li)))
-            if more:
-                li.append('<... %d more paths ...>' % more)
-        return li
+    def aslist(self):
+        return list(self)
 
     def copy_but_avoid_edges_at_levels(self, *args):
         avoid = self.edges_at(*args).updated(self.sg.AvoidEdges)
@@ -400,32 +345,29 @@ class ShortestPaths:
 
     numpaths = property_nondata(fget=_get_numpaths)
 
-    def pp(self, start=None, output=None):
-        self.moreiterator = None
-        self.more(start, output=output)
+    @property
+    def maxpaths(self):
+        return self.printer.max_more_lines
 
-    def printiter(self, it, output=None):
-        if output is None:
-            output = self.output
-        self.moreiterator = it
-        i = 0
-        lastindex = None
-        while i < self.maxpaths:
-            try:
-                el = next(it)
-            except StopIteration:
-                it.reset(0)
-                break
-            el.pp(output=output)
-            i += 1
-            lastindex = el.index
-        else:
-            if lastindex is not None:
-                nummore = self.numpaths-(lastindex+1)
-                if nummore == 1:
-                    next(it).pp(output=output)
-                elif nummore > 1:
-                    print('<... %d more paths ...>' % nummore, file=output)
+    @maxpaths.setter
+    def maxpaths(self, value):
+        self.printer.max_more_lines = value
+
+    def _oh_get_num_lines(self):
+        return self.numpaths
+
+    def _oh_get_line_iter(self):
+        for el in self:
+            yield from el._oh_get_line_iter()
+
+    def _oh_get_more_msg(self, start_lineno, end_lineno):
+        nummore = self.numpaths-(end_lineno+1)
+        return '<... %d more paths ...>' % nummore
+
+    def _oh_get_empty_msg(self):
+        if self.numpaths:
+            return '<No more paths>'
+        return None
 
 
 class ShortestGraph:
@@ -452,17 +394,13 @@ class ShortestGraph:
     def __len__(self):
         return len(self.DstSets)
 
-    def __str__(self):
-        f = self.mod._root.io.StringIO()
-        self.pp(f)
-        return f.getvalue()
-
-    def pp(self, output=None):
-        if output is None:
-            output = self.mod.output
+    def __repr__(self):
+        lst = []
         for i, p in enumerate(self):
-            print('--- %s[%d] ---' % (self.dstname, i), file=output)
-            p.pp(output=output)
+            lst.append('--- %s[%d] ---' % (self.dstname, i))
+            lst.append(str(p))
+
+        return '\n'.join(lst)
 
 
 class _GLUECLAMP_:
@@ -475,6 +413,7 @@ class _GLUECLAMP_:
 
     _imports_ = (
         '_parent.ImpSet:mutnodeset',
+        '_parent:OutputHandling',
         '_parent.Use:idset',
         '_parent.Use:iso',
         '_parent.Use:Nothing',
@@ -501,7 +440,6 @@ class _GLUECLAMP_:
     def _get__hiding_tag_(self): return self._parent.View._hiding_tag_
     def _get_identity(self): return self.rel_table[R_IDENTITY.code]('')
     def _get_norelation(self): return self.rel_table[R_NORELATION.code]('')
-    def _get_output(self): return self._parent.OutputHandling.stdout
     def _get_saferepr(self): return self._root.reprlib.repr
     def _get_shpathstep(self): return self.hv.shpathstep
 
