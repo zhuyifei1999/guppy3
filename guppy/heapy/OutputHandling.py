@@ -4,18 +4,17 @@ import weakref
 
 # To restore the old-style class behavior that __getattr__ also affects special
 # methods.
-class _MetaAttrProxy(type):
-    def __init__(self, name, bases, dct):
-        self._proxied_classes = weakref.WeakSet({type, object})
-        self._add_proxy_attr('__repr__')
+class _AttrProxy:
+    _oh_proxied_classes = weakref.WeakSet({type, object})
 
-    def _add_proxy_attr(self, attr):
+    @classmethod
+    def _oh_add_proxy_attr(cls, attr):
         if not attr.startswith('__') or not attr.endswith('__'):
             return
-        for cls in self.__mro__:
-            if cls is object:
+        for scls in cls.__mro__:
+            if scls is object:
                 break
-            if attr in cls.__dict__:
+            if attr in scls.__dict__:
                 return
         if attr in ('__new__', '__init__', '__getattr__',
                     '__getattribute__', '__setattr__', '__delattr__',
@@ -30,19 +29,20 @@ class _MetaAttrProxy(type):
 
             return generated_function
 
-        setattr(self, attr, closure(attr))
+        setattr(cls, attr, closure(attr))
 
-    def _add_proxy_class(self, base):
-        if base in self._proxied_classes:
+    @classmethod
+    def _oh_add_proxy_class(cls, base):
+        if base in cls._oh_proxied_classes:
             return
 
-        for cls in base.__mro__:
-            self._proxied_classes.add(cls)
-            for attr, val in cls.__dict__.items():
+        for scls in base.__mro__:
+            cls._oh_proxied_classes.add(scls)
+            for attr, val in scls.__dict__.items():
                 if not isinstance(val, types.FunctionType):
                     continue
 
-                self._add_proxy_attr(attr)
+                cls._oh_add_proxy_attr(attr)
 
 
 class OutputHandler:
@@ -84,7 +84,7 @@ class OutputBuffer:
         self.lines[self.line_no] += s
 
 
-class AllPrinter(metaclass=_MetaAttrProxy):
+class AllPrinter(_AttrProxy):
     _oh_next_lineno = None
 
     def __init__(self, printer):
@@ -107,7 +107,7 @@ class AllPrinter(metaclass=_MetaAttrProxy):
         return None
 
 
-class MorePrinter(metaclass=_MetaAttrProxy):
+class MorePrinter(_AttrProxy):
     _oh_next_lineno = None
 
     def __init__(self, printer, previous):
@@ -357,7 +357,7 @@ class _GLUECLAMP_:
         if handler is None:
             handler = client
         printer = Printer(self, client, handler, **kwds)
-        MorePrinter._add_proxy_class(client.__class__)
+        _AttrProxy._oh_add_proxy_class(client.__class__)
         return MorePrinter(printer, printer)
 
     def output_buffer(self):
