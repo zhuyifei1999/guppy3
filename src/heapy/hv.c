@@ -501,9 +501,7 @@ xt_relate(ExtraType *xt, NyHeapRelate *hr)
     if (PyType_Ready(type) == -1)
         return -1;
     if ((PyObject *)type == hr->tgt) {
-/*    if (hr->visit(NYHR_RELSRC, PyUnicode_FromString("type(%s)"), hr)) */
         if (hr->visit(NYHR_INTERATTR, PyUnicode_FromString("ob_type"), hr))
-
             return 0;
     }
     return xt->xt_relate(xt, hr);

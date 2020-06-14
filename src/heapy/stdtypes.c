@@ -132,11 +132,15 @@ function_relate(NyHeapRelate *r)
     PyFunctionObject *v = (void *)r->src;
     RENAMEATTR(func_code, __code__)
     RENAMEATTR(func_globals, __globals__)
+    RENAMEATTR(func_module, __module__)
     RENAMEATTR(func_defaults, __defaults__)
-    RENAMEATTR(func_closure, __closure__)
+    RENAMEATTR(func_kwdefaults, __kwdefaults__)
     RENAMEATTR(func_doc, __doc__)
     RENAMEATTR(func_name, __name__)
     RENAMEATTR(func_dict, __dict__)
+    RENAMEATTR(func_closure, __closure__)
+    RENAMEATTR(func_annotations, __annotations__)
+    RENAMEATTR(func_qualname, __qualname__)
     return dict_relate_kv(r, v->func_dict, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
