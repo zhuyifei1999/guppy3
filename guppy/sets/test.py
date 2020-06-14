@@ -1361,6 +1361,7 @@ MutBitSet([])
 
         # Test pop
         ns.add(a)
+        assert len(ns) == 1
         assert ns.pop() is a
         try:
             ns.pop()
@@ -1368,6 +1369,7 @@ MutBitSet([])
             pass
         else:
             raise AssertionError('expected ValueError')
+        assert len(ns) == 0
 
         assert ns0 is ns
 

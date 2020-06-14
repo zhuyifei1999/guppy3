@@ -751,6 +751,7 @@ nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
         NyBit bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
         if (bitno == -1 && PyErr_Occurred())
             return 0;
+        Py_SIZE(v)--;
         return nodeset_bitno_to_obj(bitno);
     }
 }
