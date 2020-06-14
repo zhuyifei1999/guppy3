@@ -57,7 +57,7 @@ class RelationTestCase(TestCase):
 
         def f():
             return cellvalue
-        self.chkrel(f.__closure__[0], cellvalue, '%s->ob_ref')
+        self.chkrel(f.__closure__[0], cellvalue, '%s.cell_contents')
 
     def test_code_relation(self):
         def f():
