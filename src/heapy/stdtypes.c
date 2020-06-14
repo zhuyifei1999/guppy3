@@ -255,7 +255,7 @@ cell_relate(NyHeapRelate *r)
 {
     PyCellObject *v = (void *)r->src;
     if (v->ob_ref == r->tgt &&
-        r->visit(NYHR_INTERATTR, PyUnicode_FromString("ob_ref"), r))
+        r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString("cell_contents"), r))
         return 1;
     return 0;
 }
