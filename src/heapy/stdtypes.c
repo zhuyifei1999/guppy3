@@ -127,6 +127,32 @@ tuple_relate(NyHeapRelate *r)
 }
 
 static int
+set_relate(NyHeapRelate *r)
+{
+    PyObject *it = PyObject_GetIter(r->src);
+    PyObject *obj;
+
+    if (it == NULL) {
+        return -1;
+    }
+
+    Py_ssize_t i = 0;
+    while ((obj = PyIter_Next(it))) {
+        if (r->tgt == obj) {
+            r->visit(NYHR_INSET, PyLong_FromSsize_t(i++), r);
+            return 1;
+        }
+        Py_DECREF(obj);
+    }
+
+    Py_DECREF(it);
+
+    if (PyErr_Occurred())
+        return -1;
+    return 0;
+}
+
+static int
 function_relate(NyHeapRelate *r)
 {
     PyFunctionObject *v = (void *)r->src;
@@ -360,6 +386,18 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,           /* traverse */
         tuple_relate /* relate */
     }, {
+        0,         /* flags */
+        0,         /* type */
+        0,         /* size */
+        0,         /* traverse */
+        set_relate /* relate */
+    }, {
+        0,         /* flags */
+        0,         /* type */
+        0,         /* size */
+        0,         /* traverse */
+        set_relate /* relate */
+    }, {
         0,              /* flags */
         0,              /* type */
         0,              /* size */
@@ -428,6 +466,8 @@ NyStdTypes_init(void)
     NyStdTypes_HeapDef[x++].type = &PyDict_Type;
     NyStdTypes_HeapDef[x++].type = &PyList_Type;
     NyStdTypes_HeapDef[x++].type = &PyTuple_Type;
+    NyStdTypes_HeapDef[x++].type = &PySet_Type;
+    NyStdTypes_HeapDef[x++].type = &PyFrozenSet_Type;
     NyStdTypes_HeapDef[x++].type = &PyFunction_Type;
     NyStdTypes_HeapDef[x++].type = &PyModule_Type;
     NyStdTypes_HeapDef[x++].type = &PyFrame_Type;

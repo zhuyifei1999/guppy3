@@ -54,8 +54,9 @@ typedef struct NyHeapRelate {
 #define NYHR_LOCAL_VAR 6  /* src (a frame) has local variable named <relator> with value tgt */
 #define NYHR_CELL      7  /* src has cell variable named <relator> containing value tgt */
 #define NYHR_STACK     8  /* src has a stack entry numbered <relator> with value tgt */
-#define NYHR_RELSRC    9  /* relator % src is tgt ; tgt is relator % src*/
-#define NYHR_LIMIT     10 /* All others are < NYHR_LIMIT */
+#define NYHR_INSET     9  /* src is a set and includes tgt, with current iterated index <relator> */
+#define NYHR_RELSRC    10 /* relator % src is tgt ; tgt is relator % src*/
+#define NYHR_LIMIT     11 /* All others are < NYHR_LIMIT */
 
 /* NyHeapDef - structure to define by external type providers to define themselves wrt heapy
 */

@@ -419,7 +419,7 @@ nodeset_traverse(NyHeapTraverse *ta)
 
 typedef struct {
     NyHeapRelate *r;
-    int i;
+    Py_ssize_t i;
 } RelateTravArg;
 
 static int
@@ -428,7 +428,7 @@ nodeset_relate_visit(PyObject *obj, RelateTravArg *ta)
     NyHeapRelate *r = ta->r;
 
     if (r->tgt == obj) {
-        r->visit(NYHR_RELSRC, PyUnicode_FromFormat("list(%%s)[%d]", ta->i), r);
+        r->visit(NYHR_INSET, PyLong_FromSsize_t(ta->i), r);
         return 1;
     }
     ta->i++;

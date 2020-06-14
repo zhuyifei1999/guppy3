@@ -63,14 +63,19 @@ class R_STACK:
     strpat = '%s->f_valuestack[%d]'
 
 
-class R_RELSRC:
+class R_INSET:
     code = 9
+    strpat = 'list(%s)[%d]'
+
+
+class R_RELSRC:
+    code = 10
     def stra(self, a, safe=True):
         return self.r % (a,)
 
 
 class R_LIMIT:
-    code = 10
+    code = 11
 
 
 @functools.total_ordering
