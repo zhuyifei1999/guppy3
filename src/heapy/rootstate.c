@@ -212,14 +212,6 @@ static struct PyMemberDef ts_members[] = {
 
 #undef MEMBER
 
-
-#define VISIT(SLOT)                           \
-    if (SLOT) {                               \
-        err = visit((PyObject *)(SLOT), arg); \
-        if (err)                              \
-            return err;                       \
-    }
-
 #define ISATTR(name)                                                                  \
     if ((PyObject *)is->name == r->tgt) {                                             \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #name), r)) \
@@ -369,83 +361,82 @@ rootstate_traverse(NyHeapTraverse *ta)
     void *arg = ta->arg;
     PyThreadState *ts, *bts = PyThreadState_GET();
     PyInterpreterState *is;
-    int err;
 
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
         if (hv->is_hiding_calling_interpreter && is == bts->interp)
             continue;
-        VISIT(is->modules);
+        Py_VISIT(is->modules);
         // Not traversing through this because it is of the same level as
         // modules, making pathfinding generate an extra path.
-        // VISIT(is->modules_by_index);
-        VISIT(is->sysdict);
-        VISIT(is->builtins);
-        VISIT(is->importlib);
+        // Py_VISIT(is->modules_by_index);
+        Py_VISIT(is->sysdict);
+        Py_VISIT(is->builtins);
+        Py_VISIT(is->importlib);
 
-        VISIT(is->codec_search_path);
-        VISIT(is->codec_search_cache);
-        VISIT(is->codec_error_registry);
+        Py_VISIT(is->codec_search_path);
+        Py_VISIT(is->codec_search_cache);
+        Py_VISIT(is->codec_error_registry);
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
-        VISIT(is->dict);
+        Py_VISIT(is->dict);
 #endif
 
-        VISIT(is->builtins_copy);
+        Py_VISIT(is->builtins_copy);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
-        VISIT(is->import_func);
+        Py_VISIT(is->import_func);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
 # ifdef HAVE_FORK
-        VISIT(is->before_forkers);
-        VISIT(is->after_forkers_parent);
-        VISIT(is->after_forkers_child);
+        Py_VISIT(is->before_forkers);
+        Py_VISIT(is->after_forkers_parent);
+        Py_VISIT(is->after_forkers_child);
 # endif
 
-        VISIT(is->pyexitmodule);
+        Py_VISIT(is->pyexitmodule);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
-        VISIT(is->audit_hooks);
+        Py_VISIT(is->audit_hooks);
 #endif
 
         for (ts = is->tstate_head; ts; ts = ts->next) {
             if (ts == bts && hv->limitframe) {
-                VISIT(hv->limitframe);
+                Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
-                VISIT(ts->frame);
+                Py_VISIT(ts->frame);
             }
-            VISIT(ts->c_profileobj);
-            VISIT(ts->c_traceobj);
+            Py_VISIT(ts->c_profileobj);
+            Py_VISIT(ts->c_traceobj);
 
-            VISIT(ts->curexc_type);
-            VISIT(ts->curexc_value);
-            VISIT(ts->curexc_traceback);
+            Py_VISIT(ts->curexc_type);
+            Py_VISIT(ts->curexc_value);
+            Py_VISIT(ts->curexc_traceback);
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-            VISIT(ts->exc_state.exc_type);
-            VISIT(ts->exc_state.exc_value);
-            VISIT(ts->exc_state.exc_traceback);
+            Py_VISIT(ts->exc_state.exc_type);
+            Py_VISIT(ts->exc_state.exc_value);
+            Py_VISIT(ts->exc_state.exc_traceback);
 #else
-            VISIT(ts->exc_type);
-            VISIT(ts->exc_value);
-            VISIT(ts->exc_traceback);
+            Py_VISIT(ts->exc_type);
+            Py_VISIT(ts->exc_value);
+            Py_VISIT(ts->exc_traceback);
 #endif
 
-            VISIT(ts->dict);
-            VISIT(ts->async_exc);
+            Py_VISIT(ts->dict);
+            Py_VISIT(ts->async_exc);
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
-            VISIT(ts->coroutine_wrapper);
+            Py_VISIT(ts->coroutine_wrapper);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
-            VISIT(ts->async_gen_firstiter);
-            VISIT(ts->async_gen_finalizer);
+            Py_VISIT(ts->async_gen_firstiter);
+            Py_VISIT(ts->async_gen_finalizer);
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-            VISIT(ts->context);
+            Py_VISIT(ts->context);
 #endif
         }
     }

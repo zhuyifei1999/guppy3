@@ -112,18 +112,17 @@ hv_PyList_Pop(PyObject *list)
 static int
 hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 {
-    int err;
-    VISIT(hv->root);
-    VISIT(hv->limitframe);
-    VISIT(hv->static_types);
-    VISIT(hv->weak_type_callback);
+    Py_VISIT(hv->root);
+    Py_VISIT(hv->limitframe);
+    Py_VISIT(hv->static_types);
+    Py_VISIT(hv->weak_type_callback);
 
     if (hv->xt_table) {
         size_t i;
         for (i = 0; i < hv->xt_size; i++) {
             ExtraType *xt;
             for (xt = hv->xt_table[i]; xt; xt = xt->xt_next) {
-                VISIT(xt->xt_weak_type);
+                Py_VISIT(xt->xt_weak_type);
             }
         }
     }

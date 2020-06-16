@@ -14,13 +14,6 @@
 #define ALIGN_MASK (ALIGNMENT - 1)
 #define ALIGN(z)   ((z + ALIGN_MASK) & ~ALIGN_MASK)
 
-#define VISIT(SLOT)                           \
-    if (SLOT) {                               \
-        err = visit((PyObject *)(SLOT), arg); \
-        if (err)                              \
-            return err;                       \
-    }
-
 #define ATTR(name) if ((PyObject *)v->name == r->tgt &&        \
     (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(#name), r))) \
         return 1;
@@ -297,19 +290,18 @@ meth_relate(NyHeapRelate *r)
 
 static int
 code_traverse(NyHeapTraverse *ta) {
-    int err = 0;
     PyCodeObject *co = (void *)ta->obj;
     visitproc visit = ta->visit;
     void *arg = ta->arg;
-    VISIT(co->co_code);
-    VISIT(co->co_consts);
-    VISIT(co->co_names);
-    VISIT(co->co_varnames);
-    VISIT(co->co_freevars);
-    VISIT(co->co_cellvars);
-    VISIT(co->co_filename);
-    VISIT(co->co_name);
-    VISIT(co->co_lnotab);
+    Py_VISIT(co->co_code);
+    Py_VISIT(co->co_consts);
+    Py_VISIT(co->co_names);
+    Py_VISIT(co->co_varnames);
+    Py_VISIT(co->co_freevars);
+    Py_VISIT(co->co_cellvars);
+    Py_VISIT(co->co_filename);
+    Py_VISIT(co->co_name);
+    Py_VISIT(co->co_lnotab);
     return 0;
 }
 
@@ -326,18 +318,16 @@ type_traverse(NyHeapTraverse *ta)
     visitproc visit = ta->visit;
     void *arg = ta->arg;
 
-    int err;
-
-    VISIT(type->tp_dict);
-    VISIT(type->tp_cache);
-    VISIT(type->tp_mro);
-    VISIT(type->tp_bases);
-    VISIT(type->tp_base);
-    VISIT(type->tp_subclasses);
+    Py_VISIT(type->tp_dict);
+    Py_VISIT(type->tp_cache);
+    Py_VISIT(type->tp_mro);
+    Py_VISIT(type->tp_bases);
+    Py_VISIT(type->tp_base);
+    Py_VISIT(type->tp_subclasses);
 
     if (!(type->tp_flags & Py_TPFLAGS_HEAPTYPE))
         return 0;
-    VISIT(((PyHeapTypeObject *)type)->ht_slots ) ;
+    Py_VISIT(((PyHeapTypeObject *)type)->ht_slots ) ;
     return 0;
 }
 

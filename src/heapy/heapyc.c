@@ -78,13 +78,6 @@ PyObject *_hiding_tag__name;
 
 #include "impsets.c"
 
-#define VISIT(SLOT)                           \
-    if (SLOT) {                               \
-        err = visit((PyObject *)(SLOT), arg); \
-        if (err)                              \
-            return err;                       \
-    }
-
 static int
 iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
                 void *arg)
