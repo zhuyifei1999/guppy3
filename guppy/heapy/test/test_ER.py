@@ -113,6 +113,7 @@ class FirstCase(TestCase):
             "hp.Via('_.f_locals[\"abc\"]')",
             "hp.Via('_.f_locals [\"abc\"]')",
             "hp.Via('_->f_valuestack[0]')",
+            "hp.Via('list(_)[0]')",
         )):
             code = i + 1
             x = eval(s, {'hp': hp}, {})
