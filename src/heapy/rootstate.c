@@ -270,6 +270,10 @@ rootstate_relate(NyHeapRelate *r)
     for (is = PyInterpreterState_Head(), isno--;
          is;
          is = PyInterpreterState_Next(is), isno--) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+        if (is != PyInterpreterState_Get())
+            continue;
+#endif
         ISATTR(modules);
         ISATTR(modules_by_index);
         ISATTR(sysdict);
@@ -370,6 +374,10 @@ rootstate_traverse(NyHeapTraverse *ta)
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
         if (hv->is_hiding_calling_interpreter && is == bts->interp)
             continue;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+        if (is != PyInterpreterState_Get())
+            continue;
+#endif
         Py_VISIT(is->modules);
         // Not traversing through this because it is of the same level as
         // modules, making pathfinding generate an extra path.
@@ -485,6 +493,10 @@ rootstate_getattr(PyObject *obj, PyObject *name)
         for (is = PyInterpreterState_Head(), countis = 0;
              is;
              is = PyInterpreterState_Next(is), countis++) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+            if (is != PyInterpreterState_Get())
+                continue;
+#endif
             int isno = numis - countis - 1;
             if (isno == ino) {
                 if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
@@ -551,6 +563,10 @@ rootstate_getattr(PyObject *obj, PyObject *name)
         for (is = PyInterpreterState_Head(), countis = 0;
              is;
              is = PyInterpreterState_Next(is), countis++) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+            if (is != PyInterpreterState_Get())
+                continue;
+#endif
             int isno = numis - countis - 1;
             PyThreadState *ts;
             for (ts = is->tstate_head; ts; ts = ts->next) {
@@ -608,6 +624,10 @@ rootstate_dir(PyObject *self, PyObject *args)
     for (is = PyInterpreterState_Head(), isno--;
          is;
          is = PyInterpreterState_Next(is), isno--) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+        if (is != PyInterpreterState_Get())
+            continue;
+#endif
         ISATTR_DIR(modules);
         ISATTR_DIR(modules_by_index);
         ISATTR_DIR(sysdict);

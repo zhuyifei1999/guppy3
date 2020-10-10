@@ -266,7 +266,7 @@ Err:
 */
 
 
-Py_ssize_t
+static Py_ssize_t
 NyThreadState_SetAsyncExc(long id, PyObject *exc) {
     PyInterpreterState *interp;
     Py_ssize_t count = 0;

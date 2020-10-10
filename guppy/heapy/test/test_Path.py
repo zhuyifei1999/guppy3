@@ -383,6 +383,11 @@ class RootTestCase(TestCase):
             pass
 
     def test_secondary_interpreter(self):
+        import sys
+        if sys.version_info >= (3, 9):
+            print('multi-interpreter not supported past Python 3.9')
+            return
+
         try:
             import _thread
         except ImportError:
