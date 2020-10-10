@@ -7,6 +7,11 @@ import weakref
 class _AttrProxy:
     _oh_proxied_classes = weakref.WeakSet({type, object})
 
+    # Don'r rely on _oh_add_proxy_attr to prime us, some clients use
+    # setup_printing to setup __repr__ function.
+    def __repr__(self):
+        return self.__getattr__('__repr__')()
+
     @classmethod
     def _oh_add_proxy_attr(cls, attr):
         if not attr.startswith('__') or not attr.endswith('__'):
