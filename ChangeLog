@@ -1,10 +1,38 @@
+    Version 3.1.0
+
+2020-10-10  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.1.0
+
+2020-10-09  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.9 support, no inter-interpreter support
+
+2020-06-14  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Add R_INSET relation for in unordered set relationship
+
+2020-06-13  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Unified MorePrinter code path
+    * Set __qualname__ to __name__ on dynamic classes
+
+2020-05-19  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * hp.Prod(), .byprod classifier, producer profiler
+    * IdentitySet.prod to print tracemalloc results
+
+2020-05-14  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Add .all to MorePrinter
+
     Version 3.0.10
 
-2019-05-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+2020-05-12  YiFei Zhu  <zhuyifei1999@gmail.com>
 
     * Nothing changed, just releasing 3.0.10
 
-2019-03-01  YiFei Zhu  <zhuyifei1999@gmail.com>
+2020-03-01  YiFei Zhu  <zhuyifei1999@gmail.com>
 
     * Skip modules that don't have __dict__ attributes [Bob Haddleton]
 
