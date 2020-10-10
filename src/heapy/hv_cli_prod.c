@@ -16,7 +16,7 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
-static void lazy_init_hv_cli_prod()
+static void lazy_init_hv_cli_prod(void)
 {
     if (sizeof_PyGC_Head)
         return;

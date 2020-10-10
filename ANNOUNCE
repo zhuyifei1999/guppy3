@@ -14,7 +14,7 @@ This is a major feature release. The main news in this release:
 
 o Python 3.9 support, without subinterpreter support or inter-interpreter
   traversal.
-o Added .byprod classifier via tracemalloc, and .prod to print thracemalloc
+o Added .byprod classifier via tracemalloc, and .prod to print tracemalloc
   traceback.
 o Added .all to print all lines in a MorePrinter buffer.
 o Added R_INSET relation for being contained by an unordered set.
