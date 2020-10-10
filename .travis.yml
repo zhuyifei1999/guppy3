@@ -8,6 +8,7 @@ stages:
 before_install:
   - |
     if [[ "$TRAVIS_OS_NAME" = windows ]]; then
+        choco list python --all
         choco install python --version 3.8.0
         export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
         ln -s /c/Python38/python.exe /c/Python38/python3.exe
@@ -32,6 +33,10 @@ jobs:
       python: 3.8
       env:
         - ACTION=test
+    - name: Python 3.9 on Linux
+      python: 3.9
+      env:
+        - ACTION=test
     - name: Python 3 on macOS
       os: osx
       osx_image: xcode11
@@ -43,16 +48,16 @@ jobs:
       language: shell
       env:
         - ACTION=test
-    - name: Python 3.8 on Linux (sdist in venv)
-      python: 3.8
+    - name: Python 3.9 on Linux (sdist in venv)
+      python: 3.9
       env:
         - ACTION=sdisttest
-    - name: Python 3.8 on Linux (tracemalloc enabled)
-      python: 3.8
+    - name: Python 3.9 on Linux (tracemalloc enabled)
+      python: 3.9
       env:
         - ACTION=tracemalloctest
-    - name: Python 3.8 on Linux (Code Coverage)
-      python: 3.8
+    - name: Python 3.9 on Linux (Code Coverage)
+      python: 3.9
       env:
         - ACTION=codecov
     # - name: Python 3.7 on Linux (CPyChecker)
