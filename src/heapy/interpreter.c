@@ -196,9 +196,8 @@ t_bootstrap(void *boot_raw)
     }
 
     Py_EndInterpreter(tstate);
-    // Not deprecated in code because t_bootstrap in _thread module still uses
-    // it. If they have a solution for this issue of trying to release GIL while
-    // current thread state is NULL we can use their solution.
+    // We can't use _PyEval_ReleaseLock(NULL) here on Py3.9+
+    // because of fvisibility=hidden.
     PyEval_ReleaseLock();
     PyThread_exit_thread();
 }

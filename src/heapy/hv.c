@@ -73,6 +73,7 @@ PyDoc_STRVAR(hv_doc,
 # define Py_BUILD_CORE
 /* PyGC_Head */
 #  include <internal/pycore_gc.h>
+#  undef _PyGC_FINALIZED
 # undef Py_BUILD_CORE
 #endif
 
