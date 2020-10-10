@@ -227,7 +227,9 @@ hp_interpreter(PyObject *self, PyObject *args)
     Py_INCREF(cmd);
     Py_XINCREF(locals);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 9
     PyEval_InitThreads(); // Start the interpreter's thread-awareness
+#endif
 
     evt_ready = PyThread_allocate_lock();
     if (evt_ready == NULL) {
