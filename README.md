@@ -69,7 +69,7 @@ Partition of a set of 3 objects. Total size = 348 bytes.
 ```
 
 People have written awesome posts on how to use this toolset, including:
-* [How to use guppy/heapy for tracking down memory usage](https://pkgcore.readthedocs.io/en/latest/dev-notes/heapy.html)
+* [How to use guppy/heapy for tracking down memory usage](https://smira.ru/wp-content/uploads/2011/08/heapy.html)
 * [Debugging Django memory leak with TrackRefs and Guppy](https://opensourcehacker.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy/)
 * [Diagnosing Memory "Leaks" in Python](https://chase-seibert.github.io/blog/2013/08/03/diagnosing-memory-leaks-python.html)
 * [Digging into python memory issues in ckan with heapy](https://leastsignificant.blogspot.com/2015/06/digging-into-python-memory-issues-in.html)
