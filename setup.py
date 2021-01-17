@@ -1,4 +1,5 @@
 import os.path
+import re
 import sys
 from setuptools import setup, Extension
 from distutils.command.install import INSTALL_SCHEMES
@@ -34,8 +35,13 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
     with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
         long_description = f.read()
 
+    with open('guppy/_version.py', 'r') as versionfile:
+        version = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]$',
+                            versionfile.read(), re.M)
+        version = version.group(1)
+
     setup(name="guppy3",
-          version="3.1.0",
+          version=version,
           description="Guppy 3 -- Guppy-PE ported to Python 3",
           long_description=long_description,
           long_description_content_type='text/markdown',

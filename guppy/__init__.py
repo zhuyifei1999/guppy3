@@ -12,6 +12,8 @@ Root()  Create an object that provides a top level entry point.
 
 __all__ = ('hpy', 'Root')
 
+from guppy._version import __version__
+
 from guppy.etc.Glue import Root         # Get main Guppy entry point
 from guppy import sets as sets
 
