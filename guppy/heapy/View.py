@@ -532,7 +532,9 @@ def prime_builtin_types():
     import types
     import guppy.heapy.heapyc
     import guppy.sets.setsc
+    import os
     import sys
+    import warnings
     import weakref
 
     for mod in list(sys.modules.values()):
@@ -556,6 +558,41 @@ def prime_builtin_types():
     else:
         import re
         import traceback
+
+    if 'pythoncom' in sys.modules:
+        def get_pywin32_ver():
+            try:
+                import pkg_resources
+
+                return pkg_resources.get_distribution('pywin32').version
+            except Exception:
+                pass
+
+            try:
+                import distutils.sysconfig
+
+                site_pkg = distutils.sysconfig.get_python_lib(plat_specific=1)
+                with open(os.path.join(site_pkg, 'pywin32.version.txt')) as f:
+                    return f.read().strip()
+            except Exception:
+                pass
+
+            return None
+
+        pywin32_ver = get_pywin32_ver()
+
+        if pywin32_ver:
+            try:
+                pywin32_ver = int(pywin32_ver)
+            except ValueError:
+                pass
+            else:
+                if pywin32_ver < 300:
+                    warnings.warn(
+                        'pythoncom in pywin32 < 300 may cause crashes. See '
+                        'https://github.com/zhuyifei1999/guppy3/issues/25. '
+                        'You may want to upgrade to the newest version of '
+                        'pywin32 by running "pip install pywin32 --upgrade"')
 
 
 prime_builtin_types()
