@@ -152,9 +152,7 @@ static struct PyMemberDef is_members[] = {
 #endif
 
     MEMBER(builtins_copy),
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
     MEMBER(import_func),
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
 #ifdef HAVE_FORK
@@ -204,10 +202,8 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(coroutine_wrapper),
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
     MEMBER(async_gen_firstiter),
     MEMBER(async_gen_finalizer),
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
     MEMBER(context),
@@ -289,9 +285,7 @@ rootstate_relate(NyHeapRelate *r)
 #endif
 
         ISATTR(builtins_copy);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         ISATTR(import_func);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
 # ifdef HAVE_FORK
@@ -348,10 +342,8 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(coroutine_wrapper);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             TSATTR(async_gen_firstiter);
             TSATTR(async_gen_finalizer);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             TSATTR(context);
@@ -395,9 +387,7 @@ rootstate_traverse(NyHeapTraverse *ta)
 #endif
 
         Py_VISIT(is->builtins_copy);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         Py_VISIT(is->import_func);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
 # ifdef HAVE_FORK
@@ -443,10 +433,8 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->coroutine_wrapper);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             Py_VISIT(ts->async_gen_firstiter);
             Py_VISIT(ts->async_gen_finalizer);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             Py_VISIT(ts->context);
@@ -643,9 +631,7 @@ rootstate_dir(PyObject *self, PyObject *args)
 #endif
 
         ISATTR_DIR(builtins_copy);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
         ISATTR_DIR(import_func);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
 # ifdef HAVE_FORK
@@ -696,10 +682,8 @@ rootstate_dir(PyObject *self, PyObject *args)
             TSATTR_DIR(coroutine_wrapper);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 6
             TSATTR_DIR(async_gen_firstiter);
             TSATTR_DIR(async_gen_finalizer);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             TSATTR_DIR(context);

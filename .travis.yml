@@ -17,10 +17,6 @@ before_install:
 
 jobs:
   include:
-    - name: Python 3.5 on Linux
-      python: 3.5
-      env:
-        - ACTION=test
     - name: Python 3.6 on Linux
       python: 3.6
       env:

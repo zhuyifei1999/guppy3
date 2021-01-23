@@ -101,10 +101,10 @@ cibuildwheel-source)
 cibuildwheel)
     case "$1" in
     install)
-        pip install cibuildwheel==1.6.2
+        pip install cibuildwheel==1.8.0
         ;;
     script)
-        CIBW_BUILD='cp3[56789]-*' cibuildwheel --output-dir wheelhouse
+        CIBW_BUILD='cp3[6789]-*' cibuildwheel --output-dir wheelhouse
         ;;
     after_success)
         pip install twine
