@@ -231,6 +231,8 @@ class Stat:
 
         self.timemade = float(self.timemade)
 
+        self.mod.OutputHandling.setup_printing(self, self.format)
+
     def __getitem__(self, idx):
         if isinstance(idx, int):
             if idx < 0:
