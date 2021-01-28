@@ -70,6 +70,7 @@ class R_INSET:
 
 class R_RELSRC:
     code = 10
+
     def stra(self, a, safe=True):
         return self.r % (a,)
 
@@ -106,7 +107,7 @@ class RelationBase(object):
         return self.stra('%s')
 
     def inverted(self):
-        x = self.__class__(self.r, not self.isinverted)
+        return self.__class__(self.r, not self.isinverted)
 
     def stra(self, a, safe=True):
         return self.strpat % (a, self.r)
@@ -144,21 +145,23 @@ class Path:
     def __len__(self):
         return int((len(self.path) - 1) / 2)
 
-    def __str__(self):
+    def stra(self, safe=True):
         if self.path:
-            a = self.path[0]
             s = self.strprefix
             for i in range(1, len(self.path), 2):
                 r = self.path[i]
-                s = r.stra(s)
+                s = r.stra(s, safe=safe)
         else:
             s = '<Empty Path>'
         return s
 
+    def __str__(self):
+        return self.stra()
+
     def __repr__(self):
         return repr(str(self))
 
-    def _oh_get_line_iter(self, output=None):
+    def _get_line_iter(self):
         yield '%2d: %s' % (self.index, str(self) % self.srcname)
 
     def types(self):
@@ -363,7 +366,7 @@ class ShortestPaths:
 
     def _oh_get_line_iter(self):
         for el in self:
-            yield from el._oh_get_line_iter()
+            yield from el._get_line_iter()
 
     def _oh_get_more_msg(self, start_lineno, end_lineno):
         nummore = self.numpaths-(end_lineno+1)
