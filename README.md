@@ -32,6 +32,11 @@ Install with pip by:
 pip install guppy3
 ```
 
+Install with conda by:
+```
+conda install -c conda-forge guppy3
+```
+
 ## Usage
 
 The following example shows
