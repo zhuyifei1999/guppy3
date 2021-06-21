@@ -21,7 +21,21 @@ jobs:
       python: 3.6
       env:
         - ACTION=test
+    - name: Python 3.6 on Linux aarch64
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
+      python: 3.6
+      env:
+        - ACTION=test
     - name: Python 3.7 on Linux
+      python: 3.7
+      env:
+        - ACTION=test
+    - name: Python 3.7 on Linux aarch64
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
       python: 3.7
       env:
         - ACTION=test
@@ -29,7 +43,21 @@ jobs:
       python: 3.8
       env:
         - ACTION=test
+    - name: Python 3.8 on Linux aarch64
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
+      python: 3.8
+      env:
+        - ACTION=test
     - name: Python 3.9 on Linux
+      python: 3.9-dev
+      env:
+        - ACTION=test
+    - name: Python 3.9 on Linux aarch64
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
       python: 3.9-dev
       env:
         - ACTION=test
@@ -75,6 +103,14 @@ jobs:
         - ACTION=cibuildwheel-source
     - stage: deploy
       name: Build and deploy Linux wheels
+      services: docker
+      env:
+        - ACTION=cibuildwheel
+    - stage: deploy
+      name: Build and deploy aarch64 Linux wheels
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
       services: docker
       env:
         - ACTION=cibuildwheel
