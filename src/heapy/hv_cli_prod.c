@@ -16,6 +16,12 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+# define INTERNAL_MODULE "_testinternalcapi"
+#else
+# define INTERNAL_MODULE "_testcapi"
+#endif
+
 static void lazy_init_hv_cli_prod(void)
 {
     if (sizeof_PyGC_Head)
@@ -28,7 +34,7 @@ static void lazy_init_hv_cli_prod(void)
 
     PyObject *_testcapimodule, *_testcapi_SIZEOF_PYGC_HEAD = NULL;
 
-    _testcapimodule = PyImport_ImportModule("_testcapi");
+    _testcapimodule = PyImport_ImportModule(INTERNAL_MODULE);
     if (!_testcapimodule)
         goto Err;
 
@@ -53,7 +59,7 @@ Err:
     sizeof_PyGC_Head = sizeof(PyGC_Head);
     PyErr_WarnFormat(PyExc_UserWarning, 1,
                      "Unable to determine sizeof(PyGC_Head) from "
-                     "_testcapi.SIZEOF_PYGC_HEAD, assuming %zd",
+                     INTERNAL_MODULE ".SIZEOF_PYGC_HEAD, assuming %zd",
                      sizeof_PyGC_Head);
 }
 
