@@ -1,3 +1,30 @@
+    Version 3.1.1
+
+2021-06-29  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Build linux aarch64 wheel [odidev]
+
+2021-06-22  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix Py 3.9 to use SIZEOF_PYGC_HEAD in _testinternalcapi
+
+2021-01-28  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Slightly uasier to use unsafe repr for Path
+
+2021-01-23  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * End of support for Python 3.5
+
+2021-01-22  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed MorePrinter in Stat objects
+    * Add warning about pywin32 < 300, if it's imported
+
+2021-01-16  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Add guppy.__version__
+
     Version 3.1.0
 
 2020-10-10  YiFei Zhu  <zhuyifei1999@gmail.com>
