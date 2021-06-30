@@ -2,7 +2,7 @@
 
 2021-06-29  YiFei Zhu  <zhuyifei1999@gmail.com>
 
-    * Build linux aarch64 wheel [odidev]
+    * Add linux aarch64 wheel builds [odidev]
 
 2021-06-22  YiFei Zhu  <zhuyifei1999@gmail.com>
 
@@ -18,7 +18,7 @@
 
 2021-01-22  YiFei Zhu  <zhuyifei1999@gmail.com>
 
-    * Fixed MorePrinter in Stat objects
+    * Fix MorePrinter in Stat objects
     * Add warning about pywin32 < 300, if it's imported
 
 2021-01-16  YiFei Zhu  <zhuyifei1999@gmail.com>
