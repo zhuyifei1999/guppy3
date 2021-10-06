@@ -488,33 +488,32 @@ class RenderCase(TestCase):
         ps(iso(traceback))
         ps(iso(traceback.tb_frame))
 
-        expected = """\
-<2 int: 1, 2>
-<3 (float | int): <2 float: 2.0, 3.0> | <1 int: 1>>
-<1 list: <address>*0>
-<2 (dict (no owner) | list): <1 dict (no owner): <address>*0> | <1 list: <ad...>
-<2 list: <address>*0, <address>*0>
-<1 TypeError: <address>>
-<1 builtins.NoneType: None>
-<3 module: guppy.heapy.test.support, sys, types>
-<3 type: <Module>.C3, int, type>
-<1 <Module>.C1: <address>>
-<1 <Module>.C3: <address>>
-<1 type: <Module>.C1>
-<1 type: <Module>.C3>
-<1 types.BuiltinMethodType: len>
-<1 types.MethodType: <<Module>.RenderCase at <addre...>
-<1 function: <Module>.x>
-<1 types.MethodType: <<Module>.C1 at <address>>.x>
-<1 function: <Module>.x>
-<1 types.MethodType: <<Module>.C3 at <address>>.x>
-<1 dict (no owner): <address>*0>
-<1 dict of <Module>.C1: <address>>
-<1 dict of module: types>
-<1 types.TracebackType: <in frame <test_rendering at <address>> at <address>>>
-<1 types.FrameType: <test_rendering at <address>>>
-"""
-        expected = textwrap.dedent(expected)
+        expected = textwrap.dedent("""\
+            <2 int: 1, 2>
+            <3 (float | int): <2 float: 2.0, 3.0> | <1 int: 1>>
+            <1 list: <address>*0>
+            <2 (dict (no owner) | list): <1 dict (no owner): <address>*0> | <1 list: <ad...>
+            <2 list: <address>*0, <address>*0>
+            <1 TypeError: <address>>
+            <1 builtins.NoneType: None>
+            <3 module: guppy.heapy.test.support, sys, types>
+            <3 type: <Module>.C3, int, type>
+            <1 <Module>.C1: <address>>
+            <1 <Module>.C3: <address>>
+            <1 type: <Module>.C1>
+            <1 type: <Module>.C3>
+            <1 types.BuiltinMethodType: len>
+            <1 types.MethodType: <<Module>.RenderCase at <addre...>
+            <1 function: <Module>.x>
+            <1 types.MethodType: <<Module>.C1 at <address>>.x>
+            <1 function: <Module>.x>
+            <1 types.MethodType: <<Module>.C3 at <address>>.x>
+            <1 dict (no owner): <address>*0>
+            <1 dict of <Module>.C1: <address>>
+            <1 dict of module: types>
+            <1 types.TracebackType: <in frame <test_rendering at <address>> at <address>>>
+            <1 types.FrameType: <test_rendering at <address>>>
+            """)
         expected = expected.replace('<Module>', self.__module__)
 
         if self.version_info >= (3, 10):

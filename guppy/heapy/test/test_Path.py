@@ -68,7 +68,7 @@ class RelationTestCase(TestCase):
         self.chkpath(co, 3, '%s.co_consts[1]')
         # commented in notes Sep 27 2004
         relAttr = ('co_code', 'co_consts', 'co_names', 'co_varnames',
-                    'co_freevars', 'co_cellvars', 'co_filename', 'co_name')
+                'co_freevars', 'co_cellvars', 'co_filename', 'co_name')
         if self.version_info >= (3, 10):
             relAttr += ('co_linetable',)
         else:
