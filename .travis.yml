@@ -61,6 +61,17 @@ jobs:
       python: 3.9-dev
       env:
         - ACTION=test
+    - name: Python 3.10 on Linux
+      python: 3.10-dev
+      env:
+        - ACTION=test
+    - name: Python 3.10 on Linux aarch64
+      arch: arm64-graviton2
+      virt: vm
+      group: edge
+      python: 3.10-dev
+      env:
+        - ACTION=test
     - name: Python 3 on macOS
       os: osx
       osx_image: xcode11
@@ -72,16 +83,16 @@ jobs:
       language: shell
       env:
         - ACTION=test
-    - name: Python 3.9 on Linux (sdist in venv)
-      python: 3.9-dev
+    - name: Python 3.10 on Linux (sdist in venv)
+      python: 3.10-dev
       env:
         - ACTION=sdisttest
-    - name: Python 3.9 on Linux (tracemalloc enabled)
-      python: 3.9-dev
+    - name: Python 3.10 on Linux (tracemalloc enabled)
+      python: 3.10-dev
       env:
         - ACTION=tracemalloctest
-    - name: Python 3.9 on Linux (Code Coverage)
-      python: 3.9-dev
+    - name: Python 3.10 on Linux (Code Coverage)
+      python: 3.10-dev
       env:
         - ACTION=codecov
     # - name: Python 3.7 on Linux (CPyChecker)

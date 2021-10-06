@@ -226,7 +226,16 @@ frame_relate(NyHeapRelate *r)
         return 1;
 
     /* stack */
-
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+    PyObject **p;
+    PyObject **l = v->f_valuestack + v->f_stackdepth;
+    for (p = v->f_valuestack; p < l; p++) {
+        if (*p == r->tgt) {
+            if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
+                return 1;
+        }
+    }
+#else
     if (v->f_stacktop != NULL) {
         PyObject **p;
         for (p = v->f_valuestack; p < v->f_stacktop; p++) {
@@ -236,6 +245,7 @@ frame_relate(NyHeapRelate *r)
             }
         }
     }
+#endif
     return 0;
 }
 
@@ -301,7 +311,11 @@ code_traverse(NyHeapTraverse *ta) {
     Py_VISIT(co->co_cellvars);
     Py_VISIT(co->co_filename);
     Py_VISIT(co->co_name);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+    Py_VISIT(co->co_linetable);
+#else
     Py_VISIT(co->co_lnotab);
+#endif
     return 0;
 }
 
