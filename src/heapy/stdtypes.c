@@ -227,10 +227,11 @@ frame_relate(NyHeapRelate *r)
 
     /* stack */
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
-    int i;
-    for (i = 0; i < v->f_stackdepth; i++) {
-        if (v->f_valuestack[i] == r->tgt) {
-            if (r->visit(NYHR_STACK, PyLong_FromSsize_t((&v->f_valuestack[i])-v->f_valuestack), r))
+    PyObject **p;
+    PyObject **l = v->f_valuestack + v->f_stackdepth;
+    for (p = v->f_valuestack; p < l; p++) {
+        if (*p == r->tgt) {
+            if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
                 return 1;
         }
     }
