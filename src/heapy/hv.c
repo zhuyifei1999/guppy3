@@ -72,8 +72,8 @@ PyDoc_STRVAR(hv_doc,
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
 # define Py_BUILD_CORE
 /* PyGC_Head */
-#  include <internal/pycore_gc.h>
 #  undef _PyGC_FINALIZED
+#  include <internal/pycore_gc.h>
 # undef Py_BUILD_CORE
 #endif
 

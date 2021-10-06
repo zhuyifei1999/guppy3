@@ -67,10 +67,13 @@ class RelationTestCase(TestCase):
         # xxx brittle test but catches a bug
         self.chkpath(co, 3, '%s.co_consts[1]')
         # commented in notes Sep 27 2004
-        self.chkrelattr(co, 'co_code', 'co_consts', 'co_names', 'co_varnames',
-                        'co_freevars', 'co_cellvars', 'co_filename', 'co_name',
-                        'co_lnotab')
-
+        relAttr = ( 'co_code', 'co_consts', 'co_names', 'co_varnames',
+                    'co_freevars', 'co_cellvars', 'co_filename', 'co_name')
+        if 3 <= self.version_info.major and 10 <= self.version_info.minor:
+            relAttr += ('co_linetable',)
+        else:
+            relAttr += ('co_lnotab',)
+        self.chkrelattr(co, *relAttr)
 
     def test_dict_relation(self):
         k1 = 'k1'

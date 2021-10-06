@@ -93,6 +93,7 @@ class TestCase(unittest.TestCase):
         self.View = self.heapy.View
         self.iso = self.Use.iso
         self.idset = self.Use.idset
+        self.version_info = sys.version_info
 
     def aseq(self, a, b, cont=0):
         if a != b:

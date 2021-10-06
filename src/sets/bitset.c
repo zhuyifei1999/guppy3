@@ -807,8 +807,15 @@ NyMutBitSet_SubtypeNew(PyTypeObject *type, NyImmBitSetObject *set, NyUnionObject
         v->cur_field = 0;
         v->cpl = 0;
         v->splitting_size = 500/*1000*/;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
+        Py_SET_REFCNT(&v->fst_root, 1);
+        Py_SET_SIZE(&v->fst_root, 0);
+#else
         Py_REFCNT(&v->fst_root) = 1;
         Py_SIZE(&v->fst_root) = 0;
+#endif
+
         v->fst_root.cur_size = 0;
         if (!root) {
             v->root = &v->fst_root;
