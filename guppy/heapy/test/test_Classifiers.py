@@ -517,7 +517,7 @@ class RenderCase(TestCase):
         expected += "\n"
         expected = expected.replace('<Module>', self.__module__)
 
-        if 3 <= self.version_info.major and 10 <= self.version_info.minor:
+        if self.version_info >= (3, 10):
             expected = expected.replace('builtins.NoneType', 'types.NoneType')
         self.aseq(o.getvalue(), expected)
 
