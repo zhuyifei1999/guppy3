@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.1.1
+I am happy to announce Guppy 3 3.1.2
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -10,11 +10,7 @@ common source.
 
 Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
-The main news in this release:
-
-o Added linux aarch64 wheel builds
-o Added warning about pywin32 < 300 if it's imported, due to crash when
-  traversing its heap.
+This release adds support for Python 3.10, thanks to smn-3-14.
 
 License: MIT
 

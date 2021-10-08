@@ -1,3 +1,13 @@
+    Version 3.1.2
+
+2021-10-08  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.1.2
+
+2020-10-06  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.10 support [smn-3-14]
+
     Version 3.1.1
 
 2021-06-29  YiFei Zhu  <zhuyifei1999@gmail.com>
