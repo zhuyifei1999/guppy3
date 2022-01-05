@@ -934,6 +934,19 @@ class NewTestCase(TestCase):
 10: Src[10]
 """)
 
+    def test_comparison(self):
+        # Test that non-compariable keys won't crash
+        # output order may be arbitrary not the output is not tested
+
+        iso = self.iso
+        dst = []
+
+        shp = iso(dst).get_shpaths(iso({0: dst, '': dst}))
+        str(shp)
+
+        shp = iso(dst).get_shpaths(iso({object(): dst, object(): dst}))
+        str(shp)
+
 
 def run_test(case, debug=0):
     support.run_unittest(case, debug)

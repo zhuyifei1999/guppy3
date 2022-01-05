@@ -88,12 +88,16 @@ class RelationBase(object):
         self.isinverted = isinverted
 
     def __lt__(self, other):
-        if isinstance(other, RelationBase):
-            if self.code != other.code:
-                return self.code < other.code
-            return self.r < other.r
-        else:
+        if not isinstance(other, RelationBase):
             return id(type(self)) < id(type(other))
+        if self.code != other.code:
+            return self.code < other.code
+        if type(self.r) is not type(other.r):
+            return id(type(self.r)) < id(type(other.r))
+        try:
+            return self.r < other.r
+        except TypeError:
+            return id(self.r) < id(other.r)
 
     def __eq__(self, other):
         if isinstance(other, RelationBase):
