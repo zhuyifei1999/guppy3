@@ -2071,7 +2071,9 @@ class Summary_str:
             return self.shorter_invtypes[x]
         if x in self.invtypes:
             return self.invtypes[x]
-        return '%s.%s' % (x.__module__, x.__name__)
+        if not hasattr(x, '__module__'):
+            return f'<unknown module>.{x.__name__}'
+        return f'{x.__module__}.{x.__name__}'
     str_type._idpart_header = 'Name'
 
     def str_type_longer(self, x):
