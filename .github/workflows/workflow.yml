@@ -1,0 +1,167 @@
+name: Workflow
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - -v*
+  pull_request:
+
+jobs:
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
+
+  test_matrix:
+    name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }} (tracemalloc=${{ matrix.tracemalloc }}, codecov=${{ matrix.codecov }}, sdist=${{ matrix.sdist }})
+    needs: build_sdist
+    runs-on: ${{ matrix.os }}
+    # https://github.com/zhuyifei1999/guppy3/issues/37
+    continue-on-error: ${{ matrix.os == 'windows-2019' && matrix.python-version == '3.9' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        tracemalloc: [true, false]
+        codecov: [true, false]
+        sdist: [true, false]
+
+        exclude:
+          - codecov: true
+            sdist: true
+
+    steps:
+    - name: Checkout
+      if: ${{ !matrix.sdist }}
+      uses: actions/checkout@v2
+    - name: Download sdist
+      if: ${{ matrix.sdist }}
+      uses: actions/download-artifact@v2
+      with:
+        name: artifact
+        path: dist
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install
+      if: ${{ !matrix.sdist }}
+      run: pip install -ve .
+      env:
+        CFLAGS: ${{ matrix.codecov && '-coverage' || ''}}
+    - name: Install sdist
+      if: ${{ matrix.sdist }}
+      shell: bash
+      run: pip install -v dist/*.tar.gz
+      env:
+        CFLAGS: ${{ matrix.codecov && '-coverage' || ''}}
+
+    - name: Install codecov
+      if: ${{ matrix.codecov }}
+      run: pip install coverage
+
+    - name: Make test script
+      shell: bash
+      run: |
+        cat > /tmp/test.py << EOF
+        from guppy import hpy, heapy
+        hpy().test()
+        heapy.heapyc.xmemstats()
+        EOF
+
+    - name: Test
+      if: ${{ !matrix.codecov }}
+      shell: bash
+      run: python /tmp/test.py
+      env:
+        PYTHONTRACEMALLOC: ${{ matrix.tracemalloc && '1' || '' }}
+        PYTHONFAULTHANDLER: 1
+    - name: Test (codecov)
+      if: ${{ matrix.codecov }}
+      shell: bash
+      run: coverage run /tmp/test.py
+      env:
+        PYTHONTRACEMALLOC: ${{ matrix.tracemalloc && '1' || '' }}
+        PYTHONFAULTHANDLER: 1
+
+    - name: Upload codecov
+      if: ${{ matrix.codecov }}
+      shell: bash
+      run: bash <(curl -s https://codecov.io/bash)
+
+  build_wheels_native:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: cp3{[6789],10}-*
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_wheels_emulated:
+    name: Build wheels on ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        arch: [aarch64, ppc64le, s390x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: cp3{[6789],10}-*
+          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  upload_pypi:
+    needs: [test_matrix, build_wheels_native, build_wheels_emulated, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          # To test: repository_url: https://test.pypi.org/legacy/
