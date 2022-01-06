@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - issue37
     tags:
       - -v*
   pull_request:
@@ -27,14 +28,14 @@ jobs:
     needs: build_sdist
     runs-on: ${{ matrix.os }}
     # https://github.com/zhuyifei1999/guppy3/issues/37
-    continue-on-error: ${{ matrix.os == 'windows-2019' && matrix.python-version == '3.9' }}
+    # continue-on-error: ${{ matrix.os == 'windows-2019' && matrix.python-version == '3.9' }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
-        tracemalloc: [true, false]
+        os: [windows-2019]
+        python-version: ["3.9"]
+        tracemalloc: [false]
         codecov: [true, false]
         sdist: [true, false]
 
@@ -106,7 +107,7 @@ jobs:
   build_wheels_native:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && false
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-10.15]
@@ -126,7 +127,7 @@ jobs:
   build_wheels_emulated:
     name: Build wheels on ${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && false
     strategy:
       matrix:
         os: [ubuntu-20.04]
