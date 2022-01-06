@@ -3,10 +3,11 @@ Addapted from Python standard module test_support.
 """
 
 import contextlib
-import unittest
+import difflib
 import pdb
 import sys
 import tracemalloc
+import unittest
 
 
 class Error(Exception):
@@ -58,9 +59,9 @@ def run_suite(suite, testclass=None):
             err = result.failures[0][1]
         else:
             if testclass is None:
-                msg = "errors occurred; run in verbose mode for details"
+                msg = 'errors occurred; run in verbose mode for details'
             else:
-                msg = "errors occurred in %s.%s" \
+                msg = 'errors occurred in %s.%s' \
                       % (testclass.__module__, testclass.__name__)
             raise TestFailed(msg)
         raise TestFailed(err)
@@ -97,8 +98,12 @@ class TestCase(unittest.TestCase):
 
     def aseq(self, a, b, cont=0):
         if a != b:
-            print("aseq: Expected: b = ", b)
-            print("Got actually  : a = ", a)
+            print('aseq: Expected: b = ', b)
+            print('Got actually  : a = ', a)
+            if isinstance(a, str) and isinstance(b, str):
+                print('Diff = ', ''.join(difflib.unified_diff(
+                    b.splitlines(keepends=True),
+                    a.splitlines(keepends=True))))
             if cont <= 0:
                 if cont < 0:
                     pdb.set_trace()
@@ -107,8 +112,8 @@ class TestCase(unittest.TestCase):
 
     def asis(self, a, b, cont=0):
         if a is not b:
-            print("asis: Expected: b = ", b)
-            print("Got actually  : a = ", a)
+            print('asis: Expected: b = ', b)
+            print('Got actually  : a = ', a)
             if cont <= 0:
                 if cont < 0:
                     pdb.set_trace()
