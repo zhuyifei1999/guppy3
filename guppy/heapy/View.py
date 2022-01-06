@@ -489,7 +489,6 @@ any of the objects in the set X."""
                 Y = None
 
         X = self.rg.relimg(X)
-        X = self.immnodeset(X) - [None]
         X = self.retset(X)
         return X
 
