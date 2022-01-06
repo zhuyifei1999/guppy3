@@ -458,8 +458,8 @@ Methods
                 return
             start += 1
 
-    def linegenerator(self, xxx_todo_changeme, ixl, parent=None):
-        (kind, set) = xxx_todo_changeme
+    def linegenerator(self, kindset, ixl, parent=None):
+        (kind, set) = kindset
         seenline = self.seensets.get(set.nodes)
         ixl = list(ixl)
         line = RefPatRow(self, (kind, set), seenline=seenline,
