@@ -1,5 +1,5 @@
 # Guppy 3
-[![Build Status](https://img.shields.io/travis/com/zhuyifei1999/guppy3?label=tests)](https://app.travis-ci.com/github/zhuyifei1999/guppy3) [![Codecov](https://img.shields.io/codecov/c/github/zhuyifei1999/guppy3)](https://codecov.io/gh/zhuyifei1999/guppy3) [![PyPI version](https://img.shields.io/pypi/v/guppy3)](https://pypi.org/project/guppy3/) [![Repology - Repositories](https://img.shields.io/repology/repositories/python:guppy3)](https://repology.org/project/python:guppy3/versions)  
+[![Build Status](https://img.shields.io/github/workflow/status/zhuyifei1999/guppy3/workflow/master?label=tests)](https://github.com/zhuyifei1999/guppy3/actions/workflows/workflow.yml) [![Codecov](https://img.shields.io/codecov/c/github/zhuyifei1999/guppy3)](https://codecov.io/gh/zhuyifei1999/guppy3) [![PyPI version](https://img.shields.io/pypi/v/guppy3)](https://pypi.org/project/guppy3/) [![Repology - Repositories](https://img.shields.io/repology/repositories/python:guppy3)](https://repology.org/project/python:guppy3/versions)  
 [![PyPI - Implementation](https://img.shields.io/pypi/implementation/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/guppy3)](https://pypi.org/project/guppy3/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/guppy3)](https://pypistats.org/packages/guppy3) [![PyPI - License](https://img.shields.io/pypi/l/guppy3)](https://github.com/zhuyifei1999/guppy3/blob/master/LICENSE)
 
 A Python Programming Environment & Heap analysis toolset.
@@ -16,8 +16,8 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 ## Requirements
 
-You should have Python 3.6, 3.7, 3.8, or 3.9. This package is CPython only;
-PyPy and other Python implementations are not supported. Python 2 support
+You should have Python 3.6, 3.7, 3.8, 3.9, or 3.10. This package is CPython
+only; PyPy and other Python implementations are not supported. Python 2 support
 can be obtained from [guppy-pe](http://guppy-pe.sourceforge.net/) by
 Sverker Nilsson, from which this package is forked.
 
