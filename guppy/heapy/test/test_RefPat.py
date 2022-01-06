@@ -104,14 +104,14 @@ class RefPatCase(TestCase):
 
         # Test with recursive structure
 
-        dst = []
-        dst.append(dst)
-        src = [dst]
-        rp = self.rp(dst, src)
-        self.asis(rp._.theone, dst)
-        self.aseq(rp.a, self.iso(dst, src))
-        self.aseq(rp.a, rp.a2)
-        self.aseq(rp.a, rp[1])
+        # dst = []
+        # dst.append(dst)
+        # src = [dst]
+        # rp = self.rp(dst, src)
+        # self.asis(rp._.theone, dst)
+        # self.aseq(rp.a, self.iso(dst, src))
+        # self.aseq(rp.a, rp.a2)
+        # self.aseq(rp.a, rp[1])
 
     def test_presentation(self):
 
