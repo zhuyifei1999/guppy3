@@ -7,6 +7,7 @@
 #include "longintrepr.h"
 
 #include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -808,13 +809,8 @@ NyMutBitSet_SubtypeNew(PyTypeObject *type, NyImmBitSetObject *set, NyUnionObject
         v->cpl = 0;
         v->splitting_size = 500/*1000*/;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
         Py_SET_REFCNT(&v->fst_root, 1);
         Py_SET_SIZE(&v->fst_root, 0);
-#else
-        Py_REFCNT(&v->fst_root) = 1;
-        Py_SIZE(&v->fst_root) = 0;
-#endif
 
         v->fst_root.cur_size = 0;
         if (!root) {
@@ -927,7 +923,7 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
                 if (!bs) return 0;
                 sfp_move(&bs->ob_field[0], &v->fst_root.ob_field[0], cur_size);
             } else {
-                Py_SIZE(bs) = cur_size + 1;
+                Py_SET_SIZE(bs, cur_size + 1);
             }
         } else {
             bs = union_realloc(bs, cur_size + 1);
@@ -1357,7 +1353,7 @@ mutbitset_clear(NyMutBitSetObject *v)
     }
     v->cur_field = 0;
     v->root = &v->fst_root;
-    Py_SIZE(&v->fst_root) = 0;
+    Py_SET_SIZE(&v->fst_root, 0);
     v->fst_root.cur_size = 0;
     return 0;
 }
@@ -4352,8 +4348,8 @@ int fsb_dx_nybitset_init(PyObject *m)
 {
     PyObject *d;
 
-    Py_TYPE(&_NyImmBitSet_EmptyStruct) = &NyImmBitSet_Type;
-    Py_TYPE(&_NyImmBitSet_OmegaStruct) = &NyCplBitSet_Type;
+    Py_SET_TYPE(&_NyImmBitSet_EmptyStruct, &NyImmBitSet_Type);
+    Py_SET_TYPE(&_NyImmBitSet_OmegaStruct, &NyCplBitSet_Type);
 
     NYFILL(NyBitSet_Type);
     NYFILL(NyImmBitSet_Type);
