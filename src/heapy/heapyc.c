@@ -31,6 +31,7 @@ char heapyc_doc[] =
 #include "compile.h"
 #include "frameobject.h"
 #include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
 #include "../sets/nodeset.h"
 #include "hpinit.h"
 #include "heapdef.h"
@@ -224,7 +225,7 @@ INITFUNC (void)
     PyObject *m = NULL;
     PyObject *d;
 
-    Py_TYPE(&_Ny_RootStateStruct) = &NyRootState_Type;
+    Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
 
     // This has to be here because of 'initializer is not a constant'
     // build error on Windows.

@@ -6,6 +6,7 @@
 #include "structmember.h"
 
 #include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -264,7 +265,7 @@ NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag
         return NULL;
     /*assert (flags & NS_HOLDOBJECTS); */
     v->flags = flags;
-    Py_SIZE(v) = 0;
+    Py_SET_SIZE(v, 0);
     v->u.bitset = (PyObject *)NyMutBitSet_New();
     if (!v->u.bitset) {
         Py_DECREF(v);
@@ -627,7 +628,7 @@ NyNodeSet_clear(NyNodeSetObject *v)
         }
         if (NyMutBitSet_clear((NyMutBitSetObject *)v->u.bitset) == -1)
             return -1;
-        Py_SIZE(v) = 0;
+        Py_SET_SIZE(v, 0);
     } else {
         PyErr_Format(PyExc_ValueError,
                      "mutable nodeset required");
