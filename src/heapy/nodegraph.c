@@ -111,8 +111,8 @@ ng_dealloc(PyObject *v)
 {
     NyNodeGraphObject *ng = (void *)v;
     Py_ssize_t i;
-    Py_TRASHCAN_SAFE_BEGIN(v)
     PyObject_GC_UnTrack(v);
+    Py_TRASHCAN_BEGIN(v, ng_dealloc)
     ng_gc_clear(ng);
     for (i = 0; i < ng->used_size; i++) {
         Py_DECREF(ng->edges[i].src);
@@ -120,8 +120,7 @@ ng_dealloc(PyObject *v)
     }
     PyMem_FREE(ng->edges);
     Py_TYPE(ng)->tp_free(v);
-    Py_TRASHCAN_SAFE_END(v)
-
+    Py_TRASHCAN_END
 }
 
 static int

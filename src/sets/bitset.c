@@ -4,7 +4,7 @@
 #include <Python.h>
 
 #include "structmember.h"
-#include "longintrepr.h"
+// #include "longintrepr.h"
 
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"

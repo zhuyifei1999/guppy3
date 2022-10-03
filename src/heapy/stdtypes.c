@@ -1,6 +1,15 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# define Py_BUILD_CORE
+/* PyFrameObject */
+#  include <internal/pycore_frame.h>
+/* _PyLocals_GetKind */
+#  include <internal/pycore_code.h>
+# undef Py_BUILD_CORE
+#endif
+
 #include "structmember.h"
 #include "compile.h"
 #include "frameobject.h"
@@ -14,17 +23,13 @@
 #define ALIGN_MASK (ALIGNMENT - 1)
 #define ALIGN(z)   ((z + ALIGN_MASK) & ~ALIGN_MASK)
 
-#define ATTR(name) if ((PyObject *)v->name == r->tgt &&        \
-    (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(#name), r))) \
+#define GATTR(obj, name, rel) if ((PyObject *)(obj) == r->tgt &&        \
+    (r->visit(rel, PyUnicode_FromString(#name), r))) \
         return 1;
 
-#define RENAMEATTR(name, newname) if ((PyObject *)v->name == r->tgt && \
-    (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(#newname), r)))      \
-        return 1;
-
-#define INTERATTR(name) if ((PyObject *)v->name == r->tgt &&   \
-    (r->visit(NYHR_INTERATTR, PyUnicode_FromString(#name), r))) \
-        return 1;
+#define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE)
+#define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE)
+#define INTERATTR(name) GATTR(v->name, newname, NYHR_INTERATTR)
 
 extern PyObject *_hiding_tag__name;
 
@@ -174,6 +179,7 @@ module_relate(NyHeapRelate *r)
     return dict_relate_kv(r, dct, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 11
 static int
 frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int deref)
 {
@@ -195,28 +201,53 @@ frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int
     }
     return 0;
 }
+#endif
 
 static int
 frame_relate(NyHeapRelate *r)
 {
     PyFrameObject *v = (void *)r->src;
-    PyCodeObject *co = v->f_code;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    _PyInterpreterFrame *iv = v->f_frame;
+#else
+    PyFrameObject *iv = v;
+#endif
+    PyCodeObject *co = iv->f_code;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 11
     Py_ssize_t ncells = PyTuple_GET_SIZE(co->co_cellvars);
-    Py_ssize_t nlocals = co->co_nlocals;
+    Py_ssize_t nlocals = co->co_nlocals;;
     Py_ssize_t nfreevars = PyTuple_GET_SIZE(co->co_freevars);
+#endif
     ATTR(f_back)
-    ATTR(f_code)
-    ATTR(f_builtins)
-    ATTR(f_globals)
-    ATTR(f_locals)
+    GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
+    GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
+    GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE)
+    GATTR(iv->f_locals, f_locals, NYHR_ATTRIBUTE)
     ATTR(f_trace)
-    /*
-    ATTR(f_exc_type)
-    ATTR(f_exc_value)
-    ATTR(f_exc_traceback)
-    */
 
     /* locals */
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    Py_ssize_t i;
+    for (i = 0; i < co->co_nlocalsplus; i++) {
+        _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
+        PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
+
+        if (iv->localsplus[i] == r->tgt) {
+            Py_INCREF(name);
+            if (r->visit(NYHR_LOCAL_VAR, name, r))
+                return 1;
+        }
+
+        if (!(kind & CO_FAST_CELL) && !(kind & CO_FAST_FREE))
+            continue;
+
+        if (PyCell_GET(iv->localsplus[i]) == r->tgt) {
+            Py_INCREF(name);
+            if (r->visit(NYHR_CELL, name, r))
+                return 1;
+        }
+    }
+#else
     if (
         frame_locals(r, co->co_varnames, 0, nlocals, 0) ||
         frame_locals(r, co->co_cellvars, nlocals, ncells, 0) ||
@@ -224,9 +255,20 @@ frame_relate(NyHeapRelate *r)
         frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 0) ||
         frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 1))
         return 1;
+#endif
 
     /* stack */
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    PyObject **p;
+    PyObject **s = iv->localsplus + co->co_nlocalsplus;
+    PyObject **e = iv->localsplus + iv->stacktop;
+    for (p = s; p < e; p++) {
+        if (*p == r->tgt) {
+            if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-s), r))
+                return 1;
+        }
+    }
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
     PyObject **p;
     PyObject **l = v->f_valuestack + v->f_stackdepth;
     for (p = v->f_valuestack; p < l; p++) {
@@ -252,7 +294,25 @@ frame_relate(NyHeapRelate *r)
 static int
 frame_traverse(NyHeapTraverse *ta) {
     PyFrameObject *v = (void *)ta->obj;
-    PyCodeObject *co = v->f_code;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    _PyInterpreterFrame *iv = v->f_frame;
+#else
+    PyFrameObject *iv = v;
+#endif
+    PyCodeObject *co = iv->f_code;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    int i;
+    for (i = 0; i < co->co_nlocalsplus; i++) {
+        _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
+        PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
+        if (kind & CO_FAST_LOCAL && strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
+            if (iv->localsplus[i] == ta->_hiding_tag_)
+                return 0;
+            else
+                break;
+        }
+    }
+#else
     int nlocals = co->co_nlocals;
     if (PyTuple_Check(co->co_varnames)) {
         int i;
@@ -266,6 +326,7 @@ frame_traverse(NyHeapTraverse *ta) {
             }
         }
     }
+#endif
     return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
 }
 
@@ -303,19 +364,35 @@ code_traverse(NyHeapTraverse *ta) {
     PyCodeObject *co = (void *)ta->obj;
     visitproc visit = ta->visit;
     void *arg = ta->arg;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    Py_VISIT(co->_co_code);
+#else
     Py_VISIT(co->co_code);
+#endif
     Py_VISIT(co->co_consts);
     Py_VISIT(co->co_names);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    Py_VISIT(co->co_exceptiontable);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    Py_VISIT(co->co_localsplusnames);
+    Py_VISIT(co->co_localspluskinds);
+#else
     Py_VISIT(co->co_varnames);
     Py_VISIT(co->co_freevars);
     Py_VISIT(co->co_cellvars);
+#endif
     Py_VISIT(co->co_filename);
     Py_VISIT(co->co_name);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    Py_VISIT(co->co_qualname);
+#endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
     Py_VISIT(co->co_linetable);
 #else
     Py_VISIT(co->co_lnotab);
 #endif
+    Py_VISIT(co->co_weakreflist);
     return 0;
 }
 

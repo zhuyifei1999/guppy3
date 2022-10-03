@@ -30,10 +30,10 @@ static void
 immnsiter_dealloc(NyImmNodeSetIterObject *it)
 {
     PyObject_GC_UnTrack(it);
-    Py_TRASHCAN_SAFE_BEGIN(it)
-        Py_XDECREF(it->nodeset);
-        PyObject_GC_Del(it);
-    Py_TRASHCAN_SAFE_END(it)
+    Py_TRASHCAN_BEGIN(it, immnsiter_dealloc)
+    Py_XDECREF(it->nodeset);
+    PyObject_GC_Del(it);
+    Py_TRASHCAN_END
 }
 
 static PyObject *
@@ -222,10 +222,10 @@ static void
 immnodeset_dealloc(NyNodeSetObject *v)
 {
     PyObject_GC_UnTrack(v);
-    Py_TRASHCAN_SAFE_BEGIN(v)
+    Py_TRASHCAN_BEGIN(v, immnodeset_dealloc)
     immnodeset_gc_clear(v);
     Py_TYPE(v)->tp_free((PyObject *)v);
-    Py_TRASHCAN_SAFE_END(v)
+    Py_TRASHCAN_END
 }
 
 

@@ -390,10 +390,10 @@ static void
 mutnodeset_dealloc(NyNodeSetObject *v)
 {
     PyObject_GC_UnTrack(v);
-    Py_TRASHCAN_SAFE_BEGIN(v)
+    Py_TRASHCAN_BEGIN(v, mutnodeset_dealloc)
     mutnodeset_gc_clear(v);
     Py_TYPE(v)->tp_free((PyObject *)v);
-    Py_TRASHCAN_SAFE_END(v)
+    Py_TRASHCAN_END
 }
 
 size_t
@@ -606,7 +606,7 @@ NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
         if (r == -1)
             return -1;
         if (!r) {
-            Py_SIZE(v)++;
+            Py_SET_SIZE(v, Py_SIZE(v) + 1);
             if (v->flags & NS_HOLDOBJECTS) {
                 Py_INCREF(obj);
             }
@@ -647,7 +647,7 @@ NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
         if (r == -1)
             return -1;
         if (r) {
-            Py_SIZE(v)--;
+            Py_SET_SIZE(v, Py_SIZE(v) - 1);
             if (v->flags & NS_HOLDOBJECTS) {
                 Py_DECREF(obj);
             }
@@ -752,7 +752,7 @@ nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
         NyBit bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
         if (bitno == -1 && PyErr_Occurred())
             return 0;
-        Py_SIZE(v)--;
+        Py_SET_SIZE(v, Py_SIZE(v) - 1);
         return nodeset_bitno_to_obj(bitno);
     }
 }

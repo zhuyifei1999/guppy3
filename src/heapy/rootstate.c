@@ -177,7 +177,10 @@ static struct PyMemberDef is_members[] = {
 #define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyThreadState, name)}
 
 static struct PyMemberDef ts_members[] = {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 11
     MEMBER(frame),
+#endif
+
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
 
@@ -185,7 +188,9 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(curexc_value),
     MEMBER(curexc_traceback),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    RENAMEMEMBER(exc_state.exc_value, exc_value),
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
     RENAMEMEMBER(exc_state.exc_type, exc_type),
     RENAMEMEMBER(exc_state.exc_value, exc_value),
     RENAMEMEMBER(exc_state.exc_traceback, exc_traceback),
@@ -303,15 +308,23 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(audit_hooks);
 #endif
 
-        for (ts = is->tstate_head; ts; ts = ts->next) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+        ts = is->threads.head;
+#else
+        ts = is->tstate_head;
+#endif
+        for (; ts; ts = ts->next) {
             if ((ts == bts && r->tgt == hv->limitframe) ||
                     (!hv->limitframe && isframe)) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+                continue;  // TODO
+#else
                 int frameno = -1;
                 int numframes = 0;
                 PyFrameObject *frame;
                 for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
                     numframes++;
-                    if (r->tgt == (PyObject *)frame)
+                    if ((PyObject *)frame == r->tgt)
                         frameno = numframes;
                 }
                 if (frameno != -1) {
@@ -319,6 +332,7 @@ rootstate_relate(NyHeapRelate *r)
                     if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno), r))
                         return 1;
                 }
+#endif
             }
             TSATTR(c_profileobj);
             TSATTR(c_traceobj);
@@ -327,7 +341,9 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(curexc_value);
             TSATTR(curexc_traceback);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            RENAMETSATTR(exc_state.exc_value, exc_value);
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             RENAMETSATTR(exc_state.exc_type, exc_type);
             RENAMETSATTR(exc_state.exc_value, exc_value);
             RENAMETSATTR(exc_state.exc_traceback, exc_traceback);
@@ -406,12 +422,21 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->audit_hooks);
 #endif
 
-        for (ts = is->tstate_head; ts; ts = ts->next) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+        ts = is->threads.head;
+#else
+        ts = is->tstate_head;
+#endif
+        for (; ts; ts = ts->next) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            // TODO
+#else
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
                 Py_VISIT(ts->frame);
             }
+#endif
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
 
@@ -419,7 +444,9 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->curexc_value);
             Py_VISIT(ts->curexc_traceback);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            Py_VISIT(ts->exc_state.exc_value);
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             Py_VISIT(ts->exc_state.exc_type);
             Py_VISIT(ts->exc_state.exc_value);
             Py_VISIT(ts->exc_state.exc_traceback);
@@ -468,6 +495,7 @@ rootstate_getattr(PyObject *obj, PyObject *name)
 {
     const char *s = PyUnicode_AsUTF8(name);
     PyInterpreterState *is;
+    PyThreadState *ts;
     int n = 0;
     int ino;
     unsigned long tno;
@@ -492,11 +520,19 @@ rootstate_getattr(PyObject *obj, PyObject *name)
             if (isno == ino) {
                 if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
                     s += n;
-                    PyThreadState *ts;
-                    for (ts = is->tstate_head; ts; ts = ts->next) {
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+                    ts = is->threads.head;
+#else
+                    ts = is->tstate_head;
+#endif
+                    for (; ts; ts = ts->next) {
                         if (THREAD_ID(ts) == tno) {
                             int frameno = 0;
                             if (sscanf(s, "f%d%n", &frameno, &n) == 1 && s[n] == '\0') {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+                                // TODO
+#else
                                 PyFrameObject *frame;
                                 int numframes = 0;
                                 for (frame = ts->frame; frame; frame = frame->f_back) {
@@ -510,6 +546,7 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                                         return (PyObject *)frame;
                                     }
                                 }
+#endif
                                 PyErr_Format(PyExc_AttributeError,
                                              "thread state has no frame numbered %d from bottom",
                                              frameno);
@@ -559,8 +596,13 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                 continue;
 #endif
             int isno = numis - countis - 1;
-            PyThreadState *ts;
-            for (ts = is->tstate_head; ts; ts = ts->next) {
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            ts = is->threads.head;
+#else
+            ts = is->tstate_head;
+#endif
+            for (; ts; ts = ts->next) {
                 if (THREAD_ID(ts) == tno) {
                     PyObject *fullname = PyUnicode_FromFormat("i%d_%U", isno, name);
                     if (!fullname) {
@@ -651,8 +693,17 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(audit_hooks);
 #endif
 
-        for (ts = is->tstate_head; ts; ts = ts->next) {
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+        ts = is->threads.head;
+#else
+        ts = is->tstate_head;
+#endif
+        for (; ts; ts = ts->next) {
             int numframes = 0;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            // TODO
+#else
             PyFrameObject *frame;
             for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
                 numframes++;
@@ -668,6 +719,7 @@ rootstate_dir(PyObject *self, PyObject *args)
                     Py_DECREF(attr);
                 }
             }
+#endif
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
 
