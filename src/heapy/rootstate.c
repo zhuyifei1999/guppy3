@@ -115,6 +115,13 @@ char rootstate_doc[] =
 # undef Py_BUILD_CORE
 #endif
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# define Py_BUILD_CORE
+/* _PyInterpreterFrame */
+#  include <internal/pycore_frame.h>
+# undef Py_BUILD_CORE
+#endif
+
 #define THREAD_ID(ts)    (ts->thread_id)
 
 static PyObject *
@@ -218,6 +225,22 @@ static struct PyMemberDef ts_members[] = {
 };
 
 #undef MEMBER
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#define MEMBER(name) {#name, T_OBJECT, offsetof(_PyInterpreterFrame, name)}
+
+static struct PyMemberDef frame_members[] = {
+    MEMBER(f_func),
+    MEMBER(f_globals),
+    MEMBER(f_builtins),
+    MEMBER(f_locals),
+    MEMBER(f_code),
+    MEMBER(frame_obj),
+    {0} /* Sentinel */
+};
+
+#undef MEMBER
+#endif
 
 #define ISATTR(name)                                                                  \
     if ((PyObject *)is->name == r->tgt) {                                             \
@@ -429,7 +452,28 @@ rootstate_traverse(NyHeapTraverse *ta)
 #endif
         for (; ts; ts = ts->next) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-            // TODO
+            _PyInterpreterFrame *frame = NULL;
+            if (ts == bts && hv->limitframe) {
+                frame = ((PyFrameObject *)hv->limitframe)->f_frame;
+            } else if (!hv->limitframe) {
+                frame = ts->cframe->current_frame;
+            }
+
+            for (; frame; frame = frame->previous) {
+                /*
+                Ideally we can do this, but _PyFrame_Traverse is not exposed.
+                int vret = _PyFrame_Traverse(frame, visit, arg);
+                if (vret)
+                    return vret;
+                */
+                Py_VISIT(frame->frame_obj);
+                Py_VISIT(frame->f_locals);
+                Py_VISIT(frame->f_func);
+                Py_VISIT(frame->f_code);
+                for (int i = 0; i < frame->stacktop; i++) {
+                    Py_VISIT(frame->localsplus[i]);
+                }
+            }
 #else
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
@@ -529,17 +573,39 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                     for (; ts; ts = ts->next) {
                         if (THREAD_ID(ts) == tno) {
                             int frameno = 0;
-                            if (sscanf(s, "f%d%n", &frameno, &n) == 1 && s[n] == '\0') {
+                            if (sscanf(s, "f%d%n", &frameno, &n) == 1 &&
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-                                // TODO
+                                s[n] == '_'
+#else
+                                s[n] == '\0'
+#endif
+                            ) {
+                                int numframes = 0;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+                                _PyInterpreterFrame *frame;
+                                for (frame = ts->cframe->current_frame; frame; frame = frame->previous) {
+                                    numframes++;
+                                }
+                                for (frame = ts->cframe->current_frame; frame; frame = frame->previous) {
+                                    numframes--;
+                                    if (numframes == frameno) {
+                                        s += n+1;
+                                        PyObject *ret = _shim_PyMember_Get((char *)frame, frame_members, s);
+                                        if (!ret)
+                                            PyErr_Format(PyExc_AttributeError,
+                                                         "interpreter frame has no attribute '%s'",
+                                                         s);
+                                        Py_DECREF(name);
+                                        return (PyObject *)ret;
+                                    }
+                                }
 #else
                                 PyFrameObject *frame;
-                                int numframes = 0;
                                 for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes ++;
+                                    numframes++;
                                 }
                                 for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes --;
+                                    numframes--;
                                     if (numframes == frameno) {
                                         Py_INCREF(frame);
                                         Py_DECREF(name);
@@ -702,7 +768,34 @@ rootstate_dir(PyObject *self, PyObject *args)
         for (; ts; ts = ts->next) {
             int numframes = 0;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-            // TODO
+            _PyInterpreterFrame *frame;
+            for (frame = ts->cframe->current_frame; frame; frame = frame->previous) {
+                numframes++;
+            }
+            int frameno;
+            for (frameno = 0; frameno < numframes; frameno++) {
+/* TODO: When we only support python 3.11+, move this macro to the front of this
+ * file, with the rest of the macros.
+ */
+#define FRAMEATTR_DIR(name)                                                          \
+    attr = PyUnicode_FromFormat("i%d_t%lu_f%d_" #name, isno, THREAD_ID(ts), frameno); \
+    if (!attr)                                                                         \
+        goto Err;                                                                      \
+    if (PyList_Append(list, attr)) {                                                   \
+        Py_DECREF(attr);                                                               \
+        goto Err;                                                                      \
+    }                                                                                  \
+    Py_DECREF(attr);
+
+                FRAMEATTR_DIR(f_func);
+                FRAMEATTR_DIR(f_globals);
+                FRAMEATTR_DIR(f_builtins);
+                FRAMEATTR_DIR(f_locals);
+                FRAMEATTR_DIR(f_code);
+                FRAMEATTR_DIR(frame_obj);
+#undef FRAMEATTR_DIR
+            }
+
 #else
             PyFrameObject *frame;
             for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
@@ -711,13 +804,14 @@ rootstate_dir(PyObject *self, PyObject *args)
             int frameno;
             for (frameno = 0; frameno < numframes; frameno++) {
                 attr = PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno);
-                if (attr) {
-                    if (PyList_Append(list, attr)) {
-                        Py_DECREF(attr);
-                        goto Err;
-                    }
+                if (!attr)
+                    goto Err;
+
+                if (PyList_Append(list, attr)) {
                     Py_DECREF(attr);
+                    goto Err;
                 }
+                Py_DECREF(attr);
             }
 #endif
             TSATTR_DIR(c_profileobj);

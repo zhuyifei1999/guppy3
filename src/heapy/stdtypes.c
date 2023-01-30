@@ -219,6 +219,9 @@ frame_relate(NyHeapRelate *r)
     Py_ssize_t nfreevars = PyTuple_GET_SIZE(co->co_freevars);
 #endif
     ATTR(f_back)
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    GATTR(iv->f_func, f_func, NYHR_ATTRIBUTE)
+#endif
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
     GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
     GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE)
