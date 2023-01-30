@@ -39,10 +39,10 @@ static void
 cli_dealloc(NyObjectClassifierObject *op)
 {
     PyObject_GC_UnTrack(op);
-    Py_TRASHCAN_BEGIN(op, cli_dealloc)
+    Ny_TRASHCAN_BEGIN(op, cli_dealloc)
     Py_XDECREF(op->self);
     PyObject_GC_Del(op);
-    Py_TRASHCAN_END
+    Ny_TRASHCAN_END(op)
 }
 
 static int

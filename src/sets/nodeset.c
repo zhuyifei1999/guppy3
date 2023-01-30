@@ -390,10 +390,10 @@ static void
 mutnodeset_dealloc(NyNodeSetObject *v)
 {
     PyObject_GC_UnTrack(v);
-    Py_TRASHCAN_BEGIN(v, mutnodeset_dealloc)
+    Ny_TRASHCAN_BEGIN(v, mutnodeset_dealloc)
     mutnodeset_gc_clear(v);
     Py_TYPE(v)->tp_free((PyObject *)v);
-    Py_TRASHCAN_END
+    Ny_TRASHCAN_END(v)
 }
 
 size_t
