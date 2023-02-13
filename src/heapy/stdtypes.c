@@ -220,7 +220,7 @@ frame_relate(NyHeapRelate *r)
 #endif
     ATTR(f_back)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-    GATTR(iv->f_func, f_func, NYHR_ATTRIBUTE)
+    GATTR(iv->f_func, f_func, NYHR_INTERATTR)
 #endif
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
     GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
