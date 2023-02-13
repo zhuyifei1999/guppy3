@@ -818,10 +818,10 @@ class Display:
         self.xrange = xrange
         self.yrange = yrange
         self.xgrid = xgrid
-        self.var_xgrid = BooleanVar(xgrid)
-        self.var_xgrid.set(xgrid)
-        self.var_ygrid = BooleanVar(xgrid)
         self.ygrid = ygrid
+        self.var_xgrid = BooleanVar()
+        self.var_xgrid.set(xgrid)
+        self.var_ygrid = BooleanVar()
         self.var_ygrid.set(ygrid)
         self.graphtype = graphtype
         self.statype = statype
