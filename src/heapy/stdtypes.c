@@ -297,14 +297,16 @@ frame_relate(NyHeapRelate *r)
 static int
 frame_traverse(NyHeapTraverse *ta) {
     PyFrameObject *v = (void *)ta->obj;
+    visitproc visit = ta->visit;
+    void *arg = ta->arg;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     _PyInterpreterFrame *iv = v->f_frame;
 #else
     PyFrameObject *iv = v;
 #endif
     PyCodeObject *co = iv->f_code;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     int i;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     for (i = 0; i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
@@ -318,7 +320,6 @@ frame_traverse(NyHeapTraverse *ta) {
 #else
     int nlocals = co->co_nlocals;
     if (PyTuple_Check(co->co_varnames)) {
-        int i;
         for (i = 0; i < nlocals; i++) {
             PyObject *name = PyTuple_GET_ITEM(co->co_varnames, i);
             if (strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
@@ -330,7 +331,26 @@ frame_traverse(NyHeapTraverse *ta) {
         }
     }
 #endif
-    return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    /* _PyFrame_Traverse is not exposed and CPython's frame_traverse only
+      calls it when FRAME_OWNED_BY_FRAME_OBJECT :( */
+    Py_VISIT(v->f_back);
+    Py_VISIT(v->f_trace);
+    Py_VISIT(iv->f_func);
+    Py_VISIT(iv->f_code);
+    Py_VISIT(iv->f_builtins);
+    Py_VISIT(iv->f_globals);
+    Py_VISIT(iv->f_locals);
+
+    /* locals */
+    for (i = 0; i < iv->stacktop; i++)
+        Py_VISIT(iv->localsplus[i]);
+
+    return 0;
+#else
+    return Py_TYPE(v)->tp_traverse(ta->obj, visit, arg);
+#endif
 }
 
 
