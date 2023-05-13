@@ -12,6 +12,14 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 "                memoize the classification sets.\n"
 );
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# define Py_BUILD_CORE
+#  undef _PyObject_LookupSpecial
+/* _PyType_PreHeaderSize */
+#  include <internal/pycore_object.h>
+# undef Py_BUILD_CORE
+#endif
+
 // The sizeof of PyGC_Head is not to be trusted upon even across Python minor
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
@@ -99,6 +107,15 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
     } else {
         ptr = (Py_uintptr_t)obj;
     }
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    // https://github.com/python/cpython/issues/101430
+    ptr -= _PyType_PreHeaderSize(Py_TYPE(obj));
+    // _PyType_PreHeaderSize would add an extra compile-time sizeof(PyGC_Head),
+    // which may be different from the true value in sizeof_PyGC_Head
+    if (PyType_IS_GC(Py_TYPE(obj)))
+        ptr += sizeof(PyGC_Head);
+#endif
 
     tb = _PyTraceMalloc_GetTraceback(0, (Py_uintptr_t)ptr);
 
