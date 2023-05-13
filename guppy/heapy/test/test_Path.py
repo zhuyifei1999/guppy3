@@ -765,7 +765,11 @@ class NewTestCase(TestCase):
         b = list(it)
         self.aseq(str(a), str(b))
 
-        self.aseq(o.getvalue(), """\
+        # The sort order is based on the source set's byid partition (see
+        # Path.PathsIter.reset), which sorts based on the size, then render
+        # (see Part.IdentityPartition.__init__)
+        if sys.getsizeof(y) > sys.getsizeof(ob):
+            self.aseq(o.getvalue(), """\
  0: hpy().Root.i0_sysdict
  0: Src.i0_modules['sys'].__dict__
  0: hpy().Root.i0_sysdict
@@ -780,6 +784,23 @@ class NewTestCase(TestCase):
  1: <1 __main__.O: <address>>.x
  0: <1 list: <address>*1>[0]
  1: <1 __main__.O: <address>>.x
+""".replace('__main__', self.__module__))
+        else:
+            self.aseq(o.getvalue(), """\
+ 0: hpy().Root.i0_sysdict
+ 0: Src.i0_modules['sys'].__dict__
+ 0: hpy().Root.i0_sysdict
+ 0: hpy().Root.i0_sysdict
+ 0: Src[0][0][0]
+ 0: Src[0][0][0]
+ 0: Src[0]
+ 0: Src.x
+ 0: <1 list: <address>*1>[0]
+ 0: <1 list: <address>*1>[0]
+ 0: <1 __main__.O: <address>>.x
+ 1: <1 list: <address>*1>[0]
+ 0: <1 __main__.O: <address>>.x
+ 1: <1 list: <address>*1>[0]
 """.replace('__main__', self.__module__))
 
     def test_2(self):
