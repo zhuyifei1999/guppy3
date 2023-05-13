@@ -522,6 +522,15 @@ xt_size(ExtraType *xt, PyObject *obj)
 static int
 xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_MANAGED_DICT) {
+        // FIXME: There's no way to distinguish between managed dict entries
+        // and other references. To keep our results stable we have to
+        // materialize this managed dict, which allocates a lot of memory
+        // and will add additional overhead.
+        _PyObject_GetDictPtr(obj);
+    }
+#endif
     if (xt->xt_trav_code == XT_NO)
         return 0;
     else if (xt->xt_trav_code == XT_TP)
