@@ -421,8 +421,13 @@ Reference Pattern by <[dict of] class>.
         gc.collect()
         rp = self.rp(dst, src, depth=10)
         rp.mod.View._is_clear_drg_enabled = 0  # Note Apr 19 2005
-        self.asis(rp.a.theone, b)
-        self.asis(rp.b.theone, a.__dict__)
+
+        if sys.getsizeof(b) > sys.getsizeof(a.__dict__):
+            self.asis(rp.a.theone, b)
+            self.asis(rp.b.theone, a.__dict__)
+        else:
+            self.asis(rp.a.theone, a.__dict__)
+            self.asis(rp.b.theone, b)
 
         # Test that the dict is eventually automatically removed from dictowners -
         # First test that dictowners is nonzero
