@@ -344,7 +344,7 @@ frame_traverse(NyHeapTraverse *ta) {
     Py_VISIT(iv->f_locals);
 
     /* locals */
-    for (i = 0; i < iv->stacktop; i++)
+    for (i = 0; i < co->co_nlocalsplus; i++)
         Py_VISIT(iv->localsplus[i]);
 
     return 0;
