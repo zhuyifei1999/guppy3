@@ -103,7 +103,7 @@ jobs:
       shell: bash
       run: bash <(curl -s https://codecov.io/bash)
 
-  build_wheels_native:
+  build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: github.event_name == 'push'
@@ -130,7 +130,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   upload_pypi:
-    needs: [test_matrix, build_wheels_native, build_sdist]
+    needs: [test_matrix, build_wheels, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
