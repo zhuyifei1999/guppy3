@@ -97,8 +97,10 @@ class Owner:
 
 
 class Share:
+    __slots__ = ('module', 'parent', 'name', 'Clamp', 'setable', 'chgable',
+                 'importedfrom', 'nowrap', 'wrapattr', 'wrapping', 'data',
+                 'owners', 'ispackage', 'recursion', 'preload')
     has_getattr_logging_enabled = False
-    Clamp = None
 
     def __init__(self, module, parent, name, Clamp):
         if parent is None:
@@ -109,8 +111,7 @@ class Share:
         self.module = module
         self.parent = parent
         self.name = name
-        if Clamp is not None:
-            self.Clamp = Clamp
+        self.Clamp = Clamp
 
         self.setable = getattr(Clamp, '_setable_', ())
         if not isinstance(self.setable, tuple):
@@ -423,5 +424,4 @@ created or imported on demand using Guppy Glue+ directives.
 """
     share = Share(None, None, '', None)
     r = Owner('').makeInterface({'_name': ''}, share, '')
-    share.root_interface = r
     return r
