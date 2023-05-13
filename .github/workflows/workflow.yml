@@ -103,22 +103,16 @@ jobs:
       shell: bash
       run: bash <(curl -s https://codecov.io/bash)
 
-  build_wheels:
+  build_wheels_native:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: github.event_name == 'push'
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.3
@@ -130,8 +124,34 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
 
+  build_wheels_linux:
+    name: Build wheels on ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        arch: [x86_64, i686, aarch64, ppc64le, s390x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.12.3
+        env:
+          CIBW_BUILD: cp3{[789],10,11}-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+
   upload_pypi:
-    needs: [test_matrix, build_wheels, build_sdist]
+    needs: [test_matrix, build_wheels_native, build_wheels_linux, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
