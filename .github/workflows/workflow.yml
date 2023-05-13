@@ -32,8 +32,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
         tracemalloc: [true, false]
         codecov: [true, false]
         sdist: [true, false]
@@ -109,28 +109,7 @@ jobs:
     if: github.event_name == 'push'
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
-        env:
-          CIBW_BUILD: cp3{[6789],10}-*
-
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
-
-  build_wheels_emulated:
-    name: Build wheels on ${{ matrix.os }} ${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
-    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        os: [ubuntu-20.04]
-        arch: [aarch64, ppc64le, s390x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -141,17 +120,17 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.12.3
         env:
-          CIBW_BUILD: cp3{[6789],10}-*
-          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          CIBW_BUILD: cp3{[6789],10,11}-*
+          CIBW_ARCHS: all
 
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
 
   upload_pypi:
-    needs: [test_matrix, build_wheels_native, build_wheels_emulated, build_sdist]
+    needs: [test_matrix, build_wheels_native, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
