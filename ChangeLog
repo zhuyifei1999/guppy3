@@ -1,3 +1,23 @@
+    Version 3.1.3
+
+2023-05-13  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.11 support - the traverse will create all the lazily-created
+      frame objects and materialize object managed dicts; this will consume
+      additional memory.
+
+2022-02-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix profile browser initialization on Python 3.10+
+
+2022-01-05  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix crash doing path calculation when a path component is non-compariable
+
+2022-01-04  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix crash when a type doesn't have __module__
+
     Version 3.1.2
 
 2021-10-08  YiFei Zhu  <zhuyifei1999@gmail.com>
