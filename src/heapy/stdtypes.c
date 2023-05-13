@@ -419,6 +419,42 @@ code_traverse(NyHeapTraverse *ta) {
     return 0;
 }
 
+static int
+code_relate(NyHeapRelate *r)
+{
+    PyCodeObject *v = (void *)r->src;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    RENAMEATTR(_co_code, co_code);
+#else
+    ATTR(co_code);
+#endif
+    ATTR(co_consts);
+    ATTR(co_names);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    ATTR(co_exceptiontable);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    INTERATTR(co_localsplusnames);
+    INTERATTR(co_localspluskinds);
+#else
+    ATTR(co_varnames);
+    ATTR(co_freevars);
+    ATTR(co_cellvars);
+#endif
+    ATTR(co_filename);
+    ATTR(co_name);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    ATTR(co_qualname);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+    ATTR(co_linetable);
+#else
+    ATTR(co_lnotab);
+#endif
+    ATTR(co_weakreflist);
+    return 0;
+}
+
 /* type_traverse adapted from typeobject.c from 2.4.2
    except:
    * I removed the check for heap type
@@ -542,7 +578,7 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         0,             /* type */
         0,             /* size */
         code_traverse, /* traverse */
-        0              /* relate */
+        code_relate    /* relate */
     }, {
         0,             /* flags */
         0,             /* type */

@@ -67,8 +67,12 @@ class RelationTestCase(TestCase):
         # xxx brittle test but catches a bug
         self.chkpath(co, 3, '%s.co_consts[1]')
         # commented in notes Sep 27 2004
-        relAttr = ('co_code', 'co_consts', 'co_names', 'co_varnames',
-                   'co_freevars', 'co_cellvars', 'co_filename', 'co_name')
+        relAttr = ('co_code', 'co_consts', 'co_names',
+                   'co_filename', 'co_name')
+        if self.version_info < (3, 11):
+            relAttr += ('co_varnames', 'co_freevars', 'co_cellvars')
+        else:
+            relAttr += ('co_exceptiontable', 'co_qualname')
         if self.version_info >= (3, 10):
             relAttr += ('co_linetable',)
         else:
