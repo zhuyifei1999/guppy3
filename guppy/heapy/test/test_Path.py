@@ -329,9 +329,13 @@ class RootTestCase(TestCase):
             1/0
         except ZeroDivisionError:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            for name in 'exc_type', 'exc_value', 'exc_traceback':
-                rel = str(self.relation(root, eval(name)))
-                self.asis(eval(rel % 'root'), eval(name))
+            if sys.version_info >= (3, 11):
+                rel = str(self.relation(root, exc_value))
+                self.asis(eval(rel % 'root'), exc_value)
+            else:
+                for name in 'exc_type', 'exc_value', 'exc_traceback':
+                    rel = str(self.relation(root, eval(name)))
+                    self.asis(eval(rel % 'root'), eval(name))
 
             # There are more, untested, attributes, but the code is farily regular...
             # More complication is to do with frames which I concentrate on for now.
@@ -364,7 +368,7 @@ class RootTestCase(TestCase):
                 1/0
             except ZeroDivisionError:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                self.exc_traceback = exc_traceback
+                self.exc_value = exc_value
                 self.sync = 1
                 while self.sync:
                     pass
@@ -374,9 +378,9 @@ class RootTestCase(TestCase):
         _thread.start_new_thread(task, (self,))
         while not self.sync:
             pass
-        exc_traceback = self.exc_traceback
-        rel = str(self.relation(root, exc_traceback))
-        self.asis(eval(rel % 'root'), exc_traceback)
+        exc_value = self.exc_value
+        rel = str(self.relation(root, exc_value))
+        self.asis(eval(rel % 'root'), exc_value)
         self.sync = 0
         while not self.sync:
             pass

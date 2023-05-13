@@ -322,6 +322,7 @@ rootstate_relate(NyHeapRelate *r)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
                 for (frame = PyThreadState_GetFrame(ts); frame;) {
                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
+                    numframes++;
                     if ((PyObject *)frame == r->tgt)
                         frameno = numframes;
 
