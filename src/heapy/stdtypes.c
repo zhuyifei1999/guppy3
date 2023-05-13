@@ -218,6 +218,16 @@ frame_relate(NyHeapRelate *r)
     Py_ssize_t nlocals = co->co_nlocals;;
     Py_ssize_t nfreevars = PyTuple_GET_SIZE(co->co_freevars);
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    // Py 3.11 only holds f_back when FRAME_OWNED_BY_FRAME_OBJECT
+    PyFrameObject *next_frame = PyFrame_GetBack(v);
+    if ((PyObject *)next_frame == r->tgt && r->visit(
+            NYHR_ATTRIBUTE, PyUnicode_FromString("f_back"), r)) {
+        Py_XDECREF(next_frame);
+        return 1;
+    }
+    Py_XDECREF(next_frame);
+#endif
     ATTR(f_back)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     GATTR(iv->f_func, f_func, NYHR_INTERATTR)
@@ -335,7 +345,10 @@ frame_traverse(NyHeapTraverse *ta) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     /* _PyFrame_Traverse is not exposed and CPython's frame_traverse only
       calls it when FRAME_OWNED_BY_FRAME_OBJECT :( */
-    Py_VISIT(v->f_back);
+    PyFrameObject *next_frame = PyFrame_GetBack(v);
+    Py_VISIT(next_frame);
+    Py_XDECREF(next_frame);
+
     Py_VISIT(v->f_trace);
     Py_VISIT(iv->f_func);
     Py_VISIT(iv->f_code);

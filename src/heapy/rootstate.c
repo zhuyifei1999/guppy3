@@ -435,27 +435,17 @@ rootstate_traverse(NyHeapTraverse *ta)
         ts = is->tstate_head;
 #endif
         for (; ts; ts = ts->next) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-            PyFrameObject *frame;
-            if (ts == bts && hv->limitframe) {
-                frame = (PyFrameObject *)Py_NewRef(hv->limitframe);
-            } else if (!hv->limitframe) {
-                frame = PyThreadState_GetFrame(ts);
-            }
-
-            while (frame) {
-                PyFrameObject *next_frame = PyFrame_GetBack(frame);
-                Py_VISIT(frame);
-                Py_DECREF(frame);
-                frame = next_frame;
-            }
-#else
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+                PyFrameObject *frame = PyThreadState_GetFrame(ts);
+                Py_VISIT(frame);
+                Py_XDECREF(frame);
+#else
                 Py_VISIT(ts->frame);
-            }
 #endif
+            }
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
 
