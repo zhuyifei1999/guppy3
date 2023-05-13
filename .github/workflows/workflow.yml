@@ -27,13 +27,13 @@ jobs:
     needs: build_sdist
     runs-on: ${{ matrix.os }}
     # https://github.com/zhuyifei1999/guppy3/issues/37
-    continue-on-error: ${{ matrix.os == 'windows-2019' && matrix.python-version == '3.9' }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.python-version == '3.9' }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         tracemalloc: [true, false]
         codecov: [true, false]
         sdist: [true, false]
@@ -122,7 +122,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.3
         env:
-          CIBW_BUILD: cp3{[6789],10,11}-*
+          CIBW_BUILD: cp3{[789],10,11}-*
           CIBW_ARCHS: all
 
       - uses: actions/upload-artifact@v2

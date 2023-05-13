@@ -154,15 +154,13 @@ static struct PyMemberDef is_members[] = {
     MEMBER(builtins_copy),
     MEMBER(import_func),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-# ifdef HAVE_FORK
+#ifdef HAVE_FORK
     MEMBER(before_forkers),
     MEMBER(after_forkers_parent),
     MEMBER(after_forkers_child),
-# endif
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
     MEMBER(pyexitmodule),
-# endif
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
@@ -190,14 +188,10 @@ static struct PyMemberDef ts_members[] = {
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     RENAMEMEMBER(exc_state.exc_value, exc_value),
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#else
     RENAMEMEMBER(exc_state.exc_type, exc_type),
     RENAMEMEMBER(exc_state.exc_value, exc_value),
     RENAMEMEMBER(exc_state.exc_traceback, exc_traceback),
-#else
-    MEMBER(exc_type),
-    MEMBER(exc_value),
-    MEMBER(exc_traceback),
 #endif
 
     MEMBER(dict),
@@ -211,9 +205,7 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(async_gen_firstiter),
     MEMBER(async_gen_finalizer),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
     MEMBER(context),
-#endif
     {0} /* Sentinel */
 };
 
@@ -293,15 +285,13 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(builtins_copy);
         ISATTR(import_func);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-# ifdef HAVE_FORK
+#ifdef HAVE_FORK
         ISATTR(before_forkers);
         ISATTR(after_forkers_parent);
         ISATTR(after_forkers_child);
-# endif
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
         ISATTR(pyexitmodule);
-# endif
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
@@ -351,14 +341,10 @@ rootstate_relate(NyHeapRelate *r)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             RENAMETSATTR(exc_state.exc_value, exc_value);
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#else
             RENAMETSATTR(exc_state.exc_type, exc_type);
             RENAMETSATTR(exc_state.exc_value, exc_value);
             RENAMETSATTR(exc_state.exc_traceback, exc_traceback);
-#else
-            TSATTR(exc_type);
-            TSATTR(exc_value);
-            TSATTR(exc_traceback);
 #endif
 
             TSATTR(dict);
@@ -371,9 +357,7 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(async_gen_firstiter);
             TSATTR(async_gen_finalizer);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             TSATTR(context);
-#endif
         }
     }
     return 0;
@@ -415,15 +399,13 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->builtins_copy);
         Py_VISIT(is->import_func);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-# ifdef HAVE_FORK
+#ifdef HAVE_FORK
         Py_VISIT(is->before_forkers);
         Py_VISIT(is->after_forkers_parent);
         Py_VISIT(is->after_forkers_child);
-# endif
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
         Py_VISIT(is->pyexitmodule);
-# endif
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
@@ -456,14 +438,10 @@ rootstate_traverse(NyHeapTraverse *ta)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             Py_VISIT(ts->exc_state.exc_value);
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
+#else
             Py_VISIT(ts->exc_state.exc_type);
             Py_VISIT(ts->exc_state.exc_value);
             Py_VISIT(ts->exc_state.exc_traceback);
-#else
-            Py_VISIT(ts->exc_type);
-            Py_VISIT(ts->exc_value);
-            Py_VISIT(ts->exc_traceback);
 #endif
 
             Py_VISIT(ts->dict);
@@ -476,9 +454,7 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->async_gen_firstiter);
             Py_VISIT(ts->async_gen_finalizer);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             Py_VISIT(ts->context);
-#endif
         }
     }
     return 0;
@@ -706,15 +682,13 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(builtins_copy);
         ISATTR_DIR(import_func);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
-# ifdef HAVE_FORK
+#ifdef HAVE_FORK
         ISATTR_DIR(before_forkers);
         ISATTR_DIR(after_forkers_parent);
         ISATTR_DIR(after_forkers_child);
-# endif
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
         ISATTR_DIR(pyexitmodule);
-# endif
 #endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
@@ -775,9 +749,7 @@ rootstate_dir(PyObject *self, PyObject *args)
             TSATTR_DIR(async_gen_firstiter);
             TSATTR_DIR(async_gen_finalizer);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 7
             TSATTR_DIR(context);
-#endif
         }
     }
 
