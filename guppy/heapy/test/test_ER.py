@@ -232,8 +232,7 @@ class FirstCase(TestCase):
             hp = self.heapy.Use
             hp.reprefix = 'hp.'
 
-            import sys
-            s = hp.iso(C.__dict__, C, c, c.__dict__, d, sys)
+            s = hp.iso(C.__dict__, C, c, c.__dict__, d, inspect)
 
             for pre in (
                 'Unity',
