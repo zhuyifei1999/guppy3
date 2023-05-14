@@ -60,15 +60,13 @@ jobs:
 
     - name: Install
       if: ${{ !matrix.sdist }}
-      run: pip install -ve .
+      run: python3 setup.py build_ext --inplace
       env:
-        CFLAGS: ${{ matrix.codecov && '-coverage' || ''}}
+        CFLAGS: ${{ matrix.codecov && '--coverage' || ''}}
     - name: Install sdist
       if: ${{ matrix.sdist }}
       shell: bash
       run: pip install -v dist/*.tar.gz
-      env:
-        CFLAGS: ${{ matrix.codecov && '-coverage' || ''}}
 
     - name: Install codecov
       if: ${{ matrix.codecov }}
