@@ -12,7 +12,7 @@
 
 2022-01-05  YiFei Zhu  <zhuyifei1999@gmail.com>
 
-    * Fix crash doing path calculation when a path component is non-compariable
+    * Fix crash doing path calculation when a path component is non-comparable
 
 2022-01-04  YiFei Zhu  <zhuyifei1999@gmail.com>
 

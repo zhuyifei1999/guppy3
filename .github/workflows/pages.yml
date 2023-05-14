@@ -35,8 +35,9 @@ jobs:
 
       - name: Build docs
         run: |
+          sudo apt-get install xvfb
           pip install -ve .
-          python specs/genguppydoc.py
+          xvfb-run -a python specs/genguppydoc.py
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
