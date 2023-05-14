@@ -25,14 +25,14 @@ jobs:
   test_matrix:
     name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }} (tracemalloc=${{ matrix.tracemalloc }}, codecov=${{ matrix.codecov }}, sdist=${{ matrix.sdist }})
     needs: build_sdist
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     # https://github.com/zhuyifei1999/guppy3/issues/37
-    continue-on-error: ${{ (matrix.os == 'windows-latest' || matrix.os == 'macos-latest') && matrix.python-version == '3.10' && matrix.codecov }}
+    continue-on-error: ${{ (matrix.os == 'windows' || matrix.os == 'macos') && matrix.python-version == '3.10' && matrix.codecov }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu, windows, macos]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         tracemalloc: [true, false]
         codecov: [true, false]
@@ -103,11 +103,11 @@ jobs:
 
   build_wheels_native:
     name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     if: github.event_name == 'push'
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows, macos]
 
     steps:
       - uses: actions/checkout@v3
@@ -123,7 +123,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_wheels_linux:
-    name: Build wheels on ubuntu-latest ${{ matrix.arch }}
+    name: Build wheels on ubuntu ${{ matrix.arch }}
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     strategy:
