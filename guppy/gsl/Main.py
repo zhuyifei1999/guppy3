@@ -2158,6 +2158,7 @@ class _GLUECLAMP_:
         '_parent.SpecNodes:node_of_taci',
         '_parent:Tester',
         '_root.hashlib:md5',
+        '_root.guppy:__version__',
         '_root.guppy.etc:iterpermute',
         '_root.guppy.etc:RE',
     )
