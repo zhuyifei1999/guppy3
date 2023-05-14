@@ -75,7 +75,7 @@ jobs:
     - name: Make test script
       shell: bash
       run: |
-        cat > /tmp/test.py << EOF
+        cat > test.py << EOF
         from guppy import hpy, heapy
         hpy().test()
         heapy.heapyc.xmemstats()
@@ -84,14 +84,14 @@ jobs:
     - name: Test
       if: ${{ !matrix.codecov }}
       shell: bash
-      run: python /tmp/test.py
+      run: python test.py
       env:
         PYTHONTRACEMALLOC: ${{ matrix.tracemalloc && '1' || '' }}
         PYTHONFAULTHANDLER: 1
     - name: Test (codecov)
       if: ${{ matrix.codecov }}
       shell: bash
-      run: coverage run /tmp/test.py
+      run: coverage run test.py
       env:
         PYTHONTRACEMALLOC: ${{ matrix.tracemalloc && '1' || '' }}
         PYTHONFAULTHANDLER: 1
