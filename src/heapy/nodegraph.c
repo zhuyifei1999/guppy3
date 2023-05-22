@@ -148,8 +148,18 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         ng->edges[ng->used_size-1].tgt == tgt)
         return 0;
 
-    assert(Py_REFCNT(src) < 0xa000000 && (Py_uintptr_t)Py_TYPE(src) > 0x1000);
-    assert(Py_REFCNT(tgt) < 0xa000000 && (Py_uintptr_t)Py_TYPE(tgt) > 0x1000);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    /* Py >= 3.11 _PyObject_IMMORTAL_INIT sets initial refcount of 999999999 */
+    assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 &&
+            (Py_REFCNT(src) < 0xa000000 ||
+             (Py_REFCNT(src) >= 999999999 && Py_REFCNT(src) < 999999999 + 0xa000000)));
+    assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 &&
+            (Py_REFCNT(tgt) < 0xa000000 ||
+             (Py_REFCNT(tgt) >= 999999999 && Py_REFCNT(tgt) < 999999999 + 0xa000000)));
+#else
+    assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 && Py_REFCNT(src) < 0xa000000);
+    assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 && Py_REFCNT(tgt) < 0xa000000);
+#endif
 
     if (ng->used_size >= ng->allo_size) {
         Py_ssize_t allo = roundupsize(ng->used_size + 1);
