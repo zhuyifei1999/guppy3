@@ -135,13 +135,23 @@ rootstate_dealloc(void *arg)
 
 
 #define MEMBER(name) {#name, T_OBJECT, offsetof(PyInterpreterState, name)}
+#define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyInterpreterState, name)}
 
 static struct PyMemberDef is_members[] = {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    RENAMEMEMBER(imports.modules, modules),
+    RENAMEMEMBER(imports.modules_by_index, modules_by_index),
+    RENAMEMEMBER(imports.importlib, importlib),
+    RENAMEMEMBER(imports.import_func, import_func),
+#else
     MEMBER(modules),
     MEMBER(modules_by_index),
+    MEMBER(importlib),
+    MEMBER(import_func),
+#endif
+
     MEMBER(sysdict),
     MEMBER(builtins),
-    MEMBER(importlib),
 
     MEMBER(codec_search_path),
     MEMBER(codec_search_cache),
@@ -152,7 +162,6 @@ static struct PyMemberDef is_members[] = {
 #endif
 
     MEMBER(builtins_copy),
-    MEMBER(import_func),
 
 #ifdef HAVE_FORK
     MEMBER(before_forkers),
@@ -170,6 +179,7 @@ static struct PyMemberDef is_members[] = {
 };
 
 #undef MEMBER
+#undef RENAMEMEMBER
 
 #define MEMBER(name) {#name, T_OBJECT, offsetof(PyThreadState, name)}
 #define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyThreadState, name)}
@@ -182,9 +192,13 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    MEMBER(current_exception),
+#else
     MEMBER(curexc_type),
     MEMBER(curexc_value),
     MEMBER(curexc_traceback),
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     RENAMEMEMBER(exc_state.exc_value, exc_value),
@@ -210,10 +224,17 @@ static struct PyMemberDef ts_members[] = {
 };
 
 #undef MEMBER
+#undef RENAMEMEMBER
 
 #define ISATTR(name)                                                                  \
     if ((PyObject *)is->name == r->tgt) {                                             \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #name), r)) \
+            return 1;                                                                 \
+    }
+
+#define RENAMEISATTR(name, newname)                                                                  \
+    if ((PyObject *)is->name == r->tgt) {                                             \
+        if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #newname), r)) \
             return 1;                                                                 \
     }
 
@@ -268,11 +289,20 @@ rootstate_relate(NyHeapRelate *r)
         if (is != PyInterpreterState_Get())
             continue;
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        RENAMEISATTR(imports.modules, modules);
+        RENAMEISATTR(imports.modules_by_index, modules_by_index);
+        RENAMEISATTR(imports.importlib, importlib);
+        RENAMEISATTR(imports.import_func, import_func);
+#else
         ISATTR(modules);
         ISATTR(modules_by_index);
+        ISATTR(importlib);
+        ISATTR(import_func);
+#endif
+
         ISATTR(sysdict);
         ISATTR(builtins);
-        ISATTR(importlib);
 
         ISATTR(codec_search_path);
         ISATTR(codec_search_cache);
@@ -283,7 +313,6 @@ rootstate_relate(NyHeapRelate *r)
 #endif
 
         ISATTR(builtins_copy);
-        ISATTR(import_func);
 
 #ifdef HAVE_FORK
         ISATTR(before_forkers);
@@ -335,9 +364,13 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(c_profileobj);
             TSATTR(c_traceobj);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+            TSATTR(current_exception);
+#else
             TSATTR(curexc_type);
             TSATTR(curexc_value);
             TSATTR(curexc_traceback);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             RENAMETSATTR(exc_state.exc_value, exc_value);
@@ -380,13 +413,22 @@ rootstate_traverse(NyHeapTraverse *ta)
         if (is != PyInterpreterState_Get())
             continue;
 #endif
-        Py_VISIT(is->modules);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        Py_VISIT(is->imports.modules);
         // Not traversing through this because it is of the same level as
         // modules, making pathfinding generate an extra path.
+        // Py_VISIT(is->imports.modules_by_index);
+        Py_VISIT(is->imports.importlib);
+        Py_VISIT(is->imports.import_func);
+#else
+        Py_VISIT(is->modules);
         // Py_VISIT(is->modules_by_index);
+        Py_VISIT(is->importlib);
+        Py_VISIT(is->import_func);
+#endif
+
         Py_VISIT(is->sysdict);
         Py_VISIT(is->builtins);
-        Py_VISIT(is->importlib);
 
         Py_VISIT(is->codec_search_path);
         Py_VISIT(is->codec_search_cache);
@@ -397,7 +439,6 @@ rootstate_traverse(NyHeapTraverse *ta)
 #endif
 
         Py_VISIT(is->builtins_copy);
-        Py_VISIT(is->import_func);
 
 #ifdef HAVE_FORK
         Py_VISIT(is->before_forkers);
@@ -432,9 +473,13 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            Py_VISIT(ts->current_exception);
+#else
             Py_VISIT(ts->curexc_type);
             Py_VISIT(ts->curexc_value);
             Py_VISIT(ts->curexc_traceback);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             Py_VISIT(ts->exc_state.exc_value);
@@ -667,9 +712,11 @@ rootstate_dir(PyObject *self, PyObject *args)
 #endif
         ISATTR_DIR(modules);
         ISATTR_DIR(modules_by_index);
+        ISATTR_DIR(importlib);
+        ISATTR_DIR(import_func);
+
         ISATTR_DIR(sysdict);
         ISATTR_DIR(builtins);
-        ISATTR_DIR(importlib);
 
         ISATTR_DIR(codec_search_path);
         ISATTR_DIR(codec_search_cache);
@@ -680,7 +727,6 @@ rootstate_dir(PyObject *self, PyObject *args)
 #endif
 
         ISATTR_DIR(builtins_copy);
-        ISATTR_DIR(import_func);
 
 #ifdef HAVE_FORK
         ISATTR_DIR(before_forkers);
@@ -731,13 +777,21 @@ rootstate_dir(PyObject *self, PyObject *args)
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+            TSATTR_DIR(current_exception);
+#else
             TSATTR_DIR(curexc_type);
             TSATTR_DIR(curexc_value);
             TSATTR_DIR(curexc_traceback);
+#endif
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+            TSATTR_DIR(exc_value);
+#else
             TSATTR_DIR(exc_type);
             TSATTR_DIR(exc_value);
             TSATTR_DIR(exc_traceback);
+#endif
 
             TSATTR_DIR(dict);
             TSATTR_DIR(async_exc);
