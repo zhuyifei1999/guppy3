@@ -35,7 +35,7 @@
 
 #define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE)
 #define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE)
-#define INTERATTR(name) GATTR(v->name, newname, NYHR_INTERATTR)
+#define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR)
 
 extern PyObject *_hiding_tag__name;
 
