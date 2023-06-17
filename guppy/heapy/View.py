@@ -156,6 +156,8 @@ class _GLUECLAMP_:
                 hd = getattr(m, '_NyHeapDefs_')
             except AttributeError:
                 continue
+            except ImportError:
+                continue
             if not hd or not isinstance(hd, self.capsule_type):
                 continue
             heapdefs.append(hd)
