@@ -114,9 +114,6 @@ class RefPatCase(TestCase):
         self.aseq(rp.a, rp[1])
 
     def test_presentation(self):
-
-        output = io.StringIO()
-
         src = []
 
         def write(x):
@@ -129,31 +126,88 @@ class RefPatCase(TestCase):
             write(repr(rp))
             return rp
 
+        output = io.StringIO()
         dst = []
         src.append(dst)
 
         test_pp(dst, src)
+        self.aseq(output.getvalue(), """\
+Reference Pattern by <[dict of] class>.
+ 0: _ --- [-] 1 list: <address>*0
+ 1: a      [-] 1 list: <address>*1
+ 2: aa ---- [R] 1 tuple: <address>*1
+""")
+
+        output = io.StringIO()
 
         for i in range(5):
             x = dst
             dst = []
             x.append(dst)
         test_pp(dst, src)
+        self.aseq(output.getvalue(), """\
+Reference Pattern by <[dict of] class>.
+ 0: _ --- [-] 1 list: <address>*0
+ 1: a      [-] 1 list: <address>*1
+ 2: aa ---- [-] 1 list: <address>*1
+ 3: a3       [-] 1 list: <address>*1
+ 4: a4 ------ [-] 1 list: <address>*1
+ 5: a5         [-] 1 list: <address>*1
+ 6: a6 -------- [-] 1 list: <address>*1
+ 7: a7           [R] 1 tuple: <address>*1
+""")
 
+        output = io.StringIO()
         src, dst = self.makegraph(5, 7)
-
         test_pp(dst, src, depth=10)
+        self.aseq(output.getvalue(), """\
+Reference Pattern by <[dict of] class>.
+ 0: _ --- [-] 1 list: <address>*0
+ 1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 2: aa ---- [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 3: a3       [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 4: a4 ------ [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 5: a5         [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 6: a6 -------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+ 7: a7           [-] 1 list: <address>*5
+ 8: a8 ---------- [R] 1 tuple: <address>*1
+""")
 
         # Test that pp() prints limited number of lines
 
+        output = io.StringIO()
         src, dst = self.makegraph(5, 17)
 
         rp = test_pp(dst, src, depth=17)
 
         write(repr(rp.more))
 
+        self.aseq(output.getvalue(), """\
+Reference Pattern by <[dict of] class>.
+ 0: _ --- [-] 1 list: <address>*0
+ 1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 2: aa ---- [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 3: a3       [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 4: a4 ------ [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 5: a5         [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
+ 6: a6 -------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+ 7: a7           [-] 5 list: <address>*5, <address>*5, <address>*5...
+ 8: a8 ---------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+ 9: a9             [-] 5 list: <address>*5, <address>*5, <address>*5...
+<Type e.g. '_.more' for more.>
+10: a10 ----------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+11: a11              [-] 5 list: <address>*5, <address>*5, <address>*5...
+12: a12 ------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+13: a13                [-] 5 list: <address>*5, <address>*5, <address>*5...
+14: a14 --------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+15: a15                  [-] 5 list: <address>*5, <address>*5, <address>*5...
+16: a16 ----------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
+17: a17                    [+] 1 list: <address>*5
+""")
+
         # Test more of more
 
+        output = io.StringIO()
         src, dst = self.makegraph(1, 30)
 
         rp = test_pp(dst, src, depth=35)
@@ -176,74 +230,7 @@ class RefPatCase(TestCase):
 
         write(m1.prev)
 
-        # Test that they won't say '...more lines...' if the # of lines is what is printed
-
-        src, dst = self.makegraph(1, 30)
-
-        rp = test_pp(dst, src, depth=10)
-
-        # Test how no more lines is printed
-
-        write(rp.more)
-        write(rp.more.more)
-
-        # Test that one more line is printed rather than '1 more line'
-
-        src, dst = self.makegraph(1, 30)
-
-        rp = test_pp(dst, src, depth=21)
-        write(rp.more)
-
-        # Test that we can do more without first printing
-
-        rp = self.rp(dst, src, depth=20)
-
-        write(rp.more)
-
         self.aseq(output.getvalue(), """\
-Reference Pattern by <[dict of] class>.
- 0: _ --- [-] 1 list: <address>*0
- 1: a      [-] 1 list: <address>*1
- 2: aa ---- [R] 1 tuple: <address>*1
-Reference Pattern by <[dict of] class>.
- 0: _ --- [-] 1 list: <address>*0
- 1: a      [-] 1 list: <address>*1
- 2: aa ---- [-] 1 list: <address>*1
- 3: a3       [-] 1 list: <address>*1
- 4: a4 ------ [-] 1 list: <address>*1
- 5: a5         [-] 1 list: <address>*1
- 6: a6 -------- [-] 1 list: <address>*1
- 7: a7           [R] 1 tuple: <address>*1
-Reference Pattern by <[dict of] class>.
- 0: _ --- [-] 1 list: <address>*0
- 1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 2: aa ---- [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 3: a3       [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 4: a4 ------ [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 5: a5         [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 6: a6 -------- [-] 5 list: <address>*5, <address>*5, <address>*5...
- 7: a7           [-] 1 list: <address>*5
- 8: a8 ---------- [R] 1 tuple: <address>*1
-Reference Pattern by <[dict of] class>.
- 0: _ --- [-] 1 list: <address>*0
- 1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 2: aa ---- [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 3: a3       [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 4: a4 ------ [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 5: a5         [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
- 6: a6 -------- [-] 5 list: <address>*5, <address>*5, <address>*5...
- 7: a7           [-] 5 list: <address>*5, <address>*5, <address>*5...
- 8: a8 ---------- [-] 5 list: <address>*5, <address>*5, <address>*5...
- 9: a9             [-] 5 list: <address>*5, <address>*5, <address>*5...
-<Type e.g. '_.more' for more.>
-10: a10 ----------- [-] 5 list: <address>*5, <address>*5, <address>*5...
-11: a11              [-] 5 list: <address>*5, <address>*5, <address>*5...
-12: a12 ------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
-13: a13                [-] 5 list: <address>*5, <address>*5, <address>*5...
-14: a14 --------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
-15: a15                  [-] 5 list: <address>*5, <address>*5, <address>*5...
-16: a16 ----------------- [-] 5 list: <address>*5, <address>*5, <address>*5...
-17: a17                    [+] 1 list: <address>*5
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -316,6 +303,21 @@ Reference Pattern by <[dict of] class>.
 18: a18 ------------------- [-] 1 list: <address>*1
 19: a19                      [-] 1 list: <address>*1
 <12 more lines. Type e.g. '_.more' for more.>
+""")
+
+        # Test that they won't say '...more lines...' if the # of lines is what is printed
+
+        output = io.StringIO()
+        src, dst = self.makegraph(1, 30)
+
+        rp = test_pp(dst, src, depth=10)
+
+        # Test how no more lines is printed
+
+        write(rp.more)
+        write(rp.more.more)
+
+        self.aseq(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -330,6 +332,17 @@ Reference Pattern by <[dict of] class>.
 10: a10 ----------- [+] 1 list: <address>*1
 
 
+""")
+
+        # Test that one more line is printed rather than '1 more line'
+
+        output = io.StringIO()
+        src, dst = self.makegraph(1, 30)
+
+        rp = test_pp(dst, src, depth=21)
+        write(rp.more)
+
+        self.aseq(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -353,6 +366,16 @@ Reference Pattern by <[dict of] class>.
 18: a18 ------------------- [-] 1 list: <address>*1
 19: a19                      [-] 1 list: <address>*1
 <Type e.g. '_.more' for more.>
+""")
+
+        # Test that we can do more without first printing
+
+        output = io.StringIO()
+        rp = self.rp(dst, src, depth=20)
+
+        write(rp.more)
+
+        self.aseq(output.getvalue(), """\
 10: a10 ----------- [-] 1 list: <address>*1
 11: a11              [-] 1 list: <address>*1
 12: a12 ------------- [-] 1 list: <address>*1
