@@ -520,18 +520,16 @@ type_traverse(NyHeapTraverse *ta)
         state = &is->types.builtins[index];
 
         Py_VISIT(state->tp_dict);
-        Py_VISIT(state->tp_bases);
-        Py_VISIT(state->tp_mro);
         Py_VISIT(state->tp_subclasses);
     } else
 #endif
     {
        Py_VISIT(type->tp_dict);
-       Py_VISIT(type->tp_mro);
-       Py_VISIT(type->tp_bases);
        Py_VISIT(type->tp_subclasses);
     }
 
+    Py_VISIT(type->tp_mro);
+    Py_VISIT(type->tp_bases);
     Py_VISIT(type->tp_cache);
     Py_VISIT(type->tp_base);
 
@@ -567,8 +565,6 @@ type_relate(NyHeapRelate *r)
 
 #define v state
         RENAMEATTR(tp_dict, __dict__);
-        RENAMEATTR(tp_mro, __mro__);
-        RENAMEATTR(tp_bases, __bases__);
         INTERATTR(tp_subclasses);
 #undef v
     } else
@@ -576,11 +572,11 @@ type_relate(NyHeapRelate *r)
 #define v type
     {
         RENAMEATTR(tp_dict, __dict__);
-        RENAMEATTR(tp_mro, __mro__);
-        RENAMEATTR(tp_bases, __bases__);
         INTERATTR(tp_subclasses);
     }
 
+    RENAMEATTR(tp_mro, __mro__);
+    RENAMEATTR(tp_bases, __bases__);
     INTERATTR(tp_cache);
     RENAMEATTR(tp_base, __base__);
 #undef v
