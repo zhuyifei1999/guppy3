@@ -60,7 +60,7 @@ jobs:
 
     - name: Install
       if: ${{ !matrix.sdist }}
-      run: python3 setup.py build_ext --inplace
+      run: pip install setuptools && python3 setup.py build_ext --inplace
       env:
         CFLAGS: ${{ matrix.codecov && '--coverage' || ''}} -UNDEBUG
     - name: Install sdist
