@@ -33,7 +33,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         tracemalloc: [true, false]
         codecov: [true, false]
         sdist: [true, false]
@@ -143,7 +143,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.3
         env:
-          CIBW_BUILD: cp3{[789],10,11}-*
+          CIBW_BUILD: cp3{[89],10,11,12}-*
           CIBW_ARCHS: ${{ matrix.arch }}
 
       - uses: actions/upload-artifact@v3
