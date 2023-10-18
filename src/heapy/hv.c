@@ -749,10 +749,10 @@ static void
 hv_dealloc(PyObject *v)
 {
     PyObject_GC_UnTrack(v);
-    Ny_TRASHCAN_BEGIN(v, hv_dealloc)
+    Py_TRASHCAN_BEGIN(v, hv_dealloc)
     hv_gc_clear((NyHeapViewObject *)v);
     Py_TYPE(v)->tp_free(v);
-    Ny_TRASHCAN_END(v)
+    Py_TRASHCAN_END
 }
 
 PyDoc_STRVAR(hv_delete_extra_type_doc,

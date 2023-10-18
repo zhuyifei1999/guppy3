@@ -33,16 +33,10 @@ static char hp_set_async_exc_doc[] =
 #include "pythread.h"
 #include "eval.h"
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
-# define Py_BUILD_CORE
+#define Py_BUILD_CORE
 /* _PyMem_SetDefaultAllocator */
-#  include <internal/pycore_pymem.h>
-# undef Py_BUILD_CORE
-#else
-PyAPI_FUNC(int) _PyMem_SetDefaultAllocator(
-    PyMemAllocatorDomain domain,
-    PyMemAllocatorEx *old_alloc);
-#endif
+# include <internal/pycore_pymem.h>
+#undef Py_BUILD_CORE
 
 struct bootstate {
     PyObject *cmd;

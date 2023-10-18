@@ -157,10 +157,7 @@ static struct PyMemberDef is_members[] = {
     MEMBER(codec_search_cache),
     MEMBER(codec_error_registry),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
     MEMBER(dict),
-#endif
-
     MEMBER(builtins_copy),
 
 #ifdef HAVE_FORK
@@ -172,9 +169,7 @@ static struct PyMemberDef is_members[] = {
     MEMBER(pyexitmodule),
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
     MEMBER(audit_hooks),
-#endif
     {0} /* Sentinel */
 };
 
@@ -211,10 +206,6 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(dict),
     MEMBER(async_exc),
     // trash_delete_later not included
-
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
-    MEMBER(coroutine_wrapper),
-#endif
 
     MEMBER(async_gen_firstiter),
     MEMBER(async_gen_finalizer),
@@ -308,10 +299,7 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(codec_search_cache);
         ISATTR(codec_error_registry);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         ISATTR(dict);
-#endif
-
         ISATTR(builtins_copy);
 
 #ifdef HAVE_FORK
@@ -323,9 +311,7 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(pyexitmodule);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         ISATTR(audit_hooks);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
@@ -383,10 +369,6 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(dict);
             TSATTR(async_exc);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
-            TSATTR(coroutine_wrapper);
-#endif
-
             TSATTR(async_gen_firstiter);
             TSATTR(async_gen_finalizer);
 
@@ -434,10 +416,7 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->codec_search_cache);
         Py_VISIT(is->codec_error_registry);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         Py_VISIT(is->dict);
-#endif
-
         Py_VISIT(is->builtins_copy);
 
 #ifdef HAVE_FORK
@@ -449,9 +428,7 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->pyexitmodule);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         Py_VISIT(is->audit_hooks);
-#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
@@ -491,10 +468,6 @@ rootstate_traverse(NyHeapTraverse *ta)
 
             Py_VISIT(ts->dict);
             Py_VISIT(ts->async_exc);
-
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
-            Py_VISIT(ts->coroutine_wrapper);
-#endif
 
             Py_VISIT(ts->async_gen_firstiter);
             Py_VISIT(ts->async_gen_finalizer);
@@ -722,10 +695,7 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(codec_search_cache);
         ISATTR_DIR(codec_error_registry);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         ISATTR_DIR(dict);
-#endif
-
         ISATTR_DIR(builtins_copy);
 
 #ifdef HAVE_FORK
@@ -737,10 +707,7 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(pyexitmodule);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         ISATTR_DIR(audit_hooks);
-#endif
-
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
@@ -795,10 +762,6 @@ rootstate_dir(PyObject *self, PyObject *args)
 
             TSATTR_DIR(dict);
             TSATTR_DIR(async_exc);
-
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 8
-            TSATTR_DIR(coroutine_wrapper);
-#endif
 
             TSATTR_DIR(async_gen_firstiter);
             TSATTR_DIR(async_gen_finalizer);

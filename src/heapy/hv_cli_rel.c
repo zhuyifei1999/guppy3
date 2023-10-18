@@ -26,10 +26,10 @@ static void
 rel_dealloc(NyRelationObject *op)
 {
     PyObject_GC_UnTrack(op);
-    Ny_TRASHCAN_BEGIN(op, rel_dealloc)
+    Py_TRASHCAN_BEGIN(op, rel_dealloc)
     Py_XDECREF(op->relator);
     Py_TYPE(op)->tp_free(op);
-    Ny_TRASHCAN_END(op)
+    Py_TRASHCAN_END
 }
 
 PyObject *

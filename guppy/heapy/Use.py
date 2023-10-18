@@ -117,10 +117,6 @@ Top level interface to Heapy. Available attributes:""",
 Use eg: %sdoc.<attribute> for info on <attribute>.""" % self.reprefix)
 
     def _check_tracemalloc(self):
-        if self.sys.version_info < (3, 8):
-            self.warnings.warn(
-                "Python 3.7 and below tracemalloc may not record accurate "
-                "producer trace. See https://bugs.python.org/issue35053")
         if not self.tracemalloc.is_tracing():
             raise RuntimeError(
                 "Tracemalloc is not tracing. No producer profile available. "
