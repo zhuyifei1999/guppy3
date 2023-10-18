@@ -450,7 +450,7 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
             Py_VISIT(ts->current_exception);
 #else
             Py_VISIT(ts->curexc_type);
@@ -744,7 +744,7 @@ rootstate_dir(PyObject *self, PyObject *args)
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
             TSATTR_DIR(current_exception);
 #else
             TSATTR_DIR(curexc_type);
