@@ -538,7 +538,10 @@ type_traverse(NyHeapTraverse *ta)
     Py_VISIT(((PyHeapTypeObject *)type)->ht_name);
     Py_VISIT(((PyHeapTypeObject *)type)->ht_slots);
     Py_VISIT(((PyHeapTypeObject *)type)->ht_qualname);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
     Py_VISIT(((PyHeapTypeObject *)type)->ht_module);
+#endif
     return 0;
 }
 
@@ -587,7 +590,10 @@ type_relate(NyHeapRelate *r)
     RENAMEATTR(ht_name, __name__);
     RENAMEATTR(ht_slots, __slots__);
     RENAMEATTR(ht_qualname, __qualname__);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
     INTERATTR(ht_module);
+#endif
     return 0;
 #undef v
 }
