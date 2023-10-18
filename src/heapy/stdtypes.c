@@ -1,6 +1,16 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+# define Py_BUILD_CORE
+#  undef _PyGC_FINALIZED
+/* static_builtin_state */
+#  include <internal/pycore_typeobject.h>
+/* PyInterpreterState */
+#  include <internal/pycore_interp.h>
+# undef Py_BUILD_CORE
+#endif
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
 # define Py_BUILD_CORE
 /* PyFrameObject */
@@ -18,10 +28,6 @@
 #include "heapdef.h"
 #include "stdtypes.h"
 
-
-#define ALIGNMENT  sizeof(void *)
-#define ALIGN_MASK (ALIGNMENT - 1)
-#define ALIGN(z)   ((z + ALIGN_MASK) & ~ALIGN_MASK)
 
 #define GATTR(obj, name, rel) if ((PyObject *)(obj) == r->tgt &&        \
     (r->visit(rel, PyUnicode_FromString(#name), r))) \
@@ -229,7 +235,9 @@ frame_relate(NyHeapRelate *r)
     Py_XDECREF(next_frame);
 #endif
     ATTR(f_back)
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    GATTR(iv->f_funcobj, f_funcobj, NYHR_INTERATTR)
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     GATTR(iv->f_func, f_func, NYHR_INTERATTR)
 #endif
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
@@ -350,7 +358,11 @@ frame_traverse(NyHeapTraverse *ta) {
     Py_XDECREF(next_frame);
 
     Py_VISIT(v->f_trace);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    Py_VISIT(iv->f_funcobj);
+#else
     Py_VISIT(iv->f_func);
+#endif
     Py_VISIT(iv->f_code);
     Py_VISIT(iv->f_builtins);
     Py_VISIT(iv->f_globals);
@@ -400,7 +412,14 @@ code_traverse(NyHeapTraverse *ta) {
     PyCodeObject *co = (void *)ta->obj;
     visitproc visit = ta->visit;
     void *arg = ta->arg;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    if (co->_co_cached) {
+        Py_VISIT(co->_co_cached->_co_code);
+        Py_VISIT(co->_co_cached->_co_cellvars);
+        Py_VISIT(co->_co_cached->_co_freevars);
+        Py_VISIT(co->_co_cached->_co_varnames);
+    }
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     Py_VISIT(co->_co_code);
 #else
     Py_VISIT(co->co_code);
@@ -436,7 +455,14 @@ static int
 code_relate(NyHeapRelate *r)
 {
     PyCodeObject *v = (void *)r->src;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    if (v->_co_cached) {
+        RENAMEATTR(_co_cached->_co_code, co_code);
+        RENAMEATTR(_co_cached->_co_cellvars, co_cellvars);
+        RENAMEATTR(_co_cached->_co_freevars, co_freevars);
+        RENAMEATTR(_co_cached->_co_varnames, co_varnames);
+    }
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     RENAMEATTR(_co_code, co_code);
 #else
     ATTR(co_code);
@@ -481,16 +507,40 @@ type_traverse(NyHeapTraverse *ta)
     visitproc visit = ta->visit;
     void *arg = ta->arg;
 
-    Py_VISIT(type->tp_dict);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {
+        // TODO: interpreter probably should be a argument,
+        // but with per-interp GIL, it's only safe to traverse
+        // current interpreter anyways.
+        PyInterpreterState *is = PyInterpreterState_Get();
+        static_builtin_state *state;
+        size_t index;
+
+        index = (size_t)type->tp_subclasses - 1;
+        state = &is->types.builtins[index];
+
+        Py_VISIT(state->tp_dict);
+        Py_VISIT(state->tp_bases);
+        Py_VISIT(state->tp_mro);
+        Py_VISIT(state->tp_subclasses);
+    } else
+#endif
+    {
+       Py_VISIT(type->tp_dict);
+       Py_VISIT(type->tp_mro);
+       Py_VISIT(type->tp_bases);
+       Py_VISIT(type->tp_subclasses);
+    }
+
     Py_VISIT(type->tp_cache);
-    Py_VISIT(type->tp_mro);
-    Py_VISIT(type->tp_bases);
     Py_VISIT(type->tp_base);
-    Py_VISIT(type->tp_subclasses);
 
     if (!(type->tp_flags & Py_TPFLAGS_HEAPTYPE))
         return 0;
-    Py_VISIT(((PyHeapTypeObject *)type)->ht_slots ) ;
+    Py_VISIT(((PyHeapTypeObject *)type)->ht_name);
+    Py_VISIT(((PyHeapTypeObject *)type)->ht_slots);
+    Py_VISIT(((PyHeapTypeObject *)type)->ht_qualname);
+    Py_VISIT(((PyHeapTypeObject *)type)->ht_module);
     return 0;
 }
 
@@ -502,19 +552,46 @@ type_relate(NyHeapRelate *r)
 {
     PyTypeObject *type = (void *)r->src;
     PyHeapTypeObject *et;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {
+        // TODO: interpreter probably should be a argument,
+        // but with per-interp GIL, it's only safe to traverse
+        // current interpreter anyways.
+        PyInterpreterState *is = PyInterpreterState_Get();
+        static_builtin_state *state;
+        size_t index;
+
+        index = (size_t)type->tp_subclasses - 1;
+        state = &is->types.builtins[index];
+
+#define v state
+        RENAMEATTR(tp_dict, __dict__);
+        RENAMEATTR(tp_mro, __mro__);
+        RENAMEATTR(tp_bases, __bases__);
+        INTERATTR(tp_subclasses);
+#undef v
+    } else
+#endif
 #define v type
-    RENAMEATTR(tp_dict, __dict__);
+    {
+        RENAMEATTR(tp_dict, __dict__);
+        RENAMEATTR(tp_mro, __mro__);
+        RENAMEATTR(tp_bases, __bases__);
+        INTERATTR(tp_subclasses);
+    }
+
     INTERATTR(tp_cache);
-    RENAMEATTR(tp_mro, __mro__);
-    RENAMEATTR(tp_bases, __bases__);
     RENAMEATTR(tp_base, __base__);
-    INTERATTR(tp_subclasses);
 #undef v
     if (!(type->tp_flags & Py_TPFLAGS_HEAPTYPE))
         return 0;
     et = (PyHeapTypeObject *)type;
 #define v et
+    RENAMEATTR(ht_name, __name__);
     RENAMEATTR(ht_slots, __slots__);
+    RENAMEATTR(ht_qualname, __qualname__);
+    INTERATTR(ht_module);
     return 0;
 #undef v
 }

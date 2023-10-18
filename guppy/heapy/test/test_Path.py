@@ -300,28 +300,34 @@ class RelationTestCase(TestCase):
 
 class RootTestCase(TestCase):
     def test_1(self):
+        import gc
         import sys
         import builtins
         root = self.View.root
         # Interpreter attributes
 
         rel = str(self.relation(root, sys.modules))
-
-        self.assertTrue(eval(rel % 'root') is sys.modules)
         self.aseq(rel, '%s.i0_modules')
+        self.assertTrue(eval(rel % 'root') is sys.modules)
 
         rel = str(self.relation(root, sys.__dict__))
-        self.assertTrue(eval(rel % 'root') is sys.__dict__)
         self.aseq(rel, '%s.i0_sysdict')
+        self.assertTrue(eval(rel % 'root') is sys.__dict__)
 
         rel = str(self.relation(root, builtins.__dict__))
-        self.assertTrue(eval(rel % 'root') is builtins.__dict__)
         self.aseq(rel, '%s.i0_builtins')
+        self.assertTrue(eval(rel % 'root') is builtins.__dict__)
 
         for name in "codec_search_path", "codec_search_cache", "codec_error_registry":
             attr = "i0_%s" % name
             rel = str(self.relation(root, getattr(root, attr)))
             self.aseq(rel, '%%s.%s' % attr)
+
+        # This is fragilely referred to by gc's dict via PyModule_AddObjectRef.
+        # but also stored by the interpreter state via _is.gc.callbacks
+        # If this test becomes no relation we need to add this to rootstate.
+        rel = self.chkpath(root, gc.callbacks,
+                           "%s.i0_modules['gc'].__dict__['callbacks']")
 
         # Thread attributes
 
