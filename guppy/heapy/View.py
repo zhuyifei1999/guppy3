@@ -459,41 +459,46 @@ Return the set of objects that directly refer to
 any of the objects in the set X."""
 
         X = self.nodeset_adapt(X)
-        if self.is_rg_update_all and self.root is self.heapyc.RootState:
-            if not (self.rg.domain_covers(X) or
-                    self.rg.domain_covers(X - self.norefer)):
-                self.rg.clear()
-                import gc
-                gc.collect()
-                self.hv.update_referrers_completely(self.rg)
-                addnoref = X - self.rg.get_domain()
-                self.norefer |= addnoref
-        else:
-            Y = self.mutnodeset(X)
-            Y -= self.norefer
-            if not self.rg.domain_covers(Y):
-                for wt in self.referrers_targets:
-                    t = wt()
-                    if t is not None:
-                        Y |= t.set.nodes
-                Y |= self.rg.get_domain()
-                self.rg.clear()
-                self.hv.update_referrers(self.rg, Y)
-                self.norefer.clear()
-                self.norefer |= (X | Y | self.rg.get_range())
-                self.norefer -= self.rg.get_domain()
-                Y = self.mutnodeset(X) - self.norefer
+
+        self.referrers_lock += 1
+        try:
+            if self.is_rg_update_all and self.root is self.heapyc.RootState:
+                if not (self.rg.domain_covers(X) or
+                        self.rg.domain_covers(X - self.norefer)):
+                    self.rg.clear()
+                    import gc
+                    gc.collect()
+                    self.hv.update_referrers_completely(self.rg)
+                    addnoref = X - self.rg.get_domain()
+                    self.norefer |= addnoref
+            else:
+                Y = self.mutnodeset(X)
+                Y -= self.norefer
                 if not self.rg.domain_covers(Y):
-                    print('update_referrers failed')
-                    print('Y - domain of rg:')
-                    print(self.idset(Y - self.rg.get_domain()))
+                    for wt in self.referrers_targets:
+                        t = wt()
+                        if t is not None:
+                            Y |= t.set.nodes
+                    Y |= self.rg.get_domain()
+                    self.rg.clear()
+                    self.hv.update_referrers(self.rg, Y)
+                    self.norefer.clear()
+                    self.norefer |= (X | Y | self.rg.get_range())
+                    self.norefer -= self.rg.get_domain()
+                    Y = self.mutnodeset(X) - self.norefer
+                    if not self.rg.domain_covers(Y):
+                        print('update_referrers failed')
+                        print('Y - domain of rg:')
+                        print(self.idset(Y - self.rg.get_domain()))
 
-                Y = None
+                    Y = None
 
-        X = self.rg.relimg(X)
-        X = self.immnodeset(X) - [None]
-        X = self.retset(X)
-        return X
+            X = self.rg.relimg(X)
+            X = self.immnodeset(X) - [None]
+            X = self.retset(X)
+            return X
+        finally:
+            self.referrers_lock -= 1
 
     def referrers_gc(self, X):
         """V.referrers_gc(X) -> idset
