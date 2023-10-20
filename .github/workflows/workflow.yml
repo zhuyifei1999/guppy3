@@ -26,8 +26,6 @@ jobs:
     name: Test on ${{ matrix.os }} with Python ${{ matrix.python-version }} (tracemalloc=${{ matrix.tracemalloc }}, codecov=${{ matrix.codecov }}, sdist=${{ matrix.sdist }})
     needs: build_sdist
     runs-on: ${{ matrix.os }}-latest
-    # https://github.com/zhuyifei1999/guppy3/issues/37
-    continue-on-error: ${{ (matrix.os == 'windows' || matrix.os == 'macos') && matrix.python-version == '3.10' && matrix.codecov }}
 
     strategy:
       fail-fast: false
