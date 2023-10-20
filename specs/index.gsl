@@ -182,7 +182,7 @@ points in time.
 ...div
 ....ul
 
-.....li: Can be used with an unmodified C Python, back to version 3.7
+.....li: Can be used with an unmodified C Python, back to version 3.8
 AFAIK. Does not depend on any external unix-specific or other
 utilities.
 

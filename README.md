@@ -16,7 +16,7 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 ## Requirements
 
-You should have Python 3.7, 3.8, 3.9, 3.10, or 3.11. This package is CPython
+You should have Python 3.8, 3.9, 3.10, 3.11, or 3.12. This package is CPython
 only; PyPy and other Python implementations are not supported. Python 2 support
 can be obtained from [guppy-pe](http://guppy-pe.sourceforge.net/) by
 Sverker Nilsson, from which this package is forked.
