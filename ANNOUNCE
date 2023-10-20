@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.1.3
+I am happy to announce Guppy 3 3.1.4
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -10,17 +10,16 @@ common source.
 
 Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
-This release adds support for Python 3.11. However, please note that the
-profiling process will materialize a few optimizations of Python 3.11,
-including lazily-created frame objects and object managed dicts. This
-means that the profiler may cause a lot more additional memory to be
-allocated and as a result overestimate the memory usage.
+This release adds support for Python 3.12, and support for Python 3.7
+was dropped.
 
 This release also fixes a few bug fixes, including:
 
-o Fix profile browser initialization on Python 3.10+
-o Fix crash doing path calculation when a path component is non-comparable
-o Fix crash when a type doesn't have __module__
+o Fix refcount sanity assertion for Python 3.11, when C asserts are
+  compiled in.
+o Fix INTERATTR definition, where for "internal attributes" it would
+  always report the attribute name as "newname".
+o Fix .referrers occasionally returning empty set due to GC race
 
 License: MIT
 
