@@ -806,5 +806,6 @@ PyTypeObject NyRootState_Type = {
 
 PyObject _Ny_RootStateStruct = {
     _PyObject_EXTRA_INIT
-    1, &NyRootState_Type
+    .ob_refcnt = 1,
+    .ob_type = &NyRootState_Type,
 };
