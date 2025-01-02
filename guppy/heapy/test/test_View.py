@@ -64,6 +64,10 @@ class FirstCase(TestCase):
         self.aseq(p, iso(y).indisize)
 
     def test_horizon(self):
+        # Prime the code object because tracers want it, and in Py 3.12+ it is
+        # lazy created.
+        self.View.Horizon.news.__code__.co_code
+
         iso = self.iso
         h = self.View.horizon()
         x = []
