@@ -1923,12 +1923,12 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
     NyBits *buf = NULL;
     int r = -1;
-    double x;
     int cpl = 0;
     PyObject *w = NULL;
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
     Py_ssize_t e;
+    double x;
     NyBit num_bits, num_poses, num_bytes;
 
     x = _PyLong_Frexp((PyLongObject *)v, &e);
@@ -1978,11 +1978,13 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     int flags = Py_ASNATIVEBYTES_NATIVE_ENDIAN |
                 Py_ASNATIVEBYTES_UNSIGNED_BUFFER |
                 Py_ASNATIVEBYTES_REJECT_NEGATIVE;
+    long x;
+    int o;
 
-    x = PyLong_AsDouble(v);
-    if (x == -1 && PyErr_Occurred())
+    x = PyLong_AsLongAndOverflow(v, &o);
+    if (x == -1 && o == 0 && PyErr_Occurred())
         return -1;
-    if (x < 0) {
+    if (x < 0 && o == 0 || x == -1 && o == -1) {
         cpl = !cpl;
         op = cpl_conv_right(op, &cpl);
         w = PyNumber_Invert(v);
