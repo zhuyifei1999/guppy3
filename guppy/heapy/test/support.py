@@ -68,7 +68,7 @@ def run_suite(suite, testclass=None):
 
 def run_unittest(testclass, debug=0):
     """Run tests from a unittest.TestCase-derived class."""
-    suite = unittest.makeSuite(testclass)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testclass)
     if debug:
         suite.debug()
     else:
