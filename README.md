@@ -24,7 +24,7 @@ Sverker Nilsson, from which this package is forked.
 To use the graphical browser, Tkinter is needed.
 
 Free-threaded CPython is not supported, due to the excessive complexity and
-overhead to lock and unlock eery object in the interpreter, including objects
+overhead to lock and unlock every object in the interpreter, including objects
 that are CPython implementation details. (Maybe `_PyEval_EnableGILTransient`
 could be a solution to this problem, but it is currently not exposed.)
 
