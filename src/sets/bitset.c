@@ -1963,17 +1963,9 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
                             1, /* little_endian */
                             0  /* is_signed */);
     if (r == -1) goto Err1;
-#if NyBits_IS_BIG_ENDIAN
-    {
-        NyBit pos;
-        for (pos = 0; pos < num_poses; pos++) {
-            buf[pos] = NyBits_BSWAP(buf[pos]);
-        }
-    }
-#endif
 #else
     Py_ssize_t num_bytes, num_poses, num_bytes_check;
-    int flags = Py_ASNATIVEBYTES_NATIVE_ENDIAN |
+    int flags = Py_ASNATIVEBYTES_LITTLE_ENDIAN |
                 Py_ASNATIVEBYTES_UNSIGNED_BUFFER |
                 Py_ASNATIVEBYTES_REJECT_NEGATIVE;
     long x;
@@ -2011,6 +2003,15 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
         PyErr_SetString(PyExc_RuntimeError,
             "Unexpected truncation after a size check.");
         goto Err1;
+    }
+#endif
+
+#if NyBits_IS_BIG_ENDIAN
+    {
+        NyBit pos;
+        for (pos = 0; pos < num_poses; pos++) {
+            buf[pos] = NyBits_BSWAP(buf[pos]);
+        }
     }
 #endif
 
@@ -3045,10 +3046,8 @@ immbitset_int(NyImmBitSetObject *v)
     for (pos = 0; pos < num_poses; pos++) {
         if (pos == f->pos) {
             bits = f->bits;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
 #if NyBits_IS_BIG_ENDIAN
             bits = NyBits_BSWAP(bits);
-#endif
 #endif
             f++;
         } else {
@@ -3063,7 +3062,7 @@ immbitset_int(NyImmBitSetObject *v)
                               0);    /* not is_signed, never here */
 #else
     r = PyLong_FromUnsignedNativeBytes(buf, num_poses * sizeof(NyBits),
-                                       Py_ASNATIVEBYTES_NATIVE_ENDIAN);
+                                       Py_ASNATIVEBYTES_LITTLE_ENDIAN);
 #endif
     PyMem_Del(buf);
     return r;
