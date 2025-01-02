@@ -375,7 +375,7 @@ static NyImmBitSetObject *mutbitset_as_noncomplemented_immbitset_subtype(
     NyMutBitSetObject *v, PyTypeObject *type);
 static NyBitField *mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos);
 static NyBitField *mutbitset_findpos(NyMutBitSetObject *v, NyBit pos);
-static NySetField *mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi);
+static int mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi);
 static int mutbitset_iop_iterable(NyMutBitSetObject *ms, int op, PyObject *v);
 static NyMutBitSetObject *mutbitset_new_from_arg(PyObject *arg);
 static int mutbitset_reset(NyMutBitSetObject *v, NyImmBitSetObject *set);
@@ -972,8 +972,8 @@ sf_getrange(NySetField *v, NyBitField **shi)
 }
 
 
-static NyBitField *
-sf_getrange_mut(NySetField *sf, NyBitField **shi)
+static int
+sf_getrange_mut(NySetField *sf, NyBitField **slo, NyBitField **shi)
 {
     if (Py_REFCNT(sf->set) > 1) {
         NyImmBitSetObject *oset = sf->set;
@@ -981,15 +981,16 @@ sf_getrange_mut(NySetField *sf, NyBitField **shi)
         NyBit hi = sf->hi - oset->ob_field;
         NyImmBitSetObject *set = NyImmBitSet_New(Py_SIZE(oset)?Py_SIZE(oset):8);
         if (!set)
-            return 0;
+            return -1;
         fp_move(set->ob_field, oset->ob_field, Py_SIZE(oset));
         sf->lo = set->ob_field + lo;
         sf->hi = set->ob_field + hi;
         sf->set = set;
         Py_DECREF(oset);
     }
+    *slo = sf->lo;
     *shi = sf->hi;
-    return sf->lo;
+    return 0;
 }
 
 static int
@@ -1179,8 +1180,8 @@ mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
         return f;
     {
         NySetField *lo, *hi;
-        hi = 0; /* Avoid warning */
-        lo = mutbitset_getrange_mut(v, &hi);
+        if (mutbitset_getrange_mut(v, &lo, &hi) < 0)
+            return NULL;
         sf = setfield_binsearch(lo, hi, pos);
         assert(lo <= sf && sf < hi);
         assert(lo->pos <= pos);
@@ -1188,8 +1189,8 @@ mutbitset_findpos_ins(NyMutBitSetObject *v, NyBit pos)
     }
     {
         NyBitField *lo, *hi;
-        lo = sf_getrange_mut(sf, &hi);
-        (void)lo;
+        if (sf_getrange_mut(sf, &lo, &hi) < 0)
+            return NULL;
         f = bitfield_binsearch(sf->lo, sf->hi, pos);
         if (ins) {
             if (!(f < sf->hi && f->pos == pos))
@@ -1217,15 +1218,15 @@ mutbitset_getrange(NyMutBitSetObject *v, NySetField **shi)
     return union_getrange(v->root, shi);
 }
 
-static NySetField *
-mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi)
+static int
+mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi)
 {
     NyUnionObject *root = v->root;
     if (Py_REFCNT(root) > 1) {
         NyUnionObject *nroot = PyObject_NewVar(NyUnionObject, &NyUnion_Type, Py_SIZE(root));
         NyBit i;
         if (!nroot)
-            return 0;
+            return -1;
         nroot->cur_size = root->cur_size;
         sfp_move(nroot->ob_field, root->ob_field, root->cur_size);
         for (i = 0; i < nroot->cur_size; i++) {
@@ -1240,7 +1241,8 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **shi)
         Py_DECREF(root);
         root = nroot;
     }
-    return union_getrange(root, shi);
+    *slo = union_getrange(root, shi);
+    return 0;
 }
 
 static NyImmBitSetObject *
@@ -1529,8 +1531,12 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, NyBit n)
         break;
     case NyBits_AND:
         end_w = w + n;
-        for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+        if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+            return -1;
+        for (; s < end_s; s++) {
+            if (sf_getrange_mut(s, &f, &end_f) < 0)
+                return -1;
+            for (; f < end_f; f++) {
                 while (w < end_w && f->pos > w->pos)
                 w++;
                 if (w < end_w && w->pos == f->pos) {
@@ -1540,6 +1546,7 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, NyBit n)
                     f->bits = 0;
                 }
             }
+        }
         break;
     case NyBits_SUBR: {
             NyBit i;
@@ -1550,8 +1557,12 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, NyBit n)
                 }
             }
             end_w = w + n;
-            for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-                for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+            if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+                return -1;
+            for (; s < end_s; s++) {
+                if (sf_getrange_mut(s, &f, &end_f) < 0)
+                    return -1;
+                for (; f < end_f; f++) {
                     while (w < end_w && f->pos > w->pos)
                         w++;
                     if (w < end_w && w->pos == f->pos) {
@@ -1561,6 +1572,7 @@ mutbitset_iop_fields(NyMutBitSetObject *v, int op, NyBitField *w, NyBit n)
                         f->bits = 0;
                     }
                 }
+            }
         }
         break;
     default:
@@ -1600,9 +1612,13 @@ mutbitset_iop_bits(NyMutBitSetObject *v, int op, NyBit pos, NyBits *bits, NyBit 
             pos++;
         }
         break;
-    case NyBits_AND: {
-            for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+    case NyBits_AND:
+        if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+            return -1;
+        for (; s < end_s; s++) {
+            if (sf_getrange_mut(s, &f, &end_f) < 0)
+                return -1;
+            for (; f < end_f; f++) {
                 while (n > 0 && f->pos > pos) {
                     n--;
                     pos++;
@@ -1626,19 +1642,24 @@ mutbitset_iop_bits(NyMutBitSetObject *v, int op, NyBit pos, NyBits *bits, NyBit 
                         return -1;
                 }
             }
-            for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
-                while (n > 0 && f->pos > pos) {
-                    n--;
-                    pos++;
-                    bits++;
-                }
-                if (n > 0 && f->pos == pos) {
-                    f->bits = ~f->bits & *bits++;
-                    n--;
-                    pos++;
-                } else {
-                    f->bits = 0;
+            if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+                return -1;
+            for (; s < end_s; s++) {
+                if (sf_getrange_mut(s, &f, &end_f) < 0)
+                    return -1;
+                for (; f < end_f; f++) {
+                    while (n > 0 && f->pos > pos) {
+                        n--;
+                        pos++;
+                        bits++;
+                    }
+                    if (n > 0 && f->pos == pos) {
+                        f->bits = ~f->bits & *bits++;
+                        n--;
+                        pos++;
+                    } else {
+                        f->bits = 0;
+                    }
                 }
             }
         }
@@ -1725,35 +1746,45 @@ mutbitset_iop_mutset(NyMutBitSetObject *v, int op, NyMutBitSetObject *w)
     case NyBits_OR:
     case NyBits_XOR:
     case NyBits_SUB:
-            for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
+        for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
             for (f = sf_getrange(s, &end_f); f < end_f; f++)
                 if (mutbitset_iop_field(v, op, f) == -1)
                     return -1;
-            break;
+        break;
     case NyBits_AND:
-            for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+        if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+            return -1;
+        for (; s < end_s; s++) {
+            if (sf_getrange_mut(s, &f, &end_f) < 0)
+                return -1;
+            for (; f < end_f; f++) {
                 wf = mutbitset_findpos(w, f->pos);
                 if (wf)
                     f->bits &= wf->bits;
                 else
                     f->bits = 0;
             }
-            break;
+        }
+        break;
     case NyBits_SUBR:
-            for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
+        for (s = mutbitset_getrange(w, &end_s); s < end_s; s++)
             for (f = sf_getrange(s, &end_f); f < end_f; f++)
                 if (!mutbitset_findpos_ins(v, f->pos))
                     return -1;
-            for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+        if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+            return -1;
+        for (; s < end_s; s++) {
+            if (sf_getrange_mut(s, &f, &end_f) < 0)
+                return -1;
+            for (; f < end_f; f++) {
                 wf = mutbitset_findpos(w, f->pos);
                 if (wf)
                     f->bits = ~f->bits & wf->bits;
                 else
                     f->bits = 0;
             }
-            break;
+        }
+        break;
     default:
         PyErr_SetString(PyExc_ValueError,
                         "Invalid mutbitset_iop_fields() operation");
@@ -2442,8 +2473,12 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
         return -1;
     }
     if (i == - 1) {
-        for (end_s = mutbitset_getrange_mut(v, &s); --s >= end_s;)
-            for (end_f = sf_getrange_mut(s, &f); --f >= end_f;) {
+        if (mutbitset_getrange_mut(v, &end_s, &s) < 0)
+            return -1;
+        for (; --s >= end_s;) {
+            if (sf_getrange_mut(s, &end_f, &f) < 0)
+                return -1;
+            for (; --f >= end_f;) {
                 if (f->bits) {
                     j = bits_last(f->bits);
                     ret = f->pos * NyBits_N + j;
@@ -2455,9 +2490,14 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
                     return ret;
                 }
             }
+        }
     } else if (i == 0) {
-        for (s = mutbitset_getrange_mut(v, &end_s); s < end_s; s++)
-            for (f = sf_getrange_mut(s, &end_f); f < end_f; f++) {
+        if (mutbitset_getrange_mut(v, &s, &end_s) < 0)
+            return -1;
+        for (; s < end_s; s++) {
+            if (sf_getrange_mut(s, &f, &end_f) < 0)
+                return -1;
+            for (; f < end_f; f++) {
                 if (f->bits) {
                     j = bits_first(f->bits);
                     ret = f->pos * NyBits_N + j;
@@ -2469,6 +2509,7 @@ NyMutBitSet_pop(NyMutBitSetObject *v, NyBit i)
                     return ret;
                 }
             }
+        }
     } else {
         PyErr_SetString(PyExc_IndexError, "pop(): index must be 0 or -1");
         return -1;
