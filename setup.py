@@ -58,7 +58,7 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
               "guppy.sets",
           ],
           ext_modules=[setsc, heapyc],
-          python_requires='>=3.8',
+          python_requires='>=3.9',
           classifiers=[
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",
