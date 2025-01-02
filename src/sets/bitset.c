@@ -1982,7 +1982,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     x = PyLong_AsLongAndOverflow(v, &o);
     if (x == -1 && o == 0 && PyErr_Occurred())
         return -1;
-    if (x < 0 && o == 0 || x == -1 && o == -1) {
+    if ((x < 0 && o == 0) || (x == -1 && o == -1)) {
         cpl = !cpl;
         op = cpl_conv_right(op, &cpl);
         w = PyNumber_Invert(v);
