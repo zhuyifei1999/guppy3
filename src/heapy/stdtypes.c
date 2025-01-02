@@ -246,7 +246,10 @@ frame_relate(NyHeapRelate *r)
     GATTR(iv->f_func, f_func, NYHR_INTERATTR)
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    GATTR(iv->f_executable, f_executable, NYHR_INTERATTR)
+    if (iv->f_executable && PyCode_Check(iv->f_executable))
+        GATTR(iv->f_executable, f_code, NYHR_ATTRIBUTE)
+    else
+        GATTR(iv->f_executable, f_executable, NYHR_INTERATTR)
 #else
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
 #endif
