@@ -582,7 +582,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     }
     if (index <= _Py_MAX_MANAGED_STATIC_EXT_TYPES) {
         state = &is->types.for_extensions.initialized[index];
-        if (state->type != self)
+        if (state->type == self)
             return state;
     }
 
