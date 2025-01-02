@@ -560,7 +560,7 @@ code_relate(NyHeapRelate *r)
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
 typedef managed_static_type_state ny_static_type_state;
 # else
-typedef static_type_state ny_static_type_state;
+typedef static_builtin_state ny_static_type_state;
 # endif
 
 static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
@@ -596,7 +596,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
 # else
     size_t index;
 
-    index = (size_t)type->tp_subclasses - 1;
+    index = (size_t)self->tp_subclasses - 1;
     return &is->types.builtins[index];
 # endif
 }
