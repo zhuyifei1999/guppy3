@@ -74,6 +74,18 @@ dict_traverse(NyHeapTraverse *ta)
     PyObject *v = (void *)ta->obj;
     if (PyDict_GetItem(v, _hiding_tag__name) == ta->_hiding_tag_)
         return 0;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    // Python 3.13 no longer traverses object .__dict__ values.
+    visitproc visit = ta->visit;
+    void *arg = ta->arg;
+    Py_ssize_t i = 0;
+    PyObject *pv;
+
+    while (PyDict_Next(v, &i, NULL, &pv))
+        Py_VISIT(pv);
+#endif
+
     return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
 }
 
