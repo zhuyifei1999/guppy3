@@ -99,8 +99,10 @@ jobs:
 
     - name: Upload codecov
       if: ${{ matrix.codecov }}
-      shell: bash
-      run: bash <(curl -s https://codecov.io/bash)
+      uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
 
   test_arches:
     name: Test on docker ${{ matrix.arch }} with Python ${{ matrix.python-version }}
