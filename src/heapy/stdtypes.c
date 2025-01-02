@@ -368,10 +368,8 @@ frame_traverse(NyHeapTraverse *ta) {
 #endif
     int i;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-    if (!co)
-        goto assume_no_hiding;  // FIXME: What happens if JIT?
-
-    for (i = 0; i < co->co_nlocalsplus; i++) {
+    // FIXME: What happens if JIT?
+    for (i = 0; co && i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
         if (kind & CO_FAST_LOCAL && strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
@@ -381,8 +379,6 @@ frame_traverse(NyHeapTraverse *ta) {
                 break;
         }
     }
-
-assume_no_hiding:
 #else
     int nlocals = co->co_nlocals;
     if (PyTuple_Check(co->co_varnames)) {
