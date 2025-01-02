@@ -29,13 +29,15 @@
 #include "stdtypes.h"
 
 
-#define GATTR(obj, name, rel) if ((PyObject *)(obj) == r->tgt &&        \
-    (r->visit(rel, PyUnicode_FromString(#name), r))) \
-        return 1;
+#define GATTR(obj, name, rel) do {                           \
+    if ((PyObject *)(obj) == r->tgt &&                       \
+            (r->visit(rel, PyUnicode_FromString(#name), r))) \
+        return 1;                                            \
+} while (0)
 
-#define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE)
-#define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE)
-#define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR)
+#define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE);
+#define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE);
+#define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR);
 
 extern PyObject *_hiding_tag__name;
 
@@ -172,17 +174,17 @@ static int
 function_relate(NyHeapRelate *r)
 {
     PyFunctionObject *v = (void *)r->src;
-    RENAMEATTR(func_code, __code__)
-    RENAMEATTR(func_globals, __globals__)
-    RENAMEATTR(func_module, __module__)
-    RENAMEATTR(func_defaults, __defaults__)
-    RENAMEATTR(func_kwdefaults, __kwdefaults__)
-    RENAMEATTR(func_doc, __doc__)
-    RENAMEATTR(func_name, __name__)
-    RENAMEATTR(func_dict, __dict__)
-    RENAMEATTR(func_closure, __closure__)
-    RENAMEATTR(func_annotations, __annotations__)
-    RENAMEATTR(func_qualname, __qualname__)
+    RENAMEATTR(func_code, __code__);
+    RENAMEATTR(func_globals, __globals__);
+    RENAMEATTR(func_module, __module__);
+    RENAMEATTR(func_defaults, __defaults__);
+    RENAMEATTR(func_kwdefaults, __kwdefaults__);
+    RENAMEATTR(func_doc, __doc__);
+    RENAMEATTR(func_name, __name__);
+    RENAMEATTR(func_dict, __dict__);
+    RENAMEATTR(func_closure, __closure__);
+    RENAMEATTR(func_annotations, __annotations__);
+    RENAMEATTR(func_qualname, __qualname__);
     return dict_relate_kv(r, v->func_dict, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
@@ -253,25 +255,24 @@ frame_relate(NyHeapRelate *r)
 #endif
     ATTR(f_back)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-    GATTR(iv->f_funcobj, f_funcobj, NYHR_INTERATTR)
+    GATTR(iv->f_funcobj, f_funcobj, NYHR_INTERATTR);
 #elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-    GATTR(iv->f_func, f_func, NYHR_INTERATTR)
+    GATTR(iv->f_func, f_func, NYHR_INTERATTR);
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    if (iv->f_executable && PyCode_Check(iv->f_executable)) {
-        GATTR(iv->f_executable, f_code, NYHR_ATTRIBUTE)
-    } else {
-        GATTR(iv->f_executable, f_executable, NYHR_INTERATTR)
-    }
+    if (iv->f_executable && PyCode_Check(iv->f_executable))
+        GATTR(iv->f_executable, f_code, NYHR_ATTRIBUTE);
+    else
+        GATTR(iv->f_executable, f_executable, NYHR_INTERATTR);
 #else
-    GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
+    GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE);
 #endif
-    GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
-    GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE)
+    GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE);
+    GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE);
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    GATTR(iv->f_locals, f_locals, NYHR_INTERATTR)
+    GATTR(iv->f_locals, f_locals, NYHR_INTERATTR);
 #else
-    GATTR(iv->f_locals, f_locals, NYHR_ATTRIBUTE)
+    GATTR(iv->f_locals, f_locals, NYHR_ATTRIBUTE);
 #endif
     ATTR(f_trace)
 

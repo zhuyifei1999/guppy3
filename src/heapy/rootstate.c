@@ -230,31 +230,34 @@ static struct PyMemberDef ts_members[] = {
 #undef MEMBER
 #undef RENAMEMEMBER
 
-#define ISATTR(name)                                                                  \
+#define ISATTR(name) do {                                                             \
     if ((PyObject *)is->name == r->tgt) {                                             \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #name), r)) \
             return 1;                                                                 \
-    }
+    }                                                                                 \
+} while (0)
 
-#define RENAMEISATTR(name, newname)                                                                  \
-    if ((PyObject *)is->name == r->tgt) {                                             \
+#define RENAMEISATTR(name, newname) do {                                                 \
+    if ((PyObject *)is->name == r->tgt) {                                                \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #newname), r)) \
-            return 1;                                                                 \
-    }
+            return 1;                                                                    \
+    }                                                                                    \
+} while (0)
 
-#define TSATTR(name)                                                                                      \
+#define TSATTR(name) do {                                                                                 \
     if ((PyObject *)ts->name == r->tgt) {                                                                 \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #name), r)) \
             return 1;                                                                                     \
-    }
-
-#define RENAMETSATTR(name, newname)                                                                          \
+    }                                                                                                     \
+} while (0)
+#define RENAMETSATTR(name, newname) do {                                                                     \
     if ((PyObject *)ts->name == r->tgt) {                                                                    \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #newname), r)) \
             return 1;                                                                                        \
-    }
+    }                                                                                                        \
+} while (0)
 
-#define ISATTR_DIR(name)                                \
+#define ISATTR_DIR(name) do {                           \
     attr = PyUnicode_FromFormat("i%d_%s", isno, #name); \
     if (attr) {                                         \
         if (PyList_Append(list, attr)) {                \
@@ -263,8 +266,9 @@ static struct PyMemberDef ts_members[] = {
         }                                               \
         Py_DECREF(attr);                                \
     }                                                   \
+} while (0)
 
-#define TSATTR_DIR(name)                                                    \
+#define TSATTR_DIR(name) do {                                               \
     attr = PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #name); \
     if (attr) {                                                             \
         if (PyList_Append(list, attr)) {                                    \
@@ -273,7 +277,7 @@ static struct PyMemberDef ts_members[] = {
         }                                                                   \
         Py_DECREF(attr);                                                    \
     }                                                                       \
-
+} while (0)
 
 static int
 rootstate_relate(NyHeapRelate *r)
