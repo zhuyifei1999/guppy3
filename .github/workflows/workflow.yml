@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - test_arches
     tags:
       - v*
   pull_request:
@@ -102,6 +103,36 @@ jobs:
       shell: bash
       run: bash <(curl -s https://codecov.io/bash)
 
+  test_arches:
+    name: Test on docker ${{ matrix.arch }} with Python ${{ matrix.python-version }}
+    needs: build_sdist
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, i386, arm64/v8, ppc64le, s390x, arm/v7]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+    - name: Download sdist
+      uses: actions/download-artifact@v4
+      with:
+        name: sdist
+        path: dist
+
+    - name: Setup multiarch/qemu-user-static
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes
+
+    - name: Build & Test
+      run: >
+        docker run --rm -v $PWD:$PWD -w $PWD --platform linux/${{ matrix.arch }}
+        python:${{ matrix.python-version }} bash -c "
+        pip install -v dist/*.tar.gz &&
+        python -c 'import guppy; guppy.hpy().test()'
+        "
+
   build_wheels_native:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
@@ -118,7 +149,8 @@ jobs:
         env:
           CIBW_BUILD: cp3{9,10,11,12,13}-*
           CIBW_ARCHS: all
-          CIBW_TEST_COMMAND: python -c '__import__("guppy").hpy().test()'
+          CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
+          CIBW_TEST_COMMAND_WINDOWS: python -c "import guppy; guppy.hpy().test()"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -146,7 +178,7 @@ jobs:
         env:
           CIBW_BUILD: cp3{9,10,11,12,13}-*
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_TEST_COMMAND: python -c '__import__("guppy").hpy().test()'
+          CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
 
       - uses: actions/upload-artifact@v4
         with:
@@ -154,7 +186,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   upload_pypi:
-    needs: [test_matrix, build_wheels_native, build_wheels_linux, build_sdist]
+    needs: [test_matrix, test_arches, build_wheels_native, build_wheels_linux, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
