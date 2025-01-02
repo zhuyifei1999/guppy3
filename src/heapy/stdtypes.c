@@ -255,7 +255,11 @@ frame_relate(NyHeapRelate *r)
 #endif
     GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
     GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE)
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    GATTR(iv->f_locals, f_locals, NYHR_INTERATTR)
+#else
     GATTR(iv->f_locals, f_locals, NYHR_ATTRIBUTE)
+#endif
     ATTR(f_trace)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13

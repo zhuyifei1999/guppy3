@@ -109,7 +109,9 @@ class RelationTestCase(TestCase):
         f = inspect.currentframe()
         f.f_trace = lambda: None
         self.chkrelattr(f, 'f_back', 'f_builtins', 'f_code', 'f_globals',
-                        'f_locals', 'f_trace')
+                        'f_trace')
+        if self.version_info < (3, 13):
+            self.chkrelattr(f, 'f_locals')
 
         a = []
         # The representation of local variables is how they may be accessed
