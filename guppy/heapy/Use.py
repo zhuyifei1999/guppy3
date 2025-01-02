@@ -384,7 +384,6 @@ Argument
         '_parent.Classifiers:sonokind',
         '_parent.Classifiers:tc_adapt',
         '_parent.Classifiers:tc_repr',
-        '_parent.Monitor:monitor',
         '_parent.Part:_load_stat',
         '_parent.Part:Stat',
         '_parent.Prof:pb',

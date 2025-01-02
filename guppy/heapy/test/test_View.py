@@ -295,8 +295,6 @@ class SpecialTypesCase(TestCase):
 
 
 def test_main(debug=0):
-    from guppy.heapy.Remote import off
-    off()
     support.run_unittest(FirstCase, debug)
     support.run_unittest(GCCase, debug)
     support.run_unittest(AltHeapCase, debug)

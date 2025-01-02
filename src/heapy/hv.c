@@ -69,13 +69,11 @@ PyDoc_STRVAR(hv_doc,
 "  on the kind of memory allocator, the requested size, etc.\n"
 );
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
-# define Py_BUILD_CORE
+#define Py_BUILD_CORE
 /* PyGC_Head */
-#  undef _PyGC_FINALIZED
-#  include <internal/pycore_gc.h>
-# undef Py_BUILD_CORE
-#endif
+# undef _PyGC_FINALIZED
+# include <internal/pycore_gc.h>
+#undef Py_BUILD_CORE
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
 # define Py_BUILD_CORE
 /* _PySys_GetSizeOf */

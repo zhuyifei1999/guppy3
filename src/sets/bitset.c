@@ -406,11 +406,9 @@ PyTypeObject NyBitSet_Type = {
 
 /* */
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
-# ifndef Py_TRACE_REFS
-#  define _Py_ForgetReference(op) do {} while (0)
-#  define _Py_DEC_REFTOTAL do {} while (0)
-# endif
+#ifndef Py_TRACE_REFS
+# define _Py_ForgetReference(op) do {} while (0)
+# define _Py_DEC_REFTOTAL do {} while (0)
 #endif
 
 #define NOSET  0

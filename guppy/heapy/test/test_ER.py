@@ -468,7 +468,4 @@ def test_main(debug=0):
 
 
 if __name__ == "__main__":
-    from guppy.heapy.Remote import off
-    off()
-
     test_main()

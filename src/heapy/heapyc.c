@@ -155,18 +155,15 @@ err:
 
 /* Other functions */
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 9
-#include "interpreter.c"
-#endif
-
+/* #include "interpreter.c" */
 #include "xmemstats.c"
 
 static PyMethodDef module_methods[] =
 {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 9
+    /*
     {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
     {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
-#endif
+    */
     {"xmemstats", (PyCFunction)hp_xmemstats, METH_NOARGS, hp_xmemstats_doc},
     {0}
 };

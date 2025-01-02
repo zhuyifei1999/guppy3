@@ -24,11 +24,7 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
-# define INTERNAL_MODULE "_testinternalcapi"
-#else
-# define INTERNAL_MODULE "_testcapi"
-#endif
+#define INTERNAL_MODULE "_testinternalcapi"
 
 static void lazy_init_hv_cli_prod(void)
 {

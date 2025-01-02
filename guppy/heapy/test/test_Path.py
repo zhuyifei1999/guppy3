@@ -401,53 +401,6 @@ class RootTestCase(TestCase):
         while not self.sync:
             pass
 
-    def test_secondary_interpreter(self):
-        import sys
-        if sys.version_info >= (3, 9):
-            print('multi-interpreter not supported past Python 3.9')
-            return
-
-        try:
-            import _thread
-        except ImportError:
-            print('threading not enabled - skipping test')
-            return
-
-        import_remote = """\
-import sys
-import _thread
-import time
-
-def task():
-    time.sleep(1)
-
-    self.sysdict = sys.__dict__
-    self.sync = 1
-
-    while self.sync:
-        pass
-
-_thread.start_new_thread(task, ())
-"""
-
-        self.sync = 0
-        thid = self.heapy.heapyc.interpreter(import_remote, {'self': self})
-
-        root = self.View.root
-
-        import sys
-        sysdict = sys.__dict__
-        rel = str(self.relation(root, sysdict))
-        self.aseq(rel, '%s.i0_sysdict')
-
-        while not self.sync:
-            pass
-
-        rel = str(self.relation(root, self.sysdict))
-        self.aseq(rel, '%s.i1_sysdict')
-
-        self.sync = 0
-
 
 class PathTestCase(TestCase):
     def makegraph(self, width, length):

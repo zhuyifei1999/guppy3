@@ -103,17 +103,11 @@ char rootstate_doc[] =
 "that is the number of frames it has before it in call order.\n"
 ;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION == 8
-# define Py_BUILD_CORE
+
+#define Py_BUILD_CORE
 /* PyInterpreterState */
-#  include <internal/pycore_pystate.h>
-# undef Py_BUILD_CORE
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
-# define Py_BUILD_CORE
-/* PyInterpreterState */
-#  include <internal/pycore_interp.h>
-# undef Py_BUILD_CORE
-#endif
+# include <internal/pycore_interp.h>
+#undef Py_BUILD_CORE
 
 #define THREAD_ID(ts)    (ts->thread_id)
 
@@ -295,10 +289,8 @@ rootstate_relate(NyHeapRelate *r)
     for (is = PyInterpreterState_Head(), isno--;
          is;
          is = PyInterpreterState_Next(is), isno--) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
         if (is != PyInterpreterState_Get())
             continue;
-#endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
         RENAMEISATTR(imports.modules, modules);
         RENAMEISATTR(imports.modules_by_index, modules_by_index);
@@ -426,10 +418,8 @@ rootstate_traverse(NyHeapTraverse *ta)
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
         if (hv->is_hiding_calling_interpreter && is == bts->interp)
             continue;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
         if (is != PyInterpreterState_Get())
             continue;
-#endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
         Py_VISIT(is->imports.modules);
         // Not traversing through this because it is of the same level as
@@ -567,10 +557,8 @@ rootstate_getattr(PyObject *obj, PyObject *name)
         for (is = PyInterpreterState_Head(), countis = 0;
              is;
              is = PyInterpreterState_Next(is), countis++) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
             if (is != PyInterpreterState_Get())
                 continue;
-#endif
             int isno = numis - countis - 1;
             if (isno == ino) {
                 if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
@@ -664,10 +652,8 @@ rootstate_getattr(PyObject *obj, PyObject *name)
         for (is = PyInterpreterState_Head(), countis = 0;
              is;
              is = PyInterpreterState_Next(is), countis++) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
             if (is != PyInterpreterState_Get())
                 continue;
-#endif
             int isno = numis - countis - 1;
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
@@ -730,10 +716,8 @@ rootstate_dir(PyObject *self, PyObject *args)
     for (is = PyInterpreterState_Head(), isno--;
          is;
          is = PyInterpreterState_Next(is), isno--) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 9
         if (is != PyInterpreterState_Get())
             continue;
-#endif
         ISATTR_DIR(modules);
         ISATTR_DIR(modules_by_index);
         ISATTR_DIR(importlib);
