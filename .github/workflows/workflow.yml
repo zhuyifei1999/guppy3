@@ -20,6 +20,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: sdist
           path: dist/*.tar.gz
 
   test_matrix:
@@ -48,7 +49,7 @@ jobs:
       if: ${{ matrix.sdist }}
       uses: actions/download-artifact@v4
       with:
-        name: artifact
+        name: sdist
         path: dist
 
     - name: Set up Python
@@ -120,6 +121,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: wheel-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
   build_wheels_linux:
@@ -146,6 +148,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: wheel-ubuntu-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
 
   upload_pypi:
@@ -155,7 +158,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: sdist
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel-*
+          merge-multiple: true
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
