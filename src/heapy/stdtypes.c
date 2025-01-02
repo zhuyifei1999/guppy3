@@ -218,7 +218,12 @@ frame_relate(NyHeapRelate *r)
 #else
     PyFrameObject *iv = v;
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    PyCodeObject *co = iv->f_executable && PyCode_Check(iv->f_executable) ?
+                       (PyCodeObject *)iv->f_executable : NULL;
+#else
     PyCodeObject *co = iv->f_code;
+#endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 11
     Py_ssize_t ncells = PyTuple_GET_SIZE(co->co_cellvars);
     Py_ssize_t nlocals = co->co_nlocals;;
@@ -240,11 +245,25 @@ frame_relate(NyHeapRelate *r)
 #elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     GATTR(iv->f_func, f_func, NYHR_INTERATTR)
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    GATTR(iv->f_executable, f_executable, NYHR_INTERATTR)
+#else
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE)
+#endif
     GATTR(iv->f_builtins, f_builtins, NYHR_ATTRIBUTE)
     GATTR(iv->f_globals, f_globals, NYHR_ATTRIBUTE)
     GATTR(iv->f_locals, f_locals, NYHR_ATTRIBUTE)
     ATTR(f_trace)
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    ATTR(f_extra_locals)
+    ATTR(f_locals_cache)
+#endif
+
+    // FIXME: Not sure if there's anything one can do about optimized frames,
+    // need testing.
+    if (!co)
+        return 0;
 
     /* locals */
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
@@ -322,9 +341,17 @@ frame_traverse(NyHeapTraverse *ta) {
 #else
     PyFrameObject *iv = v;
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    PyCodeObject *co = iv->f_executable && PyCode_Check(iv->f_executable) ?
+                       (PyCodeObject *)iv->f_executable : NULL;
+#else
     PyCodeObject *co = iv->f_code;
+#endif
     int i;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    if (!co)
+        goto assume_no_hiding;  // FIXME: What happens if JIT?
+
     for (i = 0; i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
@@ -335,6 +362,8 @@ frame_traverse(NyHeapTraverse *ta) {
                 break;
         }
     }
+
+assume_no_hiding:
 #else
     int nlocals = co->co_nlocals;
     if (PyTuple_Check(co->co_varnames)) {
@@ -363,14 +392,28 @@ frame_traverse(NyHeapTraverse *ta) {
 #else
     Py_VISIT(iv->f_func);
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    Py_VISIT(iv->f_executable);
+#else
     Py_VISIT(iv->f_code);
+#endif
     Py_VISIT(iv->f_builtins);
     Py_VISIT(iv->f_globals);
     Py_VISIT(iv->f_locals);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    Py_VISIT(v->f_extra_locals);
+    Py_VISIT(v->f_locals_cache);
+#endif
 
     /* locals */
-    for (i = 0; i < co->co_nlocalsplus; i++)
-        Py_VISIT(iv->localsplus[i]);
+    if (!co) {
+        // FIXME: is it okay to assume stacktop is always valid when !co?
+        for (i = 0; i < iv->stacktop; i++)
+            Py_VISIT(iv->localsplus[i]);
+    } else {
+        for (i = 0; i < co->co_nlocalsplus; i++)
+            Py_VISIT(iv->localsplus[i]);
+    }
 
     return 0;
 #else
@@ -494,6 +537,52 @@ code_relate(NyHeapRelate *r)
     return 0;
 }
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+typedef managed_static_type_state ny_static_type_state;
+# else
+typedef static_type_state ny_static_type_state;
+# endif
+
+static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
+{
+    // FIXME: interpreter probably should be a argument,
+    // but with per-interp GIL, it's only safe to traverse
+    // current interpreter anyways.
+    PyInterpreterState *is = PyInterpreterState_Get();
+
+    assert(self->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN);
+
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    managed_static_type_state *state;
+    size_t index;
+
+    index = (size_t)self->tp_subclasses - 1;
+
+    // FIXME: These constants may be subject to change within a Python version
+    if (index <= _Py_MAX_MANAGED_STATIC_BUILTIN_TYPES) {
+        state = &is->types.builtins.initialized[index];
+        if (state->type == self)
+            return state;
+    }
+    if (index <= _Py_MAX_MANAGED_STATIC_EXT_TYPES) {
+        state = &is->types.for_extensions.initialized[index];
+        if (state->type != self)
+            return state;
+    }
+
+    PyErr_Format(PyExc_RuntimeError,
+        "Unable to find managed_static_type_state for %R", self);
+    return NULL;
+# else
+    size_t index;
+
+    index = (size_t)type->tp_subclasses - 1;
+    return &is->types.builtins[index];
+# endif
+}
+#endif
+
 /* type_traverse adapted from typeobject.c from 2.4.2
    except:
    * I removed the check for heap type
@@ -509,15 +598,9 @@ type_traverse(NyHeapTraverse *ta)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
     if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {
-        // TODO: interpreter probably should be a argument,
-        // but with per-interp GIL, it's only safe to traverse
-        // current interpreter anyways.
-        PyInterpreterState *is = PyInterpreterState_Get();
-        static_builtin_state *state;
-        size_t index;
-
-        index = (size_t)type->tp_subclasses - 1;
-        state = &is->types.builtins[index];
+        ny_static_type_state *state = NyStaticType_GetState(type);
+        if (!state)
+            return -1;
 
         Py_VISIT(state->tp_dict);
         Py_VISIT(state->tp_subclasses);
@@ -546,8 +629,6 @@ type_traverse(NyHeapTraverse *ta)
 }
 
 
-
-
 static int
 type_relate(NyHeapRelate *r)
 {
@@ -556,15 +637,9 @@ type_relate(NyHeapRelate *r)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
     if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {
-        // TODO: interpreter probably should be a argument,
-        // but with per-interp GIL, it's only safe to traverse
-        // current interpreter anyways.
-        PyInterpreterState *is = PyInterpreterState_Get();
-        static_builtin_state *state;
-        size_t index;
-
-        index = (size_t)type->tp_subclasses - 1;
-        state = &is->types.builtins[index];
+        ny_static_type_state *state = NyStaticType_GetState(type);
+        if (!state)
+            return -1;
 
 #define v state
         RENAMEATTR(tp_dict, __dict__);

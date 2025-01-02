@@ -153,9 +153,15 @@ static struct PyMemberDef is_members[] = {
     MEMBER(sysdict),
     MEMBER(builtins),
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    RENAMEMEMBER(codecs.search_path, codec_search_path),
+    RENAMEMEMBER(codecs.search_cache, codec_search_cache),
+    RENAMEMEMBER(codecs.error_registry, codec_error_registry),
+#else
     MEMBER(codec_search_path),
     MEMBER(codec_search_cache),
     MEMBER(codec_error_registry),
+#endif
 
     MEMBER(dict),
     MEMBER(builtins_copy),
@@ -170,6 +176,12 @@ static struct PyMemberDef is_members[] = {
 #endif
 
     MEMBER(audit_hooks),
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    MEMBER(optimizer),
+    MEMBER(executor_list_head), // TODO: Iterate this list
+#endif
+
     {0} /* Sentinel */
 };
 
@@ -211,6 +223,13 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(async_gen_finalizer),
 
     MEMBER(context),
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    MEMBER(previous_executor),
+    MEMBER(threading_local_key),
+    // threading_local_sentinel not included
+#endif
+
     {0} /* Sentinel */
 };
 
@@ -295,9 +314,15 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(sysdict);
         ISATTR(builtins);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        RENAMEISATTR(codecs.search_path, codec_search_path);
+        RENAMEISATTR(codecs.search_cache, codec_search_cache);
+        RENAMEISATTR(codecs.error_registry, codec_error_registry);
+#else
         ISATTR(codec_search_path);
         ISATTR(codec_search_cache);
         ISATTR(codec_error_registry);
+#endif
 
         ISATTR(dict);
         ISATTR(builtins_copy);
@@ -312,6 +337,11 @@ rootstate_relate(NyHeapRelate *r)
 #endif
 
         ISATTR(audit_hooks);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        ISATTR(optimizer);
+        ISATTR(executor_list_head);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
@@ -373,6 +403,11 @@ rootstate_relate(NyHeapRelate *r)
             TSATTR(async_gen_finalizer);
 
             TSATTR(context);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+            TSATTR(previous_executor);
+            TSATTR(threading_local_key);
+#endif
         }
     }
     return 0;
@@ -412,9 +447,15 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->sysdict);
         Py_VISIT(is->builtins);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        Py_VISIT(is->codecs.search_path);
+        Py_VISIT(is->codecs.search_cache);
+        Py_VISIT(is->codecs.error_registry);
+#else
         Py_VISIT(is->codec_search_path);
         Py_VISIT(is->codec_search_cache);
         Py_VISIT(is->codec_error_registry);
+#endif
 
         Py_VISIT(is->dict);
         Py_VISIT(is->builtins_copy);
@@ -429,6 +470,11 @@ rootstate_traverse(NyHeapTraverse *ta)
 #endif
 
         Py_VISIT(is->audit_hooks);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        Py_VISIT(is->optimizer);
+        Py_VISIT(is->executor_list_head);
+#endif
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
@@ -473,6 +519,11 @@ rootstate_traverse(NyHeapTraverse *ta)
             Py_VISIT(ts->async_gen_finalizer);
 
             Py_VISIT(ts->context);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+            Py_VISIT(ts->previous_executor);
+            Py_VISIT(ts->threading_local_key);
+#endif
         }
     }
     return 0;
@@ -709,6 +760,11 @@ rootstate_dir(PyObject *self, PyObject *args)
 
         ISATTR_DIR(audit_hooks);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        ISATTR_DIR(optimizer);
+        ISATTR_DIR(executor_list_head);
+#endif
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
         ts = is->threads.head;
 #else
@@ -767,6 +823,11 @@ rootstate_dir(PyObject *self, PyObject *args)
             TSATTR_DIR(async_gen_finalizer);
 
             TSATTR_DIR(context);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+            TSATTR_DIR(previous_executor);
+            TSATTR_DIR(threading_local_key);
+#endif
         }
     }
 

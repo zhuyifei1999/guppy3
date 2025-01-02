@@ -1921,13 +1921,15 @@ Err:
 static int
 mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
 {
-    NyBits *buf;
+    NyBits *buf = NULL;
     int r = -1;
-    Py_ssize_t e;
-    NyBit num_bits, num_poses, num_bytes;
     double x;
     int cpl = 0;
-    PyObject *w = 0;
+    PyObject *w = NULL;
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+    Py_ssize_t e;
+    NyBit num_bits, num_poses, num_bytes;
 
     x = _PyLong_Frexp((PyLongObject *)v, &e);
     if (x == -1 && PyErr_Occurred())
@@ -1936,11 +1938,12 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
         cpl = !cpl;
         op = cpl_conv_right(op, &cpl);
         w = PyNumber_Invert(v);
-        if (!w) return -1;
+        if (!w)
+            return -1;
         v = w;
         x = _PyLong_Frexp((PyLongObject *)v, &e);
         if (x == -1 && PyErr_Occurred())
-            return -1;
+            goto Err1;
         assert(x >= 0);
     }
     if (x != 0)
@@ -1968,6 +1971,46 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
         for (pos = 0; pos < num_poses; pos++) {
             buf[pos] = NyBits_BSWAP(buf[pos]);
         }
+    }
+#endif
+#else
+    Py_ssize_t num_bytes, num_poses, num_bytes_check;
+    int flags = Py_ASNATIVEBYTES_NATIVE_ENDIAN |
+                Py_ASNATIVEBYTES_UNSIGNED_BUFFER |
+                Py_ASNATIVEBYTES_REJECT_NEGATIVE;
+
+    x = PyLong_AsDouble(v);
+    if (x == -1 && PyErr_Occurred())
+        return -1;
+    if (x < 0) {
+        cpl = !cpl;
+        op = cpl_conv_right(op, &cpl);
+        w = PyNumber_Invert(v);
+        if (!w)
+            return -1;
+        v = w;
+    }
+
+    num_bytes = PyLong_AsNativeBytes(v, NULL, 0, flags);
+    if (num_bytes < 0)
+        goto Err1;
+    assert(num_bytes != 0);  /* Impossible per the API definition. */
+
+    num_poses = num_bytes / sizeof(NyBits) + 1;
+    buf = PyMem_New(NyBits, num_poses);
+    if (!buf) {
+        PyErr_NoMemory();
+        goto Err1;
+    }
+
+    num_bytes_check = PyLong_AsNativeBytes(
+        v, buf, num_poses * sizeof(NyBits), flags);
+    if (num_bytes_check < 0)
+        goto Err1;
+    if (num_bytes_check > num_poses * (Py_ssize_t)sizeof(NyBits)) {
+        PyErr_SetString(PyExc_RuntimeError,
+            "Unexpected truncation after a size check.");
+        goto Err1;
     }
 #endif
 
@@ -3002,8 +3045,10 @@ immbitset_int(NyImmBitSetObject *v)
     for (pos = 0; pos < num_poses; pos++) {
         if (pos == f->pos) {
             bits = f->bits;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
 #if NyBits_IS_BIG_ENDIAN
             bits = NyBits_BSWAP(bits);
+#endif
 #endif
             f++;
         } else {
@@ -3011,10 +3056,15 @@ immbitset_int(NyImmBitSetObject *v)
         }
         buf[pos] = bits;
     }
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
     r = _PyLong_FromByteArray((unsigned char *)buf,        /* bytes */
                               num_poses * sizeof(NyBits),    /* n = number of bytes*/
                               1,    /* Always little endian here */
                               0);    /* not is_signed, never here */
+#else
+    r = PyLong_FromUnsignedNativeBytes(buf, num_poses * sizeof(NyBits),
+                                       Py_ASNATIVEBYTES_NATIVE_ENDIAN);
+#endif
     PyMem_Del(buf);
     return r;
 }

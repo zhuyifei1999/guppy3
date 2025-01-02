@@ -76,6 +76,11 @@ PyDoc_STRVAR(hv_doc,
 #  include <internal/pycore_gc.h>
 # undef Py_BUILD_CORE
 #endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# define Py_BUILD_CORE
+#  include <internal/pycore_sysmodule.h>
+# undef Py_BUILD_CORE
+#endif
 
 #define ALIGN  sizeof(void *)
 #define ALIGN_MASK (ALIGN - 1)
