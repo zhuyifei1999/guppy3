@@ -78,7 +78,10 @@ PyDoc_STRVAR(hv_doc,
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
 # define Py_BUILD_CORE
+/* _PySys_GetSizeOf */
 #  include <internal/pycore_sysmodule.h>
+/* _PyObject_GetManagedDict */
+#  include <internal/pycore_object.h>
 # undef Py_BUILD_CORE
 #endif
 
@@ -534,6 +537,24 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
         // materialize this managed dict, which allocates a lot of memory
         // and will add additional overhead.
         _PyObject_GetDictPtr(obj);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_INLINE_VALUES) {
+            // Additionally, in 3.13, PyObject_VisitManagedDict skips traversing
+            // the managed dict, and visits the values directly. Force visiting
+            // the dict here.
+            PyDictObject *dict = _PyObject_GetManagedDict(obj);
+
+            Py_VISIT(dict);
+
+            // However, one must be careful not to call tp_traverse on a
+            // hidden object, because Py_TPFLAGS_INLINE_VALUES will traverse
+            // into the values of the dict, ignoring the _hiding_tag_ handling
+            // in stdtypes.c
+            if (PyDict_GetItem((PyObject *)dict, _hiding_tag__name) ==
+                    xt->xt_hv->_hiding_tag_)
+                return 0;
+        }
+#endif
     }
 #endif
     if (xt->xt_trav_code == XT_NO)
