@@ -81,7 +81,9 @@ People have written awesome posts on how to use this toolset, including:
 * [How to use guppy/heapy for tracking down memory usage](https://smira.ru/wp-content/uploads/2011/08/heapy.html)
 * [Debugging Django memory leak with TrackRefs and Guppy](https://opensourcehacker.com/2008/03/07/debugging-django-memory-leak-with-trackrefs-and-guppy/)
 * [Diagnosing Memory "Leaks" in Python](https://chase-seibert.github.io/blog/2013/08/03/diagnosing-memory-leaks-python.html)
-* [Digging into python memory issues in ckan with heapy](https://leastsignificant.blogspot.com/2015/06/digging-into-python-memory-issues-in.html)
+* [Digging into python memory issues in ckan with heapy](https://joetsoi.github.io/debugging-python-ckan-memory-issues/)
+* [Optimizing memory usage in Python: a case study](https://web.archive.org/web/20230614181724/https://guillaume.segu.in/blog/code/487/optimizing-memory-usage-in-python-a-case-study/)
+* [Memory profiling in python](https://quantlane.com/blog/python-memory-profiling/)
 
 Formal and API documentation are [also available](https://zhuyifei1999.github.io/guppy3/).
 

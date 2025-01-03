@@ -405,10 +405,13 @@ started. More tips are very welcome!
 .....href=https://chase-seibert.github.io/blog/2013/08/03/diagnosing-memory-leaks-python.html
 ...li
 ....a:Digging into python memory issues in ckan with heapy
-.....href=https://leastsignificant.blogspot.com/2015/06/digging-into-python-memory-issues-in.html
+.....href=https://joetsoi.github.io/debugging-python-ckan-memory-issues/
 ...li
-....a: Optimizing memory usage in Python: a case study
-.....href=https://guillaume.segu.in/blog/code/487/optimizing-memory-usage-in-python-a-case-study/
+....a:Optimizing memory usage in Python: a case study
+.....href=https://web.archive.org/web/20230614181724/https://guillaume.segu.in/blog/code/487/optimizing-memory-usage-in-python-a-case-study/
+...li
+....a:Memory profiling in python
+.....href=https://quantlane.com/blog/python-memory-profiling/
 
 ..a
 ...name=Download
