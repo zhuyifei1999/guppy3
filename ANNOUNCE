@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.1.4
+I am happy to announce Guppy 3 3.1.5
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -10,16 +10,18 @@ common source.
 
 Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
-This release adds support for Python 3.12, and support for Python 3.7
+This release adds support for Python 3.13, and support for Python 3.8
 was dropped.
 
-This release also fixes a few bug fixes, including:
+Code for Remote & Monitor has been removed since it no longer worked since
+Python 3.9 (I hope PEP 734 will change this in the future). Other libraries
+such as aiomanhole might provide similar functionality with a much simpler
+implementation.
 
-o Fix refcount sanity assertion for Python 3.11, when C asserts are
-  compiled in.
-o Fix INTERATTR definition, where for "internal attributes" it would
-  always report the attribute name as "newname".
-o Fix .referrers occasionally returning empty set due to GC race
+This release also fixes a few bugs, including:
+
+o Fix -Wmissing-braces compile warning
+o Added some error handling code paths to bitset
 
 License: MIT
 
@@ -27,6 +29,6 @@ The project homepage is on GitHub:
 
 https://github.com/zhuyifei1999/guppy3
 
-Enjoy,
+Enjoy and Happy New Year,
 
 YiFei Zhu

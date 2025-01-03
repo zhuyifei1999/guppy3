@@ -1,3 +1,19 @@
+    Version 3.1.5
+
+2025-01-03  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.1.5
+
+2025-01-02  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.13 support added, Python 3.8 support dropped
+    * Drop code for Remote & Monitor since it stopped working in 3.9.
+    * Added more error-handling code paths to bitset.
+
+2024-12-11  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fix -Wmissing-braces compile warning
+
     Version 3.1.4
 
 2023-10-20  YiFei Zhu  <zhuyifei1999@gmail.com>
