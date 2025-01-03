@@ -61,11 +61,16 @@ class RelationTestCase(TestCase):
 
     def test_code_relation(self):
         def f():
-            a = 3
+            a = 1000
             return self, a
         co = f.__code__
         # xxx brittle test but catches a bug
-        self.chkpath(co, 3, '%s.co_consts[1]')
+        # Python 3.14 added LOAD_SMALL_INT opcode. This value must be
+        # sufficiently large.
+        if self.version_info < (3, 14):
+            self.chkpath(co, 1000, '%s.co_consts[1]')
+        else:
+            self.chkpath(co, 1000, '%s.co_consts[0]')
         # commented in notes Sep 27 2004
         relAttr = ('co_code', 'co_consts', 'co_names',
                    'co_filename', 'co_name')
@@ -236,7 +241,10 @@ class RelationTestCase(TestCase):
         self.chkpath(w, w.b, '%s.b')
         self.chkpath(w, w.c, '%s.c')
         self.chkpath(w, w.d, '%s.d')
-        self.chkpath(w, w.e, "%s.__dict__['e']")
+        if self.version_info < (3, 14):
+            self.chkpath(w, w.e, "%s.__dict__['e']")
+        else:
+            self.chkpath(w, w.e, "%s.e")
 
         class R(object):
             rvar = []
@@ -251,7 +259,10 @@ class RelationTestCase(TestCase):
         self.chkrelattr(s, '__dict__', 'a', 'b', 'c')
         self.chkpath(s, s.a, '%s.a')
         self.chkpath(s, s.b, '%s.b')
-        self.chkpath(s, s.c, "%s.__dict__['c']")
+        if self.version_info < (3, 14):
+            self.chkpath(s, s.c, "%s.__dict__['c']")
+        else:
+            self.chkpath(s, s.c, "%s.c")
 
         # Class variables are not directly related- should they be that?
         # Possibly, but the compression could as well be done in Python.
