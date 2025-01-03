@@ -158,6 +158,10 @@ static struct PyMemberDef is_members[] = {
 #endif
 
     MEMBER(dict),
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    MEMBER(sysdict_copy),
+#endif
     MEMBER(builtins_copy),
 
 #ifdef HAVE_FORK
@@ -321,6 +325,10 @@ rootstate_relate(NyHeapRelate *r)
 #endif
 
         ISATTR(dict);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        ISATTR(sysdict_copy);
+#endif
         ISATTR(builtins_copy);
 
 #ifdef HAVE_FORK
@@ -452,6 +460,10 @@ rootstate_traverse(NyHeapTraverse *ta)
 #endif
 
         Py_VISIT(is->dict);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        Py_VISIT(is->sysdict_copy);
+#endif
         Py_VISIT(is->builtins_copy);
 
 #ifdef HAVE_FORK
@@ -735,6 +747,10 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(codec_error_registry);
 
         ISATTR_DIR(dict);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+        ISATTR_DIR(sysdict_copy);
+#endif
         ISATTR_DIR(builtins_copy);
 
 #ifdef HAVE_FORK

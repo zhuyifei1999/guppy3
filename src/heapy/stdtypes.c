@@ -28,6 +28,9 @@
 #include "heapdef.h"
 #include "stdtypes.h"
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 14
+#define PyStackRef_AsPyObjectBorrow(x) (x)
+#endif
 
 #define GATTR(obj, name, rel) do {                           \
     if ((PyObject *)(obj) == r->tgt &&                       \
@@ -233,8 +236,10 @@ frame_relate(NyHeapRelate *r)
     PyFrameObject *iv = v;
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    PyCodeObject *co = iv->f_executable && PyCode_Check(iv->f_executable) ?
-                       (PyCodeObject *)iv->f_executable : NULL;
+    PyCodeObject *co = (PyCodeObject *)PyStackRef_AsPyObjectBorrow(iv->f_executable);
+
+    if (co && !PyCode_Check(co))
+        co = NULL;
 #else
     PyCodeObject *co = iv->f_code;
 #endif
@@ -255,15 +260,15 @@ frame_relate(NyHeapRelate *r)
 #endif
     ATTR(f_back)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-    GATTR(iv->f_funcobj, f_funcobj, NYHR_INTERATTR);
+    GATTR(PyStackRef_AsPyObjectBorrow(iv->f_funcobj), f_funcobj, NYHR_INTERATTR);
 #elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     GATTR(iv->f_func, f_func, NYHR_INTERATTR);
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    if (iv->f_executable && PyCode_Check(iv->f_executable))
-        GATTR(iv->f_executable, f_code, NYHR_ATTRIBUTE);
+    if (co && PyCode_Check(co))
+        GATTR(co, f_code, NYHR_ATTRIBUTE);
     else
-        GATTR(iv->f_executable, f_executable, NYHR_INTERATTR);
+        GATTR(co, f_executable, NYHR_INTERATTR);
 #else
     GATTR(iv->f_code, f_code, NYHR_ATTRIBUTE);
 #endif
@@ -292,8 +297,9 @@ frame_relate(NyHeapRelate *r)
     for (i = 0; i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
+        PyObject *val = PyStackRef_AsPyObjectBorrow(iv->localsplus[i]);
 
-        if (iv->localsplus[i] == r->tgt) {
+        if (val == r->tgt) {
             Py_INCREF(name);
             if (r->visit(NYHR_LOCAL_VAR, name, r))
                 return 1;
@@ -302,7 +308,7 @@ frame_relate(NyHeapRelate *r)
         if (!(kind & CO_FAST_CELL) && !(kind & CO_FAST_FREE))
             continue;
 
-        if (PyCell_GET(iv->localsplus[i]) == r->tgt) {
+        if (PyCell_GET(val) == r->tgt) {
             Py_INCREF(name);
             if (r->visit(NYHR_CELL, name, r))
                 return 1;
@@ -319,7 +325,17 @@ frame_relate(NyHeapRelate *r)
 #endif
 
     /* stack */
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+    _PyStackRef *p;
+    _PyStackRef *s = iv->localsplus + co->co_nlocalsplus;
+    _PyStackRef *e = iv->stackpointer;
+    for (p = s; p < e; p++) {
+        if (PyStackRef_AsPyObjectBorrow(*p) == r->tgt) {
+            if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-s), r))
+                return 1;
+        }
+    }
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     PyObject **p;
     PyObject **s = iv->localsplus + co->co_nlocalsplus;
     PyObject **e = iv->localsplus + iv->stacktop;
@@ -363,8 +379,10 @@ frame_traverse(NyHeapTraverse *ta) {
     PyFrameObject *iv = v;
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    PyCodeObject *co = iv->f_executable && PyCode_Check(iv->f_executable) ?
-                       (PyCodeObject *)iv->f_executable : NULL;
+    PyCodeObject *co = (PyCodeObject *)PyStackRef_AsPyObjectBorrow(iv->f_executable);
+
+    if (co && !PyCode_Check(co))
+        co = NULL;
 #else
     PyCodeObject *co = iv->f_code;
 #endif
@@ -375,7 +393,7 @@ frame_traverse(NyHeapTraverse *ta) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
         if (kind & CO_FAST_LOCAL && strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
-            if (iv->localsplus[i] == ta->_hiding_tag_)
+            if (PyStackRef_AsPyObjectBorrow(iv->localsplus[i]) == ta->_hiding_tag_)
                 return 0;
             else
                 break;
@@ -404,32 +422,39 @@ frame_traverse(NyHeapTraverse *ta) {
     Py_XDECREF(next_frame);
 
     Py_VISIT(v->f_trace);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-    Py_VISIT(iv->f_funcobj);
-#else
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+    Py_VISIT(PyStackRef_AsPyObjectBorrow(iv->f_funcobj));
+# else
     Py_VISIT(iv->f_func);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    Py_VISIT(iv->f_executable);
-#else
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    Py_VISIT(PyStackRef_AsPyObjectBorrow(iv->f_executable));
+# else
     Py_VISIT(iv->f_code);
-#endif
+# endif
     Py_VISIT(iv->f_builtins);
     Py_VISIT(iv->f_globals);
     Py_VISIT(iv->f_locals);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     Py_VISIT(v->f_extra_locals);
     Py_VISIT(v->f_locals_cache);
-#endif
+# endif
 
     /* locals */
     if (!co) {
         // FIXME: is it okay to assume stacktop is always valid when !co?
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+        _PyStackRef *p;
+
+        for (p = iv->localsplus; p < iv->stackpointer; i++)
+            Py_VISIT(PyStackRef_AsPyObjectBorrow(*p));
+#else
         for (i = 0; i < iv->stacktop; i++)
             Py_VISIT(iv->localsplus[i]);
+#endif
     } else {
         for (i = 0; i < co->co_nlocalsplus; i++)
-            Py_VISIT(iv->localsplus[i]);
+            Py_VISIT(PyStackRef_AsPyObjectBorrow(iv->localsplus[i]));
     }
 
     return 0;

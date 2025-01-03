@@ -1993,19 +1993,31 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
                             num_bytes,
                             1, /* little_endian */
                             0  /* is_signed */);
-    if (r == -1) goto Err1;
+    if (r == -1)
+        goto Err1;
 #else
     Py_ssize_t num_bytes, num_poses, num_bytes_check;
     int flags = Py_ASNATIVEBYTES_LITTLE_ENDIAN |
                 Py_ASNATIVEBYTES_UNSIGNED_BUFFER |
                 Py_ASNATIVEBYTES_REJECT_NEGATIVE;
+
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION == 13
     long x;
     int o;
 
     x = PyLong_AsLongAndOverflow(v, &o);
     if (x == -1 && o == 0 && PyErr_Occurred())
         return -1;
-    if ((x < 0 && o == 0) || (x == -1 && o == -1)) {
+    if ((x < 0 && o == 0) || (x == -1 && o == -1))
+# else
+    int s;
+
+    s = PyLong_IsNegative(v);
+    if (s < 0)
+        return -1;
+    if (s)
+# endif
+    {
         cpl = !cpl;
         op = cpl_conv_right(op, &cpl);
         w = PyNumber_Invert(v);
