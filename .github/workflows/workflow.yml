@@ -134,12 +134,13 @@ jobs:
         "
 
   build_wheels_native:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} with Python 3.${{ matrix.python-minor }}
     runs-on: ${{ matrix.os }}-latest
     if: github.event_name == 'push'
     strategy:
       matrix:
         os: [windows, macos]
+        python-minor: ["9", "10", "11", "12", "13"]
 
     steps:
       - uses: actions/checkout@v3
@@ -147,23 +148,24 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          CIBW_BUILD: cp3{9,10,11,12,13}-*
+          CIBW_BUILD: cp3${{ matrix.python-minor }}-*
           CIBW_ARCHS: all
           CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
           CIBW_TEST_COMMAND_WINDOWS: python -c "import guppy; guppy.hpy().test()"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-${{ matrix.os }}
+          name: wheel-${{ matrix.os }}-py3.${{ matrix.python-minor }}
           path: ./wheelhouse/*.whl
 
   build_wheels_linux:
-    name: Build wheels on ubuntu ${{ matrix.arch }}
+    name: Build wheels on ubuntu ${{ matrix.arch }} with Python 3.${{ matrix.python-minor }}
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     strategy:
       matrix:
         arch: [x86_64, i686, aarch64, ppc64le, s390x, armv7l]
+        python-minor: ["9", "10", "11", "12", "13"]
 
     steps:
       - uses: actions/checkout@v3
@@ -176,13 +178,13 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          CIBW_BUILD: cp3{9,10,11,12,13}-*
+          CIBW_BUILD: cp3${{ matrix.python-minor }}-*
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheel-linux-${{ matrix.arch }}
+          name: wheel-linux-${{ matrix.arch }}-py3.${{ matrix.python-minor }}
           path: ./wheelhouse/*.whl
 
   upload_pypi:
