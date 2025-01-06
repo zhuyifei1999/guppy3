@@ -412,6 +412,9 @@ started. More tips are very welcome!
 ...li
 ....a:Memory profiling in python
 .....href=https://quantlane.com/blog/python-memory-profiling/
+...li
+....a:guppy/heapy - Profile Memory Usage in Python
+.....href=https://coderzcolumn.com/tutorials/python/guppy-heapy-profile-memory-usage-in-python
 
 ..a
 ...name=Download

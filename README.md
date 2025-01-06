@@ -84,6 +84,7 @@ People have written awesome posts on how to use this toolset, including:
 * [Digging into python memory issues in ckan with heapy](https://joetsoi.github.io/debugging-python-ckan-memory-issues/)
 * [Optimizing memory usage in Python: a case study](https://web.archive.org/web/20230614181724/https://guillaume.segu.in/blog/code/487/optimizing-memory-usage-in-python-a-case-study/)
 * [Memory profiling in python](https://quantlane.com/blog/python-memory-profiling/)
+* [guppy/heapy - Profile Memory Usage in Python](https://coderzcolumn.com/tutorials/python/guppy-heapy-profile-memory-usage-in-python)
 
 Formal and API documentation are [also available](https://zhuyifei1999.github.io/guppy3/).
 
