@@ -221,7 +221,7 @@ class TestHeapView(TestCase):
 
         # This has failed a couple of times so I remove it now, (apr 5 2008)
         # xxx should look into this later ...
-        #self.assert_(elapsed1 < 3.0 * elapsed0)
+        #self.assertTrue(elapsed1 < 3.0 * elapsed0)
 
 
 class TestLeak(support.TestCase):
