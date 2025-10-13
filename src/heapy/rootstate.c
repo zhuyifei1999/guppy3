@@ -175,8 +175,10 @@ static struct PyMemberDef is_members[] = {
 
     MEMBER(audit_hooks),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
     MEMBER(optimizer),
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     MEMBER(executor_list_head), // TODO: Iterate this list
 #endif
 
@@ -222,8 +224,13 @@ static struct PyMemberDef ts_members[] = {
 
     MEMBER(context),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
     MEMBER(previous_executor),
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+    MEMBER(current_executor),
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     MEMBER(threading_local_key),
     // threading_local_sentinel not included
 #endif
@@ -342,8 +349,10 @@ rootstate_relate(NyHeapRelate *r)
 
         ISATTR(audit_hooks);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         ISATTR(optimizer);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         ISATTR(executor_list_head);
 #endif
 
@@ -408,8 +417,13 @@ rootstate_relate(NyHeapRelate *r)
 
             TSATTR(context);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
             TSATTR(previous_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+            TSATTR(current_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
             TSATTR(threading_local_key);
 #endif
         }
@@ -477,8 +491,10 @@ rootstate_traverse(NyHeapTraverse *ta)
 
         Py_VISIT(is->audit_hooks);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         Py_VISIT(is->optimizer);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         Py_VISIT(is->executor_list_head);
 #endif
 
@@ -526,8 +542,13 @@ rootstate_traverse(NyHeapTraverse *ta)
 
             Py_VISIT(ts->context);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
             Py_VISIT(ts->previous_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+            Py_VISIT(ts->current_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
             Py_VISIT(ts->threading_local_key);
 #endif
         }
@@ -764,8 +785,10 @@ rootstate_dir(PyObject *self, PyObject *args)
 
         ISATTR_DIR(audit_hooks);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         ISATTR_DIR(optimizer);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         ISATTR_DIR(executor_list_head);
 #endif
 
@@ -828,8 +851,13 @@ rootstate_dir(PyObject *self, PyObject *args)
 
             TSATTR_DIR(context);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
             TSATTR_DIR(previous_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+            TSATTR_DIR(current_executor);
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
             TSATTR_DIR(threading_local_key);
 #endif
         }

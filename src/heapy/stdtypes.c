@@ -28,8 +28,15 @@
 #include "heapdef.h"
 #include "stdtypes.h"
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 14
-#define PyStackRef_AsPyObjectBorrow(x) (x)
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+# define Py_BUILD_CORE
+/* _PyInterpreterFrame */
+#  include <internal/pycore_interpframe_structs.h>
+/* PyStackRef_AsPyObjectBorrow */
+#  include <internal/pycore_stackref.h>
+# undef Py_BUILD_CORE
+#else
+# define PyStackRef_AsPyObjectBorrow(x) (x)
 #endif
 
 #define GATTR(obj, name, rel) do {                           \
