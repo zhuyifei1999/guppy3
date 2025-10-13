@@ -1406,6 +1406,18 @@ MutBitSet([])
     def test31(self):
         # Test nodeset, element-wise operations & object deallocation w. gc
 
+        # Python 3.14 added LOAD_FAST_BORROW opcode and when a use happens
+        # after a try-except, it compiles to LOAD_FAST instead, causing
+        # refcount inconsistencies. See:
+        # https://github.com/zhuyifei1999/guppy3/issues/50#issuecomment-3395756740
+        def assertValueError(func):
+            try:
+                func()
+            except ValueError:
+                pass
+            else:
+                raise AssertionError('expected ValueError')
+
         H = mutnodeset
         from sys import getrefcount as grc
 
@@ -1436,21 +1448,11 @@ MutBitSet([])
         s.discard(e3)
         s.remove(e2)
 
-        try:
-            s.append(e1)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError('no exception from append')
+        assertValueError(lambda: s.append(e1))
 
         s.remove(e1)
 
-        try:
-            s.remove(e1)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError('no exception from remove')
+        assertValueError(lambda: s.remove(e1))
 
         assert r1 == grc(e1)
         assert r2 == grc(e2)
