@@ -289,8 +289,11 @@ frame_relate(NyHeapRelate *r)
     ATTR(f_trace)
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    ATTR(f_extra_locals)
-    ATTR(f_locals_cache)
+    INTERATTR(f_extra_locals)
+    INTERATTR(f_locals_cache)
+#endif
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+    INTERATTR(f_overwritten_fast_locals)
 #endif
 
     // FIXME: Not sure if there's anything one can do about optimized frames,
@@ -445,6 +448,9 @@ frame_traverse(NyHeapTraverse *ta) {
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     Py_VISIT(v->f_extra_locals);
     Py_VISIT(v->f_locals_cache);
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+    Py_VISIT(v->f_overwritten_fast_locals);
 # endif
 
     /* locals */
