@@ -114,7 +114,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, i386, arm64/v8, ppc64le, s390x, arm/v7]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
     - name: Download sdist
