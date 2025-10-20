@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix-ci
     tags:
       - v*
   pull_request:
