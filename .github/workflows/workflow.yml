@@ -97,6 +97,7 @@ jobs:
       env:
         PYTHONTRACEMALLOC: ${{ matrix.tracemalloc && '1' || '' }}
         PYTHONFAULTHANDLER: 1
+        COVERAGE_CORE: ctrace
 
     - name: Upload codecov
       if: ${{ matrix.codecov }}
