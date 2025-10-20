@@ -285,6 +285,8 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
         arg->err = 0;
 ret:
     Py_DECREF(relator);
+    /* NyNodeSet_be_immutable might call into GC, causing arg->rel to be traversed */
+    arg->rel->relator = Py_None;
     return arg->err;
 }
 
@@ -332,7 +334,7 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
     result = inrel_fast_memoized_kind(self, (PyObject *)crva.relset);
 Ret:
     Py_DECREF(crva.relset);
-    self->rel->relator = Py_None;
+    assert(self->rel->relator == Py_None);
     return result;
 Err:
     result = 0;
