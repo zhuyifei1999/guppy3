@@ -122,9 +122,10 @@ jobs:
         name: sdist
         path: dist
 
-    - name: Setup multiarch/qemu-user-static
-      run: |
-        docker run --rm --privileged multiarch/qemu-user-static --reset --persistent yes
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: all
 
     - name: Build & Test
       run: >
