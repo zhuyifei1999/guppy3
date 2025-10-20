@@ -150,7 +150,6 @@ jobs:
         uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: cp3${{ matrix.python-minor }}-*
-          CIBW_ARCHS: all
           CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
           CIBW_TEST_COMMAND_WINDOWS: python -c "import guppy; guppy.hpy().test()"
 
