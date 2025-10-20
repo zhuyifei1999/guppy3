@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         tracemalloc: [true, false]
         codecov: [true, false]
         sdist: [true, false]
@@ -140,13 +140,13 @@ jobs:
     strategy:
       matrix:
         os: [windows, macos]
-        python-minor: ["9", "10", "11", "12", "13"]
+        python-minor: ["10", "11", "12", "13", "14"]
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: cp3${{ matrix.python-minor }}-*
           CIBW_ARCHS: all
@@ -165,7 +165,7 @@ jobs:
     strategy:
       matrix:
         arch: [x86_64, i686, aarch64, ppc64le, s390x, armv7l]
-        python-minor: ["9", "10", "11", "12", "13"]
+        python-minor: ["10", "11", "12", "13", "14"]
 
     steps:
       - uses: actions/checkout@v3
@@ -176,7 +176,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.2.1
         env:
           CIBW_BUILD: cp3${{ matrix.python-minor }}-*
           CIBW_ARCHS: ${{ matrix.arch }}
