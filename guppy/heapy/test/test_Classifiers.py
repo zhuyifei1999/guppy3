@@ -495,7 +495,7 @@ class RenderCase(TestCase):
             <2 (dict (no owner) | list): <1 dict (no owner): <address>*0> | <1 list: <ad...>
             <2 list: <address>*0, <address>*0>
             <1 TypeError: <address>>
-            <1 builtins.NoneType: None>
+            <1 types.NoneType: None>
             <3 module: guppy.heapy.test.support, sys, types>
             <3 type: <Module>.C3, int, type>
             <1 <Module>.C1: <address>>
@@ -516,8 +516,6 @@ class RenderCase(TestCase):
             """)
         expected = expected.replace('<Module>', self.__module__)
 
-        if self.version_info >= (3, 10):
-            expected = expected.replace('builtins.NoneType', 'types.NoneType')
         self.aseq(o.getvalue(), expected)
 
         if PORTABLE_TEST:

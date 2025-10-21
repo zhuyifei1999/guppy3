@@ -73,15 +73,11 @@ class RelationTestCase(TestCase):
             self.chkpath(co, 1000, '%s.co_consts[0]')
         # commented in notes Sep 27 2004
         relAttr = ('co_code', 'co_consts', 'co_names',
-                   'co_filename', 'co_name')
+                   'co_filename', 'co_name', 'co_linetable')
         if self.version_info < (3, 11):
             relAttr += ('co_varnames', 'co_freevars', 'co_cellvars')
         else:
             relAttr += ('co_exceptiontable', 'co_qualname')
-        if self.version_info >= (3, 10):
-            relAttr += ('co_linetable',)
-        else:
-            relAttr += ('co_lnotab',)
         self.chkrelattr(co, *relAttr)
 
     def test_dict_relation(self):

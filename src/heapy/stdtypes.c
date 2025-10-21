@@ -355,23 +355,13 @@ frame_relate(NyHeapRelate *r)
                 return 1;
         }
     }
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
+#else
     PyObject **p;
     PyObject **l = v->f_valuestack + v->f_stackdepth;
     for (p = v->f_valuestack; p < l; p++) {
         if (*p == r->tgt) {
             if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
                 return 1;
-        }
-    }
-#else
-    if (v->f_stacktop != NULL) {
-        PyObject **p;
-        for (p = v->f_valuestack; p < v->f_stacktop; p++) {
-            if (*p == r->tgt) {
-                if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
-                    return 1;
-            }
         }
     }
 #endif
@@ -540,11 +530,7 @@ code_traverse(NyHeapTraverse *ta) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     Py_VISIT(co->co_qualname);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
     Py_VISIT(co->co_linetable);
-#else
-    Py_VISIT(co->co_lnotab);
-#endif
     Py_VISIT(co->co_weakreflist);
     return 0;
 }
@@ -583,11 +569,7 @@ code_relate(NyHeapRelate *r)
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     ATTR(co_qualname);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 10
     ATTR(co_linetable);
-#else
-    ATTR(co_lnotab);
-#endif
     ATTR(co_weakreflist);
     return 0;
 }

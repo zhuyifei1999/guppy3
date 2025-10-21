@@ -169,9 +169,6 @@ static struct PyMemberDef is_members[] = {
     MEMBER(after_forkers_parent),
     MEMBER(after_forkers_child),
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
-    MEMBER(pyexitmodule),
-#endif
 
     MEMBER(audit_hooks),
 
@@ -343,9 +340,6 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(after_forkers_parent);
         ISATTR(after_forkers_child);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
-        ISATTR(pyexitmodule);
-#endif
 
         ISATTR(audit_hooks);
 
@@ -484,9 +478,6 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->before_forkers);
         Py_VISIT(is->after_forkers_parent);
         Py_VISIT(is->after_forkers_child);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
-        Py_VISIT(is->pyexitmodule);
 #endif
 
         Py_VISIT(is->audit_hooks);
@@ -778,9 +769,6 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(before_forkers);
         ISATTR_DIR(after_forkers_parent);
         ISATTR_DIR(after_forkers_child);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 10
-        ISATTR_DIR(pyexitmodule);
 #endif
 
         ISATTR_DIR(audit_hooks);
