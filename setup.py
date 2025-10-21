@@ -63,7 +63,6 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",
               "Programming Language :: C",
-              "License :: OSI Approved :: MIT License",
               "Operating System :: OS Independent",
               "Development Status :: 4 - Beta",
               "Topic :: Software Development :: Debuggers",
