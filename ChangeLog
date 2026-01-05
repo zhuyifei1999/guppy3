@@ -1,3 +1,20 @@
+    Version 3.1.6
+
+2026-01-05  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.1.6
+
+2025-10-20  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.9 support dropped
+    * Fix a segfault in hv_cli_inrel_classify caused by a GC race
+
+2025-10-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Python 3.14 support added
+    * Fix relate of frame objects showing some attributes as exposed Python
+      when they are not
+
     Version 3.1.5
 
 2025-01-03  YiFei Zhu  <zhuyifei1999@gmail.com>
