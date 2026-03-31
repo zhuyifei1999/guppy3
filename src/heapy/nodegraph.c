@@ -579,7 +579,7 @@ PyObject *
 ng_iter(NyNodeGraphObject *v)
 {
     NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, &NyNodeGraphIter_Type);
-    if (!v)
+    if (!iter)
         return 0;
     iter->nodegraph = v;
     Py_INCREF(v);
