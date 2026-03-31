@@ -306,6 +306,18 @@ class RelationTestCase(TestCase):
 
         # Inheritance is tested via test_object_relation()
 
+    def test_set_relation(self):
+        from sys import getrefcount as grc
+
+        v = 'v'
+        s = {v}
+
+        src = grc(s)
+        vrc = grc(v)
+        self.chkrel(s, v, 'list(%s)[0]')
+        self.aseq(grc(s), src)
+        self.aseq(grc(v), vrc)
+
 
 class RootTestCase(TestCase):
     def test_1(self):
