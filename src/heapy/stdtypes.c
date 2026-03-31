@@ -449,7 +449,7 @@ frame_traverse(NyHeapTraverse *ta) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
         _PyStackRef *p;
 
-        for (p = iv->localsplus; p < iv->stackpointer; i++)
+        for (p = iv->localsplus; p < iv->stackpointer; p++)
             Py_VISIT(PyStackRef_AsPyObjectBorrow(*p));
 #else
         for (i = 0; i < iv->stacktop; i++)
