@@ -168,11 +168,13 @@ set_relate(NyHeapRelate *r)
     while ((obj = PyIter_Next(it))) {
         if (r->tgt == obj) {
             r->visit(NYHR_INSET, PyLong_FromSsize_t(i++), r);
-            return 1;
+            Py_DECREF(obj);
+            goto out;
         }
         Py_DECREF(obj);
     }
 
+out:
     Py_DECREF(it);
 
     if (PyErr_Occurred())
