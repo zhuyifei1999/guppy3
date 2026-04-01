@@ -96,10 +96,14 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
 {
     PyObject *sp;
     PyObject *kind = ta->self->def->classify(ta->self->self, obj);
+    int r;
+
     if (!kind)
         return -1;
 
-    sp = PyDict_GetItem(ta->map, kind);
+    r = PyDict_GetItemRef(ta->map, kind, &sp);
+    if (r == -1)
+        goto Err;
     if (!sp) {
         sp = PyList_New(0);
         if (!sp)
@@ -107,10 +111,10 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
         if (PyObject_SetItem(ta->map, kind, sp) == -1) {
             goto Err;
         };
-        Py_DECREF(sp);
     }
     if (PyList_Append(sp, obj) == -1)
         goto Err;
+    Py_DECREF(sp);
     Py_DECREF(kind);
     return 0;
 Err:
