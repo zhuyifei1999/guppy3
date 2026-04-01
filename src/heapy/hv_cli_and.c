@@ -11,10 +11,11 @@ PyDoc_STRVAR(hv_cli_and_doc,
 
 typedef struct {
     /* Mimics a tuple - xxx should perhaps make a proper object/use tuple macros?! */
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     PyObject *classifiers;
     PyObject *memo;
 } CliAndObject;
+NYTUPLELIKE_ASSERT(CliAndObject, classifiers);
 
 
 PyDoc_STRVAR(nodetuple_doc,

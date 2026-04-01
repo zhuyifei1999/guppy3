@@ -1,10 +1,11 @@
 /* Implementation of the 'indisize' classifier */
 
 typedef struct {
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
     PyObject *memo;
 } IndisizeObject;
+NYTUPLELIKE_ASSERT(IndisizeObject, hv);
 
 
 

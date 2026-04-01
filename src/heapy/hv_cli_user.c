@@ -6,7 +6,7 @@ PyDoc_STRVAR(hv_cli_user_defined_doc,
 
 typedef struct {
     /* Mimics a tuple */
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyObjectClassifierObject *cond_cli;
     PyObject *cond_kind;
     PyObject *classify;
@@ -14,9 +14,8 @@ typedef struct {
     NyNodeGraphObject *rg;
     NyNodeSetObject *norefer;
     PyObject *dict;
-
-
 } UserObject;
+NYTUPLELIKE_ASSERT(UserObject, cond_cli);
 
 static PyObject *
 hv_cli_user_memoized_kind(UserObject * self, PyObject *kind)

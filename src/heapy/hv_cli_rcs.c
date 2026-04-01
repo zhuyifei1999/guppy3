@@ -21,13 +21,14 @@ referrers, collected in an immutable NodeSet object. Arguments:\n\
 
 typedef struct {
     /* Mimics a tuple - xxx should perhaps make a proper object/use tuple macros?! */
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
     NyObjectClassifierObject *cli;
     NyNodeGraphObject *rg;
     NyNodeSetObject *norefer;
     PyObject *memo;
 } RetclasetObject;
+NYTUPLELIKE_ASSERT(RetclasetObject, hv);
 
 static PyObject *
 hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)

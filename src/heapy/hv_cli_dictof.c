@@ -35,13 +35,14 @@ PyDoc_STRVAR(hv_cli_dictof_doc,
 # define DictofDict_Check(obj) (Py_TYPE(obj) == &PyDict_Type)
 
 typedef struct {
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
     NyNodeGraphObject *owners;
     NyObjectClassifierObject *ownerclassifier;
     PyObject *notdictkind;
     PyObject *notownedkind;
 } DictofObject;
+NYTUPLELIKE_ASSERT(DictofObject, hv);
 
 /* Code for new dict-owner update method. Notes Apr 7 2005. */
 

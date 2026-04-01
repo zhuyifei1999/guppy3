@@ -169,12 +169,13 @@ PyTypeObject NyRelation_Type = {
 
 typedef struct {
     /* Mimics a tuple - xxx should perhaps make a proper object/use tuple macros?! */
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
     NyNodeGraphObject *rg;
     NyRelationObject *rel;
     PyObject *memokind, *memorel;
 } InRelObject;
+NYTUPLELIKE_ASSERT(InRelObject, hv);
 
 typedef struct {
     PyObject *memorel;

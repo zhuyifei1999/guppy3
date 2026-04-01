@@ -68,10 +68,11 @@ Err:
 }
 
 typedef struct {
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
     PyObject *memo;
 } ProdObject;
+NYTUPLELIKE_ASSERT(ProdObject, hv);
 
 static PyObject *
 hv_cli_prod_memoized_kind(ProdObject * self, PyObject *kind)

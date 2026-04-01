@@ -10,12 +10,13 @@ PyDoc_STRVAR(hv_cli_findex_doc,
 
 
 typedef struct {
-    PyObject_VAR_HEAD
+    NYTUPLELIKE_HEAD
     PyObject *alts;
     PyObject *memo;
     PyObject *kinds;
     PyObject *cmps;
 } FindexObject;
+NYTUPLELIKE_ASSERT(FindexObject, alts);
 
 static PyObject *
 hv_cli_findex_memoized_kind(FindexObject * self, PyObject *kind)
