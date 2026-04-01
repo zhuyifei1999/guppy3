@@ -726,7 +726,8 @@ NyImmBitSet_SubtypeNewArg(PyTypeObject *type, PyObject *v)
     if (vt == BITSET) {
         NyImmBitSetObject *bs = (NyImmBitSetObject *)v;
         NyImmBitSetObject *ret = NyImmBitSet_SubtypeNew(type, Py_SIZE(bs));
-        memcpy(ret->ob_field, bs->ob_field, sizeof(NyBitField) * Py_SIZE(bs));
+        if (ret)
+            memcpy(ret->ob_field, bs->ob_field, sizeof(NyBitField) * Py_SIZE(bs));
         return ret;
     }
     if (vt == MUTSET) {
