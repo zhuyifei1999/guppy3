@@ -1627,7 +1627,9 @@ err_inner_inner:
             int is_target = -1;
             ExtraType *xt = hv_extra_type(ta.hv, Py_TYPE(obj));
 
-            if (xt->xt_trav_code == XT_NO) {
+            if (xt == &xt_error) {
+                goto err_inner;
+            } else if (xt->xt_trav_code == XT_NO) {
                 is_target = ta.targetset ? NyNodeSet_hasobj(ta.targetset, obj) :
                                            obj != ta.hv->root;
                 if (!is_target)
