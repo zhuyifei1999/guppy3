@@ -126,6 +126,7 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 {
     Py_VISIT(hv->root);
     Py_VISIT(hv->limitframe);
+    Py_VISIT(hv->_hiding_tag_);
     Py_VISIT(hv->static_types);
     Py_VISIT(hv->weak_type_callback);
 
