@@ -594,6 +594,13 @@ class TestClassifiers(TestCase):
             rg.add_edge(x, r)
         c = cli.classify(x)
 
+    def test_partition(self):
+        hv = self.hv
+        cli = hv.cli_type()
+
+        part = cli.partition([1, 2, 'a', 3, 'b', 'c', 4])
+        self.aseq(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
+
     def test_nodetuple_richcompare(self):
         hv = self.hv
 
