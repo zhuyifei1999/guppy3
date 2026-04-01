@@ -1642,7 +1642,11 @@ MutBitSet([])
 
     def test36(self):
         # Make sure construction doesn't segfault on OOM
-        import _testcapi
+        try:
+            import _testcapi
+        except ImportError:
+            print('_testcapi does not exist - skipping test')
+            return
 
         for cls in BitSet, ImmBitSet, MutBitSet, ImmNodeSet, MutNodeSet:
             _testcapi.set_nomemory(1, 0)
