@@ -104,17 +104,18 @@ hv_PyList_Pop(PyObject *list)
 {
     Py_ssize_t size = PyList_Size(list);
     if (size > 0) {
-        PyObject *r = PyList_GetItem(list, size - 1);
-        Py_XINCREF(r);
-        if (r)
-            if (PyList_SetSlice(list, size - 1, size, 0) < 0)
-                return 0;
-
+        PyObject *r = PyList_GetItemRef(list, size - 1);
+        if (!r)
+            return NULL;
+        if (PyList_SetSlice(list, size - 1, size, 0) < 0) {
+            Py_DECREF(r);
+            return NULL;
+        }
         return r;
     } else {
         if (size == 0)
             PyErr_Format(PyExc_IndexError, "pop from empty list");
-        return 0;
+        return NULL;
     }
 }
 
