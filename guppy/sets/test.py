@@ -1642,6 +1642,9 @@ MutBitSet([])
 
     def test36(self):
         # Make sure construction doesn't segfault on OOM
+        if sys.gettrace() is not None:
+            print('_testcapi.set_nomemory incompatible with tracers - skipping test')
+            return
         try:
             import _testcapi
         except ImportError:
