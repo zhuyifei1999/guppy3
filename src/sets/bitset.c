@@ -2970,6 +2970,8 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
                 break;
         }
         bs = NyImmBitSet_New(nfields);
+        if (!bs)
+            return NULL;
         g = bs->ob_field;
         i = 0;
         for (s = ss; s < se; s++) {
@@ -3010,6 +3012,8 @@ sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh)
                 break;
         }
         bs = NyImmBitSet_New(nfields);
+        if (!bs)
+            return NULL;
         g = bs->ob_field + nfields - 1;
         i = 0;
         for (s = se; --s >= ss;) {
