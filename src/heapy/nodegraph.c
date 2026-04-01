@@ -168,12 +168,14 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
 
     if (ng->used_size >= ng->allo_size) {
         Py_ssize_t allo = roundupsize(ng->used_size + 1);
-        PyMem_RESIZE(ng->edges, NyNodeGraphEdge, allo);
-        if (!ng->edges) {
-            ng->used_size = ng->allo_size = 0;
+        NyNodeGraphEdge *edges = ng->edges;
+
+        PyMem_RESIZE(edges, NyNodeGraphEdge, allo);
+        if (!edges) {
             PyErr_NoMemory();
             return -1;
         }
+        ng->edges = edges;
         ng->allo_size = allo;
     }
     Py_INCREF(src);
@@ -235,7 +237,13 @@ ng_remove_dups(NyNodeGraphObject *ng)
 static void
 ng_trim(NyNodeGraphObject *ng)
 {
-    PyMem_RESIZE(ng->edges, NyNodeGraphEdge, ng->used_size);
+    NyNodeGraphEdge *edges = ng->edges;
+
+    PyMem_RESIZE(edges, NyNodeGraphEdge, ng->used_size);
+    if (!edges)
+        return;
+
+    ng->edges = edges;
     ng->allo_size = ng->used_size;
 }
 
