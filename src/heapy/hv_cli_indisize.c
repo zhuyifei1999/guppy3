@@ -12,15 +12,20 @@ NYTUPLELIKE_ASSERT(IndisizeObject, hv);
 static PyObject *
 hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
 {
-    PyObject *memoedsize = PyDict_GetItem(self->memo, size);
-    if (!memoedsize) {
-        if (PyDict_SetItem(self->memo, size, size) == -1) {
-            return 0;
-        }
-        memoedsize = size;
-    }
-    Py_INCREF(memoedsize);
-    return memoedsize;
+    PyObject *memoedsize;
+    int r;
+
+    r = PyDict_GetItemRef(self->memo, size, &memoedsize);
+    if (r == -1)
+        return NULL;
+    if (memoedsize)
+        return memoedsize;
+
+    if (PyDict_SetItem(self->memo, size, size) == -1)
+        return NULL;
+    /* Caller assumes it owns both size and the return value */
+    Py_INCREF(size);
+    return size;
 }
 
 static PyObject *

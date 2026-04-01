@@ -40,18 +40,20 @@ NyNodeTuple_New(Py_ssize_t size)
 static PyObject *
 hv_cli_and_fast_memoized_kind(CliAndObject * self, PyObject *kind)
 {
-    PyObject *result = PyDict_GetItem(self->memo, kind);
-    if (!result) {
-        if (PyErr_Occurred())
-            goto Err;
-        if (PyDict_SetItem(self->memo, kind, kind) == -1)
-            goto Err;
-        result = kind;
-    }
-    Py_INCREF(result);
-    return result;
-Err:
-    return 0;
+    PyObject *result;
+    int r;
+
+    r = PyDict_GetItemRef(self->memo, kind, &result);
+    if (r == -1)
+        return NULL;
+    if (result)
+        return result;
+
+    if (PyDict_SetItem(self->memo, kind, kind) == -1)
+        return NULL;
+    /* Caller assumes it owns both kind and the return value */
+    Py_INCREF(kind);
+    return kind;
 }
 
 

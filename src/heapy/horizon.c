@@ -40,7 +40,7 @@ horizon_get_org_dealloc(PyTypeObject *t)
     if (!rm.types && t->tp_dealloc != horizon_patched_dealloc)
         return t->tp_dealloc;
 
-    PyObject *d = PyDict_GetItem(rm.types, (PyObject *)t);
+    PyObject *d = PyDict_GetItemWithError(rm.types, (PyObject *)t);
     if (d)
         return (destructor)PyLong_AsSsize_t(d);
 

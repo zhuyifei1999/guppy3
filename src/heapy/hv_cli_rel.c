@@ -192,7 +192,7 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
                Py_TYPE(obj)->tp_name);
         return -1;
     }
-    mrel = PyDict_GetItem(arg->memorel, obj);
+    mrel = PyDict_GetItemWithError(arg->memorel, obj);
     if (!mrel) {
         if (PyErr_Occurred())
             return -1;
@@ -209,18 +209,20 @@ static PyObject *
 inrel_fast_memoized_kind(InRelObject * self, PyObject *kind)
      /* When the elements are already memoized */
 {
-    PyObject *result = PyDict_GetItem(self->memokind, kind);
-    if (!result) {
-        if (PyErr_Occurred())
-            goto Err;
-        if (PyDict_SetItem(self->memokind, kind, kind) == -1)
-            goto Err;
-        result = kind;
-    }
-    Py_INCREF(result);
-    return result;
-Err:
-    return 0;
+    PyObject *result;
+    int r;
+
+    r = PyDict_GetItemRef(self->memokind, kind, &result);
+    if (r == -1)
+        return NULL;
+    if (result)
+        return result;
+
+    if (PyDict_SetItem(self->memokind, kind, kind) == -1)
+        return NULL;
+    /* Caller assumes it owns both kind and the return value */
+    Py_INCREF(kind);
+    return kind;
 }
 
 
@@ -258,7 +260,9 @@ static int
 hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
 {
     hv_cli_inrel_visit_arg *arg = (void *)arg_;
-    PyObject *rel;
+    PyObject *rel = NULL;
+    int r;
+
     arg->err = -1;
 
     if (!relator) {
@@ -271,20 +275,20 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     arg->rel->kind = kind;
     arg->rel->relator = relator;
 
-    rel = PyDict_GetItem(arg->memorel, (PyObject *)arg->rel);
+    r = PyDict_GetItemRef(arg->memorel, (PyObject *)arg->rel, &rel);
+    if (r == -1)
+        goto ret;
     if (!rel) {
         rel = (PyObject *)NyRelation_New(kind, relator);
         if (!rel)
             goto ret;
-        if (PyDict_SetItem(arg->memorel, rel, rel) == -1) {
-            Py_DECREF(rel);
+        if (PyDict_SetItem(arg->memorel, rel, rel) == -1)
             goto ret;
-        }
-        Py_DECREF(rel);
     }
     if (NyNodeSet_setobj(arg->relset, rel) != -1)
         arg->err = 0;
 ret:
+    Py_XDECREF(rel);
     Py_DECREF(relator);
     /* NyNodeSet_be_immutable might call into GC, causing arg->rel to be traversed */
     arg->rel->relator = Py_None;
