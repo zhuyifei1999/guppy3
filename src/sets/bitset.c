@@ -408,7 +408,9 @@ PyTypeObject NyBitSet_Type = {
 
 #ifndef Py_TRACE_REFS
 # define _Py_ForgetReference(op) do {} while (0)
-# define _Py_DEC_REFTOTAL do {} while (0)
+#endif
+#ifndef Py_REF_DEBUG
+# define _Py_DecRefTotal(op) do {} while (0)
 #endif
 
 #define NOSET  0
@@ -899,9 +901,15 @@ union_realloc(NyUnionObject *self, NyBit size)
         NyUnionObject *ret;
         assert(Py_REFCNT(self) == 1);
         _Py_ForgetReference((PyObject *)self);
-        _Py_DEC_REFTOTAL;
         ret = PyObject_Realloc(self,
             Py_TYPE(self)->tp_basicsize + Py_TYPE(self)->tp_itemsize * size);
+        if (!ret) {
+            _Py_NewReferenceNoTotal((PyObject *)self);
+            PyErr_NoMemory();
+            return NULL;
+        }
+        /* PyObject_InitVar -> _PyObject_Init -> _Py_NewReference -> _Py_IncRefTotal */
+        _Py_DecRefTotal(PyThreadState_GET());
         ret = (void *) PyObject_InitVar((void *)ret, Py_TYPE(ret), size);
         return ret;
     }
@@ -956,9 +964,15 @@ immbitset_realloc(NyImmBitSetObject *self, NyBit size)
     } else {
         assert(Py_REFCNT(self) == 1);
         _Py_ForgetReference((PyObject *)self);
-        _Py_DEC_REFTOTAL;
         ret = PyObject_Realloc(self,
             Py_TYPE(self)->tp_basicsize + Py_TYPE(self)->tp_itemsize * upsize);
+        if (!ret) {
+            _Py_NewReferenceNoTotal((PyObject *)self);
+            PyErr_NoMemory();
+            return NULL;
+        }
+        /* PyObject_InitVar -> _PyObject_Init -> _Py_NewReference -> _Py_IncRefTotal */
+        _Py_DecRefTotal(PyThreadState_GET());
         ret = (void *) PyObject_InitVar((void *)ret, Py_TYPE(ret), upsize);
         return ret;
     }
