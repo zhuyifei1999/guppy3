@@ -230,10 +230,10 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     if (!bitobj)
         return 0;
     bitno = PyLong_AsSsize_t(bitobj);
+    Py_DECREF(bitobj);
     if (bitno == -1 && PyErr_Occurred())
         return 0;
     ret = nodeset_bitno_to_obj(bitno);
-    Py_DECREF(bitobj);
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
     } else {
