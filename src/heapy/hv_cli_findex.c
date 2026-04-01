@@ -125,7 +125,7 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
     Py_INCREF(tmp.memo);
     s->kinds = PyTuple_New(numalts);
     s->cmps = PyTuple_New(numalts);
-    if (!s->kinds)
+    if (!s->kinds || !s->cmps)
         goto Err;
     for (i = 0; i < numalts; i++) {
         PyObject *ckc = PyTuple_GET_ITEM(tmp.alts, i);
