@@ -251,6 +251,8 @@ INITFUNC (void)
     PyDict_SetItemString(d, "RootState", Ny_RootState);
     PyDict_SetItemString(d, "RootStateType", (PyObject *)&NyRootState_Type);
     _hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
+    if (!_hiding_tag__name)
+        goto error;
     NyStdTypes_init();
     if (NyNodeGraph_init() == -1)
         goto error;
