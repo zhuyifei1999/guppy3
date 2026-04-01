@@ -791,9 +791,9 @@ mutbitset_initset(NyMutBitSetObject *v, NyImmBitSetObject *set)
         sf->hi = set->ob_field + Py_SIZE(set);
     } else {
         sf->set = immbitset_realloc(0, 1);
-        sf->lo = sf->hi = sf->set->ob_field;
         if (!sf->set)
             return -1;
+        sf->lo = sf->hi = sf->set->ob_field;
     }
     return 0;
 }
@@ -1349,7 +1349,7 @@ mutbitset_clear(NyMutBitSetObject *v)
     } else {
         NyBit i;
         for (i = 0; i < v->root->cur_size; i++)
-            Py_DECREF(v->root->ob_field[i].set);
+            Py_XDECREF(v->root->ob_field[i].set);
     }
     v->cur_field = 0;
     v->root = &v->fst_root;

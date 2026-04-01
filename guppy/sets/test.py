@@ -1640,6 +1640,19 @@ MutBitSet([])
                     assert(str(guppy.sets.setsc.CplBitSet(x))
                            == "(~ImmBitSet(['red', 'blue']))")
 
+    def test36(self):
+        # Make sure construction doesn't segfault on OOM
+        import _testcapi
+
+        for cls in BitSet, ImmBitSet, MutBitSet, ImmNodeSet, MutNodeSet:
+            _testcapi.set_nomemory(1, 0)
+            try:
+                cls()
+            except MemoryError:
+                pass
+            finally:
+                _testcapi.remove_mem_hooks()
+
 
 class MemStat:
     def __init__(self):
@@ -1712,7 +1725,7 @@ def test_leak():
 
 
 def test_main():
-    test_nums(list(range(36)))
+    test_nums(list(range(37)))
 
 
 t = Test()
