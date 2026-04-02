@@ -66,10 +66,6 @@ int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
 
 static Py_ssize_t roundupsize(Py_ssize_t n);
 
-/* Global constants */
-
-PyObject *_hiding_tag__name;
-
 /* general utilities */
 
 #include "impsets.c"
@@ -245,11 +241,6 @@ static int module_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
         return -1;
     if (PyModule_AddObjectRef(m, "RootStateType", (PyObject *)&NyRootState_Type) == -1)
-        return -1;
-
-    /* FIXME: Global state non-constant across subinterpreters */
-    _hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
-    if (!_hiding_tag__name)
         return -1;
 
     NyStdTypes_init();

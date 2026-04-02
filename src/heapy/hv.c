@@ -127,6 +127,7 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
     Py_VISIT(hv->root);
     Py_VISIT(hv->limitframe);
     Py_VISIT(hv->_hiding_tag_);
+    Py_VISIT(hv->_hiding_tag__name);
     Py_VISIT(hv->static_types);
     Py_VISIT(hv->weak_type_callback);
 
@@ -168,6 +169,7 @@ hv_gc_clear(NyHeapViewObject *hv)
     PyObject *ro = hv->root;
     PyObject *lf = hv->limitframe;
     PyObject *he = hv->_hiding_tag_;
+    PyObject *hen = hv->_hiding_tag__name;
     PyObject *stob = hv->static_types;
     PyObject *wtc = hv->weak_type_callback;
     void *xt = hv->xt_table;
@@ -175,6 +177,7 @@ hv_gc_clear(NyHeapViewObject *hv)
     hv->root = 0;
     hv->limitframe = 0;
     hv->_hiding_tag_ = 0;
+    hv->_hiding_tag__name = 0;
     hv->static_types = 0;
     hv->weak_type_callback = 0;
     hv->xt_table = 0;
@@ -183,8 +186,8 @@ hv_gc_clear(NyHeapViewObject *hv)
 
     Py_XDECREF(ro);
     Py_XDECREF(lf);
-
     Py_XDECREF(he);
+    Py_XDECREF(hen);
     Py_XDECREF(stob);
     Py_XDECREF(wtc);
     return 0;
@@ -550,7 +553,7 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
             // hidden object, because Py_TPFLAGS_INLINE_VALUES will traverse
             // into the values of the dict, ignoring the _hiding_tag_ handling
             // in stdtypes.c
-            if (PyDict_GetItem((PyObject *)dict, _hiding_tag__name) ==
+            if (PyDict_GetItem((PyObject *)dict, xt->xt_hv->_hiding_tag__name) ==
                     xt->xt_hv->_hiding_tag_)
                 return 0;
         }
@@ -614,7 +617,7 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
         return 1;
     } else {
         PyObject **dp = _PyObject_GetDictPtr(obj);
-        if (dp && *dp && PyDict_GetItem(*dp, _hiding_tag__name) == hv->_hiding_tag_) {
+        if (dp && *dp && PyDict_GetItem(*dp, hv->_hiding_tag__name) == hv->_hiding_tag_) {
             return 1;
         }
     }
@@ -723,6 +726,10 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
     hv->xt_mask = XT_MASK;
     hv->weak_type_callback = 0;
     hv->xt_table = 0;
+
+    hv->_hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
+    if (!hv->_hiding_tag__name)
+        goto err;
 
     /* The HeapView object hv is now initialized to some well-defined state --
        but we have waited to try allocation till now when all
@@ -1855,6 +1862,10 @@ The 'static types' that have been found.\n\
 The static types are the type objects that are not heap allocated, but\n\
 are defined directly in C code. HeapView searches for these among all\n\
 reachable objects (at a suitable time or as needed)."},
+    {"_hiding_tag__name",     T_OBJECT , OFF(_hiding_tag__name), READONLY,
+"HV.static_types : string, read only\n\
+\n\
+Cached string \"_hiding_tag_\" for dict lookups."},
 
 
     {0} /* Sentinel */

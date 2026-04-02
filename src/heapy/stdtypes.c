@@ -26,6 +26,7 @@
 #include "unicodeobject.h"
 
 #include "heapdef.h"
+#include "heapy.h"
 #include "stdtypes.h"
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
@@ -48,8 +49,6 @@
 #define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE);
 #define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE);
 #define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR);
-
-extern PyObject *_hiding_tag__name;
 
 int
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
@@ -84,7 +83,8 @@ static int
 dict_traverse(NyHeapTraverse *ta)
 {
     PyObject *v = (void *)ta->obj;
-    if (PyDict_GetItem(v, _hiding_tag__name) == ta->_hiding_tag_)
+    if (PyDict_GetItem(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name)
+            == ta->_hiding_tag_)
         return 0;
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
