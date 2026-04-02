@@ -121,9 +121,9 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
     if (!tb)
         goto Err;
 
-    if (PySequence_Check(tb) && PySequence_Length(tb)) {
+    if (PySequence_Check(tb) && PySequence_Length(tb) > 0) {
         kind = PySequence_GetItem(tb, 0);
-    } else {
+    } else if (!PyErr_Occurred()) {
         kind = Py_None;
         Py_INCREF(Py_None);
     }
