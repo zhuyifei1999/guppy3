@@ -4467,8 +4467,6 @@ static NyBitSet_Exports nybitset_exports = {
 
 int fsb_dx_nybitset_init(PyObject *m)
 {
-    PyObject *d;
-
     Py_SET_TYPE(&_NyImmBitSet_EmptyStruct, &NyImmBitSet_Type);
     Py_SET_TYPE(&_NyImmBitSet_OmegaStruct, &NyCplBitSet_Type);
 
@@ -4479,24 +4477,27 @@ int fsb_dx_nybitset_init(PyObject *m)
     NYFILL(NyImmBitSetIter_Type);
     NYFILL(NyUnion_Type);
 
-    d = PyModule_GetDict(m);
-    PyDict_SetItemString(d, "BitSet", (PyObject *)&NyBitSet_Type);
-    PyDict_SetItemString(d, "CplBitSet", (PyObject *)&NyCplBitSet_Type);
-    PyDict_SetItemString(d, "ImmBitSet", (PyObject *)&NyImmBitSet_Type);
-    PyDict_SetItemString(d, "MutBitSet", (PyObject *)&NyMutBitSet_Type);
-    PyDict_SetItemString(d,
-                         "NyBitSet_Exports",
-                         PyCapsule_New(
-                             &nybitset_exports,
-                             "guppy.sets.setsc.NybitSet_Exports",
-                             0)
-                         );
+    if (PyModule_AddObjectRef(m, "BitSet", (PyObject *)&NyBitSet_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "CplBitSet", (PyObject *)&NyCplBitSet_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "ImmBitSet", (PyObject *)&NyImmBitSet_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "MutBitSet", (PyObject *)&NyMutBitSet_Type) == -1)
+        return -1;
+    if (PyModule_Add(m, "NyBitSet_Exports",
+            PyCapsule_New(&nybitset_exports, "guppy.sets.setsc.NybitSet_Exports", 0)
+    ) == -1)
+        return -1;
 
     if (fsb_dx_addmethods(m, nybitset_methods, 0) == -1)
         goto error;
+
+    /* FIXME: Global state non-constant across subinterpreters */
     NyBitSet_FormMethod = PyObject_GetAttrString(m, "_bs");
     if (!NyBitSet_FormMethod)
         goto error;
+
     {
         int i;
         /* initialize len() helper */

@@ -36,29 +36,25 @@ char sets_doc[] =
 #include "../heapy/heapy.h"
 #include "sets_internal.h"
 
-#define INITFUNC PyInit_setsc
-#define MODNAME "setsc"
-
 extern int fsb_dx_nybitset_init(PyObject *m);
 extern int fsb_dx_nynodeset_init(PyObject *m);
+
+static int module_exec(PyObject *m);
 
 static PyMethodDef module_methods[] = {
     {NULL, NULL}
 };
 
 int fsb_dx_addmethods(PyObject *m, PyMethodDef *methods, PyObject *passthrough) {
-    PyObject *d, *v;
     PyMethodDef *ml;
-    d = PyModule_GetDict(m);
+    PyObject *v;
+
     for (ml = methods; ml->ml_name != NULL; ml++) {
         v = PyCFunction_New(ml, passthrough);
         if (v == NULL)
             return -1;
-        if (PyDict_SetItemString(d, ml->ml_name, v) != 0) {
-            Py_DECREF(v);
+        if (PyModule_Add(m, ml->ml_name, v) != 0)
             return -1;
-        }
-        Py_DECREF(v);
     }
     return 0;
 }
@@ -70,44 +66,46 @@ static NyHeapDef nysets_heapdefs[] = {
     {0}
 };
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    MODNAME,
-    PyDoc_STR(sets_doc),
-    -1,
-    module_methods
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_exec, module_exec},
+#ifdef Py_mod_multiple_interpreters
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
+#endif
+#ifdef Py_mod_gil
+    {Py_mod_gil, Py_MOD_GIL_USED},
+#endif
+    {0, NULL}  /* Sentinel */
 };
 
-PyMODINIT_FUNC
-INITFUNC (void)
-{
-    PyObject *m;
-    PyObject *d;
+static struct PyModuleDef moduledef = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "setsc",
+    .m_doc = PyDoc_STR(sets_doc),
+    .m_size = 0,
+    .m_methods = module_methods,
+    .m_slots = module_slots,
+};
 
+static int module_exec(PyObject *m)
+{
     nysets_heapdefs[0].type = &NyMutBitSet_Type;
     nysets_heapdefs[1].type = &NyCplBitSet_Type;
     nysets_heapdefs[2].type = &NyNodeSet_Type;
 
-    m = PyModule_Create(&moduledef);
-    if (!m)
-        return NULL;
-    d = PyModule_GetDict(m);
     if (fsb_dx_nybitset_init(m) == -1)
-        goto Error;
+        return -1;
     if (fsb_dx_nynodeset_init(m) == -1)
-        goto Error;
-    if (PyDict_SetItemString(d,
-             "_NyHeapDefs_",
-             PyCapsule_New(
-                 &nysets_heapdefs,
-                 "guppy.sets.setsc._NyHeapDefs_",
-                 0)
-             ) == -1)
-        goto Error;
-    return m;
-Error:
-    if (PyErr_Occurred() == NULL)
-        PyErr_SetString(PyExc_ImportError, "module initialization failed");
-    Py_DECREF(m);
-    return NULL;
+        return -1;
+    if (PyModule_Add(m, "_NyHeapDefs_",
+            PyCapsule_New(&nysets_heapdefs, "guppy.sets.setsc._NyHeapDefs_", 0)
+    ) == -1)
+        return -1;
+
+    return 0;
+}
+
+PyMODINIT_FUNC
+PyInit_setsc (void)
+{
+    return PyModuleDef_Init(&moduledef);
 }

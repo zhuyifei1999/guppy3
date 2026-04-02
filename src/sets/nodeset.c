@@ -1187,40 +1187,23 @@ static NyNodeSet_Exports nynodeset_exports = {
 
 int fsb_dx_nynodeset_init(PyObject *m)
 {
-    PyObject *d;
-
     NYFILL(NyMutNodeSetIter_Type);
     NYFILL(NyNodeSet_Type);
     NYFILL(NyImmNodeSetIter_Type);
     NYFILL(NyImmNodeSet_Type);
     NYFILL(NyMutNodeSet_Type);
 
-    d = PyModule_GetDict(m);
+    if (PyModule_Add(m, "NyNodeSet_Exports",
+            PyCapsule_New(&nynodeset_exports, "guppy.sets.setsc.NyNodeSet_Exports", 0)
+    ) == -1)
+        return -1;
 
-    if (PyDict_SetItemString(d,
-                         "NyNodeSet_Exports",
-                         PyCapsule_New(
-                            &nynodeset_exports,
-                            "guppy.sets.setsc.NyNodeSet_Exports",
-                            0)
-                         ) == -1) goto Error;
+    if (PyModule_AddObjectRef(m, "NodeSet", (PyObject *)&NyNodeSet_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "MutNodeSet", (PyObject *)&NyMutNodeSet_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "ImmNodeSet", (PyObject *)&NyImmNodeSet_Type) == -1)
+        return -1;
 
-    if (PyType_Ready(&NyNodeSet_Type) == -1)
-        goto Error;
-    if (PyDict_SetItemString(d, "NodeSet",
-                         (PyObject *)&NyNodeSet_Type) == -1)
-        goto Error;
-    if (PyType_Ready(&NyMutNodeSet_Type) == -1)
-        goto Error;
-    if (PyDict_SetItemString(d, "MutNodeSet",
-                         (PyObject *)&NyMutNodeSet_Type) == -1)
-        goto Error;
-    if (PyType_Ready(&NyImmNodeSet_Type) == -1)
-        goto Error;
-    if (PyDict_SetItemString(d, "ImmNodeSet",
-                         (PyObject *)&NyImmNodeSet_Type) == -1)
-        goto Error;
     return 0;
-Error:
-    return -1;
 }
