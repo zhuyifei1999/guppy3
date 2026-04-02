@@ -26,14 +26,14 @@ static Py_ssize_t sizeof_PyGC_Head;
 
 #define INTERNAL_MODULE "_testinternalcapi"
 
-static void lazy_init_hv_cli_prod(void)
+static int lazy_init_hv_cli_prod(void)
 {
     if (sizeof_PyGC_Head)
-        return;
+        return 0;
 
     if (PyLong_AsLong(PySys_GetObject("hexversion")) == PY_VERSION_HEX) {
         sizeof_PyGC_Head = sizeof(PyGC_Head);
-        return;
+        return 0;
     }
 
     PyObject *_testcapimodule, *_testcapi_SIZEOF_PYGC_HEAD = NULL;
@@ -53,11 +53,16 @@ static void lazy_init_hv_cli_prod(void)
 
     Py_DECREF(_testcapimodule);
     Py_DECREF(_testcapi_SIZEOF_PYGC_HEAD);
-    return;
+    return 0;
 
 Err:
     Py_XDECREF(_testcapimodule);
     Py_XDECREF(_testcapi_SIZEOF_PYGC_HEAD);
+
+    if (!PyErr_ExceptionMatches(PyExc_Exception))
+        return -1;
+    if (PyErr_ExceptionMatches(PyExc_MemoryError))
+        return -1;
 
     PyErr_Clear();
     sizeof_PyGC_Head = sizeof(PyGC_Head);
@@ -65,6 +70,11 @@ Err:
                      "Unable to determine sizeof(PyGC_Head) from "
                      INTERNAL_MODULE ".SIZEOF_PYGC_HEAD, assuming %zd",
                      sizeof_PyGC_Head);
+
+    if (PyErr_Occurred()) /* PyErr_WarnFormat may raise */
+        return -1;
+
+    return 0;
 }
 
 typedef struct {
@@ -215,7 +225,8 @@ hv_cli_prod(NyHeapViewObject *self, PyObject *args)
                           &PyDict_Type, &memo))
         return NULL;
 
-    lazy_init_hv_cli_prod();
+    if (lazy_init_hv_cli_prod() < 0)
+        return NULL;
 
     s = NYTUPLELIKE_NEW(ProdObject);
     if (!s)
