@@ -70,9 +70,4 @@ extern PyTypeObject NyImmNodeSet_Type;
 #define NyMutNodeSet_Check(op) PyObject_TypeCheck(op, &NyMutNodeSet_Type)
 #define NyImmNodeSet_Check(op) PyObject_TypeCheck(op, &NyImmNodeSet_Type)
 
-
-extern int fsb_dx_addmethods
-        (PyObject *m, PyMethodDef *methods, PyObject *passthrough);
-
-
 #endif /* SETS_INTERNAL_H */

@@ -4503,20 +4503,20 @@ int fsb_dx_nybitset_init(PyObject *m)
     NYFILL(NyImmBitSetIter_Type);
     NYFILL(NyUnion_Type);
 
-    if (PyModule_AddObjectRef(m, "BitSet", (PyObject *)&NyBitSet_Type) == -1)
+    if (PyModule_AddType(m, &NyBitSet_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "CplBitSet", (PyObject *)&NyCplBitSet_Type) == -1)
+    if (PyModule_AddType(m, &NyCplBitSet_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "ImmBitSet", (PyObject *)&NyImmBitSet_Type) == -1)
+    if (PyModule_AddType(m, &NyImmBitSet_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "MutBitSet", (PyObject *)&NyMutBitSet_Type) == -1)
+    if (PyModule_AddType(m, &NyMutBitSet_Type) == -1)
         return -1;
     if (PyModule_Add(m, "NyBitSet_Exports",
             PyCapsule_New(&nybitset_exports, "guppy.sets.setsc.NybitSet_Exports", 0)
     ) == -1)
         return -1;
 
-    if (fsb_dx_addmethods(m, nybitset_methods, 0) == -1)
+    if (PyModule_AddFunctions(m, nybitset_methods) == -1)
         goto error;
 
     {

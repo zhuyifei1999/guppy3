@@ -44,20 +44,6 @@ static PyMethodDef module_methods[] = {
     {NULL, NULL}
 };
 
-int fsb_dx_addmethods(PyObject *m, PyMethodDef *methods, PyObject *passthrough) {
-    PyMethodDef *ml;
-    PyObject *v;
-
-    for (ml = methods; ml->ml_name != NULL; ml++) {
-        v = PyCFunction_New(ml, passthrough);
-        if (v == NULL)
-            return -1;
-        if (PyModule_Add(m, ml->ml_name, v) != 0)
-            return -1;
-    }
-    return 0;
-}
-
 static NyHeapDef nysets_heapdefs[] = {
     {0, 0, (NyHeapDef_SizeGetter) mutbitset_indisize},
     {0, 0, 0, cplbitset_traverse},

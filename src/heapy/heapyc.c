@@ -228,19 +228,19 @@ static int module_exec(PyObject *m)
     if (import_sets() == -1)
         return -1;
 
-    if (PyModule_AddObjectRef(m, "HeapView", (PyObject *)&NyHeapView_Type) == -1)
+    if (PyModule_AddType(m, &NyHeapView_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "Horizon", (PyObject *)&NyHorizon_Type) == -1)
+    if (PyModule_AddType(m, &NyHorizon_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "ObjectClassifier", (PyObject *)&NyObjectClassifier_Type) == -1)
+    if (PyModule_AddType(m, &NyObjectClassifier_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "NodeGraph", (PyObject *)&NyNodeGraph_Type) == -1)
+    if (PyModule_AddType(m, &NyNodeGraph_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "Relation", (PyObject *)&NyRelation_Type) == -1)
+    if (PyModule_AddType(m, &NyRelation_Type) == -1)
         return -1;
     if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "RootStateType", (PyObject *)&NyRootState_Type) == -1)
+    if (PyModule_AddType(m, &NyRootState_Type) == -1)
         return -1;
 
     NyStdTypes_init();

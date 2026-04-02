@@ -1198,11 +1198,11 @@ int fsb_dx_nynodeset_init(PyObject *m)
     ) == -1)
         return -1;
 
-    if (PyModule_AddObjectRef(m, "NodeSet", (PyObject *)&NyNodeSet_Type) == -1)
+    if (PyModule_AddType(m, &NyNodeSet_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "MutNodeSet", (PyObject *)&NyMutNodeSet_Type) == -1)
+    if (PyModule_AddType(m, &NyMutNodeSet_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "ImmNodeSet", (PyObject *)&NyImmNodeSet_Type) == -1)
+    if (PyModule_AddType(m, &NyImmNodeSet_Type) == -1)
         return -1;
 
     return 0;
