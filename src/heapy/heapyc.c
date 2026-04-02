@@ -33,15 +33,11 @@ char heapyc_doc[] =
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 #include "../sets/nodeset.h"
-#include "hpinit.h"
 #include "heapdef.h"
 #include "heapy.h"
 #include "classifier.h"
 #include "nodegraph.h"
 #include "relation.h"
-
-#define INITFUNC PyInit_heapyc
-#define MODNAME "heapyc"
 
 /* Extern decls - maybe put in .h file but not in heapy.h */
 
@@ -72,7 +68,6 @@ static Py_ssize_t roundupsize(Py_ssize_t n);
 
 /* Global constants */
 
-static PyObject *this_module;
 PyObject *_hiding_tag__name;
 
 /* general utilities */
@@ -195,15 +190,36 @@ NyHeapDef NyHvTypes_HeapDef[] = {
     {0}
 };
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    MODNAME,
-    PyDoc_STR(heapyc_doc),
-    -1,
-    module_methods
+static int module_exec(PyObject *m);
+
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_exec, module_exec},
+#ifdef Py_mod_multiple_interpreters
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
+#endif
+#ifdef Py_mod_gil
+    {Py_mod_gil, Py_MOD_GIL_USED},
+#endif
+    {0, NULL}  /* Sentinel */
 };
 
-static int nyfills(void) {
+static struct PyModuleDef moduledef = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "heapyc",
+    .m_doc = PyDoc_STR(heapyc_doc),
+    .m_size = 0,
+    .m_methods = module_methods,
+    .m_slots = module_slots,
+};
+
+static int module_exec(PyObject *m)
+{
+    Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
+
+    // This has to be here because of 'initializer is not a constant'
+    // build error on Windows.
+    NyNodeTuple_Type.tp_base = &PyTuple_Type;
+
     NYFILL(NyNodeTuple_Type);
     NYFILL(NyRelation_Type);
     NYFILL(NyHeapView_Type);
@@ -213,55 +229,37 @@ static int nyfills(void) {
     NYFILL(NyNodeGraphIter_Type);
     NYFILL(NyRootState_Type);
 
+    if (import_sets() == -1)
+        return -1;
+
+    if (PyModule_AddObjectRef(m, "HeapView", (PyObject *)&NyHeapView_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "Horizon", (PyObject *)&NyHorizon_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "ObjectClassifier", (PyObject *)&NyObjectClassifier_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "NodeGraph", (PyObject *)&NyNodeGraph_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "Relation", (PyObject *)&NyRelation_Type) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
+        return -1;
+    if (PyModule_AddObjectRef(m, "RootStateType", (PyObject *)&NyRootState_Type) == -1)
+        return -1;
+
+    /* FIXME: Global state non-constant across subinterpreters */
+    _hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
+    if (!_hiding_tag__name)
+        return -1;
+
+    NyStdTypes_init();
+    xmemstats_init();
+
     return 0;
 }
 
 PyMODINIT_FUNC
-INITFUNC (void)
+PyInit_heapyc (void)
 {
-    PyObject *m = NULL;
-    PyObject *d;
-
-    Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
-
-    // This has to be here because of 'initializer is not a constant'
-    // build error on Windows.
-    NyNodeTuple_Type.tp_base = &PyTuple_Type;
-    if (nyfills() == -1) {
-        goto error;
-    }
-
-    m = PyModule_Create(&moduledef);
-    if (!m)
-        goto error;
-    if (import_sets() == -1)
-        goto error;
-    this_module = m;
-    d = PyModule_GetDict(m);
-    PyDict_SetItemString(d, "HeapView",
-                         (PyObject *)&NyHeapView_Type);
-    PyDict_SetItemString(d, "Horizon",
-                         (PyObject *)&NyHorizon_Type);
-    PyDict_SetItemString(d, "ObjectClassifier",
-                         (PyObject *)&NyObjectClassifier_Type);
-    PyDict_SetItemString(d, "NodeGraph",
-                         (PyObject *)&NyNodeGraph_Type);
-    PyDict_SetItemString(d, "Relation",
-                         (PyObject *)&NyRelation_Type);
-    PyDict_SetItemString(d, "RootState", Ny_RootState);
-    PyDict_SetItemString(d, "RootStateType", (PyObject *)&NyRootState_Type);
-    _hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
-    if (!_hiding_tag__name)
-        goto error;
-    NyStdTypes_init();
-    if (NyNodeGraph_init() == -1)
-        goto error;
-    xmemstats_init();
-    return m;
-error:
-    fprintf(stderr, "Error at initialization of module heapyc");
-    if (PyErr_Occurred() == NULL)
-        PyErr_SetString(PyExc_ImportError, "module initialization failed");
-    Py_XDECREF(m);
-    return NULL;
+    return PyModuleDef_Init(&moduledef);
 }

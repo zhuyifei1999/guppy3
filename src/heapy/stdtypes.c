@@ -818,15 +818,5 @@ NyStdTypes_init(void)
     NyStdTypes_HeapDef[x++].type = &PyCFunction_Type;
     NyStdTypes_HeapDef[x++].type = &PyCode_Type;
     NyStdTypes_HeapDef[x++].type = &PyType_Type;
-    NyHeapDef *dictproxy_def = &NyStdTypes_HeapDef[x++];
-
-    PyObject *d = PyDict_New();
-    if (d) {
-        PyObject *dp = PyDictProxy_New(d);
-        if (dp) {
-            dictproxy_def->type = (PyTypeObject *)Py_TYPE(dp);
-            Py_DECREF(dp);
-        }
-        Py_DECREF(d);
-    }
+    NyStdTypes_HeapDef[x++].type = &PyDictProxy_Type;
 }

@@ -1004,8 +1004,3 @@ NyNodeGraph_New(void)
 {
     return NyNodeGraph_SubtypeNew(&NyNodeGraph_Type);
 }
-
-int
-NyNodeGraph_init(void) {
-    return 0;
-}

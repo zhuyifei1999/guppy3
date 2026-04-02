@@ -39,8 +39,6 @@ char sets_doc[] =
 extern int fsb_dx_nybitset_init(PyObject *m);
 extern int fsb_dx_nynodeset_init(PyObject *m);
 
-static int module_exec(PyObject *m);
-
 static PyMethodDef module_methods[] = {
     {NULL, NULL}
 };
@@ -65,6 +63,8 @@ static NyHeapDef nysets_heapdefs[] = {
     {0, 0, nodeset_indisize,  nodeset_traverse, nodeset_relate},
     {0}
 };
+
+static int module_exec(PyObject *m);
 
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_exec, module_exec},

@@ -225,26 +225,12 @@ hp_xmemstats(PyObject *self, PyObject *args)
     }
 #endif
 
-#ifndef Py_TRACE_REFS
     if (dlptr__Py_RefTotal) {
-#endif
         fprintf(stderr, "======================================================================\n");
         fprintf(stderr, "Other statistics\n\n");
-#ifndef Py_TRACE_REFS
-    }
-#endif
-
-    if (dlptr__Py_RefTotal) {
         fprintf(stderr, "Total reference count              =         %12zd\n", *dlptr__Py_RefTotal);
     }
 
-#ifdef Py_TRACE_REFS
-    {
-        PyObject *x; int i;
-        for (i = 0, x = this_module->_ob_next; x != this_module; x = x->_ob_next, i++);
-        fprintf(stderr, "Total heap objects                 =         %12d\n", i);
-    }
-#endif
     fprintf(stderr, "======================================================================\n");
 
     Py_INCREF(Py_None);
