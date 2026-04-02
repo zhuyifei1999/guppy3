@@ -32,6 +32,7 @@ char sets_doc[] =
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "../include/pythoncapi_compat.h"
 #include "../heapy/heapdef.h"
 #include "../heapy/heapy.h"
 #include "sets_internal.h"
