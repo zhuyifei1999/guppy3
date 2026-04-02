@@ -8,9 +8,6 @@ from guppy.sets.setsc import NodeSet       # base nodeset type
 from guppy.sets.setsc import ImmNodeSet    # immmutable nodeset type
 from guppy.sets.setsc import MutNodeSet    # mutable nodeset type
 
-from .setsc import _bs
-_bs.__module__ = 'guppy.sets'  # ..to be able to set it.
-
 
 # Define some constructors.
 # Constructor names are lower case.
