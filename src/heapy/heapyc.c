@@ -211,6 +211,9 @@ static struct PyModuleDef moduledef = {
 static int module_exec(PyObject *m)
 {
     Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    PyUnstable_SetImmortal(&_Ny_RootStateStruct);
+#endif
 
     // This has to be here because of 'initializer is not a constant'
     // build error on Windows.
