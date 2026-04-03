@@ -898,7 +898,7 @@ union_realloc(NyUnionObject *self, NyBit size)
         return PyObject_NewVar(NyUnionObject, &NyUnion_Type, size);
     else {
         NyUnionObject *ret;
-        assert(Py_REFCNT(self) == 1);
+        assert(PyUnstable_Object_IsUniquelyReferenced((PyObject *)self));
         _Py_ForgetReference((PyObject *)self);
         /* PyObject_InitVar -> _PyObject_Init -> _Py_NewReference -> _Py_IncRefTotal */
         _Py_DecRefTotal(PyThreadState_GET());
@@ -961,7 +961,7 @@ immbitset_realloc(NyImmBitSetObject *self, NyBit size)
         ret = NyImmBitSet_New(upsize);
         return ret;
     } else {
-        assert(Py_REFCNT(self) == 1);
+        assert(PyUnstable_Object_IsUniquelyReferenced((PyObject *)self));
         _Py_ForgetReference((PyObject *)self);
         /* PyObject_InitVar -> _PyObject_Init -> _Py_NewReference -> _Py_IncRefTotal */
         _Py_DecRefTotal(PyThreadState_GET());
@@ -988,7 +988,7 @@ sf_getrange(NySetField *v, NyBitField **shi)
 static int
 sf_getrange_mut(NySetField *sf, NyBitField **slo, NyBitField **shi)
 {
-    if (Py_REFCNT(sf->set) > 1) {
+    if (!PyUnstable_Object_IsUniquelyReferenced((PyObject *)sf->set)) {
         NyImmBitSetObject *oset = sf->set;
         NyBit lo = sf->lo - oset->ob_field;
         NyBit hi = sf->hi - oset->ob_field;
@@ -1172,7 +1172,8 @@ mutbitset_findpos_mut(NyMutBitSetObject *v, NyBit pos)
             /* Not found so we are not going to update. */
             f = 0;
         else {
-            if (Py_REFCNT(root) > 1 || Py_REFCNT(sf->set) > 1) {
+            if (!PyUnstable_Object_IsUniquelyReferenced((PyObject *)root) ||
+                    !PyUnstable_Object_IsUniquelyReferenced((PyObject *)sf->set)) {
                 /* It was found but some struct needs to be copied.
                    Just research in ins mode. */
                 f = mutbitset_findpos_ins(v, pos);
@@ -1235,7 +1236,7 @@ static int
 mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi)
 {
     NyUnionObject *root = v->root;
-    if (Py_REFCNT(root) > 1) {
+    if (!PyUnstable_Object_IsUniquelyReferenced((PyObject *)root)) {
         NyUnionObject *nroot = PyObject_NewVar(NyUnionObject, &NyUnion_Type, Py_SIZE(root));
         NyBit i;
         if (!nroot)
