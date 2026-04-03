@@ -5,8 +5,6 @@ import weakref
 # To restore the old-style class behavior that __getattr__ also affects special
 # methods.
 class _AttrProxy:
-    _oh_proxied_classes = weakref.WeakSet({type, object})
-
     # Don'r rely on _oh_add_proxy_attr to prime us, some clients use
     # setup_printing to setup __repr__ function.
     def __repr__(self):
@@ -38,11 +36,11 @@ class _AttrProxy:
 
     @classmethod
     def _oh_add_proxy_class(cls, base):
-        if base in cls._oh_proxied_classes:
+        if getattr(base, 'oh_proxied', False):
             return
 
         for scls in base.__mro__:
-            cls._oh_proxied_classes.add(scls)
+            cls._oh_proxied = True
             for attr, val in scls.__dict__.items():
                 if not isinstance(val, types.FunctionType):
                     continue
