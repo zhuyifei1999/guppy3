@@ -109,6 +109,13 @@ char rootstate_doc[] =
 # include <internal/pycore_interp.h>
 #undef Py_BUILD_CORE
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 12
+# define HEAD_LOCK(runtime) \
+    PyThread_acquire_lock((runtime)->interpreters.mutex, WAIT_LOCK)
+# define HEAD_UNLOCK(runtime) \
+    PyThread_release_lock((runtime)->interpreters.mutex)
+#endif
+
 #define THREAD_ID(ts)    (ts->thread_id)
 
 static PyObject *
@@ -288,7 +295,7 @@ static struct PyMemberDef ts_members[] = {
 } while (0)
 
 static int
-rootstate_relate(NyHeapRelate *r)
+rootstate_relate_unlocked(NyHeapRelate *r)
 {
     NyHeapViewObject *hv = (void *)r->hv;
     PyThreadState *ts,  *bts = PyThreadState_GET();
@@ -350,12 +357,9 @@ rootstate_relate(NyHeapRelate *r)
         ISATTR(executor_list_head);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-        ts = is->threads.head;
-#else
-        ts = is->tstate_head;
-#endif
-        for (; ts; ts = ts->next) {
+        for (ts = PyInterpreterState_ThreadHead(is);
+             ts;
+             ts = PyThreadState_Next(ts)) {
             if ((ts == bts && r->tgt == hv->limitframe) ||
                     (!hv->limitframe && isframe)) {
                 int frameno = -1;
@@ -425,9 +429,18 @@ rootstate_relate(NyHeapRelate *r)
     return 0;
 }
 
+static int
+rootstate_relate(NyHeapRelate *r)
+{
+    int ret;
+    HEAD_LOCK(&_PyRuntime);
+    ret = rootstate_relate_unlocked(r);
+    HEAD_UNLOCK(&_PyRuntime);
+    return ret;
+}
 
-int
-rootstate_traverse(NyHeapTraverse *ta)
+static int
+rootstate_traverse_unlocked(NyHeapTraverse *ta)
 {
     visitproc visit = ta->visit;
     NyHeapViewObject *hv = (void *)ta->hv;
@@ -489,12 +502,9 @@ rootstate_traverse(NyHeapTraverse *ta)
         Py_VISIT(is->executor_list_head);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-        ts = is->threads.head;
-#else
-        ts = is->tstate_head;
-#endif
-        for (; ts; ts = ts->next) {
+        for (ts = PyInterpreterState_ThreadHead(is);
+             ts;
+             ts = PyThreadState_Next(ts)) {
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
@@ -547,6 +557,16 @@ rootstate_traverse(NyHeapTraverse *ta)
     return 0;
 }
 
+int
+rootstate_traverse(NyHeapTraverse *ta)
+{
+    int ret;
+    HEAD_LOCK(&_PyRuntime);
+    ret = rootstate_traverse_unlocked(ta);
+    HEAD_UNLOCK(&_PyRuntime);
+    return ret;
+}
+
 // Ported from py2
 static PyObject *
 _shim_PyMember_Get(const char *addr, struct PyMemberDef *mlist, const char *name)
@@ -564,7 +584,7 @@ _shim_PyMember_Get(const char *addr, struct PyMemberDef *mlist, const char *name
 
 
 static PyObject *
-rootstate_getattr(PyObject *obj, PyObject *name)
+rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
 {
     const char *s = PyUnicode_AsUTF8(name);
     PyInterpreterState *is;
@@ -574,7 +594,6 @@ rootstate_getattr(PyObject *obj, PyObject *name)
     unsigned long tno;
     if (!s)
         return 0;
-    Py_INCREF(name);
     if (sscanf(s, "i%d_%n", &ino, &n) == 1) {
         s += n;
         int countis;
@@ -592,12 +611,9 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                 if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
                     s += n;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-                    ts = is->threads.head;
-#else
-                    ts = is->tstate_head;
-#endif
-                    for (; ts; ts = ts->next) {
+                    for (ts = PyInterpreterState_ThreadHead(is);
+                         ts;
+                         ts = PyThreadState_Next(ts)) {
                         if (THREAD_ID(ts) == tno) {
                             int frameno = 0;
                             if (sscanf(s, "f%d%n", &frameno, &n) == 1 && s[n] == '\0') {
@@ -616,7 +632,6 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                                     numframes--;
                                     if (numframes == frameno) {
                                         Py_DECREF(current_frame);
-                                        Py_DECREF(name);
                                         return (PyObject *)frame;
                                     }
                                     Py_DECREF(frame);
@@ -631,7 +646,6 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                                     numframes--;
                                     if (numframes == frameno) {
                                         Py_INCREF(frame);
-                                        Py_DECREF(name);
                                         return (PyObject *)frame;
                                     }
                                 }
@@ -639,7 +653,6 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                                 PyErr_Format(PyExc_AttributeError,
                                              "thread state has no frame numbered %d from bottom",
                                              frameno);
-                                Py_DECREF(name);
                                 return 0;
                             } else {
                                 PyObject *ret = _shim_PyMember_Get((char *)ts, ts_members, s);
@@ -647,13 +660,11 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                                     PyErr_Format(PyExc_AttributeError,
                                                  "thread state has no attribute '%s'",
                                                  s);
-                                Py_DECREF(name);
                                 return ret;
                             }
                         }
                     }
                     PyErr_SetString(PyExc_AttributeError, "no such thread state number");
-                    Py_DECREF(name);
                     return 0;
                 } else {
                     PyObject *ret = _shim_PyMember_Get((char *)is, is_members, s);
@@ -661,13 +672,11 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                         PyErr_Format(PyExc_AttributeError,
                                      "interpreter state has no attribute '%s'",
                                      s);
-                    Py_DECREF(name);
                     return ret;
                 }
             }
         }
         PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
-        Py_DECREF(name);
         return 0;
     }
     if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
@@ -684,32 +693,36 @@ rootstate_getattr(PyObject *obj, PyObject *name)
                 continue;
             int isno = numis - countis - 1;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-            ts = is->threads.head;
-#else
-            ts = is->tstate_head;
-#endif
-            for (; ts; ts = ts->next) {
+            for (ts = PyInterpreterState_ThreadHead(is);
+                 ts;
+                 ts = PyThreadState_Next(ts)) {
                 if (THREAD_ID(ts) == tno) {
                     PyObject *fullname = PyUnicode_FromFormat("i%d_%U", isno, name);
                     if (!fullname) {
-                        Py_DECREF(name);
                         return 0;
                     }
                     PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
                         "Getting thread state without an interpreter number "
                         "is deprecated. Use %R instead", fullname);
-                    PyObject *res = rootstate_getattr(obj, fullname);
+                    PyObject *res = rootstate_getattr_unlocked(obj, fullname);
                     Py_DECREF(fullname);
-                    Py_DECREF(name);
                     return res;
                 }
             }
         }
     }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute %R", name);
-    Py_DECREF(name);
     return 0;
+}
+
+static PyObject *
+rootstate_getattr(PyObject *obj, PyObject *name)
+{
+    PyObject *ret;
+    HEAD_LOCK(&_PyRuntime);
+    ret = rootstate_getattr_unlocked(obj, name);
+    HEAD_UNLOCK(&_PyRuntime);
+    return ret;
 }
 
 /* Dummy traverse function to make hv_std_traverse optimization not bypass this */
@@ -727,7 +740,7 @@ rootstate_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-rootstate_dir(PyObject *self, PyObject *args)
+rootstate_dir_unlocked(PyObject *self, PyObject *args)
 {
     PyObject *list = PyList_New(0);
     if (!list)
@@ -780,12 +793,9 @@ rootstate_dir(PyObject *self, PyObject *args)
         ISATTR_DIR(executor_list_head);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-        ts = is->threads.head;
-#else
-        ts = is->tstate_head;
-#endif
-        for (; ts; ts = ts->next) {
+        for (ts = PyInterpreterState_ThreadHead(is);
+             ts;
+             ts = PyThreadState_Next(ts)) {
             int numframes = 0;
             PyFrameObject *frame;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
@@ -856,6 +866,16 @@ rootstate_dir(PyObject *self, PyObject *args)
 Err:
     Py_DECREF(list);
     return 0;
+}
+
+static PyObject *
+rootstate_dir(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    HEAD_LOCK(&_PyRuntime);
+    ret = rootstate_dir_unlocked(self, args);
+    HEAD_UNLOCK(&_PyRuntime);
+    return ret;
 }
 
 static PyMethodDef rootstate_methods[] =
