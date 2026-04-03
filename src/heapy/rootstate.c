@@ -107,9 +107,25 @@ char rootstate_doc[] =
 #define Py_BUILD_CORE
 /* PyInterpreterState */
 # include <internal/pycore_interp.h>
+/* _PyRuntime */
+# include <internal/pycore_runtime.h>
 #undef Py_BUILD_CORE
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 12
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+/* Py3.13 has HEAD_LOCK using _PyMutex_LockTimed, but it's not exported...
+   What can you do? Gotta spin I guess */
+# ifdef MS_WINDOWS
+#  define sched_yield() SwitchToThread()
+# else
+#  include <sched.h>
+# endif
+
+# undef HEAD_LOCK
+# define HEAD_LOCK(runtime) do {                                        \
+        while (!PyMutex_LockFast(&(runtime)->interpreters.mutex._bits)) \
+            sched_yield();                                              \
+    } while (0)
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 12
 # define HEAD_LOCK(runtime) \
     PyThread_acquire_lock((runtime)->interpreters.mutex, WAIT_LOCK)
 # define HEAD_UNLOCK(runtime) \
