@@ -1,5 +1,7 @@
 /* Implementation of the Horizon type */
 
+#include <stdbool.h>
+
 char horizon_doc[]=
 "Horizon(X:iterable)\n"
 "\n"
