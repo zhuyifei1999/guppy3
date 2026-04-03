@@ -64,21 +64,18 @@ class FirstCase(TestCase):
         self.aseq(p, iso(y).indisize)
 
     def test_horizon(self):
-        # Prime the code object because tracers want it, and in Py 3.12+ it is
-        # lazy created.
-        self.View.Horizon.news.__code__.co_code
-
-        iso = self.iso
-        h = self.View.horizon()
-        x = []
-        hn = h.news()
-        self.aseq(hn, iso(x))
-        del hn
-        hn = h.news()
-        self.aseq(hn, iso(x))
-        del x, hn
-        hn = h.news()
-        self.aseq(hn, iso())
+        with self.tracemalloc_state(False):
+            iso = self.iso
+            h = self.View.horizon()
+            x = []
+            hn = h.news()
+            self.aseq(hn, iso(x))
+            del hn
+            hn = h.news()
+            self.aseq(hn, iso(x))
+            del x, hn
+            hn = h.news()
+            self.aseq(hn, iso())
 
     def test_imdom(self):
         iso = self.iso

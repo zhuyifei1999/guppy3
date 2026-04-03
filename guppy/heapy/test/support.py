@@ -119,7 +119,7 @@ class TestCase(unittest.TestCase):
         pass
 
     @contextlib.contextmanager
-    def tracemalloc_state(enabled=True):
+    def tracemalloc_state(self, enabled=True):
         orig_enabled = tracemalloc.is_tracing()
 
         def set_enabled(new_enabled):

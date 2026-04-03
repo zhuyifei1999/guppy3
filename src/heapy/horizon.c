@@ -21,6 +21,7 @@ typedef struct _NyHorizonObject {
     PyObject_HEAD
     struct _NyHorizonObject *next;
     NyNodeSetObject *hs;
+    bool installed;
 } NyHorizonObject;
 
 /* Horizon Management
@@ -29,8 +30,62 @@ typedef struct _NyHorizonObject {
 
 static struct {
     NyHorizonObject *horizons;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+    bool replaced;
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
     PyObject *types;
+#endif
 } rm;
+
+static void
+horizon_on_dealloc(PyObject *v);
+
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+/* Post 3.13: Implemented via PyRefTracer */
+static PyMutex rm_mutex = {0};
+
+static int horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
+{
+    if (event == PyRefTracer_DESTROY)
+        horizon_on_dealloc(v);
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+    if (event == PyRefTracer_TRACKER_REMOVED)
+        rm.replaced = true;
+# endif
+
+    return 0;
+}
+
+static int
+horizon_install(void)
+{
+    /* This is racy, but we don't have a lock */
+    if (PyRefTracer_GetTracer(NULL)) {
+        PyErr_SetString(PyExc_RuntimeError, "PyRefTracer busy");
+        return -1;
+    }
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+    rm.replaced = false;
+# endif
+
+    return PyRefTracer_SetTracer(&horizon_tracer, NULL);
+}
+
+static void
+horizon_uninstall(void)
+{
+    /* This is racy, but we don't have a lock */
+    if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
+        return;
+
+    if (PyRefTracer_SetTracer(NULL, NULL) == -1)
+        Py_FatalError("PyRefTracer_SetTracer errored");
+}
+
+#else
+/* Pre 3.13: Implemented via Patching */
+# define PyMutex_Lock(m) do {} while (0)
+# define PyMutex_Unlock(m) do {} while (0)
 
 static void horizon_patched_dealloc(PyObject *v);
 
@@ -44,36 +99,28 @@ horizon_get_org_dealloc(PyTypeObject *t)
     if (d)
         return (destructor)PyLong_AsSsize_t(d);
 
-    Py_FatalError("horizon_get_org_dealloc: no original destructor found");
+    Py_FatalError("no original destructor found");
+}
+
+static int
+horizon_install(void)
+{
+    return 0;
 }
 
 static void
-horizon_remove(NyHorizonObject *v)
+horizon_uninstall(void)
 {
-    NyHorizonObject **p;
-    for (p = &rm.horizons; *p != v; p = &((*p)->next)) {
-        if (!*p)
-            Py_FatalError("horizon_remove: no such horizon found");
-    }
-    *p = v->next;
-    if (!rm.horizons && rm.types) {
-        Py_ssize_t i = 0;
-        PyObject *pk, *pv;
-        while (PyDict_Next(rm.types, &i, &pk, &pv)) {
-            ((PyTypeObject *)pk)->tp_dealloc = (destructor)PyLong_AsSsize_t(pv);
-        }
-        Py_DECREF(rm.types);
-        rm.types = 0;
-    }
-}
+    if (!rm.types)
+        return;
 
-
-static void
-horizon_dealloc(NyHorizonObject *rg)
-{
-    horizon_remove(rg);
-    Py_XDECREF(rg->hs);
-    Py_TYPE(rg)->tp_free((PyObject *)rg);
+    Py_ssize_t i = 0;
+    PyObject *pk, *pv;
+    while (PyDict_Next(rm.types, &i, &pk, &pv)) {
+        ((PyTypeObject *)pk)->tp_dealloc = (destructor)PyLong_AsSsize_t(pv);
+    }
+    Py_DECREF(rm.types);
+    rm.types = 0;
 }
 
 
@@ -94,11 +141,7 @@ horizon_base(PyObject *v)
 static void
 horizon_patched_dealloc(PyObject *v)
 {
-    NyHorizonObject *r;
-    for (r = rm.horizons; r; r = r->next) {
-        if (NyNodeSet_clrobj(r->hs, v) == -1)
-            Py_FatalError("horizon_patched_dealloc: could not clear object in nodeset");
-    }
+    horizon_on_dealloc(v);
     horizon_get_org_dealloc(horizon_base(v))(v);
 }
 
@@ -121,11 +164,54 @@ horizon_patch_dealloc(PyTypeObject *t)
     Py_DECREF(org);
     return 0;
 }
+#endif
+
+static void
+horizon_on_dealloc(PyObject *v)
+{
+    NyHorizonObject *r;
+
+    PyMutex_Lock(&rm_mutex);
+    for (r = rm.horizons; r; r = r->next) {
+        if (NyNodeSet_clrobj(r->hs, v) == -1)
+            Py_FatalError("could not clear object in nodeset");
+    }
+    PyMutex_Unlock(&rm_mutex);
+}
+
+static void
+horizon_remove(NyHorizonObject *v)
+{
+    NyHorizonObject **p;
+    bool should_uninstall;
+
+    PyMutex_Lock(&rm_mutex);
+    for (p = &rm.horizons; *p != v; p = &((*p)->next)) {
+        if (!*p)
+            Py_FatalError("no such horizon found");
+    }
+    *p = v->next;
+    should_uninstall = !rm.horizons;
+    PyMutex_Unlock(&rm_mutex);
+
+    if (should_uninstall)
+        horizon_uninstall();
+}
+
+static void
+horizon_dealloc(NyHorizonObject *rg)
+{
+    if (rg->installed)
+        horizon_remove(rg);
+    Py_XDECREF(rg->hs);
+    Py_TYPE(rg)->tp_free((PyObject *)rg);
+}
 
 static int
 horizon_update_trav(PyObject *obj, NyHorizonObject *ta) {
     int r;
     r = NyNodeSet_setobj(ta->hs, obj);
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
     if (!r) {
         PyTypeObject *t = horizon_base(obj);
         if (t->tp_dealloc != horizon_patched_dealloc) {
@@ -134,6 +220,7 @@ horizon_update_trav(PyObject *obj, NyHorizonObject *ta) {
             }
         }
     }
+#endif
     if (r == -1)
         return -1;
     return 0;
@@ -146,25 +233,36 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *X;
     NyHorizonObject *hz = 0;
     static char *kwlist[] = {"X", 0};
+    bool should_install;
+
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:Horizon.__new__",
                                  kwlist,
                                  &X))
-        goto err;
+        return NULL;
     hz = (NyHorizonObject *)type->tp_alloc(type, 1);
     if (!hz)
-        goto err;
-    hz->next = rm.horizons;
-    rm.horizons = hz;
+        return NULL;
     hz->hs = NyMutNodeSet_NewFlags(0); /* I.E. not NS_HOLDOBJECTS */
     if (!hz->hs)
         goto err;
     if (iterable_iterate((PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
         horizon_update_trav((PyObject *)hz, hz) == -1)
         goto err;
+
+    PyMutex_Lock(&rm_mutex);
+    should_install = !rm.horizons;
+    hz->next = rm.horizons;
+    rm.horizons = hz;
+    hz->installed = true;
+    PyMutex_Unlock(&rm_mutex);
+    if (should_install)
+        if (horizon_install() == -1)
+            goto err;
+
     return (PyObject *)hz;
 err:
     Py_XDECREF(hz);
-    return 0;
+    return NULL;
 
 }
 
@@ -198,6 +296,15 @@ static PyObject *
 horizon_news(NyHorizonObject *self, PyObject *arg)
 {
     NewsTravArg ta;
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+    if (rm.replaced)
+# else
+    if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
+# endif
+        PyErr_SetString(PyExc_RuntimeError, "PyRefTracer was replaced");
+#endif
+
     ta.rg = self;
     ta.result = NyMutNodeSet_New();
     if (!(ta.result))

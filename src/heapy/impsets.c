@@ -11,7 +11,7 @@ NyNodeSet_Exports *nodeset_exports;
    from multiple threads, and I believe module_exec can be, if we are GIL-less
    eventually */
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-PyMutex nodeset_exports_mutex = {0};
+static PyMutex nodeset_exports_mutex = {0};
 #else
 # define PyMutex_Lock(m) do {} while (0)
 # define PyMutex_Unlock(m) do {} while (0)

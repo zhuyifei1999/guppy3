@@ -7,6 +7,7 @@ class Horizon:
         self.hv = mod.hv
         self.exc_info = self.mod._root.sys.exc_info
         self.iso = self.mod.iso
+        self.news.__code__.co_code
         str(self.retset(self.iso(1, [], (), {}, self.__dict__)) -
             self.iso(()))
         mod.hv.heap
