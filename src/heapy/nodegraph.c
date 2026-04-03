@@ -148,7 +148,9 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         ng->edges[ng->used_size-1].tgt == tgt)
         return 0;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if Py_GIL_DISABLED
+    /* Do nothing */
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
     assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 &&
             (Py_REFCNT(src) < 0xa000000 || _Py_IsImmortal(src)));
     assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 &&
