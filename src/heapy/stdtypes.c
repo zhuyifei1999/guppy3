@@ -611,7 +611,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     }
 
     PyErr_Format(PyExc_RuntimeError,
-        "Unable to find managed_static_type_state for %R", self);
+        "Unable to find managed_static_type_state for %s", self->tp_name);
     return NULL;
 # else
     size_t index;
