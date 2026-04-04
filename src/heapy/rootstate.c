@@ -921,8 +921,7 @@ PyTypeObject NyRootState_Type = {
     .tp_free      = PyObject_Del,
 };
 
-PyObject _Ny_RootStateStruct = {
-    _PyObject_EXTRA_INIT
-    .ob_refcnt = 1,
-    .ob_type = &NyRootState_Type,
-};
+PyObject _Ny_RootStateStruct = PyObject_HEAD_INIT(&NyRootState_Type)
+/* PyObject_HEAD_INIT annoyingly has an extra comma at the end, so
+   we just pretend to have an extra variable here */
+_Ny_RootStateUnused;

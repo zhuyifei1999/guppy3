@@ -4497,6 +4497,11 @@ int fsb_dx_nybitset_init(PyObject *m)
     Py_SET_TYPE(&_NyImmBitSet_EmptyStruct, &NyImmBitSet_Type);
     Py_SET_TYPE(&_NyImmBitSet_OmegaStruct, &NyCplBitSet_Type);
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    PyUnstable_SetImmortal((PyObject *)&_NyImmBitSet_EmptyStruct);
+    PyUnstable_SetImmortal((PyObject *)&_NyImmBitSet_OmegaStruct);
+#endif
+
     NYFILL(NyBitSet_Type);
     NYFILL(NyImmBitSet_Type);
     NYFILL(NyCplBitSet_Type);
