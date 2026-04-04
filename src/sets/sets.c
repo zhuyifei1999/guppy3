@@ -56,10 +56,10 @@ static int module_exec(PyObject *m);
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_exec, module_exec},
 #ifdef Py_mod_multiple_interpreters
-    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
 #endif
 #ifdef Py_mod_gil
-    {Py_mod_gil, Py_MOD_GIL_USED},
+    {Py_mod_gil, Py_MOD_GIL_NOT_USED},
 #endif
     {0, NULL}  /* Sentinel */
 };
