@@ -315,8 +315,8 @@ class RelationTestCase(TestCase):
         src = grc(s)
         vrc = grc(v)
         self.chkrel(s, v, 'list(%s)[0]')
-        self.assertEqual(grc(s), src)
-        self.assertEqual(grc(v), vrc)
+        self.assertEqualRefcountUnlessDeferred(grc(s), src, s)
+        self.assertEqualRefcountUnlessDeferred(grc(v), vrc, v)
 
 
 class RootTestCase(TestCase):

@@ -9,12 +9,14 @@ char heapyc_doc[] =
 "\n"
 "Classes\n"
 "    HeapView        Gives a parameterized view of the heap.\n"
-"    Horizon        Limits the view back to some moment in time.\n"
+"    Horizon         Limits the view back to some moment in time.\n"
 "    NodeGraph           Graph of nodes (address-treated objects).\n"
 "    ObjectClassifier    Classifies objects on various criteria.\n"
 "    RootStateType       Root of heap traversal using Python internals.\n"
 "\n"
 "Functions\n"
+"    has_deferred_refcount   Returns whether objects uses deferred\n"
+"                            refcount (freethreading-only).\n"
 "    interpreter         Start a new interpreter.\n"
 "    set_async_exc       Raise an exception in another thread.\n"
 "    xmemstats           Print system-dependent memory statistics.\n"
@@ -144,7 +146,33 @@ err:
 #include "nodegraph.c"
 #include "rootstate.c"
 
+#ifdef Py_GIL_DISABLED
+# define Py_BUILD_CORE
+/* PyObject_HasDeferredRefcount */
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#  include <internal/pycore_object_deferred.h>
+# else
+#  include <internal/pycore_object.h>
+# endif
+# undef Py_BUILD_CORE
+#endif
+
 /* Other functions */
+static char hp_has_deferred_refcount_doc[] =
+"has_deferred_refcount(target:object)\n"
+"\n"
+"Returns whether the given object uses deferred refcount (freethreading-only).\n"
+;
+
+static PyObject *
+hp_has_deferred_refcount(PyObject *self, PyObject *op)
+{
+#ifdef Py_GIL_DISABLED
+    return PyBool_FromLong(_PyObject_HasDeferredRefcount(op));
+#else
+    return Py_NewRef(Py_False);
+#endif
+}
 
 /* #include "interpreter.c" */
 #include "xmemstats.c"
@@ -155,6 +183,7 @@ static PyMethodDef module_methods[] =
     {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
     {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
     */
+    {"has_deferred_refcount", (PyCFunction)hp_has_deferred_refcount, METH_O, hp_has_deferred_refcount_doc},
     {"xmemstats", (PyCFunction)hp_xmemstats, METH_NOARGS, hp_xmemstats_doc},
     {0}
 };

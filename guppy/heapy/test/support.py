@@ -6,6 +6,7 @@ import contextlib
 import unittest
 import pdb
 import sys
+import sysconfig
 import tracemalloc
 
 
@@ -97,6 +98,16 @@ class TestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def assertEqualRefcountUnlessDeferred(self, a, b, obj):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") != 1:
+            return self.assertEqual(a, b)
+
+        try:
+            return self.assertEqual(a, b)
+        except AssertionError:
+            if not self.heapy.heapyc.has_deferred_refcount(obj):
+                raise
 
     @contextlib.contextmanager
     def tracemalloc_state(self, enabled=True):

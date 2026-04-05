@@ -133,7 +133,7 @@ class SpecialCases(TestCase):
         def no(x):
             self.assertTrue(not x)
 
-        eq = self.assertEqual
+        eqref = self.assertEqualRefcountUnlessDeferred
 
         # Tests to do with Nothing being finite - having length and iteration
 
@@ -154,7 +154,7 @@ class SpecialCases(TestCase):
         rc = grc(c)
         x = iso(c)
         x = None
-        eq(grc(c), rc)
+        eqref(grc(c), rc, c)
 
     def test_dictowner(self):
         # Special test for dict ownership
@@ -271,11 +271,11 @@ class SpecialCases(TestCase):
         gc.collect()
         gc.collect()    # Note May 17 2005
 
-        self.assertEqual(grc(list(d1)[0]), rcd1)
-        self.assertEqual(grc(d3), rcd3)
-        self.assertEqual(grc(c1), rcc1)
-        self.assertEqual(grc(C1), rcC1)
-        self.assertEqual(grc(c1.__dict__), rcdc1)
+        self.assertEqualRefcountUnlessDeferred(grc(list(d1)[0]), rcd1, list(d1)[0])
+        self.assertEqualRefcountUnlessDeferred(grc(d3), rcd3, d3)
+        self.assertEqualRefcountUnlessDeferred(grc(c1), rcc1, c1)
+        self.assertEqualRefcountUnlessDeferred(grc(C1), rcC1, C1)
+        self.assertEqualRefcountUnlessDeferred(grc(c1.__dict__), rcdc1, c1.__dict__)
 
         self.assertEqual(o.getvalue(), """\
 dict (no owner)
@@ -343,7 +343,7 @@ dict (no owner)
         x = None
         gc.collect()
         gc.collect()                    # Note May 17 2005
-        self.assertEqual(grc(C1), rcC1)        # (A)
+        self.assertEqualRefcountUnlessDeferred(grc(C1), rcC1, C1)  # (A)
 
     def test_alt_retclaset(self):
         # Test the alternative referrer memo update
@@ -426,8 +426,8 @@ dict (no owner)
         del s
         gc.collect()
         gc.collect()
-        self.assertEqual(grc(k), rck)
-        self.assertEqual(grc(v), rcv)
+        self.assertEqualRefcountUnlessDeferred(grc(k), rck, k)
+        self.assertEqualRefcountUnlessDeferred(grc(v), rcv, v)
 
 
 class RenderCase(TestCase):

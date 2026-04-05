@@ -306,14 +306,15 @@ class TestLeak(support.TestCase):
         gc.collect()
 
         nrcli = [grc(x) for x in li]
-        self.assertEqual(rcli, nrcli)
+        for nrc, rc, ob in zip(nrcli, rcli, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
         root[:] = []
         ns.clear()
 
         nrcli0 = [grc(x) for x in li]
-
-        self.assertEqual(rcli0, nrcli0)
+        for nrc, rc, ob in zip(nrcli0, rcli0, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
     def test_weaky(self):
         # Test that the extra-type information in heapview
@@ -362,7 +363,7 @@ class TestLeak(support.TestCase):
 
         nrcprobe = grc(probe)
 
-        self.assertEqual(nrcprobe, rcprobe)
+        self.assertEqualRefcountUnlessDeferred(nrcprobe, rcprobe, probe)
 
     def test_nytuplelike(self):
         # Test that nytuplelike behaves as all expected tntries are in the
@@ -390,8 +391,9 @@ class TestLeak(support.TestCase):
 
         nrchv = grc(hv)
         nrcli = [grc(x) for x in li]
-        self.assertEqual(rchv, nrchv)
-        self.assertEqual(rcli, nrcli)
+        self.assertEqualRefcountUnlessDeferred(rchv, nrchv, hv)
+        for nrc, rc, ob in zip(rcli, nrcli, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
 
 class TestNodeGraph(TestCase):
