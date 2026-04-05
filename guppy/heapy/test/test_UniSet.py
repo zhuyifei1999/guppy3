@@ -45,9 +45,9 @@ class FirstCase(support.TestCase):
         x = iso(b)
 
         self.assertTrue(x.referrers == iso(c))
-        self.aseq(x.referents,  iso(a))
-        self.aseq(x.referents.referrers,  x)
-        self.aseq(x.dominos, iso(a, b))
+        self.assertEqual(x.referents,  iso(a))
+        self.assertEqual(x.referents.referrers,  x)
+        self.assertEqual(x.dominos, iso(a, b))
 
 
 def test_main(debug=False):

@@ -39,8 +39,8 @@ class FirstCase(TestCase):
             self.guppy.sets.immnodeset()))
 
         h = self.View.heap()
-        self.aseq(h & self.iso(self.Use), self.Use.Nothing)
-        self.aseq(h & self.iso(self.Use.__dict__), self.Use.Nothing)
+        self.assertEqual(h & self.iso(self.Use), self.Use.Nothing)
+        self.assertEqual(h & self.iso(self.Use.__dict__), self.Use.Nothing)
 
     def test_dominos(self):
         # Test dominos and domisize
@@ -48,11 +48,11 @@ class FirstCase(TestCase):
         x = []
         y = [x, []]
         z = [y]
-        self.aseq(iso(y).dominos, iso(y, y[1]))
-        self.aseq(iso(y).domisize, iso(y, y[1]).indisize)
-        self.aseq(iso(z).dominos, iso(z))
+        self.assertEqual(iso(y).dominos, iso(y, y[1]))
+        self.assertEqual(iso(y).domisize, iso(y, y[1]).indisize)
+        self.assertEqual(iso(z).dominos, iso(z))
         del y
-        self.aseq(iso(z).dominos, iso(z, z[0], z[0][1]))
+        self.assertEqual(iso(z).dominos, iso(z, z[0], z[0][1]))
 
     def test_exports(self):
         # Test a few exports; the other defined in _unp_exports use the same mechanism
@@ -61,7 +61,7 @@ class FirstCase(TestCase):
         y = [x, []]
         z = [y]
         p = iso(z).referents.indisize
-        self.aseq(p, iso(y).indisize)
+        self.assertEqual(p, iso(y).indisize)
 
     def test_horizon(self):
         with self.tracemalloc_state(False):
@@ -69,13 +69,13 @@ class FirstCase(TestCase):
             h = self.View.horizon()
             x = []
             hn = h.news()
-            self.aseq(hn, iso(x))
+            self.assertEqual(hn, iso(x))
             del hn
             hn = h.news()
-            self.aseq(hn, iso(x))
+            self.assertEqual(hn, iso(x))
             del x, hn
             hn = h.news()
-            self.aseq(hn, iso())
+            self.assertEqual(hn, iso())
 
     def test_imdom(self):
         iso = self.iso
@@ -83,17 +83,17 @@ class FirstCase(TestCase):
         y = [x, []]
         z = [x, y]
         del x, y
-        self.aseq(iso(z[0]).imdom, iso(z))
+        self.assertEqual(iso(z[0]).imdom, iso(z))
 
     def test_referents(self):
         iso = self.iso
         x = []
         y = [x, []]
         z = [y]
-        self.aseq(iso(x).referents, iso())
-        self.aseq(iso(y).referents, iso(x, y[1]))
-        self.aseq(iso(z).referents, iso(y))
-        self.aseq(iso(y, z).referents, iso(x, y, y[1]))
+        self.assertEqual(iso(x).referents, iso())
+        self.assertEqual(iso(y).referents, iso(x, y[1]))
+        self.assertEqual(iso(z).referents, iso(y))
+        self.assertEqual(iso(y, z).referents, iso(x, y, y[1]))
 
     def test_root(self):
         old_root = self.View.root
@@ -137,14 +137,14 @@ class GCCase(TestCase):
         c.x = c
         gc.collect()
         strc = str(c)
-        self.aseq(str(wr()), strc)
-        self.asis(wr(), c)
+        self.assertEqual(str(wr()), strc)
+        self.assertIs(wr(), c)
         c = None
-        self.aseq(str(wr()), strc)
-        self.aseq(cbs, [])
+        self.assertEqual(str(wr()), strc)
+        self.assertEqual(cbs, [])
         gc.collect()
-        self.asis(wr(), None)
-        self.aseq(cbs, [wr])
+        self.assertIs(wr(), None)
+        self.assertEqual(cbs, [wr])
 
     def test_gc_hook(self):
         # Test the GC hook as implemented in View
@@ -157,12 +157,12 @@ class GCCase(TestCase):
         import gc
         gc.collect()
         hook = self.heapy.View.gchook(ho)
-        self.aseq(hos, [])
+        self.assertEqual(hos, [])
         gc.collect()
-        self.aseq(hos, [1])
+        self.assertEqual(hos, [1])
         hook = None
         gc.collect()
-        self.aseq(hos, [1])
+        self.assertEqual(hos, [1])
 
     def test_gc_drg(self):
         # Test automatic reclamation issues for dict owner nodegraph
@@ -189,7 +189,7 @@ class GCCase(TestCase):
         self.assertTrue(lendrg > 0)    # Before any use, it will not be cleared
         # Now it is used by taking its length
         gc.collect()
-        self.aseq(len(drg), 0)
+        self.assertEqual(len(drg), 0)
 
         byclodo = hv.cli_clodo(drg, {})
 

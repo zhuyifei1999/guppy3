@@ -22,19 +22,19 @@ class TestHeapView(TestCase):
         ns = self.mutnodeset([a])
         ng = self.nodegraph([(a, a)])
 
-        self.aseq(self.hv.relimg([ns]), self.nodeset([a]))
-        self.aseq(self.hv.relimg([ng]), self.nodeset([a]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([a]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([a]))
 
         ns._hiding_tag_ = hiding_tag
-        self.aseq(self.hv.relimg([ns]), self.nodeset([]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([]))
 
         ng._hiding_tag_ = hiding_tag
-        self.aseq(self.hv.relimg([ng]), self.nodeset([]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([]))
 
         self.hv._hiding_tag_ = []
 
-        self.aseq(self.hv.relimg([ns]), self.nodeset([a, None]))
-        self.aseq(self.hv.relimg([ng]), self.nodeset([a, None]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([a, None]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([a, None]))
 
     def test_inheritance_from_heapview(self):
         # I am not using inheritance from HeapView,
@@ -94,9 +94,9 @@ class TestHeapView(TestCase):
 
             # Test traverse
 
-            self.aseq(hv.relimg([a]), immnodeset(data))
-            self.aseq(hv.relimg([t]), immnodeset(data+[T, t.t]))
-            self.aseq(hv.relimg([u]), immnodeset(data+[U, u.t, u.u]))
+            self.assertEqual(hv.relimg([a]), immnodeset(data))
+            self.assertEqual(hv.relimg([t]), immnodeset(data+[T, t.t]))
+            self.assertEqual(hv.relimg([u]), immnodeset(data+[U, u.t, u.u]))
 
             # Test relate
 
@@ -105,9 +105,9 @@ class TestHeapView(TestCase):
                 self.assertTrue(r != ((),)*len(r))
                 return r
 
-            self.aseq(rel(t, data[1]), rel(a, data[1]))
-            self.aseq(rel(u, data[1]), rel(a, data[1]))
-            self.aseq(rel(u, u.t), rel(t, t.t))
+            self.assertEqual(rel(t, data[1]), rel(a, data[1]))
+            self.assertEqual(rel(u, data[1]), rel(a, data[1]))
+            self.assertEqual(rel(u, u.t), rel(t, t.t))
             rel(u, u.u)
 
     def test_nodeset_circularity(self):
@@ -306,14 +306,14 @@ class TestLeak(support.TestCase):
         gc.collect()
 
         nrcli = [grc(x) for x in li]
-        self.aseq(rcli, nrcli)
+        self.assertEqual(rcli, nrcli)
 
         root[:] = []
         ns.clear()
 
         nrcli0 = [grc(x) for x in li]
 
-        self.aseq(rcli0, nrcli0)
+        self.assertEqual(rcli0, nrcli0)
 
     def test_weaky(self):
         # Test that the extra-type information in heapview
@@ -362,7 +362,7 @@ class TestLeak(support.TestCase):
 
         nrcprobe = grc(probe)
 
-        self.aseq(nrcprobe, rcprobe)
+        self.assertEqual(nrcprobe, rcprobe)
 
     def test_nytuplelike(self):
         # Test that nytuplelike behaves as all expected tntries are in the
@@ -383,15 +383,15 @@ class TestLeak(support.TestCase):
         cli = hv.cli_inrel(*li)
 
         nytuplelike = cli.self
-        self.aseq(nytuplelike[:2] + nytuplelike[3:], (hv, *li))
+        self.assertEqual(nytuplelike[:2] + nytuplelike[3:], (hv, *li))
 
         del cli, nytuplelike
         gc.collect()
 
         nrchv = grc(hv)
         nrcli = [grc(x) for x in li]
-        self.aseq(rchv, nrchv)
-        self.aseq(rcli, nrcli)
+        self.assertEqual(rchv, nrchv)
+        self.assertEqual(rcli, nrcli)
 
 
 class TestNodeGraph(TestCase):
@@ -582,12 +582,12 @@ class TestClassifiers(TestCase):
         rg.add_edge(x, y)
         cli = hv.cli_inrel(rg, {}, {})
         c = cli.classify(x)
-        self.aseq(str_inrel(c), '(2, 0)')
+        self.assertEqual(str_inrel(c), '(2, 0)')
 
         for i in range(5):
             y.append(x)
         c = cli.classify(x)
-        self.aseq(str_inrel(c), '(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)')
+        self.assertEqual(str_inrel(c), '(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)')
 
         for i in range(5):
             r = {str(i): x}
@@ -599,7 +599,7 @@ class TestClassifiers(TestCase):
         cli = hv.cli_type()
 
         part = cli.partition([1, 2, 'a', 3, 'b', 'c', 4])
-        self.aseq(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
+        self.assertEqual(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
 
     def test_nodetuple_richcompare(self):
         hv = self.hv

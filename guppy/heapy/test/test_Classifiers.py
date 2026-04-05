@@ -133,7 +133,7 @@ class SpecialCases(TestCase):
         def no(x):
             self.assertTrue(not x)
 
-        eq = self.aseq
+        eq = self.assertEqual
 
         # Tests to do with Nothing being finite - having length and iteration
 
@@ -230,7 +230,7 @@ class SpecialCases(TestCase):
             iso(c1.__dict__).kind
         slow = clock()-t
 
-        self.assertTrue(slow <= 1.5*fast)
+        self.assertLessEqual(slow, 1.5*fast)
 
         # This is another slow case according to notes Nov 18 2004.
         # A succession of different unreachable dicts.
@@ -251,7 +251,7 @@ class SpecialCases(TestCase):
 
         # Sometimes M might be huge, and the vast majority of time it is not
         # doing the classification.
-        # self.assertTrue(slow <= 1.5*fast)
+        # self.assertLessEqual(slow, 1.5*fast)
 
         # Partition was likewise slow for unreachable dicts
         dn = self.View.immnodeset([{} for i in range(N)])
@@ -264,20 +264,20 @@ class SpecialCases(TestCase):
         t = clock()
         [x[0] for x in Use.Clodo.classifier.partition(dn)]
         slow = clock()-t
-        self.assertTrue(slow <= 1.5*fast)
+        self.assertLessEqual(slow, 1.5*fast)
 
         # Check that ref counts for target objects are the same as initially
 
         gc.collect()
         gc.collect()    # Note May 17 2005
 
-        self.aseq(grc(list(d1)[0]), rcd1)
-        self.aseq(grc(d3), rcd3)
-        self.aseq(grc(c1), rcc1)
-        self.aseq(grc(C1), rcC1)
-        self.aseq(grc(c1.__dict__), rcdc1)
+        self.assertEqual(grc(list(d1)[0]), rcd1)
+        self.assertEqual(grc(d3), rcd3)
+        self.assertEqual(grc(c1), rcc1)
+        self.assertEqual(grc(C1), rcC1)
+        self.assertEqual(grc(c1.__dict__), rcdc1)
 
-        self.aseq(o.getvalue(), """\
+        self.assertEqual(o.getvalue(), """\
 dict (no owner)
 dict of <Module>.C1
 dict (no owner)
@@ -327,23 +327,23 @@ dict (no owner)
 
         s = iso(c1).byrcs.kind
         print(s, file=o)
-        self.aseq(s & iso(c1), iso(c1))
+        self.assertEqual(s & iso(c1), iso(c1))
 
         x = C1()
 
-        self.aseq(s & iso(c1, x), iso(c1))
+        self.assertEqual(s & iso(c1, x), iso(c1))
 
         s = iso(x).byrcs.kind
-        self.aseq(s & iso(c1, x), iso(x))
+        self.assertEqual(s & iso(c1, x), iso(x))
         x = C1()
         # (C) make sure referrer graph is updated by select
-        self.aseq(s & iso(c1, x), iso(x))
+        self.assertEqual(s & iso(c1, x), iso(x))
 
         s = None
         x = None
         gc.collect()
         gc.collect()                    # Note May 17 2005
-        self.aseq(grc(C1), rcC1)        # (A)
+        self.assertEqual(grc(C1), rcC1)        # (A)
 
     def test_alt_retclaset(self):
         # Test the alternative referrer memo update
@@ -426,8 +426,8 @@ dict (no owner)
         del s
         gc.collect()
         gc.collect()
-        self.aseq(grc(k), rck)
-        self.aseq(grc(v), rcv)
+        self.assertEqual(grc(k), rck)
+        self.assertEqual(grc(v), rcv)
 
 
 class RenderCase(TestCase):
@@ -516,7 +516,7 @@ class RenderCase(TestCase):
             """)
         expected = expected.replace('<Module>', self.__module__)
 
-        self.aseq(o.getvalue(), expected)
+        self.assertEqual(o.getvalue(), expected)
 
         if PORTABLE_TEST:
             return
@@ -575,7 +575,7 @@ Partition of a set of 1 object. Total size = 32 bytes.
  Index  Count   %     Size   % Cumulative  % Type
      0      1 100       32 100        32 100 types.InstanceType
 """.replace('<Module>', self.__module__)
-        self.aseq(o.getvalue(), expected)
+        self.assertEqual(o.getvalue(), expected)
 
 
 class BaseCase(TestCase):
@@ -584,23 +584,23 @@ class BaseCase(TestCase):
         min = self.US.minimals
         max = self.US.maximals
 
-        self.aseq(min([]), [])
-        self.aseq(min([1]), [1])
-        self.aseq(min([1, 1]), [1])
-        self.aseq(min([1, 2]), [1])
-        self.aseq(min([[], []]), [[]])
+        self.assertEqual(min([]), [])
+        self.assertEqual(min([1]), [1])
+        self.assertEqual(min([1, 1]), [1])
+        self.assertEqual(min([1, 2]), [1])
+        self.assertEqual(min([[], []]), [[]])
 
-        self.aseq(min([s([1]), s([1, 2])]), [s([1])])
-        self.aseq(min([s([1]), s([1, 2]), s([3])]), [s([1]), s([3])])
+        self.assertEqual(min([s([1]), s([1, 2])]), [s([1])])
+        self.assertEqual(min([s([1]), s([1, 2]), s([3])]), [s([1]), s([3])])
 
-        self.aseq(max([]), [])
-        self.aseq(max([1]), [1])
-        self.aseq(max([1, 1]), [1])
-        self.aseq(max([1, 2]), [2])
-        self.aseq(max([[], []]), [[]])
+        self.assertEqual(max([]), [])
+        self.assertEqual(max([1]), [1])
+        self.assertEqual(max([1, 1]), [1])
+        self.assertEqual(max([1, 2]), [2])
+        self.assertEqual(max([[], []]), [[]])
 
-        self.aseq(max([s([1]), s([1, 2])]), [s([1, 2])])
-        self.aseq(max([s([1]), s([1, 2]), s([3])]), [s([1, 2]), s([3])])
+        self.assertEqual(max([s([1]), s([1, 2])]), [s([1, 2])])
+        self.assertEqual(max([s([1]), s([1, 2]), s([3])]), [s([1, 2]), s([3])])
 
     def test_base_classes(self):
         un = self.un
@@ -883,7 +883,7 @@ class ClassificationCase(TestCase):
         b = B()
         li = [1, [], {}, a, b, a.__dict__, b.__dict__]
         for o in li:
-            self.asis(iso(o).bytype.kind.arg, type(o))
+            self.assertIs(iso(o).bytype.kind.arg, type(o))
         for o in li:
             if o is a.__dict__:
                 kind = iso(a).kind
@@ -895,22 +895,22 @@ class ClassificationCase(TestCase):
                 kind = a.__class__
             else:
                 kind = type(o)
-            self.aseq(iso(o).kind.arg, kind)
+            self.assertEqual(iso(o).kind.arg, kind)
         cla = iso(()).byunity.kind
-        self.asis(cla.arg, None)
+        self.assertIs(cla.arg, None)
         for o in li:
-            self.aseq(iso(o).byunity.kind, cla)
+            self.assertEqual(iso(o).byunity.kind, cla)
         for o in li:
-            self.aseq(iso(o).byid.kind, Use.Id(id(o)))
+            self.assertEqual(iso(o).byid.kind, Use.Id(id(o)))
         # self.View.update_referrers(nodeset(li))
         for i, o in enumerate(li):
             cl = iso(o).byrcs.kind
             if 1 <= i <= 2:
-                self.aseq(cl, Use.Clodo.sokind(list).refdby)
+                self.assertEqual(cl, Use.Clodo.sokind(list).refdby)
             if i == 5:
-                self.aseq(cl, Use.Clodo.sokind(A)(list).refdby)
+                self.assertEqual(cl, Use.Clodo.sokind(A)(list).refdby)
             if i == 6:
-                self.aseq(cl, Use.Clodo.sokind(B)(list).refdby)
+                self.assertEqual(cl, Use.Clodo.sokind(B)(list).refdby)
 
     def test_selection(self):
         # Test classifications operations via selection invariant
@@ -934,19 +934,19 @@ class ClassificationCase(TestCase):
             p = [(av.kind, av) for av in li.by(er).partition]
             for ak, av in p:
                 if ak in ps:
-                    self.aseq(ps[ak],  av)
+                    self.assertEqual(ps[ak],  av)
                 else:
                     ps[ak] = av
 
         for ak, av in list(ps.items()):
-            self.aseq(ak & li, av)
+            self.assertEqual(ak & li, av)
             for bk, bv in list(ps.items()):
                 # Test set operations by selection definition
-                self.aseq((ak & bk) & li, av & bv)
-                self.aseq((ak | bk) & li, av | bv)
-                self.aseq((ak - bk) & li, av - bv)
-                self.aseq((bk - ak) & li, bv - av)
-                self.aseq((ak ^ bk) & li, av ^ bv)
+                self.assertEqual((ak & bk) & li, av & bv)
+                self.assertEqual((ak | bk) & li, av | bv)
+                self.assertEqual((ak - bk) & li, av - bv)
+                self.assertEqual((bk - ak) & li, bv - av)
+                self.assertEqual((ak ^ bk) & li, av ^ bv)
 
 
 def test_main(testrender=1, debug=0):

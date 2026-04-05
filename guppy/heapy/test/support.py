@@ -95,26 +95,6 @@ class TestCase(unittest.TestCase):
         self.idset = self.Use.idset
         self.version_info = sys.version_info
 
-    def aseq(self, a, b, cont=0):
-        if a != b:
-            print("aseq: Expected: b = ", b)
-            print("Got actually  : a = ", a)
-            if cont <= 0:
-                if cont < 0:
-                    pdb.set_trace()
-                else:
-                    self.assertTrue(0)
-
-    def asis(self, a, b, cont=0):
-        if a is not b:
-            print("asis: Expected: b = ", b)
-            print("Got actually  : a = ", a)
-            if cont <= 0:
-                if cont < 0:
-                    pdb.set_trace()
-                else:
-                    self.assertTrue(0)
-
     def tearDown(self):
         pass
 
