@@ -1,5 +1,7 @@
 /* Implementation of ImmNodeSet */
 
+#include <stdbool.h>
+
 PyDoc_STRVAR(immnodeset_doc,
 "ImmNodeSet([iterable])\n"
 "\n"
@@ -135,9 +137,17 @@ as_immutable_visit(PyObject *obj, NSISetArg *v)
 NyNodeSetObject *
 NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
 {
+    PyObject *v_hiding_tag;
     NSISetArg sa;
+
+    Py_BEGIN_CRITICAL_SECTION(v);
+    v_hiding_tag = v->_hiding_tag_;
+    Py_XINCREF(v_hiding_tag);
+    Py_END_CRITICAL_SECTION();
+
     sa.i = 0;
-    sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v->_hiding_tag_);
+    sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v_hiding_tag);
+    Py_XDECREF(v_hiding_tag);
     if (!sa.ns)
         return 0;
     NyNodeSet_iterate(v, (visitproc)as_immutable_visit, &sa);
@@ -177,22 +187,31 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp) {
 static PyObject *
 immnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-
     PyObject *iterable = NULL;
     PyObject *hiding_tag = NULL;
+    bool hiding_tag_diff;
+
     static char *kwlist[] = {"iterable", "hiding_tag", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO:ImmNodeSet.__new__",kwlist,
                                      &iterable,
                                      &hiding_tag
                                      ))
-        return 0;
-    if (type == &NyImmNodeSet_Type &&
-        iterable &&
-        Py_TYPE(iterable) == &NyImmNodeSet_Type &&
-        ((NyNodeSetObject *)iterable)->_hiding_tag_ == hiding_tag) {
-        Py_INCREF(iterable);
-        return iterable;
-    }
+        return NULL;
+    if (type != &NyImmNodeSet_Type)
+        goto new;
+    if (!iterable || Py_TYPE(iterable) != &NyImmNodeSet_Type)
+        goto new;
+
+    Py_BEGIN_CRITICAL_SECTION(iterable);
+    hiding_tag_diff = ((NyNodeSetObject *)iterable)->_hiding_tag_ != hiding_tag;
+    Py_END_CRITICAL_SECTION();
+    if (hiding_tag_diff)
+        goto new;
+
+    Py_INCREF(iterable);
+    return iterable;
+
+new:
     return (PyObject *)NyImmNodeSet_SubtypeNewIterable(type, iterable, hiding_tag);
 }
 
@@ -200,6 +219,7 @@ immnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 immnodeset_gc_clear(NyNodeSetObject *v)
 {
+    /* NOT LOCKED: Object is dying */
     if (v->_hiding_tag_) {
         PyObject *x = v->_hiding_tag_;
         v->_hiding_tag_ = 0;
@@ -233,6 +253,7 @@ immnodeset_dealloc(NyNodeSetObject *v)
 static int
 immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
+    /* NOT LOCKED: Stop the world from GC */
     NyBit i;
     int err;
     err = 0;
@@ -255,6 +276,7 @@ immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 static Py_hash_t
 immnodeset_hash(NyNodeSetObject *v)
 {
+    /* NOT LOCKED: Immutable */
     NyBit i;
     Py_hash_t x = 0x983714;
     for (i = 0; i < Py_SIZE(v); i++)
@@ -297,8 +319,9 @@ immnodeset_iter(NyNodeSetObject *ns)
 static NyNodeSetObject *
 immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 {
+    /* NOT LOCKED: Immutable, except for _hiding_tag_ */
     int z;
-    PyObject *pos;
+    PyObject *pos, *v_hiding_tag;
     int bits, a, b;
     NyNodeSetObject *dst = 0;
     PyObject **zf, **vf, **wf, **ve, **we;
@@ -358,7 +381,13 @@ immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
         if (zf) {
             return dst;
         } else {
-            dst = NyImmNodeSet_New(z, v->_hiding_tag_);
+            Py_BEGIN_CRITICAL_SECTION(v);
+            v_hiding_tag = v->_hiding_tag_;
+            Py_XINCREF(v_hiding_tag);
+            Py_END_CRITICAL_SECTION();
+
+            dst = NyImmNodeSet_New(z, v_hiding_tag);
+            Py_XDECREF(v_hiding_tag);
             if (!dst)
                 return dst;
             zf = &dst->u.nodes[0];
@@ -376,6 +405,7 @@ PyDoc_STRVAR(immnodeset_obj_at_doc,
 static PyObject *
 immnodeset_obj_at(NyNodeSetObject *v, PyObject *obj)
 {
+    /* NOT LOCKED: Immutable */
     PyObject **lo;
     PyObject **hi;
 

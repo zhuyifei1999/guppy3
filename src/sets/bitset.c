@@ -4257,10 +4257,11 @@ mutbitset_get_num_seg(NyMutBitSetObject *v)
 size_t
 generic_indisize(PyObject *v)
 {
-    /* NOT LOCKED: Immutable */
     NyBit size = Py_TYPE(v)->tp_basicsize;
     if (Py_TYPE(v)->tp_itemsize) {
+        Py_BEGIN_CRITICAL_SECTION(v);
         size += Py_SIZE(v) * Py_TYPE(v)->tp_itemsize;
+        Py_END_CRITICAL_SECTION();
     }
     return size;
 }
