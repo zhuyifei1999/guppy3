@@ -40,6 +40,7 @@ char heapyc_doc[] =
 #include "classifier.h"
 #include "nodegraph.h"
 #include "relation.h"
+#include "stoptheworld.h"
 
 /* Extern decls - maybe put in .h file but not in heapy.h */
 
@@ -67,6 +68,12 @@ int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
                        void *arg);
 
 static Py_ssize_t roundupsize(Py_ssize_t n);
+
+/* Thread-local data */
+
+#if !defined(Py_GIL_DISABLED) && !defined(NDEBUG)
+_Py_thread_local int _world_stopped = 0;
+#endif
 
 /* general utilities */
 

@@ -92,19 +92,22 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     if (!(ta.dictsowned = NyMutNodeSet_New())) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
     if (!(lists[1] = gc_get_objects())) goto err;
+
+    /* FIXME; Why do we use GC here? Can we not use hv_update_referrers? */
+    NY_STOP_WORLD();
     for (k = 0; k < 2; k++) {
         PyObject *objects = lists[k];
         len = PyList_Size(objects);
         if (len == -1) /* catches eg type error */
-            goto err;
+            goto err_start;
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
             dp = _PyObject_GetDictPtr(obj);
             if (dp && *dp) {
                 if (NyNodeGraph_AddEdge(ta.rg, *dp, obj) == -1)
-                    goto err;
+                    goto err_start;
                 if (NyNodeSet_setobj(ta.dictsowned, *dp) == -1)
-                    goto err;
+                    goto err_start;
             }
         }
     }
@@ -116,20 +119,24 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
             if (DictofDict_Check(obj)) {
                 int setobj = NyNodeSet_setobj(ta.dictsowned, obj);
                 if (setobj == -1)
-                    goto err;
+                    goto err_start;
                 else if (setobj == 0)
                     if (NyNodeGraph_AddEdge(ta.rg, obj, Py_None) == -1)
-                        goto err;
+                        goto err_start;
             }
 
             if (PyObject_IS_GC(obj)) {
+                NY_ASSERT_WORLD_STOPPED();
                 if (Py_TYPE(obj)->tp_traverse(
                         obj, (visitproc)hv_cli_dictof_update_rec, &ta) == -1)
-                    goto err;
+                    goto err_start;
             }
         }
     }
+
     result = 0;
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.dictsowned);
     Py_XDECREF(lists[0]);

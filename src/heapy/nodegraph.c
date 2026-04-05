@@ -604,6 +604,7 @@ int
 NyNodeGraph_Region(NyNodeGraphObject *ng, PyObject *key,
                    NyNodeGraphEdge **lop, NyNodeGraphEdge **hip)
 {
+    /* FIXME: Exposing internal structures, may need assert lock or world stop */
     NyNodeGraphEdge *lo, *hi, *cur;
     ng_maybesortetc(ng);
     lo = ng->edges;

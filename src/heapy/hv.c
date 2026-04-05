@@ -203,6 +203,7 @@ hv_default_size(PyObject *obj)
         return z;
     PyErr_Clear();
 
+    Py_BEGIN_CRITICAL_SECTION(obj);
     z = Py_TYPE(obj)->tp_basicsize;
     if (Py_TYPE(obj)->tp_itemsize) {
         Py_ssize_t itemsize = Py_TYPE(obj)->tp_itemsize;
@@ -211,8 +212,12 @@ hv_default_size(PyObject *obj)
         z += Py_SIZE(obj) * itemsize;
         z = (z + ALIGN_MASK) & ~ALIGN_MASK;
     }
+    Py_END_CRITICAL_SECTION();
+
+#ifndef Py_GIL_DISABLED
     if (PyObject_IS_GC(obj))
         z += sizeof(PyGC_Head);
+#endif
     return z;
 }
 
@@ -512,6 +517,7 @@ int maxcoll = 0;
 static int
 xt_relate(ExtraType *xt, NyHeapRelate *hr)
 {
+    NY_ASSERT_WORLD_STOPPED();
     PyTypeObject *type = Py_TYPE(hr->src);
     if (PyType_Ready(type) == -1)
         return -1;
@@ -526,6 +532,7 @@ xt_relate(ExtraType *xt, NyHeapRelate *hr)
 static size_t
 xt_size(ExtraType *xt, PyObject *obj)
 {
+    NY_ASSERT_WORLD_RUNNING();
     return xt->xt_size(obj);
 }
 
@@ -533,6 +540,7 @@ xt_size(ExtraType *xt, PyObject *obj)
 static int
 xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
+    NY_ASSERT_WORLD_STOPPED();
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_MANAGED_DICT) {
         // FIXME: There's no way to distinguish between managed dict entries
@@ -859,7 +867,7 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
                    void *arg)
 {
     IterTravArg ta;
-    int r;
+    int r = -1;
     ta.hv = hv;
     ta.visit = visit;
     ta.arg = arg;
@@ -867,23 +875,27 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
     ta.to_visit = PyList_New(0);
     if (!(ta.hs && ta.to_visit))
         goto err;
+
+    NY_STOP_WORLD();
     r = iter_rec(ta.hv->root, &ta);
+    if (r == -1)
+        goto err_start;
+    r = -1;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
-            goto err;
+            goto err_start;
         if (hv_std_traverse(ta.hv, obj, (visitproc)iter_rec, &ta) == -1) {
             Py_DECREF(obj);
-            goto err;
+            goto err_start;
         }
         Py_DECREF(obj);
     }
 
-    goto out;
-
+    r = 0;
+err_start:
+    NY_START_WORLD();
 err:
-    r = -1;
-out:
     Py_XDECREF(ta.to_visit);
     Py_XDECREF(ta.hs);
     return r;
@@ -937,26 +949,33 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.to_visit = PyList_New(0);
     if (!(ta.visited && ta.to_visit))
         goto err;
+
+    NY_STOP_WORLD();
     if (hv_heap_rec(ta.hv->root, &ta) == -1)
-        goto err;
+        goto err_start;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
-            goto err;
+            goto err_start;
         if (hv_std_traverse(ta.hv, obj, (visitproc)hv_heap_rec, &ta) == -1) {
             Py_DECREF(obj);
-            goto err;
+            goto err_start;
         }
         Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
-        goto err;
+        goto err_start;
     if (PyObject_Length(self->static_types) == 0) {
         if (hv_update_static_types(self, (PyObject *)ta.visited) == -1)
-            goto err;
+            goto err_start;
     }
+
+    NY_START_WORLD();
     Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
+
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.visited);
     Py_XDECREF(ta.to_visit);
@@ -1020,7 +1039,7 @@ hv_relate_visit(unsigned int relatype, PyObject *relator, NyHeapRelate *arg_)
             goto ret;
     }
     arg->err = PyList_Append(arg->relas[relatype], relator);
-    ret:
+ret:
     Py_DECREF(relator);
     return arg->err;
 }
@@ -1052,8 +1071,14 @@ hv_numedges(NyHeapViewObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO:numedges", &ta.src, &ta.tgt))
         return NULL;
     ta.ne = 0;
-    if (hv_std_traverse(self, ta.src, (visitproc)hv_ne_rec, &ta) == -1)
-        return 0;
+
+    NY_STOP_WORLD();
+    if (hv_std_traverse(self, ta.src, (visitproc)hv_ne_rec, &ta) == -1) {
+        NY_START_WORLD();
+        return NULL;
+    }
+
+    NY_START_WORLD();
     return PyLong_FromSsize_t(ta.ne);
 }
 
@@ -1099,20 +1124,27 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
         goto err;
     if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec, &ta) == -1)
         goto err;
+
+    NY_STOP_WORLD();
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
-            goto err;
+            goto err_start;
         if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec, &ta) == -1) {
             Py_DECREF(obj);
-            goto err;
+            goto err_start;
         }
         Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
-        goto err;
+        goto err_start;
+
+    NY_START_WORLD();
     Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
+
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.visited);
     Py_XDECREF(ta.to_visit);
@@ -1156,20 +1188,27 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
         goto err;
     if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec_e, &ta) == -1)
         goto err;
+
+    NY_STOP_WORLD();
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
-            goto err;
+            goto err_start;
         if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec_e, &ta) == -1) {
             Py_DECREF(obj);
-            goto err;
+            goto err_start;
         }
         Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
-        goto err;
+        goto err_start;
+
+    NY_START_WORLD();
     Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
+
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.visited);
     Py_XDECREF(ta.to_visit);
@@ -1300,7 +1339,9 @@ hv_relate(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     crva.hr.visit = hv_relate_visit;
     crva.err = 0;
     for (i = 0; i < NYHR_LIMIT; i++)
-        crva.relas[i] = 0;
+        crva.relas[i] = NULL;
+
+    NY_STOP_WORLD();
     if (hv_std_relate(&crva.hr) == -1 ||
                         crva.err ||
                         (!(res = PyTuple_New(NYHR_LIMIT)))) {
@@ -1309,19 +1350,21 @@ hv_relate(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     for (i = 0; i < NYHR_LIMIT; i++) {
         PyObject *x;
         if (!crva.relas[i]) {
-            x =  PyTuple_New(0);
+            x = PyTuple_New(0);
         } else {
             x = PyList_AsTuple(crva.relas[i]);
         }
         if (!x) {
             Py_DECREF(res);
-            res = 0;
+            res = NULL;
             goto retres;
         } else {
             PyTuple_SetItem(res, i, x);
         }
     }
-    retres:
+
+retres:
+    NY_START_WORLD();
     for (i = 0; i < NYHR_LIMIT; i++)
         Py_XDECREF(crva.relas[i]);
     return res;
@@ -1364,12 +1407,18 @@ hv_relimg(NyHeapViewObject *hv, PyObject *S)
     ta.hs = hv_mutnodeset_new(hv);
     if (!ta.hs)
         return 0;
+
+    NY_STOP_WORLD();
     if (iterable_iterate(S, (visitproc)hv_relimg_trav, &ta) == -1)
-        goto err;
+        goto err_start;
     if (hv_cleanup_mutset(ta.hv, ta.hs) == -1)
-        goto err;
+        goto err_start;
+
+    NY_START_WORLD();
     return ta.hs;
-err:
+
+err_start:
+    NY_START_WORLD();
     Py_DECREF(ta.hs);
     return 0;
 }
@@ -1466,9 +1515,16 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.V = hv_mutnodeset_new(self);
     if (!(ta.V))
         goto err;
+
+    NY_STOP_WORLD();
     if (NyNodeSet_iterate(ta.U, (visitproc)hv_shpath_outer, &ta) == -1)
-        goto err;
+        goto err_start;
+
+    NY_START_WORLD();
     return (PyObject *)ta.V;
+
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.V);
     return 0;
@@ -1592,10 +1648,12 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
 
     if (PyList_Append(ta.to_visit, ta.hv->root) == -1)
         goto err;
+
+    NY_STOP_WORLD();
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
-            goto err;
+            goto err_start;
         if (obj == ta.sentinel) {
             // Recurse out
             PyObject *last_obj = hv_PyList_Pop(ta.trace_stack);
@@ -1690,11 +1748,13 @@ next:
 
 err_inner:
         Py_DECREF(obj);
-        goto err;
+        goto err_start;
     }
 
     ret = Py_None;
 
+err_start:
+    NY_START_WORLD();
 err:
     Py_XDECREF(ta.markset);
     Py_XDECREF(ta.outset);
@@ -1756,6 +1816,8 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     if (len == -1)
         goto err;
     NyNodeGraph_Clear(ta.rg);
+
+    NY_STOP_WORLD();
     for (i = 0; i < len; i++) {
         PyObject *retainer = PyList_GET_ITEM(objects, i);
         ta.num = 0;
@@ -1769,10 +1831,13 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
         else
             ta.retainer = retainer;
         if (hv_std_traverse(ta.hv, retainer, (visitproc)urco_traverse, &ta) == -1)
-            goto err;
+            goto err_start;
     }
     result = Py_None;
     Py_INCREF(result);
+
+err_start:
+    NY_START_WORLD();
 err:
     self->_hiding_tag_ = _hiding_tag_;
     Py_XDECREF(objects);
@@ -1863,7 +1928,7 @@ The static types are the type objects that are not heap allocated, but\n\
 are defined directly in C code. HeapView searches for these among all\n\
 reachable objects (at a suitable time or as needed)."},
     {"_hiding_tag__name",     T_OBJECT , OFF(_hiding_tag__name), READONLY,
-"HV.static_types : string, read only\n\
+"HV._hiding_tag__name : string, read only\n\
 \n\
 Cached string \"_hiding_tag_\" for dict lookups."},
 

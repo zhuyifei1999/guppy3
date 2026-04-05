@@ -28,6 +28,7 @@
 #include "heapdef.h"
 #include "heapy.h"
 #include "stdtypes.h"
+#include "stoptheworld.h"
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
 # define Py_BUILD_CORE
@@ -238,6 +239,8 @@ frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int
 static int
 frame_relate(NyHeapRelate *r)
 {
+    NY_ASSERT_WORLD_STOPPED();
+
     PyFrameObject *v = (void *)r->src;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     _PyInterpreterFrame *iv = v->f_frame;
@@ -372,6 +375,8 @@ frame_relate(NyHeapRelate *r)
 
 static int
 frame_traverse(NyHeapTraverse *ta) {
+    NY_ASSERT_WORLD_STOPPED();
+
     PyFrameObject *v = (void *)ta->obj;
     visitproc visit = ta->visit;
     void *arg = ta->arg;
@@ -635,6 +640,8 @@ type_traverse(NyHeapTraverse *ta)
     visitproc visit = ta->visit;
     void *arg = ta->arg;
 
+    NY_ASSERT_WORLD_STOPPED();
+
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
     if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {
         ny_static_type_state *state = NyStaticType_GetState(type);
@@ -671,6 +678,8 @@ type_relate(NyHeapRelate *r)
 {
     PyTypeObject *type = (void *)r->src;
     PyHeapTypeObject *et;
+
+    NY_ASSERT_WORLD_STOPPED();
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
     if (type->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN) {

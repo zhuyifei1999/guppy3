@@ -449,6 +449,7 @@ static int
 rootstate_relate(NyHeapRelate *r)
 {
     int ret;
+    NY_ASSERT_WORLD_STOPPED();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_relate_unlocked(r);
     HEAD_UNLOCK(&_PyRuntime);
@@ -577,6 +578,7 @@ int
 rootstate_traverse(NyHeapTraverse *ta)
 {
     int ret;
+    NY_ASSERT_WORLD_STOPPED();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_traverse_unlocked(ta);
     HEAD_UNLOCK(&_PyRuntime);
@@ -735,9 +737,11 @@ static PyObject *
 rootstate_getattr(PyObject *obj, PyObject *name)
 {
     PyObject *ret;
+    NY_STOP_WORLD();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_getattr_unlocked(obj, name);
     HEAD_UNLOCK(&_PyRuntime);
+    NY_START_WORLD();
     return ret;
 }
 
@@ -888,9 +892,11 @@ static PyObject *
 rootstate_dir(PyObject *self, PyObject *args)
 {
     PyObject *ret;
+    NY_STOP_WORLD();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_dir_unlocked(self, args);
     HEAD_UNLOCK(&_PyRuntime);
+    NY_START_WORLD();
     return ret;
 }
 

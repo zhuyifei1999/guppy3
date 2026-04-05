@@ -301,7 +301,7 @@ static PyObject *
 hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
-    PyObject *result;
+    PyObject *result = NULL;
     ExtraType *xt;
     hv_cli_inrel_visit_arg crva;
     crva.hr.flags = 0;
@@ -316,34 +316,34 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
     if (!crva.relset)
         return 0;
 
-    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1) {
-        goto Err;
-    }
+    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
+        goto err;
 
+    NY_STOP_WORLD();
     for (cur = lo; cur < hi; cur++) {
         if (cur->tgt == Py_None)
             continue;
         crva.hr.src = cur->tgt;
         xt = hv_extra_type(self->hv, Py_TYPE(crva.hr.src));
-        assert (xt->xt_hv == self->hv);
+        assert(xt->xt_hv == self->hv);
         assert(self->hv == (void *)crva.hr.hv);
 
         if (xt->xt_relate(xt, &crva.hr) == -1 || crva.err) {
             /* fprintf(stderr, "xt 0x%x\n", xt); */
-            goto Err;
+            goto err_start;
         }
     }
 
     if (NyNodeSet_be_immutable(&crva.relset) == -1)
-        goto Err;
+        goto err_start;
     result = inrel_fast_memoized_kind(self, (PyObject *)crva.relset);
-Ret:
+
+err_start:
+    NY_START_WORLD();
+err:
     Py_DECREF(crva.relset);
     assert(self->rel->relator == Py_None);
     return result;
-Err:
-    result = 0;
-    goto Ret;
 
 }
 
