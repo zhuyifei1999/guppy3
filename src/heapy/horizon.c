@@ -1,6 +1,7 @@
 /* Implementation of the Horizon type */
 
 #include <stdbool.h>
+#include <stdatomic.h>
 
 char horizon_doc[]=
 "Horizon(X:iterable)\n"
@@ -52,7 +53,7 @@ static int horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
         horizon_on_dealloc(v);
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
     if (event == PyRefTracer_TRACKER_REMOVED)
-        rm.replaced = true;
+        atomic_store_explicit(&rm.replaced, true, memory_order_seq_cst);
 # endif
 
     return 0;
@@ -67,7 +68,7 @@ horizon_install(void)
         return -1;
     }
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
-    rm.replaced = false;
+    atomic_store_explicit(&rm.replaced, false, memory_order_seq_cst);
 # endif
 
     return PyRefTracer_SetTracer(&horizon_tracer, NULL);
@@ -174,6 +175,9 @@ horizon_on_dealloc(PyObject *v)
     NyHorizonObject *r;
 
     PyMutex_Lock(&rm_mutex);
+    /* The list must be loaded after the Python finds this tracer
+       from the global state */
+    atomic_thread_fence(memory_order_acquire);
     for (r = rm.horizons; r; r = r->next) {
         if (NyNodeSet_clrobj(r->hs, v) == -1)
             Py_FatalError("could not clear object in nodeset");
@@ -185,7 +189,6 @@ static void
 horizon_remove(NyHorizonObject *v)
 {
     NyHorizonObject **p;
-    bool should_uninstall;
 
     PyMutex_Lock(&rm_mutex);
     for (p = &rm.horizons; *p != v; p = &((*p)->next)) {
@@ -193,11 +196,11 @@ horizon_remove(NyHorizonObject *v)
             Py_FatalError("no such horizon found");
     }
     *p = v->next;
-    should_uninstall = !rm.horizons;
+
+    if (!rm.horizons)
+        horizon_uninstall();
     PyMutex_Unlock(&rm_mutex);
 
-    if (should_uninstall)
-        horizon_uninstall();
 }
 
 static void
@@ -256,11 +259,15 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     hz->next = rm.horizons;
     rm.horizons = hz;
     hz->installed = true;
-    PyMutex_Unlock(&rm_mutex);
-    if (should_install)
+
+    if (should_install) {
+        /* The list must be published before the tracer is installed, which
+           may load the list on a different thread */
+        atomic_thread_fence(memory_order_release);
         if (horizon_install() == -1)
             goto err;
-
+    }
+    PyMutex_Unlock(&rm_mutex);
     return (PyObject *)hz;
 err:
     Py_XDECREF(hz);
@@ -300,7 +307,7 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
     NewsTravArg ta;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
-    if (rm.replaced)
+    if (atomic_load_explicit(&rm.replaced, memory_order_seq_cst))
 # else
     if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
 # endif

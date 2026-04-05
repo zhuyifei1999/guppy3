@@ -1,3 +1,5 @@
+#include <stdatomic.h>
+
 #define NyNodeSet_TYPE	(nodeset_exports->type)
 
 #define NyNodeSet_Check(op) PyObject_TypeCheck(op, NyNodeSet_TYPE)
@@ -74,16 +76,20 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp) {
 static int
 import_sets(void)
 {
+    NyNodeSet_Exports *local_nodeset_exports;
+
     if (nodeset_exports)
         return 0;
 
     PyMutex_Lock(&nodeset_exports_mutex);
 
-    if (nodeset_exports)
+    if (atomic_load_explicit(&nodeset_exports, memory_order_relaxed))
         goto out;
-    nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
-    if (!nodeset_exports)
+    local_nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
+    if (!local_nodeset_exports)
         goto err;
+    atomic_store_explicit(&nodeset_exports, local_nodeset_exports,
+                          memory_order_relaxed);
 
 out:
     PyMutex_Unlock(&nodeset_exports_mutex);
