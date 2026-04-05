@@ -20,11 +20,12 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 # undef Py_BUILD_CORE
 #endif
 
+#ifndef Py_GIL_DISABLED
 // The sizeof of PyGC_Head is not to be trusted upon even across Python minor
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
-#define INTERNAL_MODULE "_testinternalcapi"
+# define INTERNAL_MODULE "_testinternalcapi"
 
 static int lazy_init_hv_cli_prod(void)
 {
@@ -76,6 +77,7 @@ Err:
 
     return 0;
 }
+#endif
 
 typedef struct {
     NYTUPLELIKE_HEAD
@@ -110,6 +112,9 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
     PyObject *kind = NULL, *tb = NULL;
     Py_uintptr_t ptr;
 
+#ifdef Py_GIL_DISABLED
+    ptr = (Py_uintptr_t)((char *)obj - _PyType_PreHeaderSize(Py_TYPE(obj)));
+#else
     // Refer to _tracemalloc.c:_tracemalloc__get_object_traceback
     if (PyType_IS_GC(Py_TYPE(obj))) {
         ptr = (Py_uintptr_t)((char *)obj - sizeof_PyGC_Head);
@@ -117,13 +122,14 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
         ptr = (Py_uintptr_t)obj;
     }
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     // https://github.com/python/cpython/issues/101430
     ptr -= _PyType_PreHeaderSize(Py_TYPE(obj));
     // _PyType_PreHeaderSize would add an extra compile-time sizeof(PyGC_Head),
     // which may be different from the true value in sizeof_PyGC_Head
     if (PyType_IS_GC(Py_TYPE(obj)))
         ptr += sizeof(PyGC_Head);
+# endif
 #endif
 
     tb = _PyTraceMalloc_GetTraceback(0, (Py_uintptr_t)ptr);
@@ -225,8 +231,10 @@ hv_cli_prod(NyHeapViewObject *self, PyObject *args)
                           &PyDict_Type, &memo))
         return NULL;
 
+#ifndef Py_GIL_DISABLED
     if (lazy_init_hv_cli_prod() < 0)
         return NULL;
+#endif
 
     s = NYTUPLELIKE_NEW(ProdObject);
     if (!s)
