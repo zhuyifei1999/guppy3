@@ -319,9 +319,9 @@ immnodeset_iter(NyNodeSetObject *ns)
 static NyNodeSetObject *
 immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 {
-    /* NOT LOCKED: Immutable, except for _hiding_tag_ */
+    /* NOT LOCKED: Immutable */
     int z;
-    PyObject *pos, *v_hiding_tag;
+    PyObject *pos;
     int bits, a, b;
     NyNodeSetObject *dst = 0;
     PyObject **zf, **vf, **wf, **ve, **we;
@@ -381,13 +381,7 @@ immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
         if (zf) {
             return dst;
         } else {
-            Py_BEGIN_CRITICAL_SECTION(v);
-            v_hiding_tag = v->_hiding_tag_;
-            Py_XINCREF(v_hiding_tag);
-            Py_END_CRITICAL_SECTION();
-
-            dst = NyImmNodeSet_New(z, v_hiding_tag);
-            Py_XDECREF(v_hiding_tag);
+            dst = NyImmNodeSet_New(z, v->_hiding_tag_);
             if (!dst)
                 return dst;
             zf = &dst->u.nodes[0];
