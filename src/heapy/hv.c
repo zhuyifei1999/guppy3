@@ -319,16 +319,46 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
     return Py_TYPE(obj)->tp_traverse(obj, visit, arg);
 }
 
+static int maybe_check_signals(void)
+{
+#ifdef Py_GIL_DISABLED
+    /* May call GC, unsafe for stop-the-world. */
+
+    /* Restarting the would and re-stopping it is an extremely expensive
+       process, so we really don't want to do this, but I think I can assume
+       that signals are a rare event, and still, avoid this as much as I can */
+    NY_ASSERT_WORLD_STOPPED();
+
+    if (PyThread_get_thread_ident() != _PyRuntime.main_thread)
+        return 0;
+    if (PyInterpreterState_Get() != _PyInterpreterState_Main())
+        return 0;
+
+    /* should be atomic load, but I don't really want to deal with casting
+       to an _Atomic */
+    if (!_PyRuntime.signals.is_tripped)
+        return 0;
+
+    NY_START_WORLD();
+#endif
+
+    int r = 0;
+    PyErr_CheckSignals();
+    if (PyErr_Occurred())
+        r = -1;
+
+#ifdef Py_GIL_DISABLED
+    NY_STOP_WORLD();
+#endif
+    return r;
+}
 
 static int
 xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
-#ifndef Py_GIL_DISABLED
-    /* May call GC, unsafe for stop-the-world */
-    PyErr_CheckSignals();
-    if (PyErr_Occurred())
+    if (maybe_check_signals() == -1)
         return -1;
-#endif
+
     NyHeapTraverse ta;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
     ta.flags = 0;
