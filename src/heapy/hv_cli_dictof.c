@@ -116,6 +116,9 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
         len = PyList_Size(objects);
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
+            if (obj == (PyObject *)ta.dictsowned)
+                continue;
+
             if (DictofDict_Check(obj)) {
                 int setobj = NyNodeSet_setobj(ta.dictsowned, obj);
                 if (setobj == -1)

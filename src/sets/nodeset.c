@@ -990,7 +990,6 @@ nodeset_iop_iterable_visit(PyObject *obj, IOPTravArg *ta)
 static PyObject *
 nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
                          int (*visit)(NyNodeSetObject *, PyObject *)) {
-    PyObject *r = NULL;
     IOPTravArg ta;
     ta.ns = v;
     ta.visit = visit;
@@ -998,15 +997,10 @@ nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
         PyErr_SetString(PyExc_TypeError, "iop: left argument must be mutable");
         return NULL;
     }
-    Py_BEGIN_CRITICAL_SECTION(v);
     if (iterable_iterate((PyObject *)w,
                          (NyIterableVisitor) nodeset_iop_iterable_visit, &ta) == -1)
-        goto out;
-    Py_INCREF(v);
-    r = (PyObject *)v;
-out:
-    Py_END_CRITICAL_SECTION();
-    return r;
+        return NULL;
+    return Py_NewRef(v);
 }
 
 
