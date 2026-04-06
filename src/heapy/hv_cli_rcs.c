@@ -106,33 +106,35 @@ static PyObject *
 hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
-    PyObject *kind = 0;
+    PyObject *kind = NULL;
     NyNodeSetObject *Ri = hv_mutnodeset_new(self->hv);
     if (!Ri)
-      goto Err;
-    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1) {
-       goto Err;
-    }
+        return NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(self->rg);
+    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
+        goto err;
     for (cur = lo; cur < hi; cur++) {
         if (cur->tgt == Py_None)
             continue;
         kind = self->cli->def->classify(self->cli->self, cur->tgt);
         if (!kind)
-            goto Err;
+            goto err;
         if (NyNodeSet_setobj(Ri, kind) == -1)
-            goto Err;
-        Py_DECREF(kind);
+            goto err;
+        Py_CLEAR(kind);
     }
     if (NyNodeSet_be_immutable(&Ri) == -1)
-      goto Err;
+        goto err;
     kind = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)Ri);
-    Py_DECREF(Ri);
-    return kind;
+    goto out;
 
-Err:
-    Py_XDECREF(kind);
+err:
+    Py_CLEAR(kind);
+out:
+    Py_END_CRITICAL_SECTION();
     Py_XDECREF(Ri);
-    return 0;
+    return kind;
 }
 
 static int

@@ -72,11 +72,11 @@ extern PyTypeObject NyImmNodeSet_Type;
 
 #ifdef Py_GIL_DISABLED
 #define _NY_IS_IMM(op) (NyImmBitSet_Check(op) || NyCplBitSet_Check(op))
-#define NY_ASSERT_OBJ_IMM_OR_LOCKED(op) \
-    assert(_NY_IS_IMM((PyObject *)(op)) || \
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED(op)                    \
+    assert(_NY_IS_IMM((PyObject *)(op)) ||                 \
         PyMutex_IsLocked(&((PyObject *)(op))->ob_mutex))
-#define NY_ASSERT_OBJ_IMM_OR_LOCKED_OR_SINGLEREF(op) \
-    assert(_NY_IS_IMM((PyObject *)(op)) || \
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED_OR_SINGLEREF(op)       \
+    assert(_NY_IS_IMM((PyObject *)(op)) ||                 \
         PyMutex_IsLocked(&((PyObject *)(op))->ob_mutex) || \
         PyUnstable_Object_IsUniquelyReferenced((PyObject *)(op)))
 #else

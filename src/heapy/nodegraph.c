@@ -43,18 +43,19 @@ ngiter_traverse(NyNodeGraphIterObject *it, visitproc visit, void *arg)
 static PyObject *
 ngiter_iternext(NyNodeGraphIterObject *ngi)
 {
-    PyObject *ret;
+    PyObject *ret = NULL;
     NyNodeGraphEdge *e;
+
+    Py_BEGIN_CRITICAL_SECTION(ngi->nodegraph);
     if (ngi->i >= ngi->nodegraph->used_size)
-        return 0;
+        goto err;
     ret = PyTuple_New(2);
     if (!ret)
-        return 0;
+        goto err;
     if (ngi->nodegraph->used_size != ngi->oldsize ||
         !ngi->nodegraph->is_sorted) {
-        Py_DECREF(ret);
         PyErr_SetString(PyExc_RuntimeError, "nodegraph changed size during iteration");
-        return 0;
+        goto err;
     }
     e = &ngi->nodegraph->edges[ngi->i];
     Py_INCREF(e->src);
@@ -62,6 +63,12 @@ ngiter_iternext(NyNodeGraphIterObject *ngi)
     Py_INCREF(e->tgt);
     PyTuple_SET_ITEM(ret, 1, e->tgt);
     ngi->i++;
+    goto out;
+
+err:
+    Py_CLEAR(ret);
+out:
+    Py_END_CRITICAL_SECTION();
     return ret;
 }
 
@@ -84,9 +91,13 @@ PyTypeObject NyNodeGraphIter_Type = {
 void
 NyNodeGraph_Clear(NyNodeGraphObject *ng)
 {
-    Py_ssize_t N = ng->used_size;
-    NyNodeGraphEdge *edges = ng->edges;
+    NyNodeGraphEdge *edges;
+    Py_ssize_t N;
     Py_ssize_t i;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    edges = ng->edges;
+    N = ng->used_size;
     ng->edges = 0;
     ng->used_size = ng->allo_size = 0;
     for (i = 0; i < N; i++) {
@@ -94,11 +105,13 @@ NyNodeGraph_Clear(NyNodeGraphObject *ng)
         Py_DECREF(edges[i].tgt);
     }
     PyMem_FREE(edges);
+    Py_END_CRITICAL_SECTION();
 }
 
 static int
 ng_gc_clear(NyNodeGraphObject *ng)
 {
+    /* NOT LOCKED: Object is dying */
     PyObject *hn = ng->_hiding_tag_;
     ng->_hiding_tag_ = 0;
     NyNodeGraph_Clear(ng);
@@ -109,6 +122,7 @@ ng_gc_clear(NyNodeGraphObject *ng)
 static void
 ng_dealloc(PyObject *v)
 {
+    /* NOT LOCKED: Object is dying */
     NyNodeGraphObject *ng = (void *)v;
     Py_ssize_t i;
     PyObject_GC_UnTrack(v);
@@ -128,6 +142,9 @@ ng_gc_traverse(NyNodeGraphObject *ng, visitproc visit, void *arg)
 {
     Py_ssize_t i;
     int err = 0;
+
+    NY_ASSERT_WORLD_STOPPED();
+
     for (i = 0; i < ng->used_size; i++) {
         err = visit(ng->edges[i].src, arg) ;
         if (err) return err;
@@ -142,11 +159,17 @@ ng_gc_traverse(NyNodeGraphObject *ng, visitproc visit, void *arg)
 int
 NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
 {
+    int r = -1;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     if (!ng->is_preserving_duplicates &&
         ng->used_size &&
         ng->edges[ng->used_size-1].src == src &&
-        ng->edges[ng->used_size-1].tgt == tgt)
-        return 0;
+        ng->edges[ng->used_size-1].tgt == tgt
+    ) {
+        r = 0;
+        goto out;
+    }
 
 #if Py_GIL_DISABLED
     /* Do nothing */
@@ -175,7 +198,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         PyMem_RESIZE(edges, NyNodeGraphEdge, allo);
         if (!edges) {
             PyErr_NoMemory();
-            return -1;
+            goto out;
         }
         ng->edges = edges;
         ng->allo_size = allo;
@@ -186,7 +209,11 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
     ng->edges[ng->used_size].tgt = tgt;
     ng->used_size ++;
     ng->is_sorted = 0;
-    return 0;
+    r = 0;
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 static int
@@ -208,6 +235,8 @@ ng_compare_src_only(const void *x, const void *y)
 static void
 ng_sort(NyNodeGraphObject *ng)
 {
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     qsort(ng->edges, ng->used_size, sizeof(NyNodeGraphEdge),
           ng->is_preserving_duplicates ? ng_compare_src_only : ng_compare);
 }
@@ -216,6 +245,9 @@ static void
 ng_remove_dups(NyNodeGraphObject *ng)
 {
     NyNodeGraphEdge *dst, *src, *hi;
+
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     if (ng->used_size <= 1)
         return;
     hi = ng->edges + ng->used_size;
@@ -241,6 +273,8 @@ ng_trim(NyNodeGraphObject *ng)
 {
     NyNodeGraphEdge *edges = ng->edges;
 
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     PyMem_RESIZE(edges, NyNodeGraphEdge, ng->used_size);
     if (!edges)
         return;
@@ -252,6 +286,8 @@ ng_trim(NyNodeGraphObject *ng)
 static void
 ng_sortetc(NyNodeGraphObject *ng)
 {
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     ng_sort(ng);
     if (!ng->is_preserving_duplicates)
         ng_remove_dups(ng);
@@ -262,6 +298,8 @@ ng_sortetc(NyNodeGraphObject *ng)
 static void
 ng_maybesortetc(NyNodeGraphObject *ng)
 {
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     if (!ng->is_sorted)
         ng_sortetc(ng);
 }
@@ -329,14 +367,19 @@ ng_as_flat_list(NyNodeGraphObject *ng, PyObject *arg)
     PyObject *r = PyList_New(0);
     Py_ssize_t i;
     if (!r)
-        return 0;
+        return NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     for (i = 0; i < ng->used_size; i++) {
         if ((PyList_Append(r, ng->edges[i].src) == -1) ||
             (PyList_Append(r, ng->edges[i].tgt) == -1)) {
-            Py_DECREF(r);
-            return 0;
+            Py_CLEAR(r);
+            goto out;
         }
     }
+
+out:
+    Py_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -375,11 +418,15 @@ NyNodeGraph_SiblingNew(NyNodeGraphObject *ng)
     PyObject *he;
     if (!cp)
         return 0;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     he = cp->_hiding_tag_;
     cp->_hiding_tag_ = ng->_hiding_tag_;
     Py_XINCREF(cp->_hiding_tag_);
     Py_XDECREF(he);
     cp->is_mapping = ng->is_mapping;
+    Py_END_CRITICAL_SECTION();
+
     return cp;
 }
 
@@ -437,14 +484,18 @@ static PyObject *
 ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
 {
     DCTravArg ta;
-    PyObject *result;
+    PyObject *result = NULL;
     ta.ng = ng;
     ta.ret = 1;
-    if (iterable_iterate(X, (visitproc)ng_dc_trav, &ta) == -1) {
-        return 0;
-    }
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    if (iterable_iterate(X, (visitproc)ng_dc_trav, &ta) == -1)
+        goto out;
+
     result = ta.ret? Py_True:Py_False;
     Py_INCREF(result);
+out:
+    Py_END_CRITICAL_SECTION();
     return result;
 }
 
@@ -482,10 +533,11 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
     ta.ret = NyNodeGraph_SiblingNew(ng);
     if (!ta.ret)
         return 0;
-    if (iterable_iterate(X, (visitproc)ng_dr_trav, &ta) == -1) {
-        Py_DECREF(ta.ret);
-        return 0;
-    }
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    if (iterable_iterate(X, (visitproc)ng_dr_trav, &ta) == -1)
+        Py_CLEAR(ta.ret);
+    Py_END_CRITICAL_SECTION();
     return (PyObject *)ta.ret;
 }
 
@@ -498,16 +550,21 @@ Return the set of nodes that are the source of some edge in NG.";
 static PyObject *
 ng_get_domain(NyNodeGraphObject *ng, void *closure)
 {
-    NyNodeSetObject *ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
+    NyNodeSetObject *ns;
     Py_ssize_t i;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
     if (!ns)
-        return 0;
+        goto out;
     for (i = 0; i < ng->used_size; i++) {
         if (NyNodeSet_setobj(ns, ng->edges[i].src) == -1) {
-            Py_DECREF(ns);
-            return 0;
+            Py_CLEAR(ns);
+            goto out;
         }
     }
+out:
+    Py_END_CRITICAL_SECTION();
     return (PyObject *)ns;
 }
 
@@ -519,29 +576,38 @@ Return the set of nodes that are the target of some edge in NG.";
 static PyObject *
 ng_get_range(NyNodeGraphObject *ng, void *closure)
 {
-    NyNodeSetObject *ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
+    NyNodeSetObject *ns;
     Py_ssize_t i;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
     if (!ns)
-        return 0;
+        goto out;
     for (i = 0; i < ng->used_size; i++) {
         if (NyNodeSet_setobj(ns, ng->edges[i].tgt) == -1) {
-            Py_DECREF(ns);
-            return 0;
+            Py_CLEAR(ns);
+            goto out;
         }
     }
+out:
+    Py_END_CRITICAL_SECTION();
     return (PyObject *)ns;
 }
 
 int
 NyNodeGraph_Invert(NyNodeGraphObject *ng) {
-    NyNodeGraphEdge *edge = ng->edges;
+    NyNodeGraphEdge *edge;
     Py_ssize_t i;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
+    edge = ng->edges;
     for (i = 0; i < ng->used_size; i++, edge++) {
         PyObject *t = edge->src;
         edge->src = edge->tgt;
         edge->tgt = t;
     }
     ng->is_sorted = 0;
+    Py_END_CRITICAL_SECTION();
     return 0;
 }
 
@@ -591,11 +657,14 @@ ng_iter(NyNodeGraphObject *v)
     NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, &NyNodeGraphIter_Type);
     if (!iter)
         return 0;
+
     iter->nodegraph = v;
     Py_INCREF(v);
     iter->i = 0;
+    Py_BEGIN_CRITICAL_SECTION(v);
     ng_maybesortetc(v);
     iter->oldsize = v->used_size;
+    Py_END_CRITICAL_SECTION();
     PyObject_GC_Track(iter);
     return (PyObject *)iter;
 }
@@ -604,7 +673,8 @@ int
 NyNodeGraph_Region(NyNodeGraphObject *ng, PyObject *key,
                    NyNodeGraphEdge **lop, NyNodeGraphEdge **hip)
 {
-    /* FIXME: Exposing internal structures, may need assert lock or world stop */
+    NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
+
     NyNodeGraphEdge *lo, *hi, *cur;
     ng_maybesortetc(ng);
     lo = ng->edges;
@@ -662,16 +732,22 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
 {
     RITravArg ta;
     ta.ng = ng;
+    ta.hs = NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     ta.hs = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
     if (!ta.hs)
         return 0;
     ng_maybesortetc(ng);
     if (iterable_iterate(S, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;
-    return ta.hs;
+    goto out;
+
 err:
-    Py_DECREF(ta.hs);
-    return 0;
+    Py_CLEAR(ta.hs);
+out:
+    Py_END_CRITICAL_SECTION();
+    return ta.hs;
 }
 
 static int
@@ -751,10 +827,17 @@ static PyMethodDef ng_methods[] = {
 
 static size_t
 nodegraph_size(PyObject *obj) {
-    Py_ssize_t z = Py_TYPE(obj)->tp_basicsize +
+    Py_ssize_t z;
+
+    Py_BEGIN_CRITICAL_SECTION(obj);
+    z = Py_TYPE(obj)->tp_basicsize +
         ((NyNodeGraphObject *)obj)->allo_size * sizeof(NyNodeGraphEdge);
+    Py_END_CRITICAL_SECTION();
+
+#ifndef Py_GIL_DISABLED
     if (PyObject_IS_GC(obj))
         z += sizeof(PyGC_Head);
+#endif
     return z;
 }
 
@@ -762,6 +845,8 @@ static int
 nodegraph_traverse(NyHeapTraverse *t)
 {
     NyNodeGraphObject *ng = (void *)t->obj;
+
+    NY_ASSERT_WORLD_STOPPED();
     if (t->_hiding_tag_ != ng->_hiding_tag_)
         return Py_TYPE(ng)->tp_traverse((PyObject *)ng, t->visit, t->arg);
     return 0;
@@ -772,6 +857,8 @@ nodegraph_relate(NyHeapRelate *r)
 {
     NyNodeGraphObject *ng = (void *)r->src;
     Py_ssize_t i;
+
+    NY_ASSERT_WORLD_STOPPED();
     for (i = 0; i < ng->used_size; i++) {
         if (r->tgt == ng->edges[i].src) {
             if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].src", i), r))
@@ -856,8 +943,13 @@ static Py_ssize_t
 ng_length(PyObject *_ng)
 {
     NyNodeGraphObject *ng=(void*)_ng;
+    Py_ssize_t r;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     ng_maybesortetc(ng);
-    return ng->used_size;
+    r = ng->used_size;
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 
@@ -865,36 +957,37 @@ static PyObject *
 ng_subscript(NyNodeGraphObject *ng, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi;
-    PyObject *ret;
+    PyObject *ret = NULL;
     Py_ssize_t i, size;
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     ng_maybesortetc(ng);
-    if (NyNodeGraph_Region(ng, obj, &lo, &hi) == -1) {
-        return 0;
-    }
+    if (NyNodeGraph_Region(ng, obj, &lo, &hi) == -1)
+        goto out;
     size = hi - lo;
     if (ng->is_mapping) {
         if (size == 0) {
             PyErr_SetObject(PyExc_KeyError, obj);
-            return 0;
+            goto out;
         } else if (size > 1) {
             PyErr_SetString(PyExc_ValueError, "Ambiguos mapping");
-            return 0;
+            goto out;
         }
         ret = lo->tgt;
         Py_INCREF(ret);
     } else {
         ret = PyTuple_New(size);
         if (!ret)
-            return 0;
+            goto out;
         for (i = 0; i < size; i++, lo++) {
             Py_INCREF(lo->tgt);
             PyTuple_SET_ITEM(ret, i, lo->tgt);
         }
     }
 
+out:
+    Py_END_CRITICAL_SECTION();
     return ret;
-
-
 }
 
 
@@ -903,22 +996,25 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
 {
     NyNodeGraphEdge *lo, *hi;
     Py_ssize_t i, regsize, tupsize;
+    int r = -1;
+
     if (!w) {
         PyErr_SetString(PyExc_NotImplementedError,
                         "Item deletion is not implemented for nodegraphs.");
         return -1;
     }
+
+    Py_BEGIN_CRITICAL_SECTION(ng);
     ng_maybesortetc(ng);
-    if (NyNodeGraph_Region(ng, v, &lo, &hi) == -1) {
-        return 0;
-    }
+    if (NyNodeGraph_Region(ng, v, &lo, &hi) == -1)
+        goto out;
     regsize = hi - lo;
     if (ng->is_mapping) {
         if (regsize != 1) {
             PyErr_SetString(PyExc_ValueError,
 "ng_ass_sub: can not change number of edges (wants to always be fast);\n"
 "consider using .add_edge() etc. instead.");
-            return -1;
+            goto out;
         } else {
             PyObject *old = lo->tgt;
             lo->tgt = w;
@@ -928,14 +1024,14 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
     } else {
         if (!PyTuple_Check(w)) {
             PyErr_SetString(PyExc_TypeError, "ng_ass_sub: value to assign must be a tuple");
-            return -1;
+            goto out;
         }
         tupsize = PyTuple_GET_SIZE(w);
         if (tupsize != regsize) {
             PyErr_SetString(PyExc_ValueError,
 "ng_ass_sub: can not change number of edges (wants to always be fast);\n"
 "consider using .add_edge() etc. instead.");
-            return -1;
+            goto out;
         }
         for (i = 0; i < regsize; i++) {
             PyObject *old = lo[i].tgt;
@@ -944,7 +1040,11 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
             Py_XDECREF(old);
         }
     }
-    return 0;
+    r = 0;
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 

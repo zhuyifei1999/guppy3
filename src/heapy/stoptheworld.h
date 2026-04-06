@@ -3,10 +3,16 @@
 
 #ifdef Py_GIL_DISABLED
 
+#define NY_IS_WORLD_STOPPED() \
+    (PyInterpreterState_Get()->stoptheworld.world_stopped)
 #define NY_ASSERT_WORLD_STOPPED() \
-    assert(PyInterpreterState_Get()->stoptheworld.world_stopped)
+    assert(NY_IS_WORLD_STOPPED())
 #define NY_ASSERT_WORLD_RUNNING() \
-    assert(!PyInterpreterState_Get()->stoptheworld.world_stopped)
+    assert(!NY_IS_WORLD_STOPPED())
+
+#define NY_ASSERT_OBJ_LOCKED_OR_STW(op)                       \
+    assert(PyMutex_IsLocked(&((PyObject *)(op))->ob_mutex) || \
+           NY_IS_WORLD_STOPPED())
 
 #define NY_STOP_WORLD() do {                         \
     NY_ASSERT_WORLD_RUNNING();                       \
@@ -23,8 +29,11 @@
    it makes no difference */
 extern _Py_thread_local int _world_stopped;
 
-#define NY_ASSERT_WORLD_STOPPED() assert(_world_stopped)
-#define NY_ASSERT_WORLD_RUNNING() assert(!_world_stopped)
+#define NY_IS_WORLD_STOPPED() _world_stopped
+#define NY_ASSERT_WORLD_STOPPED() assert(NY_IS_WORLD_STOPPED())
+#define NY_ASSERT_WORLD_RUNNING() assert(!NY_IS_WORLD_STOPPED())
+
+#define NY_ASSERT_OBJ_LOCKED_OR_STW(op) do {} while (0)
 
 #define NY_STOP_WORLD() do {   \
     NY_ASSERT_WORLD_RUNNING(); \
@@ -37,8 +46,12 @@ extern _Py_thread_local int _world_stopped;
 
 #else
 
+#define NY_IS_WORLD_STOPPED() \
+    static_assert(0, 'world stop assertion should be compiled out')
 #define NY_ASSERT_WORLD_STOPPED() ((void)0)
 #define NY_ASSERT_WORLD_RUNNING() ((void)0)
+
+#define NY_ASSERT_OBJ_LOCKED_OR_STW(op) do {} while (0)
 
 #define NY_STOP_WORLD() do {} while (0)
 #define NY_START_WORLD() do {} while (0)

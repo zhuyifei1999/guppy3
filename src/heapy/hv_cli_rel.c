@@ -316,10 +316,9 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
     if (!crva.relset)
         return 0;
 
+    NY_STOP_WORLD();
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err;
-
-    NY_STOP_WORLD();
     for (cur = lo; cur < hi; cur++) {
         if (cur->tgt == Py_None)
             continue;

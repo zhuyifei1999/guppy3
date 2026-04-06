@@ -152,26 +152,29 @@ hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
         Py_INCREF(self->notdictkind);
         return self->notdictkind;
     } else {
+        PyObject *r = NULL;
         NyNodeGraphEdge *lo, *hi;
-        if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1) {
-            return 0;
-        }
+
+        Py_BEGIN_CRITICAL_SECTION(self->owners);
+        if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
+            goto out;
         if (!(lo < hi)) {
             NyNodeGraph_Clear(self->owners);
             if (hv_cli_dictof_update(self->hv, self->owners) == -1)
-                return 0;
-            if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1) {
-                return 0;
-            }
+                goto out;
+            if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
+                goto out;
         }
         if (lo < hi && lo->tgt != Py_None) {
-            PyObject *ownerkind = self->ownerclassifier->def->classify
-                (self->ownerclassifier->self, lo->tgt);
-            return ownerkind;
+            r = self->ownerclassifier->def->classify(
+                    self->ownerclassifier->self, lo->tgt);
         } else {
-            Py_INCREF(self->notownedkind);
-            return self->notownedkind;
+            r = Py_NewRef(self->notownedkind);
         }
+
+out:
+        Py_END_CRITICAL_SECTION();
+        return r;
     }
 
 }
