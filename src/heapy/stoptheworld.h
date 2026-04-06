@@ -25,9 +25,11 @@
 
 #elif !defined(NDEBUG)
 
+#include <threads.h>
+
 /* This is technically per-interp and not per-thread, but on !Py_GIL_DISABLED
    it makes no difference */
-extern _Py_thread_local int _world_stopped;
+extern thread_local int _world_stopped;
 
 #define NY_IS_WORLD_STOPPED() _world_stopped
 #define NY_ASSERT_WORLD_STOPPED() assert(NY_IS_WORLD_STOPPED())

@@ -72,7 +72,7 @@ static Py_ssize_t roundupsize(Py_ssize_t n);
 /* Thread-local data */
 
 #if !defined(Py_GIL_DISABLED) && !defined(NDEBUG)
-_Py_thread_local int _world_stopped = 0;
+thread_local int _world_stopped = 0;
 #endif
 
 /* general utilities */

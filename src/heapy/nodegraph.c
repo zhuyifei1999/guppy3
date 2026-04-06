@@ -140,10 +140,9 @@ ng_dealloc(PyObject *v)
 static int
 ng_gc_traverse(NyNodeGraphObject *ng, visitproc visit, void *arg)
 {
+    /* NOT LOCKED: Stop the world from GC */
     Py_ssize_t i;
     int err = 0;
-
-    NY_ASSERT_WORLD_STOPPED();
 
     for (i = 0; i < ng->used_size; i++) {
         err = visit(ng->edges[i].src, arg) ;
