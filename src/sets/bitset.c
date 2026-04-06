@@ -1273,7 +1273,15 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi)
 
         v->cur_field = 0; /* see notes per 5/6-03,  when it was thought
                          that it should be 0 already but just in case */
-        Py_DECREF(root);
+
+        /* !PyUnstable_Object_IsUniquelyReferenced can false positive, say,
+           when root was created in a different thread. In the case, when
+           root == &v->fst_root, such a false positive will be very dangerous,
+           since Py_DECREF can free the fake object.
+           I think it's probably best to eat the loss and never release this
+           initial refernence. */
+        if (root != &v->fst_root)
+            Py_DECREF(root);
         root = nroot;
     }
     *slo = union_getrange(root, shi);
