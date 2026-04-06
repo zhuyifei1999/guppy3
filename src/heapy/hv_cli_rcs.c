@@ -82,7 +82,9 @@ hv_cli_rcs_memoized_kind(RetclasetObject * self, PyObject *kind)
         MemoRcsArg arg;
         PyObject *result;
         arg.cli = self->cli;
+        Py_BEGIN_CRITICAL_SECTION(self->hv);
         arg.ns = hv_mutnodeset_new(self->hv);
+        Py_END_CRITICAL_SECTION();
         if (!arg.ns)
             return 0;
         if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
@@ -107,7 +109,11 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
     PyObject *kind = NULL;
-    NyNodeSetObject *Ri = hv_mutnodeset_new(self->hv);
+    NyNodeSetObject *Ri;
+
+    Py_BEGIN_CRITICAL_SECTION(self->hv);
+    Ri = hv_mutnodeset_new(self->hv);
+    Py_END_CRITICAL_SECTION();
     if (!Ri)
         return NULL;
 

@@ -124,6 +124,7 @@ hv_PyList_Pop(PyObject *list)
 static int
 hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 {
+    /* NOT LOCKED: Stop the world from GC */
     Py_VISIT(hv->root);
     Py_VISIT(hv->limitframe);
     Py_VISIT(hv->_hiding_tag_);
@@ -165,6 +166,8 @@ xt_free_table(ExtraType **xt_table, size_t size)
 static int
 hv_gc_clear(NyHeapViewObject *hv)
 {
+    /* NOT LOCKED: Object is dying */
+
     /* xxx Paranoid, clumsy, but recursion-safe variant? */
     PyObject *ro = hv->root;
     PyObject *lf = hv->limitframe;
@@ -196,6 +199,8 @@ hv_gc_clear(NyHeapViewObject *hv)
 static size_t
 hv_default_size(PyObject *obj)
 {
+    NY_ASSERT_WORLD_RUNNING(); /* _PySys_GetSizeOf */
+
     if (PyErr_Occurred())
         return -1;
     size_t z = _PySys_GetSizeOf(obj);
@@ -318,9 +323,12 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 static int
 xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
+#ifndef Py_GIL_DISABLED
+    /* May call GC, unsafe for stop-the-world */
     PyErr_CheckSignals();
     if (PyErr_Occurred())
         return -1;
+#endif
     NyHeapTraverse ta;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
     ta.flags = 0;
@@ -448,6 +456,8 @@ xt_set_heapdef(ExtraType *xt, NyHeapDef *hd)
 static ExtraType *
 hv_extra_type(NyHeapViewObject *hv, PyTypeObject *type)
 {
+    NY_ASSERT_OBJ_LOCKED_OR_STW(hv);
+
     int hash = XT_HASH(hv, type);
     ExtraType **xtp = &hv->xt_table[hash];
     ExtraType *xt;
@@ -579,6 +589,7 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 NyNodeSetObject *
 hv_mutnodeset_new(NyHeapViewObject *hv)
 {
+    NY_ASSERT_OBJ_LOCKED_OR_STW(hv);
     return NyMutNodeSet_NewHiding(hv->_hiding_tag_);
 }
 
@@ -811,14 +822,17 @@ Delete extra type information. For internal use as a weak-ref callback.");
 static PyObject *
 hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
 {
+    PyObject *r = NULL;
     size_t i;
 
     if (!PyWeakref_Check(wr)) {
         PyErr_Format(PyExc_TypeError,
                      "delete_extra_type: argument must be a weak ref, got '%.50s'",
                      Py_TYPE(wr)->tp_name);
-        return 0;
+        return NULL;
     }
+
+    Py_BEGIN_CRITICAL_SECTION(hv);
     for (i = 0; i < hv->xt_size; i++) {
         ExtraType *xt, **xtp;
         for (xtp = &hv->xt_table[i]; (xt = *xtp); xtp = &xt->xt_next) {
@@ -826,15 +840,18 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
                 *xtp = xt->xt_next;
                 PyMem_Del(xt);
                 Py_DECREF(wr);
-                Py_INCREF(Py_None);
-                return Py_None;
+                r = Py_NewRef(Py_None);
+                goto out;
             }
         }
     }
     PyErr_Format(PyExc_ValueError,
                  "delete_extra_type: reference object %p not found",
                  wr);
-    return 0;
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 #include "hv_cli.c"
@@ -871,12 +888,15 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
     ta.hv = hv;
     ta.visit = visit;
     ta.arg = arg;
-    ta.hs = hv_mutnodeset_new(hv);
+    ta.hs = NULL;
     ta.to_visit = PyList_New(0);
-    if (!(ta.hs && ta.to_visit))
+    if (!ta.to_visit)
         goto err;
 
     NY_STOP_WORLD();
+    ta.hs = hv_mutnodeset_new(hv);
+    if (!ta.hs)
+        goto err_start;
     r = iter_rec(ta.hv->root, &ta);
     if (r == -1)
         goto err_start;
@@ -945,12 +965,15 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     HeapTravArg ta;
     ta.hv = self;
-    ta.visited = hv_mutnodeset_new(self);
+    ta.visited = NULL;
     ta.to_visit = PyList_New(0);
-    if (!(ta.visited && ta.to_visit))
+    if (!ta.to_visit)
         goto err;
 
     NY_STOP_WORLD();
+    ta.visited = hv_mutnodeset_new(self);
+    if (!ta.visited)
+        goto err_start;
     if (hv_heap_rec(ta.hv->root, &ta) == -1)
         goto err_start;
     while (PyList_Size(ta.to_visit)) {
@@ -1003,12 +1026,18 @@ See also HeapView.__doc.");
 static PyObject *
 hv_indisize_sum(NyHeapViewObject *self, PyObject *arg)
 {
+    PyObject *r = NULL;
     SalArg ta;
     ta.sum = 0;
     ta.hv = self;
+
+    Py_BEGIN_CRITICAL_SECTION(self);
     if (iterable_iterate(arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
-        return 0;
-    return PyLong_FromSsize_t(ta.sum);
+        goto out;
+    r = PyLong_FromSsize_t(ta.sum);
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 
@@ -1118,14 +1147,17 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
                                      NyNodeSet_TYPE, &ta.avoid))
         return 0;
     ta.hv = self;
-    ta.visited = hv_mutnodeset_new(self);
+    ta.visited = NULL;
     ta.to_visit = PyList_New(0);
-    if (!(ta.visited && ta.to_visit))
-        goto err;
-    if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec, &ta) == -1)
+    if (!ta.to_visit)
         goto err;
 
     NY_STOP_WORLD();
+    ta.visited = hv_mutnodeset_new(self);
+    if (!ta.visited)
+        goto err_start;
+    if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec, &ta) == -1)
+        goto err_start;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
@@ -1182,14 +1214,17 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
                                      NyNodeSet_TYPE, &ta.avoid))
         return 0;
     ta.hv = self;
-    ta.visited = hv_mutnodeset_new(self);
+    ta.visited = NULL;
     ta.to_visit = PyList_New(0);
-    if (!(ta.visited && ta.to_visit))
-        goto err;
-    if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec_e, &ta) == -1)
+    if (!ta.to_visit)
         goto err;
 
     NY_STOP_WORLD();
+    ta.visited = hv_mutnodeset_new(self);
+    if (!ta.visited)
+        goto err_start;
+    if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec_e, &ta) == -1)
+        goto err_start;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
@@ -1250,6 +1285,7 @@ static PyObject *
 hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"type", 0};
+    PyObject *r = NULL;
     PyTypeObject *type;
     ExtraType *xt;
     Py_ssize_t offs;
@@ -1260,24 +1296,28 @@ hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     if (offs == -1) {
         PyErr_SetString(PyExc_ValueError,
                         "register__hiding_tag__type: type has no '_hiding_tag_' slot");
-        return 0;
+        return NULL;
     }
 
+    Py_BEGIN_CRITICAL_SECTION(hv);
     xt = hv_extra_type(hv, type);
     if (xt == &xt_error)
-        return 0;
+        goto out;
     if (xt->xt_trav_code == XT_HE || xt->xt_trav_code == XT_HI) {
         PyErr_SetString(PyExc_ValueError,
                         "register__hiding_tag__type: type is already registered");
-        return 0;
+        goto out;
     }
     xt->xt_he_traverse = xt->xt_traverse;
     xt->xt_he_xt = xt;
     xt->xt_he_offs = offs;
     xt->xt_traverse = xt_he_traverse;
     xt->xt_trav_code = XT_HE;
-    Py_INCREF(Py_None);
-    return Py_None;
+    r = Py_NewRef(Py_None);
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 PyDoc_STRVAR(hv_register_hidden_exact_type_doc,
@@ -1293,23 +1333,29 @@ static PyObject *
 hv_register_hidden_exact_type(NyHeapViewObject *hv, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"type", 0};
+    PyObject *r = NULL;
     PyTypeObject *type;
     ExtraType *xt;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!:register_hiding_type", kwlist,
                                      &PyType_Type, &type))
         return NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(hv);
     xt = hv_extra_type(hv, type);
     if (xt == &xt_error)
-        return 0;
+        goto out;
     if (xt->xt_trav_code == XT_HE || xt->xt_trav_code == XT_HI) {
         PyErr_SetString(PyExc_ValueError,
                         "register_hidden_exact_type: type is already registered");
-        return 0;
+        goto out;
     }
     xt->xt_traverse = xt_no_traverse;
     xt->xt_trav_code = XT_HI;
-    Py_INCREF(Py_None);
-    return Py_None;
+    r = Py_NewRef(Py_None);
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 
@@ -1404,11 +1450,11 @@ hv_relimg(NyHeapViewObject *hv, PyObject *S)
 {
     HVRITravArg ta;
     ta.hv = hv;
-    ta.hs = hv_mutnodeset_new(hv);
-    if (!ta.hs)
-        return 0;
 
     NY_STOP_WORLD();
+    ta.hs = hv_mutnodeset_new(hv);
+    if (!ta.hs)
+        goto err_start;
     if (iterable_iterate(S, (visitproc)hv_relimg_trav, &ta) == -1)
         goto err_start;
     if (hv_cleanup_mutset(ta.hv, ta.hs) == -1)
@@ -1419,7 +1465,7 @@ hv_relimg(NyHeapViewObject *hv, PyObject *S)
 
 err_start:
     NY_START_WORLD();
-    Py_DECREF(ta.hs);
+    Py_XDECREF(ta.hs);
     return 0;
 }
 
@@ -1512,11 +1558,11 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.hv = self;
     if (ta.edgestoavoid && ta.edgestoavoid->used_size == 0)
         ta.edgestoavoid = 0;
-    ta.V = hv_mutnodeset_new(self);
-    if (!(ta.V))
-        goto err;
 
     NY_STOP_WORLD();
+    ta.V = hv_mutnodeset_new(self);
+    if (!ta.V)
+        goto err_start;
     if (NyNodeSet_iterate(ta.U, (visitproc)hv_shpath_outer, &ta) == -1)
         goto err_start;
 
@@ -1525,7 +1571,6 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 
 err_start:
     NY_START_WORLD();
-err:
     Py_XDECREF(ta.V);
     return 0;
 }
@@ -1545,7 +1590,11 @@ rather than from the most recent frame as it would otherwise do.");
 static int
 hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
 {
-    PyObject *orf = self->limitframe;
+    PyObject *orf;
+    int r = -1;
+
+    Py_BEGIN_CRITICAL_SECTION(self);
+    orf = self->limitframe;
     if (arg == Py_None) {
         self->limitframe = 0;
     } else if (PyFrame_Check(arg)) {
@@ -1553,16 +1602,24 @@ hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
         Py_INCREF(arg);
     } else {
         PyErr_SetString(PyExc_TypeError, "set_limitframe: frame or None expected");
-        return -1;
+        goto out;
     }
     Py_XDECREF(orf);
-    return 0;
+    r = 0;
+
+out:
+    Py_END_CRITICAL_SECTION();
+    return r;
 }
 
 static PyObject *
 hv_get_limitframe(NyHeapViewObject *self, void *unused)
 {
-    PyObject *r = self->limitframe;
+    PyObject *r;
+
+    Py_BEGIN_CRITICAL_SECTION(self);
+    r = self->limitframe;
+    Py_END_CRITICAL_SECTION();
     if (!r)
         r = Py_None;
     Py_INCREF(r);
@@ -1634,22 +1691,25 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
     PyObject *ret = 0;
 
     ta.hv = self;
-    ta.markset = hv_mutnodeset_new(self);
-    ta.outset = hv_mutnodeset_new(self);
-    ta.trace_set = hv_mutnodeset_new(self);
+    ta.markset = NULL;
+    ta.outset = NULL;
+    ta.trace_set = NULL;
     ta.to_visit = PyList_New(0);
     ta.trace_stack = PyList_New(0);
     ta.trace_res = PyList_New(0);
     ta.sentinel = PyObject_New(PyObject, &PyBaseObject_Type);
-
-    if (!(ta.markset && ta.outset && ta.trace_set && ta.to_visit &&
-          ta.trace_stack && ta.trace_res && ta.sentinel))
+    if (!(ta.to_visit && ta.trace_stack && ta.trace_res && ta.sentinel))
         goto err;
 
     if (PyList_Append(ta.to_visit, ta.hv->root) == -1)
         goto err;
 
     NY_STOP_WORLD();
+    ta.markset = hv_mutnodeset_new(self);
+    ta.outset = hv_mutnodeset_new(self);
+    ta.trace_set = hv_mutnodeset_new(self);
+    if (!(ta.markset && ta.outset && ta.trace_set))
+        goto err_start;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
         if (!obj)
@@ -1804,8 +1864,6 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     PyObject *objects=0, *result=0, *_hiding_tag_=0;
     Py_ssize_t len, i;
     ta.hv = self;
-    _hiding_tag_ = self->_hiding_tag_;
-    self->_hiding_tag_ = Py_None;
     if (!PyArg_ParseTuple(args, "O!:update_referrers_completely",
                           &NyNodeGraph_Type, &ta.rg))
         goto err;
@@ -1818,6 +1876,8 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     NyNodeGraph_Clear(ta.rg);
 
     NY_STOP_WORLD();
+    _hiding_tag_ = self->_hiding_tag_;
+    self->_hiding_tag_ = Py_None;
     for (i = 0; i < len; i++) {
         PyObject *retainer = PyList_GET_ITEM(objects, i);
         ta.num = 0;
@@ -1837,9 +1897,9 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     Py_INCREF(result);
 
 err_start:
+    self->_hiding_tag_ = _hiding_tag_;
     NY_START_WORLD();
 err:
-    self->_hiding_tag_ = _hiding_tag_;
     Py_XDECREF(objects);
     return result;
 }

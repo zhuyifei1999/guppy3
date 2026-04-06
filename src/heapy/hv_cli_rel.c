@@ -232,7 +232,9 @@ hv_cli_inrel_memoized_kind(InRelObject * self, PyObject *kind)
     MemoRelArg arg;
     PyObject *result;
     arg.memorel = self->memorel;
+    Py_BEGIN_CRITICAL_SECTION(self->hv);
     arg.ns = hv_mutnodeset_new(self->hv);
+    Py_END_CRITICAL_SECTION();
     if (!arg.ns)
         return 0;
     if (iterable_iterate(kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
@@ -312,13 +314,14 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
     crva.memorel = self->memorel;
     assert(self->rel->relator == Py_None); /* This will be restored, w/o incref, at return. */
     crva.rel = self->rel;
-    crva.relset = hv_mutnodeset_new(self->hv);
-    if (!crva.relset)
-        return 0;
+    crva.relset = NULL;
 
     NY_STOP_WORLD();
+    crva.relset = hv_mutnodeset_new(self->hv);
+    if (!crva.relset)
+        goto err_start;
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
-        goto err;
+        goto err_start;
     for (cur = lo; cur < hi; cur++) {
         if (cur->tgt == Py_None)
             continue;
@@ -339,8 +342,7 @@ hv_cli_inrel_classify(InRelObject * self, PyObject *obj)
 
 err_start:
     NY_START_WORLD();
-err:
-    Py_DECREF(crva.relset);
+    Py_XDECREF(crva.relset);
     assert(self->rel->relator == Py_None);
     return result;
 
