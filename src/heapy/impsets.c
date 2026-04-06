@@ -1,13 +1,12 @@
 #include <stdatomic.h>
 
-#define NyNodeSet_TYPE	(nodeset_exports->type)
-
-#define NyNodeSet_Check(op) PyObject_TypeCheck(op, NyNodeSet_TYPE)
-
-NyNodeSet_Exports *nodeset_exports;
+NyNodeSet_Exports * _Atomic nodeset_exports;
 
 /* Macro NODESET_EXPORTS where error (NULL) checking can be done */
-#define NODESET_EXPORTS nodeset_exports
+#define NODESET_EXPORTS atomic_load_explicit(&nodeset_exports, memory_order_relaxed)
+
+#define NyNodeSet_TYPE	(NODESET_EXPORTS->type)
+#define NyNodeSet_Check(op) PyObject_TypeCheck(op, NyNodeSet_TYPE)
 
 /* As of 3.14, PyCapsule_Import requires external synchronization if called
    from multiple threads, and I believe module_exec can be, if we are GIL-less
@@ -78,7 +77,7 @@ import_sets(void)
 {
     NyNodeSet_Exports *local_nodeset_exports;
 
-    if (nodeset_exports)
+    if (atomic_load_explicit(&nodeset_exports, memory_order_relaxed))
         return 0;
 
     PyMutex_Lock(&nodeset_exports_mutex);
