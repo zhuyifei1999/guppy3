@@ -3091,10 +3091,8 @@ immbitset_lshift(NyImmBitSetObject *v, NyBit w)
             fs[1].pos = f->pos + posshift + 1;
             fs[0].bits = f->bits << remshift;
             fs[1].bits = f->bits >> (NyBits_N - remshift);
-            if (mutbitset_ior_fields(ms, &fs[0], 2) == -1) {
-                Py_DECREF(ms);
+            if (mutbitset_ior_fields(ms, &fs[0], 2) == -1)
                 goto out_ms;
-            }
             f++;
         }
         ret = (NyImmBitSetObject *)NyMutBitSet_AsImmBitSet(ms);
