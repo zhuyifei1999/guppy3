@@ -339,16 +339,40 @@ static int maybe_check_signals(void)
     if (!_PyRuntime.signals.is_tripped)
         return 0;
 
+    /* Try our best to make sure it is SIGINT being called, and the handler
+       is the default one, which will raise KeyboardInterrupt.
+
+       NY_START_WORLD may have left guppy in an inconsistent state, so
+       traversal cannot continue after this. An exception must be set.
+       If we got lied to somehow, set an exception handler anyways */
+    if (!_PyRuntime.signals.handlers[SIGINT].tripped)
+        return 0;
+
+    PyObject *handler = _PyRuntime.signals.handlers[SIGINT].func;
+
+    if (!PyCFunction_CheckExact(handler))
+        return 0;
+    if (strcmp(((PyCFunctionObject *)handler)->m_ml->ml_name,
+               "default_int_handler"))
+        return 0;
+
     NY_START_WORLD();
 #endif
 
-    int r = 0;
+    int r = -1;
     PyErr_CheckSignals();
-    if (PyErr_Occurred())
-        r = -1;
 
 #ifdef Py_GIL_DISABLED
+    if (!PyErr_Occurred()) {
+        PyErr_SetString(PyExc_SystemError,
+                        "Signal received during guppy heap traveral. "
+                        "Traversal cannot continue and can only be restarted.");
+    }
+
     NY_STOP_WORLD();
+#else
+    if (!PyErr_Occurred())
+        r = 0;
 #endif
     return r;
 }
