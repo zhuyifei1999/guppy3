@@ -1238,25 +1238,36 @@ static NyNodeSet_Exports nynodeset_exports = {
     NyNodeSet_iterate,
 };
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+static PyMutex typeinit_mutex = {0};
+#else
+# define PyMutex_Lock(m) do {} while (0)
+# define PyMutex_Unlock(m) do {} while (0)
+#endif
+
 int fsb_dx_nynodeset_init(PyObject *m)
 {
-    NYFILL(NyMutNodeSetIter_Type);
-    NYFILL(NyNodeSet_Type);
-    NYFILL(NyImmNodeSetIter_Type);
-    NYFILL(NyImmNodeSet_Type);
-    NYFILL(NyMutNodeSet_Type);
-
     if (PyModule_Add(m, "NyNodeSet_Exports",
             PyCapsule_New(&nynodeset_exports, "guppy.sets.setsc.NyNodeSet_Exports", 0)
     ) == -1)
         return -1;
 
+    PyMutex_Lock(&typeinit_mutex);
     if (PyModule_AddType(m, &NyNodeSet_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyMutNodeSet_Type) == -1)
-        return -1;
+        goto err_unlock;
     if (PyModule_AddType(m, &NyImmNodeSet_Type) == -1)
-        return -1;
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyMutNodeSet_Type) == -1)
+        goto err_unlock;
+    if (PyType_Ready(&NyImmNodeSetIter_Type) == -1)
+        goto err_unlock;
+    if (PyType_Ready(&NyMutNodeSetIter_Type) == -1)
+        goto err_unlock;
+    PyMutex_Unlock(&typeinit_mutex);
 
     return 0;
+
+err_unlock:
+    PyMutex_Unlock(&typeinit_mutex);
+    return -1;
 }

@@ -4700,6 +4700,12 @@ static NyBitSet_Exports nybitset_exports = {
     cplbitset_hasbit,
 };
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+static PyMutex typeinit_mutex = {0};
+#else
+# define PyMutex_Lock(m) do {} while (0)
+# define PyMutex_Unlock(m) do {} while (0)
+#endif
 
 int fsb_dx_nybitset_init(PyObject *m)
 {
@@ -4711,28 +4717,28 @@ int fsb_dx_nybitset_init(PyObject *m)
     PyUnstable_SetImmortal((PyObject *)&_NyImmBitSet_OmegaStruct);
 #endif
 
-    NYFILL(NyBitSet_Type);
-    NYFILL(NyImmBitSet_Type);
-    NYFILL(NyCplBitSet_Type);
-    NYFILL(NyMutBitSet_Type);
-    NYFILL(NyImmBitSetIter_Type);
-    NYFILL(NyUnion_Type);
-
+    PyMutex_Lock(&typeinit_mutex);
     if (PyModule_AddType(m, &NyBitSet_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyCplBitSet_Type) == -1)
-        return -1;
+        goto err_unlock;
     if (PyModule_AddType(m, &NyImmBitSet_Type) == -1)
-        return -1;
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyCplBitSet_Type) == -1)
+        goto err_unlock;
     if (PyModule_AddType(m, &NyMutBitSet_Type) == -1)
-        return -1;
+        goto err_unlock;
+    if (PyType_Ready(&NyImmBitSetIter_Type) == -1)
+        goto err_unlock;
+    if (PyType_Ready(&NyUnion_Type) == -1)
+        goto err_unlock;
+    PyMutex_Unlock(&typeinit_mutex);
+
     if (PyModule_Add(m, "NyBitSet_Exports",
             PyCapsule_New(&nybitset_exports, "guppy.sets.setsc.NybitSet_Exports", 0)
     ) == -1)
         return -1;
 
     if (PyModule_AddFunctions(m, nybitset_methods) == -1)
-        goto error;
+        return -1;
 
     {
         int i;
@@ -4750,6 +4756,8 @@ int fsb_dx_nybitset_init(PyObject *m)
     }
 
     return 0;
-error:
+
+err_unlock:
+    PyMutex_Unlock(&typeinit_mutex);
     return -1;
 }

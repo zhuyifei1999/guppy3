@@ -244,6 +244,13 @@ static struct PyModuleDef moduledef = {
     .m_slots = module_slots,
 };
 
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+static PyMutex typeinit_mutex = {0};
+#else
+# define PyMutex_Lock(m) do {} while (0)
+# define PyMutex_Unlock(m) do {} while (0)
+#endif
+
 static int module_exec(PyObject *m)
 {
     Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
@@ -255,37 +262,39 @@ static int module_exec(PyObject *m)
     // build error on Windows.
     NyNodeTuple_Type.tp_base = &PyTuple_Type;
 
-    NYFILL(NyNodeTuple_Type);
-    NYFILL(NyRelation_Type);
-    NYFILL(NyHeapView_Type);
-    NYFILL(NyObjectClassifier_Type);
-    NYFILL(NyHorizon_Type);
-    NYFILL(NyNodeGraph_Type);
-    NYFILL(NyNodeGraphIter_Type);
-    NYFILL(NyRootState_Type);
-
     if (import_sets() == -1)
         return -1;
 
-    if (PyModule_AddType(m, &NyHeapView_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyHorizon_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyObjectClassifier_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyNodeGraph_Type) == -1)
-        return -1;
+    PyMutex_Lock(&typeinit_mutex);
+    if (PyType_Ready(&NyNodeTuple_Type) == -1)
+        goto err_unlock;
     if (PyModule_AddType(m, &NyRelation_Type) == -1)
-        return -1;
-    if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
-        return -1;
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyHeapView_Type) == -1)
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyObjectClassifier_Type) == -1)
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyHorizon_Type) == -1)
+        goto err_unlock;
+    if (PyModule_AddType(m, &NyNodeGraph_Type) == -1)
+        goto err_unlock;
+    if (PyType_Ready(&NyNodeGraphIter_Type) == -1)
+        goto err_unlock;
     if (PyModule_AddType(m, &NyRootState_Type) == -1)
+        goto err_unlock;
+    PyMutex_Unlock(&typeinit_mutex);
+
+    if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
         return -1;
 
     NyStdTypes_init();
     xmemstats_init();
 
     return 0;
+
+err_unlock:
+    PyMutex_Unlock(&typeinit_mutex);
+    return -1;
 }
 
 PyMODINIT_FUNC
