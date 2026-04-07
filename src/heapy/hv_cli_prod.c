@@ -32,7 +32,11 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head)
         return 0;
 
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+    if (Py_Version == PY_VERSION_HEX) {
+# else
     if (PyLong_AsLong(PySys_GetObject("hexversion")) == PY_VERSION_HEX) {
+# endif
         sizeof_PyGC_Head = sizeof(PyGC_Head);
         return 0;
     }
