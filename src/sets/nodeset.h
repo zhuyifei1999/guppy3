@@ -36,7 +36,9 @@ typedef struct {
     int flags;
     int size;
     char *ident_and_version;
-    PyTypeObject *type;
+    PyTypeObject *nodeset_type;
+    PyTypeObject *mutnodeset_type;
+    PyTypeObject *immnodeset_type;
     NyNodeSetObject *(*newMut)(void);
     NyNodeSetObject *(*newMutHiding)(PyObject *tag);
     NyNodeSetObject *(*newMutFlags)(int flags);
@@ -52,4 +54,3 @@ typedef struct {
 } NyNodeSet_Exports;
 
 #endif /* Ny_NODESETOBJECT_H */
-

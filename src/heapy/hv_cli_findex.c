@@ -24,6 +24,7 @@ hv_cli_findex_memoized_kind(FindexObject * self, PyObject *kind)
     PyObject *result;
     int r;
 
+    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;

@@ -101,6 +101,12 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
     if (!kind)
         return -1;
 
+    /* This does not qualify for NY_ASSERT_IMMUTABLE_BUILTIN
+
+       hv_cli_type_classify may return a metaclass, which may have a custom
+       __hash__, in which case the kind will have a tp_hash that calls into
+       Python code. */
+    NY_ASSERT_WORLD_RUNNING();
     r = PyDict_GetItemRef(ta->map, kind, &sp);
     if (r == -1)
         goto Err;

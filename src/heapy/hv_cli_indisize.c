@@ -15,6 +15,7 @@ hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
     PyObject *memoedsize;
     int r;
 
+    NY_ASSERT_IMMUTABLE_BUILTIN(size);
     r = PyDict_GetItemRef(self->memo, size, &memoedsize);
     if (r == -1)
         return NULL;

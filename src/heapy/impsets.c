@@ -5,7 +5,9 @@ NyNodeSet_Exports * _Atomic nodeset_exports;
 /* Macro NODESET_EXPORTS where error (NULL) checking can be done */
 #define NODESET_EXPORTS atomic_load_explicit(&nodeset_exports, memory_order_relaxed)
 
-#define NyNodeSet_TYPE	(NODESET_EXPORTS->type)
+#define NyNodeSet_TYPE	(NODESET_EXPORTS->nodeset_type)
+#define NyMutNodeSet_TYPE	(NODESET_EXPORTS->mutnodeset_type)
+#define NyImmNodeSet_TYPE	(NODESET_EXPORTS->immnodeset_type)
 #define NyNodeSet_Check(op) PyObject_TypeCheck(op, NyNodeSet_TYPE)
 
 /* As of 3.14, PyCapsule_Import requires external synchronization if called

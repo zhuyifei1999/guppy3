@@ -1224,8 +1224,10 @@ PyTypeObject NyMutNodeSet_Type = {
 static NyNodeSet_Exports nynodeset_exports = {
     0,
     sizeof(NyNodeSet_Exports),
-    "NyNodeSet_Exports v1.0",
+    "NyNodeSet_Exports v1.1",
     &NyNodeSet_Type,
+    &NyMutNodeSet_Type,
+    &NyImmNodeSet_Type,
     NyMutNodeSet_New,
     NyMutNodeSet_NewHiding,
     NyMutNodeSet_NewFlags,

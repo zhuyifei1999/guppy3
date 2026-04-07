@@ -119,6 +119,38 @@ hv_PyList_Pop(PyObject *list)
     }
 }
 
+#ifdef NDEBUG
+#define NY_ASSERT_IMMUTABLE_BUILTIN(obj) ((void)0)
+#else
+static void
+NY_ASSERT_IMMUTABLE_BUILTIN(PyObject *obj)
+{
+    Py_ssize_t i;
+
+    if (obj == Py_None || obj == Py_True || obj == Py_False)
+        return;
+
+    if (Py_TYPE(obj) == &PyBool_Type ||
+        Py_TYPE(obj) == &PyLong_Type ||
+        Py_TYPE(obj) == &PyUnicode_Type ||
+        /* NodeTuple's hash does not depend on hash of its contents */
+        Py_TYPE(obj) == &NyNodeTuple_Type ||
+        Py_TYPE(obj) == &NyRelation_Type ||
+        Py_TYPE(obj) == NyImmNodeSet_TYPE
+        /* ImmBitSet will not be seen */
+    )
+        return;
+
+    if (Py_TYPE(obj) == &PyTuple_Type) {
+        for (i = 0; i < PyTuple_GET_SIZE(obj); i++)
+            NY_ASSERT_IMMUTABLE_BUILTIN(PyTuple_GetItem(obj, i));
+        return;
+    }
+
+    Py_FatalError(Py_TYPE(obj)->tp_name);
+}
+#endif
+
 /* HeapView methods */
 
 static int

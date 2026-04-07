@@ -36,6 +36,7 @@ hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)
     PyObject *result;
     int r;
 
+    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;

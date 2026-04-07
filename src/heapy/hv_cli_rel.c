@@ -192,6 +192,8 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
                Py_TYPE(obj)->tp_name);
         return -1;
     }
+
+    NY_ASSERT_IMMUTABLE_BUILTIN(obj);
     mrel = PyDict_GetItemWithError(arg->memorel, obj);
     if (!mrel) {
         if (PyErr_Occurred())
@@ -212,6 +214,7 @@ inrel_fast_memoized_kind(InRelObject * self, PyObject *kind)
     PyObject *result;
     int r;
 
+    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
     r = PyDict_GetItemRef(self->memokind, kind, &result);
     if (r == -1)
         return NULL;
@@ -277,6 +280,7 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     arg->rel->kind = kind;
     arg->rel->relator = relator;
 
+    NY_ASSERT_IMMUTABLE_BUILTIN((PyObject *)arg->rel);
     r = PyDict_GetItemRef(arg->memorel, (PyObject *)arg->rel, &rel);
     if (r == -1)
         goto ret;
@@ -284,6 +288,7 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
         rel = (PyObject *)NyRelation_New(kind, relator);
         if (!rel)
             goto ret;
+        NY_ASSERT_IMMUTABLE_BUILTIN(rel);
         if (PyDict_SetItem(arg->memorel, rel, rel) == -1)
             goto ret;
     }
