@@ -12,7 +12,7 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 "                memoize the classification sets.\n"
 );
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 11)
 # define Py_BUILD_CORE
 #  undef _PyObject_LookupSpecial
 /* _PyType_PreHeaderSize */
@@ -32,7 +32,7 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head)
         return 0;
 
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     if (Py_Version == PY_VERSION_HEX) {
 # else
     if (PyLong_AsLong(PySys_GetObject("hexversion")) == PY_VERSION_HEX) {
@@ -127,7 +127,7 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
         ptr = (Py_uintptr_t)obj;
     }
 
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     // https://github.com/python/cpython/issues/101430
     ptr -= _PyType_PreHeaderSize(Py_TYPE(obj));
     // _PyType_PreHeaderSize would add an extra compile-time sizeof(PyGC_Head),

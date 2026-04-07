@@ -6,7 +6,7 @@
                   "NYTUPLELIKE_ASSERT Header check failed for " #s ", check NYTUPLELIKE_HEAD")
 
 /* NYTUPLELIKE_HEAD should match PyTupleObject before ob_item */
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 # define NYTUPLELIKE_HEAD \
     PyObject_VAR_HEAD \
     Py_hash_t ob_hash;

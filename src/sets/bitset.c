@@ -2062,7 +2062,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
     int cpl = 0;
     PyObject *w = NULL;
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+#if PY_VERSION_HEX < Py_PACK_VERSION(3, 13)
     Py_ssize_t e;
     double x;
     NyBit num_bits, num_poses, num_bytes;
@@ -2108,7 +2108,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v)
                 Py_ASNATIVEBYTES_UNSIGNED_BUFFER |
                 Py_ASNATIVEBYTES_REJECT_NEGATIVE;
 
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION == 13
+# if PY_VERSION_HEX == Py_PACK_VERSION(3, 13)
     long x;
     int o;
 
@@ -3297,7 +3297,7 @@ immbitset_int(NyImmBitSetObject *v)
         }
         buf[pos] = bits;
     }
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+#if PY_VERSION_HEX < Py_PACK_VERSION(3, 13)
     r = _PyLong_FromByteArray((unsigned char *)buf,        /* bytes */
                               num_poses * sizeof(NyBits),    /* n = number of bytes*/
                               1,    /* Always little endian here */
@@ -4700,7 +4700,7 @@ static NyBitSet_Exports nybitset_exports = {
     cplbitset_hasbit,
 };
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 static PyMutex typeinit_mutex = {0};
 #else
 # define PyMutex_Lock(m) do {} while (0)
@@ -4712,7 +4712,7 @@ int fsb_dx_nybitset_init(PyObject *m)
     Py_SET_TYPE(&_NyImmBitSet_EmptyStruct, &NyImmBitSet_Type);
     Py_SET_TYPE(&_NyImmBitSet_OmegaStruct, &NyCplBitSet_Type);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     PyUnstable_SetImmortal((PyObject *)&_NyImmBitSet_EmptyStruct);
     PyUnstable_SetImmortal((PyObject *)&_NyImmBitSet_OmegaStruct);
 #endif

@@ -33,9 +33,9 @@ typedef struct _NyHorizonObject {
 
 static struct {
     NyHorizonObject *horizons;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     bool replaced;
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+#elif PY_VERSION_HEX < Py_PACK_VERSION(3, 13)
     PyObject *types;
 #endif
 } rm;
@@ -43,7 +43,7 @@ static struct {
 static void
 horizon_on_dealloc(PyObject *v);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 /* Post 3.13: Implemented via PyRefTracer */
 static PyMutex rm_mutex = {0};
 
@@ -51,7 +51,7 @@ static int horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
 {
     if (event == PyRefTracer_DESTROY)
         horizon_on_dealloc(v);
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     if (event == PyRefTracer_TRACKER_REMOVED)
         atomic_store_explicit(&rm.replaced, true, memory_order_seq_cst);
 # endif
@@ -67,7 +67,7 @@ horizon_install(void)
         PyErr_SetString(PyExc_RuntimeError, "PyRefTracer busy");
         return -1;
     }
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     atomic_store_explicit(&rm.replaced, false, memory_order_seq_cst);
 # endif
 
@@ -216,7 +216,7 @@ static int
 horizon_update_trav(PyObject *obj, NyHorizonObject *ta) {
     int r;
     r = NyNodeSet_setobj(ta->hs, obj);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+#if PY_VERSION_HEX < Py_PACK_VERSION(3, 13)
     if (!r) {
         PyTypeObject *t = horizon_base(obj);
         if (t->tp_dealloc != horizon_patched_dealloc) {
@@ -305,8 +305,8 @@ static PyObject *
 horizon_news(NyHorizonObject *self, PyObject *arg)
 {
     NewsTravArg ta;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 15
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     if (atomic_load_explicit(&rm.replaced, memory_order_seq_cst))
 # else
     if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)

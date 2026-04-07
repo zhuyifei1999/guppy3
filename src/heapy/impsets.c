@@ -13,7 +13,7 @@ NyNodeSet_Exports * _Atomic nodeset_exports;
 /* As of 3.14, PyCapsule_Import requires external synchronization if called
    from multiple threads, and I believe module_exec can be, if we are GIL-less
    eventually */
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 static PyMutex nodeset_exports_mutex = {0};
 #else
 # define PyMutex_Lock(m) do {} while (0)
