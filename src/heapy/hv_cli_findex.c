@@ -49,20 +49,22 @@ hv_cli_findex_classify(FindexObject * self, PyObject *obj)
         PyObject *ckc = PyTuple_GET_ITEM(self->alts, i);
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(ckc, 0);
         PyObject *cmpkind = PyTuple_GET_ITEM(self->kinds, i);
-        long cmp = PyLong_AS_LONG(PyTuple_GET_ITEM(self->cmps, i));
+        long cmp = PyLong_AsLong(PyTuple_GET_ITEM(self->cmps, i));
+        if (cmp == -1 && PyErr_Occurred())
+            return NULL;
         kind = cli->def->classify(cli->self, obj);
         if (!kind)
-            return 0;
+            return NULL;
         cmp = NyObjectClassifier_Compare(cli, kind, cmpkind, cmp);
         Py_DECREF(kind);
         if (cmp == -1)
-            return 0;
+            return NULL;
         if (cmp)
             break;
     }
     index = PyLong_FromSsize_t(i);
     if (!index)
-        return 0;
+        return NULL;
     ret = hv_cli_findex_memoized_kind(self, index);
     Py_DECREF(index);
     return ret;
