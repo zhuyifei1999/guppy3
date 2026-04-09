@@ -681,10 +681,11 @@ NyNodeSet_invobj(NyNodeSetObject *v, PyObject *obj)
     return r;
 }
 
-static char add_doc[] =
+PyDoc_STRVAR(add_doc,
 "S.add(e)\n"
 "\n"
-"Add e to S; no effect if e was already in S.";
+"Add e to S; no effect if e was already in S."
+);
 
 static PyObject *
 nodeset_add(NyNodeSetObject *v, PyObject *obj)
@@ -695,10 +696,11 @@ nodeset_add(NyNodeSetObject *v, PyObject *obj)
     return Py_None;
 }
 
-static char append_doc[] =
+PyDoc_STRVAR(append_doc,
 "S.append(e)\n"
 "\n"
-"Add e to S, or raise ValueError if e was already in S.";
+"Add e to S, or raise ValueError if e was already in S."
+);
 
 static PyObject *
 nodeset_append(NyNodeSetObject *v, PyObject *obj)
@@ -714,10 +716,11 @@ nodeset_append(NyNodeSetObject *v, PyObject *obj)
     return Py_None;
 }
 
-static char clear_doc[] =
+PyDoc_STRVAR(clear_doc,
 "S.clear()\n"
 "\n"
-"Remove all elements from S, and compact its storage.";
+"Remove all elements from S, and compact its storage."
+);
 
 static PyObject *
 nodeset_clear(NyNodeSetObject *v, PyObject *notused)
@@ -729,10 +732,11 @@ nodeset_clear(NyNodeSetObject *v, PyObject *notused)
 
 }
 
-static char discard_doc[] =
+PyDoc_STRVAR(discard_doc,
 "S.discard(e)\n"
 "\n"
-"Remove e from S; no effect if e was not in S.";
+"Remove e from S; no effect if e was not in S."
+);
 
 static PyObject *
 nodeset_discard(NyNodeSetObject *v, PyObject *obj)
@@ -743,10 +747,11 @@ nodeset_discard(NyNodeSetObject *v, PyObject *obj)
     return Py_None;
 }
 
-static char pop_doc[] =
+PyDoc_STRVAR(pop_doc,
 "S.pop() -> object\n"
 "\n"
-"Remove and return some object from S, or raise ValueError if S was empty.";
+"Remove and return some object from S, or raise ValueError if S was empty."
+);
 
 static PyObject *
 nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
@@ -770,10 +775,11 @@ out:
     }
 }
 
-static char remove_doc[] =
+PyDoc_STRVAR(remove_doc,
 "S.remove(e)\n"
 "\n"
-"Remove e from S, or raise ValueError if e was not in S.";
+"Remove e from S, or raise ValueError if e was not in S."
+);
 
 static PyObject *
 nodeset_remove(NyNodeSetObject *v, PyObject *obj)
@@ -789,12 +795,13 @@ nodeset_remove(NyNodeSetObject *v, PyObject *obj)
     return Py_None;
 }
 
-static char tas_doc[] =
+PyDoc_STRVAR(tas_doc,
 "S.tas(e) -> bool\n"
 "\n"
 "Test and Set.\n"
 "If e is in S return True,\n"
-"else add e to S and return False.";
+"else add e to S and return False."
+);
 
 
 static PyObject *
@@ -804,12 +811,13 @@ nodeset_tas(NyNodeSetObject *v, PyObject *obj)
 }
 
 
-static char tac_doc[] =
+PyDoc_STRVAR(tac_doc,
 "S.tac(e) -> bool\n"
 "\n"
 "Test and Clear.\n"
 "If e is in S, remove e from S and return True,\n"
-"else return False.";
+"else return False."
+);
 
 
 static PyObject *

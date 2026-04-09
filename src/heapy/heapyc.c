@@ -1,7 +1,25 @@
 /* module heapyc */
 
-char heapyc_doc[] =
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapdef.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "rootstate.h"
+#include "stdtypes_internal.h"
+#include "stoptheworld.h"
+#include "utils.h"
+#include "xmemstats.h"
+
+PyDoc_STRVAR(heapyc_doc,
 "This module contains low level functionality for the heapy system.\n"
 "It is intended to be wrapped in higher level library classes.\n"
 "\n"
@@ -23,28 +41,7 @@ char heapyc_doc[] =
 "\n"
 "Object\n"
 "    RootState           The single instance of RootStateType.\n"
-;
-
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "structmember.h"
-#include "../include/guppy.h"
-#include "../include/pythoncapi_compat.h"
-
-#include "impsets.h"
-#include "heapdef.h"
-#include "heapy.h"
-#include "classifier.h"
-#include "hv.h"
-#include "nodegraph.h"
-#include "relation.h"
-#include "rootstate.h"
-#include "stdtypes_internal.h"
-#include "stoptheworld.h"
-#include "utils.h"
-#include "xmemstats.h"
+);
 
 #define Py_BUILD_CORE
 # undef _PyGC_FINALIZED
@@ -148,11 +145,11 @@ err:
 #endif
 
 /* Other functions */
-static char hp_has_deferred_refcount_doc[] =
+PyDoc_STRVAR(hp_has_deferred_refcount_doc,
 "has_deferred_refcount(target:object)\n"
 "\n"
 "Returns whether the given object uses deferred refcount (freethreading-only).\n"
-;
+);
 
 static PyObject *
 hp_has_deferred_refcount(PyObject *self, PyObject *op)

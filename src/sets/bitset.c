@@ -12,9 +12,7 @@
 
 /* Docstrings */
 
-char bitset_doc[] =
-
-
+PyDoc_STRVAR(bitset_doc,
 "The class BitSet is the base class for all bitset classes.\n"
 "\n"
 "A bitset is a set of 'bits'. Bits are integers, in a range that is\n"
@@ -240,10 +238,10 @@ char bitset_doc[] =
 "S.mutcopy() -> mutable bitset\n"
 "\n"
 "Return a mutable copy of S.\n"
-;
+);
 
 
-static char ImmBitSet_doc[] =
+PyDoc_STRVAR(ImmBitSet_doc,
 "ImmBitSet()         -> empty immutable bitset\n"
 "ImmBitSet(bitset)   -> immutable bitset with bitset's bits\n"
 "ImmBitSet(iterable) -> immutable bitset with iterable's bits (int items)\n"
@@ -259,9 +257,9 @@ static char ImmBitSet_doc[] =
 "hash(x)    -> int\n"
 "\n"
 "Return a hash value based on the bit numbers of the elements.\n"
-;
+);
 
-static char cplbitset_doc[] =
+PyDoc_STRVAR(cplbitset_doc,
 
 "CplBitSet(x:ImmBitSet) -> complemented immutable bitset.\n"
 "\n"
@@ -270,9 +268,9 @@ static char cplbitset_doc[] =
 "\n"
 "A complemented immutable bitset provides the same operations as\n"
 "non-complemented immutable bitsets, except for len() and iter().\n"
-;
+);
 
-static char mutbitset_doc[] =
+PyDoc_STRVAR(mutbitset_doc,
 "MutBitSet()         -> new empty mutable bitset\n"
 "MutBitSet(bitset)   -> new mutable bitset with bitset's bits\n"
 "MutBitSet(iterable) -> new mutable bitset with iterable's bits (int items)\n"
@@ -282,83 +280,93 @@ static char mutbitset_doc[] =
 "for the BitSet base class. It also defines the following methods:\n"
 "\n"
 "    add, append, clear, discard, pop, remove, tac, tas\n"
-;
+);
 
-static char add_doc[] =
+PyDoc_STRVAR(add_doc,
 "S.add(e)\n"
 "\n"
 "Add e to S; no effect if e was already in S\n"
-;
+);
 
-static char append_doc[] =
+PyDoc_STRVAR(append_doc,
 "S.append(e)\n"
 "\n"
-"Add e to S, or raise ValueError if e was already in S.";
+"Add e to S, or raise ValueError if e was already in S."
+);
 
-static char discard_doc[] =
+PyDoc_STRVAR(discard_doc,
 "S.discard(e)\n"
 "\n"
-"Remove e from S; no effect if e was not in S.";
+"Remove e from S; no effect if e was not in S."
+);
 
-static char pop_doc[] =
+PyDoc_STRVAR(pop_doc,
 "S.pop([index]) -> int\n"
 "\n"
 "Remove and return a bit, or raise ValueError if there is no bit to pop.\n"
 "\n"
 "The index must be -1 (default) to pop the highest bit or 0 to pop the\n"
-"lowest bit; otherwise IndexError will be raised.";
+"lowest bit; otherwise IndexError will be raised."
+);
 
-static char remove_doc[] =
+PyDoc_STRVAR(remove_doc,
 "S.remove(e)\n"
 "\n"
-"Remove e from S, or raise ValueError if e was not in S.";
+"Remove e from S, or raise ValueError if e was not in S."
+);
 
-static char clear_doc[] =
+PyDoc_STRVAR(clear_doc,
 "S.clear()\n"
 "\n"
-"Remove all elements from S, and compact its storage.";
+"Remove all elements from S, and compact its storage."
+);
 
 
-static char tasbit_doc[] =
+PyDoc_STRVAR(tasbit_doc,
 "S.tas(e) -> bool\n"
 "\n"
 "Test and Set.\n"
 "If e is in S return True,\n"
-"else add e to S and return False.";
+"else add e to S and return False."
+);
 
-static char tacbit_doc[] =
+PyDoc_STRVAR(tacbit_doc,
 "S.tac(e) -> bool\n"
 "\n"
 "Test and Clear.\n"
 "If e is in S, remove e from S and return True,\n"
-"else return False.";
+"else return False."
+);
 
-static char mutable_copy_doc[] =
+PyDoc_STRVAR(mutable_copy_doc,
 "S.mutcopy() -> mutable bitset\n"
 "\n"
 "Return a mutable copy of S.\n"
-;
+);
 
-static char bitsingle_doc[] =
+PyDoc_STRVAR(bitsingle_doc,
 "immbit(bit) -> immutable bitset\n"
 "\n"
 "Return an immutable bitset containing the single bit specified.\n"
-"The bit must be an integer in the range of an int.";
+"The bit must be an integer in the range of an int."
+);
 
-static char bitrange_doc[] =
+PyDoc_STRVAR(bitrange_doc,
 "immbitrange([start,] stop[, step]) -> immutable bitset\n"
 "\n"
 "Return an immutable bitset containing an arithmetic progression of integers.\n"
 "immbitrange(i, j) equals immbitset([i, i+1, i+2, ..., j-1]).\n"
 "Start defaults to 0. If step is given, it specifies a positive increment.\n"
-"For example, immbitrange(3) equals immbitset([0, 1, 2]).";
+"For example, immbitrange(3) equals immbitset([0, 1, 2])."
+);
 
-static char bitform_doc[] =
+PyDoc_STRVAR(bitform_doc,
 "_bs(flags, data) -> some kind of bitset\n"
 "\n"
 "Internal function used to form a bitset when unpickling.\n"
 "It is designed to be 'safe' with any data but may give strange results\n"
-"if given something else than what x.__reduce__() generated.";
+"if given something else than what x.__reduce__() generated."
+);
 
 /* Forward declarations */
 
@@ -3320,7 +3328,7 @@ immbitset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 
-static char immbitset_doc[] =
+PyDoc_STRVAR(immbitset_doc,
 "immbitset()         -> empty immutable bitset\n"
 "immbitset(bitset)   -> immutable bitset with bitset's bits\n"
 "immbitset(iterable) -> immutable bitset with iterable's bits (int items)\n"
@@ -3329,7 +3337,7 @@ static char immbitset_doc[] =
 "Return an immutable bitset. It will be complemented if the argument\n"
 "is a complemented bitset or a negative integer. If the argument is an\n"
 "immutable bitset, the result is the same object.\n"
-;
+);
 
 
 static PyObject *
@@ -4081,10 +4089,11 @@ immbitset_is_immutable(NyMutBitSetObject *v)
     return (Py_True);
 }
 
-char immbitset_is_immutable_doc[] =
+PyDoc_STRVAR(immbitset_is_immutable_doc,
 "S.is_immutable == True\n"
 "\n"
-"True since S is immutable.";
+"True since S is immutable."
+);
 
 static PyGetSetDef immbitset_getsets[] = {
     {"is_immutable", (getter)immbitset_is_immutable, (setter)0, immbitset_is_immutable_doc},
@@ -4322,10 +4331,11 @@ anybitset_get_indisize(NyMutBitSetObject *v)
     return PyLong_FromSsize_t(anybitset_indisize((PyObject *)v));
 }
 
-char mutbitset_is_immutable_doc[] =
+PyDoc_STRVAR(mutbitset_is_immutable_doc,
 "S.is_immutable == False\n"
 "\n"
-"False since S is not immmutable.";
+"False since S is not immmutable."
+);
 
 static PyObject *
 mutbitset_is_immutable(NyMutBitSetObject *v)

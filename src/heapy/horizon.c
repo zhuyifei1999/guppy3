@@ -13,7 +13,7 @@
 #include "hv.h"
 #include "utils.h"
 
-char horizon_doc[] =
+PyDoc_STRVAR(horizon_doc,
 "Horizon(X:iterable)\n"
 "\n"
 "Create a new Horizon object from X. \n"
@@ -26,7 +26,7 @@ char horizon_doc[] =
 "another set of objects via the news() method. This can be used to see\n"
 "what objects have been allocated but not deallocated since the Horizon\n"
 "object was created.\n"
-;
+);
 
 
 
@@ -300,7 +300,7 @@ horizon_news_trav(PyObject *obj, NewsTravArg *ta)
     return 0;
 }
 
-static char news_doc[] =
+PyDoc_STRVAR(news_doc,
 "H.news(X:iterable) -> NodeSet\n"
 "\n"
 "Return the set of objects in X that is not in the set of objects of H.\n"
@@ -308,7 +308,7 @@ static char news_doc[] =
 "If H was created from the contents of the heap at a particular time,\n"
 "H.news(X) will return the set of objects in X that were allocated\n"
 "after H was created.\n"
-;
+);
 
 
 static PyObject *

@@ -12,11 +12,11 @@
 #include "nodegraph.h"
 #include "utils.h"
 
-char cli_doc[] =
+PyDoc_STRVAR(cli_doc,
 "This is the type of objects created by the hv_cli_* factory methods of\n"
 "HeapView objects. See HeapView.__doc__ and the factory methods for the\n"
 "different kinds of classifiers that are supported.\n"
-;
+);
 
 int
 NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp)
@@ -74,12 +74,13 @@ cli_clear(NyObjectClassifierObject *op)
     return 0;
 }
 
-static char cli_classify_doc[] =
+PyDoc_STRVAR(cli_classify_doc,
 "C.classify(object) -> object\n"
 "\n"
 "Return the kind of an object.\n"
 "\n"
-"The object is classified by C, to get its kind which is then returned.";
+"The object is classified by C, to get its kind which is then returned."
+);
 
 static PyObject *
 cli_classify(NyObjectClassifierObject *self, PyObject *object)
@@ -94,14 +95,15 @@ typedef struct {
     NyNodeGraphObject *emap;
 } PATravArg;
 
-static char cli_partition_doc[] =
+PyDoc_STRVAR(cli_partition_doc,
 "C.partition(X:iterable) -> dict\n"
 "\n"
 "Return a partition of a set of objects.\n"
 "\n"
 "Each object in X is classified by C to get its kind. The partition\n"
 "returned is a mapping from each different kind to a list containing\n"
-"the objects of that kind.";
+"the objects of that kind."
+);
 
 static int
 cli_partition_iter(PyObject *obj, PATravArg *ta)
@@ -193,7 +195,7 @@ Err:
     return NULL;
 }
 
-static char cli_select_doc[] =
+PyDoc_STRVAR(cli_select_doc,
 "C.select(X:iterable, kind:object, cmp:string) -> list\n"
 "\n"
 "Select objects of a particular kind.\n"
@@ -219,7 +221,7 @@ static char cli_select_doc[] =
 "For the referenced-by classifier:\n"
 "\n"
 "    A <= B means that A is a subset of B.\n"
-;
+);
 
 typedef struct {
     NyObjectClassifierObject *cli;

@@ -1,6 +1,16 @@
 /* Module guppy.sets.setsc */
 
-char sets_doc[] =
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "../heapy/heapdef.h"
+#include "../heapy/heapy.h"
+#include "sets_internal.h"
+
+PyDoc_STRVAR(sets_doc,
 "This module implements two specialized kinds of sets, 'bitsets' and\n"
 "'nodesets'. Bitsets are sets of 'bits' -- here meaning integers in a\n"
 "particular range -- and designed to be efficient with dense as well as\n"
@@ -27,17 +37,8 @@ char sets_doc[] =
 "\n"
 "Data\n"
 "    NyBitSet_Exports,\n"
-"    NyNodeSet_Exports   C-level exported function tables.\n";
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "../include/guppy.h"
-#include "../include/pythoncapi_compat.h"
-
-#include "../heapy/heapdef.h"
-#include "../heapy/heapy.h"
-#include "sets_internal.h"
+"    NyNodeSet_Exports   C-level exported function tables.\n"
+);
 
 static PyMethodDef module_methods[] = {
     {NULL, NULL}

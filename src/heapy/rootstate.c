@@ -12,8 +12,7 @@
 #include "rootstate.h"
 #include "stoptheworld.h"
 
-char rootstate_doc[] =
-
+PyDoc_STRVAR(rootstate_doc,
 "The type of an object with special functionality that gives access to\n"
 "internals of the Python interpreter and thread structures.  It is used\n"
 "as a top level root when traversing the heap to to make sure to find\n"
@@ -113,7 +112,7 @@ char rootstate_doc[] =
 "but counting in the reversed order of the frame list. Thus the first\n"
 "started frame is 0, and in general the most recent frame has a number\n"
 "that is the number of frames it has before it in call order.\n"
-;
+);
 
 
 #define Py_BUILD_CORE

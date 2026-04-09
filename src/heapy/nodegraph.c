@@ -327,10 +327,11 @@ ng_maybesortetc(NyNodeGraphObject *ng)
         ng_sortetc(ng);
 }
 
-static char ng_add_edge_doc[] =
+PyDoc_STRVAR(ng_add_edge_doc,
 "NG.add_edge(source, target)\n\
 \n\
-Add to NG, an edge from source to target.";
+Add to NG, an edge from source to target."
+);
 
 
 static PyObject *
@@ -345,10 +346,11 @@ ng_add_edge(NyNodeGraphObject *ng, PyObject *args)
     return Py_None;
 }
 
-static char ng_add_edges_n1_doc[] =
+PyDoc_STRVAR(ng_add_edges_n1_doc,
 "NG.add_edges_n1(srcs:iterable, tgt)\n\
 \n\
-Add to NG, for each src in srcs, an edge from src to tgt.";
+Add to NG, for each src in srcs, an edge from src to tgt."
+);
 
 
 typedef struct {
@@ -379,10 +381,11 @@ ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
 }
 
 
-static char ng_as_flat_list_doc[] =
+PyDoc_STRVAR(ng_as_flat_list_doc,
 "NG.as_flat_list() -> list\n\
 \n\
-Return the edges of NG in the form [src0, tgt0, src1, tgt1 ...].";
+Return the edges of NG in the form [src0, tgt0, src1, tgt1 ...]."
+);
 
 static PyObject *
 ng_as_flat_list(NyNodeGraphObject *ng, PyObject *arg)
@@ -406,10 +409,11 @@ out:
     return r;
 }
 
-static char ng_clear_doc[] =
+PyDoc_STRVAR(ng_clear_doc,
 "NG.clear()\n\
 \n\
-Remove all items from NG.";
+Remove all items from NG."
+);
 
 static PyObject *
 ng_clear_method(NyNodeGraphObject *ng, PyObject *arg_notused)
@@ -466,10 +470,11 @@ NyNodeGraph_Copy(NyNodeGraphObject *ng)
     return cp;
 }
 
-static char ng_copy_doc[] =
+PyDoc_STRVAR(ng_copy_doc,
 "NG.copy() -> NodeGraph\n\
 \n\
-Return a copy of NG.";
+Return a copy of NG."
+);
 
 static PyObject *
 ng_copy(NyNodeGraphObject *ng, PyObject *notused)
@@ -498,10 +503,11 @@ ng_dc_trav(PyObject *obj, DCTravArg *ta)
 }
 
 
-static char ng_domain_covers_doc[] =
+PyDoc_STRVAR(ng_domain_covers_doc,
 "NG.domain_covers(X:iterable) -> bool\n\
 \n\
-Return True if each node in X is the source of some edge in NG, False otherwise.";
+Return True if each node in X is the source of some edge in NG, False otherwise."
+);
 
 static PyObject *
 ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
@@ -543,10 +549,11 @@ ng_dr_trav(PyObject *obj, DRTravArg *ta)
 
 
 
-static char ng_domain_restricted_doc[] =
+PyDoc_STRVAR(ng_domain_restricted_doc,
 "NG.domain_restricted(X:iterable) -> NodeGraph\n\
 \n\
-Return a new NodeGraph, containing those edges in NG that have source in X.";
+Return a new NodeGraph, containing those edges in NG that have source in X."
+);
 
 static PyObject *
 ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
@@ -565,10 +572,11 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
 }
 
 
-static char ng_get_domain_doc[] =
+PyDoc_STRVAR(ng_get_domain_doc,
 "NG.get_domain() -> NodeSet\n\
 \n\
-Return the set of nodes that are the source of some edge in NG.";
+Return the set of nodes that are the source of some edge in NG."
+);
 
 static PyObject *
 ng_get_domain(NyNodeGraphObject *ng, void *closure)
@@ -591,10 +599,11 @@ out:
     return (PyObject *)ns;
 }
 
-static char ng_get_range_doc[] =
+PyDoc_STRVAR(ng_get_range_doc,
 "NG.get_range() -> NodeSet\n\
 \n\
-Return the set of nodes that are the target of some edge in NG.";
+Return the set of nodes that are the target of some edge in NG."
+);
 
 static PyObject *
 ng_get_range(NyNodeGraphObject *ng, void *closure)
@@ -634,10 +643,11 @@ NyNodeGraph_Invert(NyNodeGraphObject *ng) {
     return 0;
 }
 
-static char ng_invert_doc[] =
+PyDoc_STRVAR(ng_invert_doc,
 "NG.invert()\n\
 \n\
-Invert the edges of NG.";
+Invert the edges of NG."
+);
 
 static PyObject *
 ng_invert(NyNodeGraphObject *ng, void *notused)
@@ -663,10 +673,11 @@ NyNodeGraph_Inverted(NyNodeGraphObject *ng)
 
 }
 
-static char ng_inverted_doc[] =
+PyDoc_STRVAR(ng_inverted_doc,
 "NG.inverted() -> NodeGraph\n\
 \n\
-Return a copy of NG with the edges inverted.";
+Return a copy of NG with the edges inverted."
+);
 
 static PyObject *
 ng_inverted(NyNodeGraphObject *ng, void *notused)
@@ -744,11 +755,12 @@ ng_relimg_trav(PyObject *obj, RITravArg *ta)
     return 0;
 }
 
-static char ng_relimg_doc[] =
+PyDoc_STRVAR(ng_relimg_doc,
 "NG.relimg(X:iterable) -> NodeSet\n\
 \n\
 Return the relational image of NG wrt X. That is, the set of nodes\n\
-that are the target of some edge that have its source in X.";
+that are the target of some edge that have its source in X."
+);
 
 static NyNodeSetObject *
 ng_relimg(NyNodeGraphObject *ng, PyObject *S)
@@ -795,11 +807,12 @@ NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *u)
 }
 
 
-static char ng_update_doc[] =
+PyDoc_STRVAR(ng_update_doc,
 "NG.update(X:iterable)\n\
 \n\
 Update NG with the edges from X,\n\
-specified as pairs of the form (source, target).";
+specified as pairs of the form (source, target)."
+);
 
 
 static PyObject *
@@ -811,11 +824,12 @@ ng_update(NyNodeGraphObject *ng, PyObject *arg)
     return Py_None;
 }
 
-static char ng_updated_doc[] =
+PyDoc_STRVAR(ng_updated_doc,
 "NG.updated(X:iterable) -> NodeGraph\n\
 \n\
 Return a copy of NG updated with the edges from X,\n\
-specified as pairs of the form (source, target).";
+specified as pairs of the form (source, target)."
+);
 
 static PyObject *
 ng_updated(NyNodeGraphObject *ng, PyObject *arg)
@@ -897,7 +911,7 @@ nodegraph_relate(NyHeapRelate *r)
 }
 
 
-static char ng_doc[] =
+PyDoc_STRVAR(ng_doc,
 "NodeGraph([iterable [,is_mapping]])\n\
 \n\
 Construct a new NodeGraph object. The arguments are:\n\
@@ -929,7 +943,7 @@ o The mapping is based on object identity - no equality or hashing is\n\
 o There may be any number of targets associated with each source.\n\
 \n\
 o Performance characteristics differ from dicts, in somewhat subtle ways.\n\
-";
+");
 
 
 static PyGetSetDef ng_getset[] = {

@@ -11,11 +11,12 @@
 
 #include "xmemstats.h"
 
-char hp_xmemstats_doc[] =
+const char hp_xmemstats_doc[] = PyDoc_STR(
 "xmemstats()\n"
 "\n"
 "Print extra memory statistics. What is printed depends on the system\n"
-"configuration.  ";
+"configuration.  "
+);
 
 #ifndef MS_WIN32
 #include <dlfcn.h>
