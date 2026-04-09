@@ -147,7 +147,7 @@ PyDoc_STRVAR(rootstate_doc,
         while (!PyMutex_LockFast(&(runtime)->interpreters.mutex._bits)) \
             sched_yield();                                              \
     } while (0)
-#elif NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 12)
+#else
 # define HEAD_LOCK(runtime) \
     PyThread_acquire_lock((runtime)->interpreters.mutex, WAIT_LOCK)
 # define HEAD_UNLOCK(runtime) \
