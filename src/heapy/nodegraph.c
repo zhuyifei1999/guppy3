@@ -1,5 +1,29 @@
 /* NodeGraph object implementation */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapdef.h"
+#include "impsets.h"
+#include "nodegraph.h"
+#include "roundupsize.h"
+#include "stoptheworld.h"
+#include "utils.h"
+
+#define Py_BUILD_CORE
+/* PyGC_Head */
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#  include <internal/pycore_interp_structs.h>
+# else
+#  undef _PyGC_FINALIZED
+#  include <internal/pycore_gc.h>
+# endif
+#undef Py_BUILD_CORE
+
 /* Pointer comparison macros
    Used for comparison of pointers that are not pointing
    into the same array. It would be formally undefined to
@@ -309,7 +333,7 @@ static char ng_add_edge_doc[] =
 Add to NG, an edge from source to target.";
 
 
-PyObject *
+static PyObject *
 ng_add_edge(NyNodeGraphObject *ng, PyObject *args)
 {
     PyObject *src, *tgt;
@@ -340,7 +364,7 @@ ng_add_edges_n1_trav(PyObject *obj, AETravArg *ta)
     return 0;
 }
 
-PyObject *
+static PyObject *
 ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
 {
     AETravArg ta;
@@ -360,7 +384,7 @@ static char ng_as_flat_list_doc[] =
 \n\
 Return the edges of NG in the form [src0, tgt0, src1, tgt1 ...].";
 
-PyObject *
+static PyObject *
 ng_as_flat_list(NyNodeGraphObject *ng, PyObject *arg)
 {
     PyObject *r = PyList_New(0);
@@ -387,7 +411,7 @@ static char ng_clear_doc[] =
 \n\
 Remove all items from NG.";
 
-PyObject *
+static PyObject *
 ng_clear_method(NyNodeGraphObject *ng, PyObject *arg_notused)
 {
     NyNodeGraph_Clear(ng);
@@ -395,7 +419,7 @@ ng_clear_method(NyNodeGraphObject *ng, PyObject *arg_notused)
     return Py_None;
 }
 
-NyNodeGraphObject *
+static NyNodeGraphObject *
 NyNodeGraph_SubtypeNew(PyTypeObject *type)
 {
     NyNodeGraphObject *ng = (NyNodeGraphObject *)type->tp_alloc(type, 1);
@@ -410,7 +434,7 @@ NyNodeGraph_SubtypeNew(PyTypeObject *type)
     return ng;
 }
 
-NyNodeGraphObject *
+static NyNodeGraphObject *
 NyNodeGraph_SiblingNew(NyNodeGraphObject *ng)
 {
     NyNodeGraphObject *cp = NyNodeGraph_SubtypeNew(Py_TYPE(ng));
@@ -447,7 +471,7 @@ static char ng_copy_doc[] =
 \n\
 Return a copy of NG.";
 
-PyObject *
+static PyObject *
 ng_copy(NyNodeGraphObject *ng, PyObject *notused)
 {
     return (PyObject *)NyNodeGraph_Copy(ng);
@@ -650,7 +674,7 @@ ng_inverted(NyNodeGraphObject *ng, void *notused)
     return (PyObject *)NyNodeGraph_Inverted(ng);
 }
 
-PyObject *
+static PyObject *
 ng_iter(NyNodeGraphObject *v)
 {
     NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, &NyNodeGraphIter_Type);
@@ -824,8 +848,9 @@ static PyMethodDef ng_methods[] = {
     {0} /* sentinel */
 };
 
-static size_t
-nodegraph_size(PyObject *obj) {
+size_t
+nodegraph_size(PyObject *obj)
+{
     Py_ssize_t z;
 
     Py_BEGIN_CRITICAL_SECTION(obj);
@@ -840,7 +865,7 @@ nodegraph_size(PyObject *obj) {
     return z;
 }
 
-static int
+int
 nodegraph_traverse(NyHeapTraverse *t)
 {
     NyNodeGraphObject *ng = (void *)t->obj;
@@ -851,7 +876,7 @@ nodegraph_traverse(NyHeapTraverse *t)
     return 0;
 }
 
-static int
+int
 nodegraph_relate(NyHeapRelate *r)
 {
     NyNodeGraphObject *ng = (void *)r->src;

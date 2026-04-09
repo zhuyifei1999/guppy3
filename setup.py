@@ -8,16 +8,35 @@ for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
 
-setsc = Extension("guppy.sets.setsc", [
-                      "src/sets/sets.c",
-                      "src/sets/bitset.c",
-                      "src/sets/nodeset.c"
-                  ])
+setsc = Extension('guppy.sets.setsc', [
+    'src/sets/sets.c',
+    'src/sets/bitset.c',
+    'src/sets/nodeset.c',
+    'src/sets/immnodeset.c'
+])
 
-heapyc = Extension("guppy.heapy.heapyc", [
-                       'src/heapy/heapyc.c',
-                       'src/heapy/stdtypes.c'
-                   ])
+heapyc = Extension('guppy.heapy.heapyc', [
+    'src/heapy/heapyc.c',
+    'src/heapy/classifier.c',
+    'src/heapy/horizon.c',
+    'src/heapy/hv.c',
+    'src/heapy/hv_cli.c',
+    'src/heapy/hv_cli_and.c',
+    'src/heapy/hv_cli_dictof.c',
+    'src/heapy/hv_cli_findex.c',
+    'src/heapy/hv_cli_id.c',
+    'src/heapy/hv_cli_idset.c',
+    'src/heapy/hv_cli_indisize.c',
+    'src/heapy/hv_cli_prod.c',
+    'src/heapy/hv_cli_rcs.c',
+    'src/heapy/hv_cli_rel.c',
+    'src/heapy/hv_cli_user.c',
+    'src/heapy/impsets.c',
+    'src/heapy/nodegraph.c',
+    'src/heapy/rootstate.c',
+    'src/heapy/stdtypes.c',
+    'src/heapy/xmemstats.c',
+])
 
 
 def doit():

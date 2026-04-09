@@ -1,6 +1,15 @@
 /* AND classifier implementation */
 
-PyDoc_STRVAR(hv_cli_and_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_and_doc[] = PyDoc_STR(
 "HV.cli_and(classifiers, memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that combines the classifications of other classifiers.\n"
@@ -136,7 +145,7 @@ static NyObjectClassifierDef hv_cli_and_def = {
 };
 
 
-static PyObject *
+PyObject *
 hv_cli_and(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;

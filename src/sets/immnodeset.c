@@ -1,6 +1,16 @@
 /* Implementation of ImmNodeSet */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 #include <stdbool.h>
+
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "../heapy/heapdef.h"
+#include "sets_internal.h"
 
 PyDoc_STRVAR(immnodeset_doc,
 "ImmNodeSet([iterable])\n"
@@ -17,8 +27,6 @@ PyDoc_STRVAR(immnodeset_doc,
 
 
 /* NyImmNodeSetIter methods */
-
-static PyObject *nodeset_ior(NyNodeSetObject *v, PyObject *w);
 
 typedef struct {
     PyObject_HEAD
@@ -88,7 +96,7 @@ PyTypeObject NyImmNodeSetIter_Type = {
 /* immnodeset specific methods */
 
 
-NyNodeSetObject *
+static NyNodeSetObject *
 NyImmNodeSet_SubtypeNew(PyTypeObject *type, NyBit size, PyObject *hiding_tag)
 {
     NyNodeSetObject *v = (void *)type->tp_alloc(type, size);
@@ -134,7 +142,7 @@ as_immutable_visit(PyObject *obj, NSISetArg *v)
     return 0;
 }
 
-NyNodeSetObject *
+static NyNodeSetObject *
 NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
 {
     PyObject *v_hiding_tag;
@@ -161,7 +169,7 @@ NyImmNodeSet_NewCopy(NyNodeSetObject *v)
 }
 
 
-NyNodeSetObject *
+static NyNodeSetObject *
 NyImmNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject *hiding_tag)
 {
     NyNodeSetObject *imms, *muts;
@@ -316,7 +324,7 @@ immnodeset_iter(NyNodeSetObject *ns)
     return (PyObject *)it;
 }
 
-static NyNodeSetObject *
+NyNodeSetObject *
 immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 {
     /* NOT LOCKED: Immutable */

@@ -1,9 +1,19 @@
 /* Implementation of the Horizon type */
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 #include <stdbool.h>
 #include <stdatomic.h>
 
-char horizon_doc[]=
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "hv.h"
+#include "utils.h"
+
+char horizon_doc[] =
 "Horizon(X:iterable)\n"
 "\n"
 "Create a new Horizon object from X. \n"
@@ -231,7 +241,7 @@ horizon_update_trav(PyObject *obj, NyHorizonObject *ta) {
     return 0;
 }
 
-PyObject *
+static PyObject *
 horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 

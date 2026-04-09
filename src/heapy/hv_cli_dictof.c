@@ -3,7 +3,21 @@
    And has an argument that classifies the owners.
  */
 
-PyDoc_STRVAR(hv_cli_dictof_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "stoptheworld.h"
+#include "utils.h"
+
+const char hv_cli_dictof_doc[] = PyDoc_STR(
 "HV.cli_dictof(owners, ownerclassifier, notdictkind, notownedkind) -> ObjectClassifier\n"
 "\n"
 "Return a classifier, that classifies by \"Dict Owner\".\n"
@@ -76,7 +90,7 @@ hv_cli_dictof_update_rec(PyObject *obj, DictofTravArg *ta) {
     return 0;
 }
 
-static int
+int
 hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
     DictofTravArg ta;
@@ -202,7 +216,7 @@ static NyObjectClassifierDef hv_cli_dictof_def = {
     (binaryfunc)hv_cli_dictof_memoized_kind,
 };
 
-static PyObject *
+PyObject *
 hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r;

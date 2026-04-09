@@ -1,5 +1,14 @@
 /* Implementation of the 'indisize' classifier */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
 typedef struct {
     NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
@@ -61,7 +70,7 @@ static NyObjectClassifierDef hv_cli_indisize_def = {
     hv_cli_indisize_le,
 };
 
-static char hv_cli_indisize_doc[] =
+const char hv_cli_indisize_doc[] = PyDoc_STR(
 "HV.cli_indisize(memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that classifies by \"individual size\".\n"
@@ -69,9 +78,10 @@ static char hv_cli_indisize_doc[] =
 "The classification of each object is an int, containing the\n"
 "object's individual memory size. The argument is:\n"
 "\n"
-"    memo        A dict used to memoize the classification objects.";
+"    memo        A dict used to memoize the classification objects."
+);
 
-static PyObject *
+PyObject *
 hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r, *memo;

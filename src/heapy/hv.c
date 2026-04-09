@@ -1,5 +1,42 @@
 /* Implementation of the HeapView type */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapdef.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "rootstate.h"
+#include "stdtypes_internal.h"
+#include "stoptheworld.h"
+#include "utils.h"
+
+#define Py_BUILD_CORE
+/* PyGC_Head */
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#  include <internal/pycore_interp_structs.h>
+# else
+#  undef _PyGC_FINALIZED
+#  include <internal/pycore_gc.h>
+# endif
+#undef Py_BUILD_CORE
+
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+# define Py_BUILD_CORE
+/* _PySys_GetSizeOf */
+#  include <internal/pycore_sysmodule.h>
+/* _PyObject_GetManagedDict */
+#  include <internal/pycore_object.h>
+# undef Py_BUILD_CORE
+#endif
+
 PyDoc_STRVAR(hv_doc,
 "HeapView(root, heapdefs:tuple)\n"
 "\n"
@@ -69,20 +106,6 @@ PyDoc_STRVAR(hv_doc,
 "  on the kind of memory allocator, the requested size, etc.\n"
 );
 
-#define Py_BUILD_CORE
-/* PyGC_Head */
-# undef _PyGC_FINALIZED
-# include <internal/pycore_gc.h>
-#undef Py_BUILD_CORE
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-# define Py_BUILD_CORE
-/* _PySys_GetSizeOf */
-#  include <internal/pycore_sysmodule.h>
-/* _PyObject_GetManagedDict */
-#  include <internal/pycore_object.h>
-# undef Py_BUILD_CORE
-#endif
-
 #define ALIGN  sizeof(void *)
 #define ALIGN_MASK (ALIGN - 1)
 
@@ -91,11 +114,9 @@ PyDoc_STRVAR(hv_doc,
 
 /* Forward declarations */
 
-static PyObject *hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds);
+extern NyHeapDef NyHvTypes_HeapDef[];
 
 static ExtraType *hv_new_extra_type(NyHeapViewObject *hv, PyTypeObject *type);
-
-int cli_cmp_as_int(PyObject *cmp);
 
 /* Helpers */
 
@@ -119,10 +140,8 @@ hv_PyList_Pop(PyObject *list)
     }
 }
 
-#ifdef NDEBUG
-#define NY_ASSERT_IMMUTABLE_BUILTIN(obj) ((void)0)
-#else
-static void
+#ifndef NDEBUG
+void
 NY_ASSERT_IMMUTABLE_BUILTIN(PyObject *obj)
 {
     Py_ssize_t i;
@@ -130,18 +149,18 @@ NY_ASSERT_IMMUTABLE_BUILTIN(PyObject *obj)
     if (obj == Py_None || obj == Py_True || obj == Py_False)
         return;
 
-    if (Py_TYPE(obj) == &PyBool_Type ||
-        Py_TYPE(obj) == &PyLong_Type ||
-        Py_TYPE(obj) == &PyUnicode_Type ||
+    if (Py_IS_TYPE(obj, &PyBool_Type) ||
+        Py_IS_TYPE(obj, &PyLong_Type) ||
+        Py_IS_TYPE(obj, &PyUnicode_Type) ||
         /* NodeTuple's hash does not depend on hash of its contents */
-        Py_TYPE(obj) == &NyNodeTuple_Type ||
-        Py_TYPE(obj) == &NyRelation_Type ||
-        Py_TYPE(obj) == NyImmNodeSet_TYPE
+        Py_IS_TYPE(obj, &NyNodeTuple_Type) ||
+        Py_IS_TYPE(obj, &NyRelation_Type) ||
+        NyImmNodeSet_Check(obj)
         /* ImmBitSet will not be seen */
     )
         return;
 
-    if (Py_TYPE(obj) == &PyTuple_Type) {
+    if (Py_IS_TYPE(obj, &PyTuple_Type)) {
         for (i = 0; i < PyTuple_GET_SIZE(obj); i++)
             NY_ASSERT_IMMUTABLE_BUILTIN(PyTuple_GetItem(obj, i));
         return;
@@ -177,7 +196,7 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
 }
 
 
-void
+static void
 xt_free_table(ExtraType **xt_table, size_t size)
 {
     size_t i;
@@ -455,7 +474,7 @@ static ExtraType xt_error = {
 
 #define XT_HASH(hv, type)    (((Py_uintptr_t)type >> 4) & XT_MASK)
 
-void
+static void
 xt_findout_size(ExtraType *xt)
 {
     if (xt->xt_hd->size)
@@ -464,7 +483,7 @@ xt_findout_size(ExtraType *xt)
         xt->xt_size = hv_default_size;
 }
 
-void
+static void
 xt_findout_traverse(ExtraType *xt)
 {
     if (xt->xt_hd->traverse) {
@@ -482,7 +501,7 @@ xt_findout_traverse(ExtraType *xt)
     }
 }
 
-void
+static void
 xt_findout_relate(ExtraType *xt)
 {
     if (xt->xt_hd->relate)
@@ -539,7 +558,7 @@ xt_set_heapdef(ExtraType *xt, NyHeapDef *hd)
     xt_findout_relate(xt);
 }
 
-static ExtraType *
+ExtraType *
 hv_extra_type(NyHeapViewObject *hv, PyTypeObject *type)
 {
     NY_ASSERT_OBJ_LOCKED_OR_STW(hv);
@@ -679,19 +698,19 @@ hv_mutnodeset_new(NyHeapViewObject *hv)
     return NyMutNodeSet_NewHiding(hv->_hiding_tag_);
 }
 
-static size_t
+size_t
 hv_std_size(NyHeapViewObject *hv, PyObject *obj)
 {
     return xt_size(hv_extra_type(hv, Py_TYPE(obj)), obj);
 }
 
-static int
+int
 hv_std_relate(NyHeapRelate *hr)
 {
     return xt_relate(hv_extra_type((NyHeapViewObject *)hr->hv, Py_TYPE(hr->src)), hr);
 }
 
-static int
+int
 hv_std_traverse(NyHeapViewObject *hv,
                 PyObject *obj, visitproc visit, void *arg)
 {
@@ -704,7 +723,7 @@ typedef struct {
     PyObject *rm;
 } CMSTravArg;
 
-int
+static int
 hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 {
     PyTypeObject *type = Py_TYPE(obj);
@@ -814,7 +833,7 @@ hv_add_heapdefs_tuple(NyHeapViewObject *hv, PyTupleObject *heapdefs)
 
 
 
-PyObject *
+static PyObject *
 NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdefs)
 {
     NyHeapViewObject *hv = (NyHeapViewObject *)type->tp_alloc(type, 1);
@@ -940,8 +959,6 @@ out:
     return r;
 }
 
-#include "hv_cli.c"
-
 typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *hs;
@@ -1046,7 +1063,7 @@ hv_update_static_types(NyHeapViewObject *hv, PyObject *it)
 }
 
 
-static PyObject *
+PyObject *
 hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     HeapTravArg ta;
@@ -1228,10 +1245,20 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     RATravArg ta;
     static char *kwlist[] = {"start", "avoid", 0};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!:reachable", kwlist,
-                                     NyNodeSet_TYPE, &ta.start,
-                                     NyNodeSet_TYPE, &ta.avoid))
-        return 0;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:reachable", kwlist,
+                                     &ta.start, &ta.avoid))
+        return NULL;
+    if (!NyNodeSet_Check((PyObject *)ta.start)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.start)->tp_name);
+        return NULL;
+    }
+    if (!NyNodeSet_Check((PyObject *)ta.avoid)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.avoid)->tp_name);
+        return NULL;
+    }
+
     ta.hv = self;
     ta.visited = NULL;
     ta.to_visit = PyList_New(0);
@@ -1295,10 +1322,20 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     RATravArg ta;
     static char *kwlist[] = {"start", "avoid", 0};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!:reachable", kwlist,
-                                     NyNodeSet_TYPE, &ta.start,
-                                     NyNodeSet_TYPE, &ta.avoid))
-        return 0;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:reachable", kwlist,
+                                     &ta.start, &ta.avoid))
+        return NULL;
+    if (!NyNodeSet_Check((PyObject *)ta.start)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.start)->tp_name);
+        return NULL;
+    }
+    if (!NyNodeSet_Check((PyObject *)ta.avoid)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.avoid)->tp_name);
+        return NULL;
+    }
+
     ta.hv = self;
     ta.visited = NULL;
     ta.to_visit = PyList_New(0);
@@ -1634,13 +1671,23 @@ hv_shpathstep(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     static char *kwlist[] = {"G", "U", "S", "AvoidEdges", "find_one", 0};
     ta.find_one_flag = 0;
     ta.edgestoavoid = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!|O!i:shpathstep", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!OO|O!i:shpathstep", kwlist,
                                      &NyNodeGraph_Type, &ta.P,
-                                     NyNodeSet_TYPE, &ta.U,
-                                     NyNodeSet_TYPE, &ta.S,
+                                     &ta.U, &ta.S,
                                      &NyNodeGraph_Type, &ta.edgestoavoid,
                                      &ta.find_one_flag))
-        return 0;
+        return NULL;
+    if (!NyNodeSet_Check((PyObject *)ta.U)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.U)->tp_name);
+        return NULL;
+    }
+    if (!NyNodeSet_Check((PyObject *)ta.S)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.S)->tp_name);
+        return NULL;
+    }
+
     ta.hv = self;
     if (ta.edgestoavoid && ta.edgestoavoid->used_size == 0)
         ta.edgestoavoid = 0;
@@ -1720,7 +1767,7 @@ Update owners with ownership edges.\n\
 The dict owners graph will be updated with an edge from each dict\n\
 object in the heap, to either its owner or to None.");
 
-PyObject *
+static PyObject *
 hv_update_dictowners(NyHeapViewObject *self, PyObject *args)
 {
     NyNodeGraphObject *rg;
@@ -1765,16 +1812,21 @@ PyDoc_STRVAR(hv_update_referrers_doc,
 "so that the edges of every path from the root to nodes in Y will be\n"
 "represented, inverted, in X.");
 
-PyObject *
+static PyObject *
 hv_update_referrers(NyHeapViewObject *self, PyObject *args)
 {
     RetaTravArg ta;
-    if (!PyArg_ParseTuple(args, "O!O!:update_referrers",
+    if (!PyArg_ParseTuple(args, "O!O:update_referrers",
                           &NyNodeGraph_Type, &ta.rg,
-                          NyNodeSet_TYPE, &ta.targetset))
+                          &ta.targetset))
         return NULL;
+    if (!NyNodeSet_Check((PyObject *)ta.targetset)) {
+        PyErr_Format(PyExc_TypeError, "expected NodeSet, not %s",
+                     Py_TYPE(ta.targetset)->tp_name);
+        return NULL;
+    }
 
-    PyObject *ret = 0;
+    PyObject *ret = NULL;
 
     ta.hv = self;
     ta.markset = NULL;
@@ -1943,7 +1995,7 @@ urco_traverse(PyObject *obj, URCOTravArg *ta)
     return 0;
 }
 
-PyObject *
+static PyObject *
 hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
 {
     URCOTravArg ta;
@@ -1971,7 +2023,7 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
             continue;
         if (NyNodeGraph_Check(retainer))
             continue; /* Note 22/11 2004 */
-        else if ((NyNodeSet_Check(retainer) &&
+        else if ((NyNodeSet_Check((PyObject *)retainer) &&
                   ((NyNodeSetObject *)retainer)->_hiding_tag_ == _hiding_tag_))
             ta.retainer = Py_None;
         else

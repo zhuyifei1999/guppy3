@@ -1,7 +1,18 @@
 /* Implementation of the identity-set classifier */
 
-PyDoc_STRVAR(hv_cli_idset_doc,
-"HV.cli_id() -> ObjectClassifier\n\
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_idset_doc[] = PyDoc_STR(
+"HV.cli_idset() -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies by set of identity.\n\
 \n\
@@ -31,9 +42,8 @@ static NyObjectClassifierDef hv_cli_idset_def = {
     hv_cli_idset_le,
 };
 
-static PyObject *
+PyObject *
 hv_cli_idset(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_idset_def);
 }
-

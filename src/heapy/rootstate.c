@@ -1,5 +1,17 @@
 /* RootState implmentation */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapdef.h"
+#include "heapy.h"
+#include "rootstate.h"
+#include "stoptheworld.h"
+
 char rootstate_doc[] =
 
 "The type of an object with special functionality that gives access to\n"
@@ -106,12 +118,18 @@ char rootstate_doc[] =
 
 #define Py_BUILD_CORE
 /* PyInterpreterState */
+# undef _PyGC_FINALIZED
 # include <internal/pycore_interp.h>
 /* _PyRuntime */
 # include <internal/pycore_runtime.h>
 #undef Py_BUILD_CORE
 
-#if PY_VERSION_HEX == Py_PACK_VERSION(3, 13)
+#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+# define Py_BUILD_CORE
+/* HEAD_LOCK */
+#  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+#elif PY_VERSION_HEX == Py_PACK_VERSION(3, 13)
 /* Py3.13 has HEAD_LOCK using _PyMutex_LockTimed, but it's not exported...
    What can you do? Gotta spin I guess */
 # ifdef MS_WINDOWS
@@ -445,7 +463,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
     return 0;
 }
 
-static int
+int
 rootstate_relate(NyHeapRelate *r)
 {
     int ret;

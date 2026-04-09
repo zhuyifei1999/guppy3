@@ -1,30 +1,14 @@
 /* Classifier implementations */
 
-#define NYTUPLELIKE_NEW(t) ((t *)PyTuple_New((sizeof(t) - sizeof(PyTupleObject)) / sizeof(PyObject *) + 1))
-#define NYTUPLELIKE_ASSERT(s, m) \
-    static_assert(offsetof(s, m) == offsetof(PyTupleObject, ob_item), \
-                  "NYTUPLELIKE_ASSERT Header check failed for " #s ", check NYTUPLELIKE_HEAD")
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
-/* NYTUPLELIKE_HEAD should match PyTupleObject before ob_item */
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
-# define NYTUPLELIKE_HEAD \
-    PyObject_VAR_HEAD \
-    Py_hash_t ob_hash;
-#else
-# define NYTUPLELIKE_HEAD \
-    PyObject_VAR_HEAD
-#endif
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
 
-#include "hv_cli_and.c"
-#include "hv_cli_dictof.c"
-#include "hv_cli_id.c"
-#include "hv_cli_idset.c"
-#include "hv_cli_prod.c"
-#include "hv_cli_rcs.c"
-#include "hv_cli_indisize.c"
-#include "hv_cli_findex.c"
-#include "hv_cli_rel.c"
-#include "hv_cli_user.c"
+#include "impsets.h"
+#include "classifier.h"
+#include "hv.h"
 
 static PyObject *
 hv_cli_none_classify(NyHeapViewObject *self, PyObject *arg)
@@ -49,14 +33,14 @@ static NyObjectClassifierDef hv_cli_none_def = {
     hv_cli_none_le,
 };
 
-PyDoc_STRVAR(hv_cli_none_doc,
+const char hv_cli_none_doc[] = PyDoc_STR(
 "HV.cli_none() -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies all objects the same.\n\
 \n\
 The classification of each object is None.");
 
-static PyObject *
+PyObject *
 hv_cli_none(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_none_def);
@@ -86,7 +70,7 @@ static NyObjectClassifierDef hv_cli_type_def = {
     hv_cli_type_le,
 };
 
-PyDoc_STRVAR(hv_cli_type_doc,
+const char hv_cli_type_doc[] = PyDoc_STR(
 "HV.cli_type() -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies by type.\n\
@@ -95,7 +79,7 @@ The classification of each object is the type, as given by its\n\
 C-level member 'ob_type'. (This is the same as the type returned\n\
 by the Python-level builtin 'type'.)");
 
-static PyObject *
+PyObject *
 hv_cli_type(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_type_def);

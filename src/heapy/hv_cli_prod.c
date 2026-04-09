@@ -1,6 +1,15 @@
 /* Implementation of the 'prod' classifier */
 
-PyDoc_STRVAR(hv_cli_prod_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_prod_doc[] = PyDoc_STR(
 "HV.cli_prod(memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that classifes by \"producer\".\n"
@@ -11,6 +20,16 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 "    memo        A dict object used to\n"
 "                memoize the classification sets.\n"
 );
+
+#define Py_BUILD_CORE
+/* PyGC_Head */
+# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#  include <internal/pycore_interp_structs.h>
+# else
+#  undef _PyGC_FINALIZED
+#  include <internal/pycore_gc.h>
+# endif
+#undef Py_BUILD_CORE
 
 #if PY_VERSION_HEX >= Py_PACK_VERSION(3, 11)
 # define Py_BUILD_CORE
@@ -227,7 +246,7 @@ static NyObjectClassifierDef hv_cli_prod_def = {
     hv_cli_prod_le
 };
 
-static PyObject *
+PyObject *
 hv_cli_prod(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r, *memo;

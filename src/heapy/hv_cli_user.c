@@ -1,6 +1,15 @@
 /* Implementation of user defined classifiers. */
 
-PyDoc_STRVAR(hv_cli_user_defined_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_user_defined_doc[] = PyDoc_STR(
 "\n"
 );
 
@@ -57,7 +66,7 @@ static NyObjectClassifierDef hv_cli_user_def = {
 
 
 
-static PyObject *
+PyObject *
 hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"cond_cli", "cond_kind", "classify", "memoized_kind", 0};

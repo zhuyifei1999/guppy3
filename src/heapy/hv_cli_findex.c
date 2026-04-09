@@ -4,7 +4,16 @@
 
 */
 
-PyDoc_STRVAR(hv_cli_findex_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_findex_doc[] = PyDoc_STR(
 "HV.cli_findex(tuple, memo) -> ObjectClassifier\n\
 ");
 
@@ -86,7 +95,7 @@ static NyObjectClassifierDef hv_cli_findex_def = {
     hv_cli_findex_le,
 };
 
-static PyObject *
+PyObject *
 hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;

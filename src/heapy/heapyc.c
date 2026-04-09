@@ -30,56 +30,47 @@ char heapyc_doc[] =
 #include <Python.h>
 
 #include "structmember.h"
-#include "compile.h"
-#include "frameobject.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
-#include "../sets/nodeset.h"
+
+#include "impsets.h"
 #include "heapdef.h"
 #include "heapy.h"
 #include "classifier.h"
+#include "hv.h"
 #include "nodegraph.h"
 #include "relation.h"
+#include "rootstate.h"
+#include "stdtypes_internal.h"
 #include "stoptheworld.h"
+#include "utils.h"
+#include "xmemstats.h"
+
+#define Py_BUILD_CORE
+# undef _PyGC_FINALIZED
+/* PyInterpreterState */
+# include <internal/pycore_interp.h>
+#undef Py_BUILD_CORE
 
 /* Extern decls - maybe put in .h file but not in heapy.h */
 
-extern NyHeapDef NyStdTypes_HeapDef[];
-extern NyHeapDef NyStdTypes_HeapDef[];
-extern NyHeapDef NyObjectWithHeapType_HeapDef;
-extern void NyStdTypes_init(void);
-extern int dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v);
 
 /* Forward decls */
 
-PyTypeObject NyObjectClassifier_Type;
-PyTypeObject NyNodeSet_Type;
-PyTypeObject NyHeapView_Type;
-PyTypeObject NyHorizon_Type;
-PyTypeObject NyNodeGraph_Type;
-PyTypeObject NyRootState_Type;
-PyTypeObject NyRelation_Type;
-PyTypeObject NyNodeTuple_Type;
+/* Stop-the-world support data */
 
-NyHeapDef NyHvTypes_HeapDef[];
-
-PyObject * NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
-int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
-                       void *arg);
-
-static Py_ssize_t roundupsize(Py_ssize_t n);
-
-/* Thread-local data */
-
-#if !defined(Py_GIL_DISABLED) && !defined(NDEBUG)
+#ifdef Py_GIL_DISABLED
+bool NY_IS_WORLD_STOPPED(void)
+{
+    return PyInterpreterState_Get()->stoptheworld.world_stopped;
+}
+#elif !defined(NDEBUG)
 thread_local int _world_stopped = 0;
 #endif
 
 /* general utilities */
 
-#include "impsets.c"
-
-static int
+int
 iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
                 void *arg)
 {
@@ -143,15 +134,7 @@ err:
     return objects;
 }
 
-#include "roundupsize.c"
-
 /* objects */
-
-#include "hv.c"
-#include "classifier.c"
-#include "horizon.c"
-#include "nodegraph.c"
-#include "rootstate.c"
 
 #ifdef Py_GIL_DISABLED
 # define Py_BUILD_CORE
@@ -180,9 +163,6 @@ hp_has_deferred_refcount(PyObject *self, PyObject *op)
     return Py_NewRef(Py_False);
 #endif
 }
-
-/* #include "interpreter.c" */
-#include "xmemstats.c"
 
 static PyMethodDef module_methods[] =
 {
@@ -297,8 +277,11 @@ err_unlock:
     return -1;
 }
 
+/* -Wmissing-prototypes */
+extern PyMODINIT_FUNC PyInit_heapyc(void);
+
 PyMODINIT_FUNC
-PyInit_heapyc (void)
+PyInit_heapyc(void)
 {
     return PyModuleDef_Init(&moduledef);
 }

@@ -1,6 +1,16 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapdef.h"
+#include "heapy.h"
+#include "stdtypes.h"
+#include "stdtypes_internal.h"
+#include "stoptheworld.h"
+
 #if PY_VERSION_HEX >= Py_PACK_VERSION(3, 12)
 # define Py_BUILD_CORE
 #  undef _PyGC_FINALIZED
@@ -19,16 +29,6 @@
 #  include <internal/pycore_code.h>
 # undef Py_BUILD_CORE
 #endif
-
-#include "structmember.h"
-#include "compile.h"
-#include "frameobject.h"
-#include "unicodeobject.h"
-
-#include "heapdef.h"
-#include "heapy.h"
-#include "stdtypes.h"
-#include "stoptheworld.h"
 
 #if PY_VERSION_HEX >= Py_PACK_VERSION(3, 12)
 # define Py_BUILD_CORE

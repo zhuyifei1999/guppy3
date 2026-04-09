@@ -4,8 +4,24 @@
     outrel
 */
 
-PyDoc_STRVAR(hv_cli_inrel_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapy.h"
+#include "impsets.h"
+#include "heapdef.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "relation.h"
+#include "stoptheworld.h"
+#include "utils.h"
+
+const char hv_cli_inrel_doc[] = PyDoc_STR(
 "HV.cli_inrel(referrers, memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that classifes by \"incoming relations\".\n"
@@ -32,7 +48,7 @@ rel_dealloc(NyRelationObject *op)
     Py_TRASHCAN_END
 }
 
-PyObject *
+static PyObject *
 NyRelation_SubTypeNew(PyTypeObject *type, int kind, PyObject *relator)
 {
     NyRelationObject *rel = (NyRelationObject *)type->tp_alloc(type, 1);
@@ -47,7 +63,7 @@ NyRelation_SubTypeNew(PyTypeObject *type, int kind, PyObject *relator)
     return (PyObject *)rel;
 }
 
-NyRelationObject *
+static NyRelationObject *
 NyRelation_New(int kind, PyObject *relator)
 {
     return (NyRelationObject *)NyRelation_SubTypeNew(&NyRelation_Type, kind, relator);
@@ -372,7 +388,7 @@ static NyObjectClassifierDef hv_cli_inrel_def = {
 };
 
 
-static PyObject *
+PyObject *
 hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;

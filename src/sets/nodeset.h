@@ -5,7 +5,7 @@
 
 #define NS_HOLDOBJECTS	1       /* Only to be cleared in special case with mutable nodeset. */
 
-typedef struct {
+typedef struct NyNodeSetObject {
     PyObject_VAR_HEAD
     int flags;
     PyObject *_hiding_tag_;

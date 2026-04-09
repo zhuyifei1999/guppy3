@@ -6,9 +6,9 @@
 #include <stdbool.h>
 
 #include "structmember.h"
-
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
+
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -132,18 +132,7 @@ PyDoc_STRVAR(mutnodeset_doc,
 
 /* Forward decls */
 
-static PyObject * nodeset_bitno_to_obj(NyBit bitno);
-PyTypeObject NyImmNodeSet_Type;
-PyTypeObject NyMutNodeSet_Type;
-
-NyNodeSetObject *
-NyImmNodeSet_SubtypeOfNodeSetDecRef(PyTypeObject *type, NyNodeSetObject *v);
-NyNodeSetObject *
-NyImmNodeSet_New(NyBit size, PyObject *hiding_tag);
-
-static NyNodeSetObject *
-immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op);
-
+static PyObject *nodeset_bitno_to_obj(NyBit bitno);
 
 /* */
 
@@ -197,8 +186,6 @@ bool_from_int(int res)
 
 
 /* NyMutNodeSetIter methods */
-
-static PyObject *nodeset_ior(NyNodeSetObject *v, PyObject *w);
 
 typedef struct {
     PyObject_HEAD
@@ -259,7 +246,7 @@ PyTypeObject NyMutNodeSetIter_Type = {
 
 /* NodeSet methods */
 
-NyNodeSetObject *
+static NyNodeSetObject *
 NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag)
 {
     NyNodeSetObject *v = (void *)type->tp_alloc(type, 0);
@@ -520,7 +507,7 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
     }
 }
 
-PyObject *
+static PyObject *
 mutnodeset_iter(NyNodeSetObject *v)
 {
     PyObject *bitset_iter;
@@ -541,7 +528,7 @@ mutnodeset_iter(NyNodeSetObject *v)
 
 
 
-static PyObject *
+PyObject *
 nodeset_richcompare(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 {
     if (!NyNodeSet_Check(v) || !NyNodeSet_Check(w)) {
@@ -628,7 +615,7 @@ NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
     return r;
 }
 
-int
+static int
 NyNodeSet_clear(NyNodeSetObject *v)
 {
     if (NyMutNodeSet_Check(v) && v->u.bitset) {
@@ -675,7 +662,7 @@ NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
     return r;
 }
 
-int
+static int
 NyNodeSet_invobj(NyNodeSetObject *v, PyObject *obj)
 {
     int r = -1;
@@ -1077,7 +1064,7 @@ nodeset_ixor(NyNodeSetObject *v, PyObject *w)
         return nodeset_iop_chk_iterable(v, w, NyNodeSet_invobj);
 }
 
-static PyObject *
+PyObject *
 nodeset_ior(NyNodeSetObject *v, PyObject *w)
 {
     if (!(NyMutNodeSet_Check(v)))
@@ -1197,8 +1184,6 @@ PyTypeObject NyNodeSet_Type = {
 };
 
 
-#include "immnodeset.c"
-
 PyTypeObject NyMutNodeSet_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name        = "guppy.sets.setsc.MutNodeSet",
@@ -1257,13 +1242,13 @@ int fsb_dx_nynodeset_init(PyObject *m)
     PyMutex_Lock(&typeinit_mutex);
     if (PyModule_AddType(m, &NyNodeSet_Type) == -1)
         goto err_unlock;
-    if (PyModule_AddType(m, &NyImmNodeSet_Type) == -1)
-        goto err_unlock;
     if (PyModule_AddType(m, &NyMutNodeSet_Type) == -1)
         goto err_unlock;
-    if (PyType_Ready(&NyImmNodeSetIter_Type) == -1)
+    if (PyModule_AddType(m, &NyImmNodeSet_Type) == -1)
         goto err_unlock;
     if (PyType_Ready(&NyMutNodeSetIter_Type) == -1)
+        goto err_unlock;
+    if (PyType_Ready(&NyImmNodeSetIter_Type) == -1)
         goto err_unlock;
     PyMutex_Unlock(&typeinit_mutex);
 

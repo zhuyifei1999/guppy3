@@ -1,5 +1,17 @@
 /* ObjectClassifier object implementation */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "structmember.h"
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "stoptheworld.h"
+#include "nodegraph.h"
+#include "utils.h"
+
 char cli_doc[] =
 "This is the type of objects created by the hv_cli_* factory methods of\n"
 "HeapView objects. See HeapView.__doc__ and the factory methods for the\n"

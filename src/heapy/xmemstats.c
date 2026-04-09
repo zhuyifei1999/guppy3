@@ -3,7 +3,15 @@
    some require special Python compilation.
 */
 
-static char hp_xmemstats_doc[] =
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "xmemstats.h"
+
+char hp_xmemstats_doc[] =
 "xmemstats()\n"
 "\n"
 "Print extra memory statistics. What is printed depends on the system\n"
@@ -14,7 +22,6 @@ static char hp_xmemstats_doc[] =
 #else
 #include <windows.h>
 #endif
-
 
 static size_t (*dlptr_malloc_usable_size)(void *ptr);
 static void (*dlptr_malloc_stats)(void);
@@ -30,7 +37,8 @@ Py_ssize_t totalloc, totfree, numalloc, numfree;
 static int has_malloc_hooks;
 #endif
 
-static void *addr_of_symbol(const char *symbol) {
+static void *addr_of_symbol(const char *symbol)
+{
 #ifndef MS_WIN32
     return dlsym(RTLD_DEFAULT, symbol);
 #else
@@ -100,7 +108,8 @@ static void freehook(void *p);
 
 
 static void *
-mallochook(size_t size) {
+mallochook(size_t size)
+{
     void *p;
 
     HOOK_RESTORE;
@@ -118,7 +127,8 @@ mallochook(size_t size) {
 }
 
 static void *
-reallochook(void *p, size_t size) {
+reallochook(void *p, size_t size)
+{
     void *q;
     Py_ssize_t f;
 
@@ -163,7 +173,8 @@ reallochook(void *p, size_t size) {
 }
 
 static void
-freehook(void *p) {
+freehook(void *p)
+{
     totfree += dlptr_malloc_usable_size(p);
     HOOK_RESTORE;
     free(p);
@@ -176,8 +187,9 @@ freehook(void *p) {
 }
 #endif
 
-static void
-xmemstats_init(void) {
+void
+xmemstats_init(void)
+{
 #ifdef HEAPY_BREAK_THREAD_SAFETY
     dlptr___malloc_hook              = addr_of_symbol("__malloc_hook");
     dlptr___realloc_hook             = addr_of_symbol("__realloc_hook");
@@ -198,7 +210,7 @@ xmemstats_init(void) {
 #endif
 }
 
-static PyObject *
+PyObject *
 hp_xmemstats(PyObject *self, PyObject *args)
 {
     if (dlptr__PyObject_DebugMallocStats) {

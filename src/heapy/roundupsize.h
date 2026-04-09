@@ -1,6 +1,9 @@
+#ifndef NY_ROUNDUPSIZE_H
+#define NY_ROUNDUPSIZE_H
+
 /* From listobject.c */
 
-static Py_ssize_t
+static inline Py_ssize_t
 roundupsize(Py_ssize_t n)
 {
     size_t nbits = 0;
@@ -33,4 +36,6 @@ roundupsize(Py_ssize_t n)
         nbits += 3;
     } while (n2);
     return ((n >> nbits) + 1) << nbits;
- }
+}
+
+#endif

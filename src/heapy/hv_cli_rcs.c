@@ -1,6 +1,18 @@
 /* Implementation of the 'rcs' classifier */
 
-PyDoc_STRVAR(hv_cli_rcs_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "utils.h"
+
+const char hv_cli_rcs_doc[] = PyDoc_STR(
 "HV.cli_rcs(referrers, classifier, memo) -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies by \"Referrer Classification Set\".\n\
@@ -161,7 +173,7 @@ static NyObjectClassifierDef hv_cli_rcs_def = {
 };
 
 
-static PyObject *
+PyObject *
 hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;

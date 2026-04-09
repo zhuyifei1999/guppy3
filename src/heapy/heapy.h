@@ -1,8 +1,11 @@
 #ifndef Ny_HEAPY_H
 
-struct ExtraType;
+typedef struct ExtraType ExtraType;
+typedef struct ExtraType ExtraType;
+typedef struct NyHeapDef NyHeapDef;
+typedef struct NyHeapRelate NyHeapRelate;
 
-typedef struct {
+typedef struct NyHeapViewObject {
     PyObject_HEAD
     PyObject *root;
     PyObject *limitframe;
@@ -11,7 +14,7 @@ typedef struct {
     PyObject *static_types;
     PyObject *weak_type_callback;
     char is_hiding_calling_interpreter;
-    struct ExtraType **xt_table;
+    ExtraType **xt_table;
     int xt_mask;
     size_t xt_size;
 } NyHeapViewObject;
@@ -23,8 +26,8 @@ typedef struct ExtraType {
     size_t (*xt_size)(PyObject *obj);
     int (*xt_traverse)(struct ExtraType *, PyObject *, visitproc, void *);
     int (*xt_relate)(struct ExtraType *, NyHeapRelate *r);
-    struct ExtraType *xt_next;
-    struct ExtraType *xt_base, *xt_he_xt;
+    ExtraType *xt_next;
+    ExtraType *xt_base, *xt_he_xt;
     int (*xt_he_traverse)(struct ExtraType *, PyObject *, visitproc, void *);
     NyHeapViewObject *xt_hv;
     PyObject *xt_weak_type;

@@ -1,6 +1,15 @@
 /* Implementation of the identity classifier */
 
-PyDoc_STRVAR(hv_cli_id_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_id_doc[] = PyDoc_STR(
 "HV.cli_id() -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies by identity.\n\
@@ -31,9 +40,8 @@ static NyObjectClassifierDef hv_cli_id_def = {
     hv_cli_id_le,
 };
 
-static PyObject *
+PyObject *
 hv_cli_id(NyHeapViewObject *self, PyObject *args)
 {
     return NyObjectClassifier_New((PyObject *)self, &hv_cli_id_def);
 }
-

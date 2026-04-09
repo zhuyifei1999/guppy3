@@ -3,8 +3,12 @@
 
 #ifdef Py_GIL_DISABLED
 
-#define NY_IS_WORLD_STOPPED() \
-    (PyInterpreterState_Get()->stoptheworld.world_stopped)
+/* This is in <internal/pycore_pystate.h>, but I don't want to Py_BUILD_CORE
+   for everything using this header */
+extern PyAPI_FUNC(void) _PyEval_StopTheWorld(PyInterpreterState *interp);
+extern PyAPI_FUNC(void) _PyEval_StartTheWorld(PyInterpreterState *interp);
+
+extern bool NY_IS_WORLD_STOPPED(void);
 #define NY_ASSERT_WORLD_STOPPED() \
     assert(NY_IS_WORLD_STOPPED())
 #define NY_ASSERT_WORLD_RUNNING() \

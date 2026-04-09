@@ -32,13 +32,12 @@ char sets_doc[] =
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
+
 #include "../heapy/heapdef.h"
 #include "../heapy/heapy.h"
 #include "sets_internal.h"
-
-extern int fsb_dx_nybitset_init(PyObject *m);
-extern int fsb_dx_nynodeset_init(PyObject *m);
 
 static PyMethodDef module_methods[] = {
     {NULL, NULL}
@@ -91,8 +90,10 @@ static int module_exec(PyObject *m)
     return 0;
 }
 
-PyMODINIT_FUNC
-PyInit_setsc (void)
+/* -Wmissing-prototypes */
+extern PyMODINIT_FUNC PyInit_setsc(void);
+
+PyMODINIT_FUNC PyInit_setsc(void)
 {
     return PyModuleDef_Init(&moduledef);
 }

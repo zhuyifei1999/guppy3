@@ -17,9 +17,12 @@ typedef struct{
     PyObject *self;
 } NyObjectClassifierObject;
 
+extern PyTypeObject NyObjectClassifier_Type;
+
 #define NyObjectClassifier_Check(op) PyObject_TypeCheck(op, &NyObjectClassifier_Type)
 
-int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp);
+extern PyObject *NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
+extern int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp);
 
 /* cmp argument (to select etc)
    The first 6 happen to correspond to Py_LT , Py_LE etc
@@ -34,5 +37,6 @@ int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObj
 #define CLI_GE	5
 #define CLI_MAX	5	/* Current end of definitions */
 
-#endif /* NY_CLASSIFIER_H */
+extern int cli_cmp_as_int(PyObject *cmp);
 
+#endif /* NY_CLASSIFIER_H */
