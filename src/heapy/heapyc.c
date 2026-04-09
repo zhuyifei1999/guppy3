@@ -62,7 +62,7 @@ bool NY_IS_WORLD_STOPPED(void)
     return PyInterpreterState_Get()->stoptheworld.world_stopped;
 }
 #elif !defined(NDEBUG)
-thread_local int _world_stopped = 0;
+Ny_thread_local int _world_stopped = 0;
 #endif
 
 /* general utilities */
