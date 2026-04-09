@@ -201,7 +201,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
             (Py_REFCNT(src) < 0xa000000 || _Py_IsImmortal(src)));
     assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 &&
             (Py_REFCNT(tgt) < 0xa000000 || _Py_IsImmortal(tgt)));
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
+#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     /* Py >= 3.11 _PyObject_IMMORTAL_INIT sets initial refcount of 999999999 */
     assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 &&
             (Py_REFCNT(src) < 0xa000000 ||

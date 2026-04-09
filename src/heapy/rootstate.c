@@ -137,6 +137,11 @@ PyDoc_STRVAR(rootstate_doc,
 #  include <sched.h>
 # endif
 
+# define Py_BUILD_CORE
+/* HEAD_UNLOCK */
+#  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+
 # undef HEAD_LOCK
 # define HEAD_LOCK(runtime) do {                                        \
         while (!PyMutex_LockFast(&(runtime)->interpreters.mutex._bits)) \

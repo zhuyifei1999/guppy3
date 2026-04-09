@@ -656,7 +656,7 @@ static int
 xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
     NY_ASSERT_WORLD_STOPPED();
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_MANAGED_DICT) {
         // FIXME: There's no way to distinguish between managed dict entries
         // and other references. To keep our results stable we have to
