@@ -225,7 +225,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     ret = nodeset_bitno_to_obj(bitno);
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
-    } else {
+    } else if (!(hi->nodeset->flags & _NS_STWNOHOLD)) {
         ret = PyLong_FromSsize_t((Py_intptr_t)ret);
     }
     return ret;
@@ -252,13 +252,13 @@ NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag
     NyNodeSetObject *v = (void *)type->tp_alloc(type, 0);
     if (!v)
         return NULL;
-    v->flags = flags;
-    Py_SET_SIZE(v, 0);
     v->u.bitset = (PyObject *)NyMutBitSet_New();
     if (!v->u.bitset) {
         Py_DECREF(v);
         return 0;
     }
+    Py_SET_SIZE(v, 0);
+    v->flags = flags & ~_NS_STWNOHOLD;
     v->_hiding_tag_ = hiding_tag;
     Py_XINCREF(hiding_tag);
     return v;
@@ -284,6 +284,11 @@ NyMutNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject
 NyNodeSetObject *
 NyMutNodeSet_NewFlags(int flags)
 {
+    if (flags & ~NS_HOLDOBJECTS) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Unknown flags to NyMutNodeSet_NewFlags");
+        return NULL;
+    }
     return NyMutNodeSet_SubtypeNewFlags(&NyMutNodeSet_Type, flags, 0);
 }
 
@@ -294,16 +299,40 @@ NyMutNodeSet_New(void)
 }
 
 NyNodeSetObject *
-NyMutNodeSet_NewHiding(PyObject *hiding_tag) {
+NyMutNodeSet_NewHiding(PyObject *hiding_tag)
+{
     return NyMutNodeSet_SubtypeNewFlags(&NyMutNodeSet_Type, NS_HOLDOBJECTS, hiding_tag);
 }
 
+int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v)
+{
+    memset(v, 0, sizeof(*v));
+    v->u.bitset = (PyObject *)NyMutBitSet_New();
+    if (!v->u.bitset)
+        return -1;
+    Py_SET_TYPE(v, &NyMutNodeSet_Type);
+    Py_SET_SIZE(v, 0);
+    v->flags = _NS_STWNOHOLD;
+    v->_hiding_tag_ = NULL;
+    return 0;
+}
 
+void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
+{
+    /* Ordered so that this is safe to call even if
+       NySTWMutNodeSet_InitOnStack fails */
+    if (!v->u.bitset)
+        return;
+
+    assert(Py_IS_TYPE(v, &NyMutNodeSet_Type));
+    assert(v->flags == _NS_STWNOHOLD);
+
+    Py_TYPE(v->u.bitset)->tp_dealloc(v->u.bitset);
+}
 
 static PyObject *
 mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-
     PyObject *iterable = NULL;
     static char *kwlist[] = {"iterable", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:MutNodeSet.__new__",kwlist, &iterable))
@@ -361,6 +390,8 @@ static int
 mutnodeset_gc_clear(NyNodeSetObject *v)
 {
     /* NOT LOCKED: Object is dying */
+    assert(!(v->flags & _NS_STWNOHOLD));
+
     if (v->u.bitset) {
         PyObject *x = v->u.bitset;
         if (v->flags & NS_HOLDOBJECTS) {
@@ -442,6 +473,8 @@ static int
 mutnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
     /* NOT LOCKED: Stop the world from GC */
+    assert(!(v->flags & _NS_STWNOHOLD));
+
     int err = 0;
     if (v->flags & NS_HOLDOBJECTS) {
         err = NyNodeSet_iterate(v, visit, arg);
@@ -465,7 +498,7 @@ static int
 mutnodeset_iterate_visit(NyBit bitno, nodeset_iterate_visit_arg *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
-    if (arg->ns->flags & NS_HOLDOBJECTS)
+    if (arg->ns->flags & NS_HOLDOBJECTS || arg->ns->flags & _NS_STWNOHOLD)
         return arg->visit(obj, arg->arg);
     else {
         PyObject *addr = PyLong_FromSsize_t((Py_intptr_t)obj);
@@ -484,7 +517,7 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
                   void *arg)
 {
     nodeset_iterate_visit_arg hia;
-    if (!(ns->flags & NS_HOLDOBJECTS)) {
+    if (!(ns->flags & NS_HOLDOBJECTS || ns->flags & _NS_STWNOHOLD)) {
         PyErr_SetString(PyExc_ValueError,
             "NyNodeSet_iterate: can not iterate because not owning element nodes");
         return -1;
@@ -1231,6 +1264,8 @@ static NyNodeSet_Exports nynodeset_exports = {
     NyNodeSet_clrobj,
     NyNodeSet_hasobj,
     NyNodeSet_iterate,
+    NySTWMutNodeSet_InitOnStack,
+    NySTWMutNodeSet_Destroy,
 };
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)

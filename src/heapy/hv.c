@@ -988,17 +988,17 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
 {
     IterTravArg ta;
     int r = -1;
+    NyNodeSetObject hs;
     ta.hv = hv;
     ta.visit = visit;
     ta.arg = arg;
-    ta.hs = NULL;
+    ta.hs = &hs;
     ta.to_visit = PyList_New(0);
     if (!ta.to_visit)
         goto err;
 
     NY_STOP_WORLD();
-    ta.hs = hv_mutnodeset_new(hv);
-    if (!ta.hs)
+    if (NySTWMutNodeSet_InitOnStack(&hs) == -1)
         goto err_start;
     r = iter_rec(ta.hv->root, &ta);
     if (r == -1)
@@ -1017,10 +1017,10 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
 
     r = 0;
 err_start:
+    NySTWMutNodeSet_Destroy(&hs);
     NY_START_WORLD();
 err:
     Py_XDECREF(ta.to_visit);
-    Py_XDECREF(ta.hs);
     return r;
 }
 
@@ -1816,6 +1816,11 @@ static PyObject *
 hv_update_referrers(NyHeapViewObject *self, PyObject *args)
 {
     RetaTravArg ta;
+    PyObject *ret = NULL;
+    NyNodeSetObject markset = {0};
+    NyNodeSetObject outset = {0};
+    NyNodeSetObject trace_set = {0};
+
     if (!PyArg_ParseTuple(args, "O!O:update_referrers",
                           &NyNodeGraph_Type, &ta.rg,
                           &ta.targetset))
@@ -1826,12 +1831,10 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
         return NULL;
     }
 
-    PyObject *ret = NULL;
-
     ta.hv = self;
-    ta.markset = NULL;
-    ta.outset = NULL;
-    ta.trace_set = NULL;
+    ta.markset = &markset;
+    ta.outset = &outset;
+    ta.trace_set = &trace_set;
     ta.to_visit = PyList_New(0);
     ta.trace_stack = PyList_New(0);
     ta.trace_res = PyList_New(0);
@@ -1843,10 +1846,11 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
         goto err;
 
     NY_STOP_WORLD();
-    ta.markset = hv_mutnodeset_new(self);
-    ta.outset = hv_mutnodeset_new(self);
-    ta.trace_set = hv_mutnodeset_new(self);
-    if (!(ta.markset && ta.outset && ta.trace_set))
+    if (NySTWMutNodeSet_InitOnStack(&markset) == -1)
+        goto err_start;
+    if (NySTWMutNodeSet_InitOnStack(&outset) == -1)
+        goto err_start;
+    if (NySTWMutNodeSet_InitOnStack(&trace_set) == -1)
         goto err_start;
     while (PyList_Size(ta.to_visit)) {
         PyObject *obj = hv_PyList_Pop(ta.to_visit);
@@ -1952,11 +1956,11 @@ err_inner:
     ret = Py_None;
 
 err_start:
+    NySTWMutNodeSet_Destroy(&markset);
+    NySTWMutNodeSet_Destroy(&outset);
+    NySTWMutNodeSet_Destroy(&trace_set);
     NY_START_WORLD();
 err:
-    Py_XDECREF(ta.markset);
-    Py_XDECREF(ta.outset);
-    Py_XDECREF(ta.trace_set);
     Py_XDECREF(ta.to_visit);
     Py_XDECREF(ta.trace_stack);
     Py_XDECREF(ta.trace_res);

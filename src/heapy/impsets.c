@@ -5,6 +5,7 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
+#include "stoptheworld.h"
 
 static NyNodeSet_Exports *nodeset_exports;
 
@@ -97,6 +98,18 @@ int
 NyNodeSet_be_immutable(NyNodeSetObject **nsp)
 {
     return NODESET_EXPORTS->be_immutable(nsp);
+}
+
+int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v)
+{
+    NY_ASSERT_WORLD_STOPPED();
+    return NODESET_EXPORTS->initStw(v);
+}
+
+void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
+{
+    NY_ASSERT_WORLD_STOPPED();
+    NODESET_EXPORTS->destroyStw(v);
 }
 
 int

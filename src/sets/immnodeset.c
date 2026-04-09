@@ -186,7 +186,8 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp) {
     NyNodeSetObject *cp = NyImmNodeSet_NewCopy(*nsp);
     if (!cp)
         return -1;
-    Py_DECREF(*nsp);
+    if (!((*nsp)->flags & _NS_STWNOHOLD))
+        Py_DECREF(*nsp);
     *nsp = cp;
     return 0;
 }
@@ -228,6 +229,8 @@ static int
 immnodeset_gc_clear(NyNodeSetObject *v)
 {
     /* NOT LOCKED: Object is dying */
+    assert(!(v->flags & _NS_STWNOHOLD));
+
     if (v->_hiding_tag_) {
         PyObject *x = v->_hiding_tag_;
         v->_hiding_tag_ = 0;
@@ -262,6 +265,8 @@ static int
 immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
     /* NOT LOCKED: Stop the world from GC */
+    assert(!(v->flags & _NS_STWNOHOLD));
+
     NyBit i;
     int err;
     err = 0;
