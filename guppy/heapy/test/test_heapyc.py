@@ -309,6 +309,7 @@ class TestLeak(support.TestCase):
         for nrc, rc, ob in zip(nrcli, rcli, li):
             self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
+        del ob
         root[:] = []
         ns.clear()
 
