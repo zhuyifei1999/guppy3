@@ -3,7 +3,6 @@
 #include <Python.h>
 
 #include <stdbool.h>
-#include <stdatomic.h>
 
 #include "structmember.h"
 #include "../include/guppy.h"
@@ -44,7 +43,7 @@ typedef struct _NyHorizonObject {
 static struct {
     NyHorizonObject *horizons;
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
-    bool replaced;
+    int replaced;
 #elif NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
     PyObject *types;
 #endif
@@ -63,7 +62,7 @@ static int horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
         horizon_on_dealloc(v);
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     if (event == PyRefTracer_TRACKER_REMOVED)
-        atomic_store_explicit(&rm.replaced, true, memory_order_seq_cst);
+        _Py_atomic_store_int(&rm.replaced, 1);
 # endif
 
     return 0;
@@ -78,7 +77,7 @@ horizon_install(void)
         return -1;
     }
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
-    atomic_store_explicit(&rm.replaced, false, memory_order_seq_cst);
+    _Py_atomic_store_int(&rm.replaced, 0);
 # endif
 
     return PyRefTracer_SetTracer(&horizon_tracer, NULL);
@@ -187,7 +186,7 @@ horizon_on_dealloc(PyObject *v)
     PyMutex_Lock(&rm_mutex);
     /* The list must be loaded after the Python finds this tracer
        from the global state */
-    atomic_thread_fence(memory_order_acquire);
+    _Py_atomic_fence_acquire();
     for (r = rm.horizons; r; r = r->next) {
         if (NyNodeSet_clrobj(r->hs, v) == -1)
             Py_FatalError("could not clear object in nodeset");
@@ -273,7 +272,7 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (should_install) {
         /* The list must be published before the tracer is installed, which
            may load the list on a different thread */
-        atomic_thread_fence(memory_order_release);
+        _Py_atomic_fence_release();
         if (horizon_install() == -1)
             goto err;
     }
@@ -317,7 +316,7 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
     NewsTravArg ta;
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
-    if (atomic_load_explicit(&rm.replaced, memory_order_seq_cst))
+    if (_Py_atomic_load_int(&rm.replaced))
 # else
     if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
 # endif

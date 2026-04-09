@@ -1,16 +1,15 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include <stdatomic.h>
-
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
 
-NyNodeSet_Exports * _Atomic nodeset_exports;
+static NyNodeSet_Exports *nodeset_exports;
 
-#define NODESET_EXPORTS atomic_load_explicit(&nodeset_exports, memory_order_relaxed)
+#define NODESET_EXPORTS \
+    ((NyNodeSet_Exports *)_Py_atomic_load_ptr_relaxed(&nodeset_exports))
 
 #define NyNodeSet_TYPE	(NODESET_EXPORTS->nodeset_type)
 #define NyMutNodeSet_TYPE	(NODESET_EXPORTS->mutnodeset_type)
@@ -105,18 +104,17 @@ import_sets(void)
 {
     NyNodeSet_Exports *local_nodeset_exports;
 
-    if (atomic_load_explicit(&nodeset_exports, memory_order_relaxed))
+    if (_Py_atomic_load_ptr_relaxed(&nodeset_exports))
         return 0;
 
     PyMutex_Lock(&nodeset_exports_mutex);
 
-    if (atomic_load_explicit(&nodeset_exports, memory_order_relaxed))
+    if (_Py_atomic_load_ptr_relaxed(&nodeset_exports))
         goto out;
     local_nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
     if (!local_nodeset_exports)
         goto err;
-    atomic_store_explicit(&nodeset_exports, local_nodeset_exports,
-                          memory_order_relaxed);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports, local_nodeset_exports);
 
 out:
     PyMutex_Unlock(&nodeset_exports_mutex);
