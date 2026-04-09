@@ -30,4 +30,17 @@
 # define Ny_END_CRITICAL_SECTION2() (void)0; } (void)0
 #endif
 
+#if !defined(Py_GIL_DISABLED) && NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
+/* For non-freethreading builds, a datarace requires per-interpreter GIL, which
+   I'm not too concerned about */
+#define _Py_atomic_load_int(ptr) (*(ptr))
+#define _Py_atomic_store_int(ptr, val) (*(ptr) = (val))
+
+#define _Py_atomic_load_ptr_relaxed(ptr) (*(ptr))
+#define _Py_atomic_store_ptr_relaxed(ptr, val) (*(ptr) = (val))
+
+#define _Py_atomic_fence_acquire() ((void)0)
+#define _Py_atomic_fence_release() ((void)0)
+#endif
+
 #endif /* GUPPY_H_INCLUDED */
