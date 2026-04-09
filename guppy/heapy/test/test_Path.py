@@ -237,10 +237,17 @@ class RelationTestCase(TestCase):
         self.chkpath(w, w.b, '%s.b')
         self.chkpath(w, w.c, '%s.c')
         self.chkpath(w, w.d, '%s.d')
-        if self.version_info < (3, 14):
-            self.chkpath(w, w.e, "%s.__dict__['e']")
-        else:
+        if (3, 14, 0) <= self.version_info < (3, 14, 4):
+            # Py 3.14.0 to Py 3.14.3 has a bug where the inline values are
+            # priortized over the managed dict. [1]
+            # The reason this error is not reproduced on Python 3.13 is that
+            # slotted types don't have inline values till 3.14. [2]
+            #
+            # [1] https://github.com/python/cpython/commit/26a0dbad63c4
+            # [2] https://github.com/python/cpython/commit/a4fd7aa4a642
             self.chkpath(w, w.e, "%s.e")
+        else:
+            self.chkpath(w, w.e, "%s.__dict__['e']")
 
         class R(object):
             rvar = []
@@ -255,10 +262,10 @@ class RelationTestCase(TestCase):
         self.chkrelattr(s, '__dict__', 'a', 'b', 'c')
         self.chkpath(s, s.a, '%s.a')
         self.chkpath(s, s.b, '%s.b')
-        if self.version_info < (3, 14):
-            self.chkpath(s, s.c, "%s.__dict__['c']")
-        else:
+        if (3, 14, 0) <= self.version_info < (3, 14, 4):
             self.chkpath(s, s.c, "%s.c")
+        else:
+            self.chkpath(s, s.c, "%s.__dict__['c']")
 
         # Class variables are not directly related- should they be that?
         # Possibly, but the compression could as well be done in Python.
