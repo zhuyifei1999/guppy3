@@ -259,7 +259,7 @@ hv_default_size(PyObject *obj)
         return z;
     PyErr_Clear();
 
-    Py_BEGIN_CRITICAL_SECTION(obj);
+    Ny_BEGIN_CRITICAL_SECTION(obj);
     z = Py_TYPE(obj)->tp_basicsize;
     if (Py_TYPE(obj)->tp_itemsize) {
         Py_ssize_t itemsize = Py_TYPE(obj)->tp_itemsize;
@@ -268,7 +268,7 @@ hv_default_size(PyObject *obj)
         z += Py_SIZE(obj) * itemsize;
         z = (z + ALIGN_MASK) & ~ALIGN_MASK;
     }
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
 
 #ifndef Py_GIL_DISABLED
     if (PyObject_IS_GC(obj))
@@ -937,7 +937,7 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
         return NULL;
     }
 
-    Py_BEGIN_CRITICAL_SECTION(hv);
+    Ny_BEGIN_CRITICAL_SECTION(hv);
     for (i = 0; i < hv->xt_size; i++) {
         ExtraType *xt, **xtp;
         for (xtp = &hv->xt_table[i]; (xt = *xtp); xtp = &xt->xt_next) {
@@ -955,7 +955,7 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
                  wr);
 
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -1134,12 +1134,12 @@ hv_indisize_sum(NyHeapViewObject *self, PyObject *arg)
     ta.sum = 0;
     ta.hv = self;
 
-    Py_BEGIN_CRITICAL_SECTION(self);
+    Ny_BEGIN_CRITICAL_SECTION(self);
     if (iterable_iterate(arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
         goto out;
     r = PyLong_FromSsize_t(ta.sum);
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -1422,7 +1422,7 @@ hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
         return NULL;
     }
 
-    Py_BEGIN_CRITICAL_SECTION(hv);
+    Ny_BEGIN_CRITICAL_SECTION(hv);
     xt = hv_extra_type(hv, type);
     if (xt == &xt_error)
         goto out;
@@ -1439,7 +1439,7 @@ hv_register__hiding_tag__type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     r = Py_NewRef(Py_None);
 
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -1463,7 +1463,7 @@ hv_register_hidden_exact_type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
                                      &PyType_Type, &type))
         return NULL;
 
-    Py_BEGIN_CRITICAL_SECTION(hv);
+    Ny_BEGIN_CRITICAL_SECTION(hv);
     xt = hv_extra_type(hv, type);
     if (xt == &xt_error)
         goto out;
@@ -1477,7 +1477,7 @@ hv_register_hidden_exact_type(NyHeapViewObject *hv, PyObject *args, PyObject *kw
     r = Py_NewRef(Py_None);
 
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -1726,7 +1726,7 @@ hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
     PyObject *orf;
     int r = -1;
 
-    Py_BEGIN_CRITICAL_SECTION(self);
+    Ny_BEGIN_CRITICAL_SECTION(self);
     orf = self->limitframe;
     if (arg == Py_None) {
         self->limitframe = 0;
@@ -1741,7 +1741,7 @@ hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
     r = 0;
 
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     return r;
 }
 
@@ -1750,9 +1750,9 @@ hv_get_limitframe(NyHeapViewObject *self, void *unused)
 {
     PyObject *r;
 
-    Py_BEGIN_CRITICAL_SECTION(self);
+    Ny_BEGIN_CRITICAL_SECTION(self);
     r = self->limitframe;
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     if (!r)
         r = Py_None;
     Py_INCREF(r);

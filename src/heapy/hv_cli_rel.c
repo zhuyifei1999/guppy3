@@ -251,9 +251,9 @@ hv_cli_inrel_memoized_kind(InRelObject * self, PyObject *kind)
     MemoRelArg arg;
     PyObject *result;
     arg.memorel = self->memorel;
-    Py_BEGIN_CRITICAL_SECTION(self->hv);
+    Ny_BEGIN_CRITICAL_SECTION(self->hv);
     arg.ns = hv_mutnodeset_new(self->hv);
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     if (!arg.ns)
         return 0;
     if (iterable_iterate(kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)

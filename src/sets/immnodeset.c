@@ -148,10 +148,10 @@ NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
     PyObject *v_hiding_tag;
     NSISetArg sa;
 
-    Py_BEGIN_CRITICAL_SECTION(v);
+    Ny_BEGIN_CRITICAL_SECTION(v);
     v_hiding_tag = v->_hiding_tag_;
     Py_XINCREF(v_hiding_tag);
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
 
     sa.i = 0;
     sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v_hiding_tag);
@@ -210,9 +210,9 @@ immnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (!iterable || Py_TYPE(iterable) != &NyImmNodeSet_Type)
         goto new;
 
-    Py_BEGIN_CRITICAL_SECTION(iterable);
+    Ny_BEGIN_CRITICAL_SECTION(iterable);
     hiding_tag_diff = ((NyNodeSetObject *)iterable)->_hiding_tag_ != hiding_tag;
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     if (hiding_tag_diff)
         goto new;
 

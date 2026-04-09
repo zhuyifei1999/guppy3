@@ -95,9 +95,9 @@ hv_cli_rcs_memoized_kind(RetclasetObject * self, PyObject *kind)
         MemoRcsArg arg;
         PyObject *result;
         arg.cli = self->cli;
-        Py_BEGIN_CRITICAL_SECTION(self->hv);
+        Ny_BEGIN_CRITICAL_SECTION(self->hv);
         arg.ns = hv_mutnodeset_new(self->hv);
-        Py_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION();
         if (!arg.ns)
             return 0;
         if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
@@ -124,13 +124,13 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
     PyObject *kind = NULL;
     NyNodeSetObject *Ri;
 
-    Py_BEGIN_CRITICAL_SECTION(self->hv);
+    Ny_BEGIN_CRITICAL_SECTION(self->hv);
     Ri = hv_mutnodeset_new(self->hv);
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     if (!Ri)
         return NULL;
 
-    Py_BEGIN_CRITICAL_SECTION(self->rg);
+    Ny_BEGIN_CRITICAL_SECTION(self->rg);
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err;
     for (cur = lo; cur < hi; cur++) {
@@ -151,7 +151,7 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
 err:
     Py_CLEAR(kind);
 out:
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     Py_XDECREF(Ri);
     return kind;
 }

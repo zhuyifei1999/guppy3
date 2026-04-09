@@ -172,7 +172,7 @@ hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
         PyObject *r = NULL;
         NyNodeGraphEdge *lo, *hi;
 
-        Py_BEGIN_CRITICAL_SECTION(self->owners);
+        Ny_BEGIN_CRITICAL_SECTION(self->owners);
         if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
             goto out;
         if (!(lo < hi)) {
@@ -190,7 +190,7 @@ hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
         }
 
 out:
-        Py_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION();
         return r;
     }
 

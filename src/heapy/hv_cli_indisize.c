@@ -43,9 +43,9 @@ hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
 {
     PyObject *size, *memoedsize;
 
-    Py_BEGIN_CRITICAL_SECTION(self->hv);
+    Ny_BEGIN_CRITICAL_SECTION(self->hv);
     size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
-    Py_END_CRITICAL_SECTION();
+    Ny_END_CRITICAL_SECTION();
     if (!size)
         return size;
     memoedsize = hv_cli_indisize_memoized_kind(self, size);
