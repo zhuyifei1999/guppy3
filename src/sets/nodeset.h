@@ -3,8 +3,8 @@
 
 /* Flags for NyNodeSetObject */
 
-#define NS_HOLDOBJECTS 1  /* Only to be cleared in special case with mutable nodeset. */
-#define _NS_STWNOHOLD  2 /* Internal flag, only used for stop-the-world where objects are not refcounted. */
+#define NS_HOLDOBJECTS 1 /* Only to be cleared in special case with mutable nodeset. */
+#define _NS_STW        2 /* Internal flag, only used for stop-the-world where objects are not refcounted. */
 
 typedef struct NyNodeSetObject {
     PyObject_VAR_HEAD

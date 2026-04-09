@@ -133,6 +133,7 @@ PyDoc_STRVAR(mutnodeset_doc,
 /* Forward decls */
 
 static PyObject *nodeset_bitno_to_obj(NyBit bitno);
+static int nodeset_dealloc_iter(PyObject *obj, void *v);
 
 /* */
 
@@ -225,7 +226,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     ret = nodeset_bitno_to_obj(bitno);
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
-    } else if (!(hi->nodeset->flags & _NS_STWNOHOLD)) {
+    } else if (!(hi->nodeset->flags & _NS_STW)) {
         ret = PyLong_FromSsize_t((Py_intptr_t)ret);
     }
     return ret;
@@ -258,7 +259,7 @@ NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag
         return 0;
     }
     Py_SET_SIZE(v, 0);
-    v->flags = flags & ~_NS_STWNOHOLD;
+    v->flags = flags & ~_NS_STW;
     v->_hiding_tag_ = hiding_tag;
     Py_XINCREF(hiding_tag);
     return v;
@@ -312,7 +313,13 @@ int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v)
         return -1;
     Py_SET_TYPE(v, &NyMutNodeSet_Type);
     Py_SET_SIZE(v, 0);
-    v->flags = _NS_STWNOHOLD;
+#ifdef Py_GIL_DISABLED
+    v->flags = _NS_STW;
+#else
+    /* Non-freethread builds don't have truly atomic contexts
+       (signal handers) are free to be invoked */
+    v->flags = _NS_STW | NS_HOLDOBJECTS;
+#endif
     v->_hiding_tag_ = NULL;
     return 0;
 }
@@ -325,7 +332,13 @@ void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
         return;
 
     assert(Py_IS_TYPE(v, &NyMutNodeSet_Type));
-    assert(v->flags == _NS_STWNOHOLD);
+#ifdef Py_GIL_DISABLED
+    assert(v->flags == _NS_STW);
+#else
+    assert(v->flags == _NS_STW | NS_HOLDOBJECTS);
+
+    NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
+#endif
 
     Py_TYPE(v->u.bitset)->tp_dealloc(v->u.bitset);
 }
@@ -390,7 +403,7 @@ static int
 mutnodeset_gc_clear(NyNodeSetObject *v)
 {
     /* NOT LOCKED: Object is dying */
-    assert(!(v->flags & _NS_STWNOHOLD));
+    assert(!(v->flags & _NS_STW));
 
     if (v->u.bitset) {
         PyObject *x = v->u.bitset;
@@ -473,7 +486,7 @@ static int
 mutnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
     /* NOT LOCKED: Stop the world from GC */
-    assert(!(v->flags & _NS_STWNOHOLD));
+    assert(!(v->flags & _NS_STW));
 
     int err = 0;
     if (v->flags & NS_HOLDOBJECTS) {
@@ -498,7 +511,7 @@ static int
 mutnodeset_iterate_visit(NyBit bitno, nodeset_iterate_visit_arg *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
-    if (arg->ns->flags & NS_HOLDOBJECTS || arg->ns->flags & _NS_STWNOHOLD)
+    if (arg->ns->flags & NS_HOLDOBJECTS || arg->ns->flags & _NS_STW)
         return arg->visit(obj, arg->arg);
     else {
         PyObject *addr = PyLong_FromSsize_t((Py_intptr_t)obj);
@@ -517,7 +530,7 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
                   void *arg)
 {
     nodeset_iterate_visit_arg hia;
-    if (!(ns->flags & NS_HOLDOBJECTS || ns->flags & _NS_STWNOHOLD)) {
+    if (!(ns->flags & NS_HOLDOBJECTS || ns->flags & _NS_STW)) {
         PyErr_SetString(PyExc_ValueError,
             "NyNodeSet_iterate: can not iterate because not owning element nodes");
         return -1;

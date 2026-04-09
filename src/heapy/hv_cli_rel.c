@@ -313,7 +313,9 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
 ret:
     Py_XDECREF(rel);
     Py_DECREF(relator);
-    /* NyNodeSet_be_immutable might call into GC, causing arg->rel to be traversed */
+    /* NyNodeSet_be_immutable might call into GC, causing arg->rel to be traversed
+       this no longer happens after Py 3.12:
+       https://github.com/python/cpython/commit/83eb827247dd */
     arg->rel->relator = Py_None;
     return arg->err;
 }

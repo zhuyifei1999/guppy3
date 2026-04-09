@@ -370,7 +370,7 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
     return Py_TYPE(obj)->tp_traverse(obj, visit, arg);
 }
 
-static int maybe_check_signals(void)
+static int maybe_check_signals(PyObject *borrowed)
 {
 #ifdef Py_GIL_DISABLED
     /* May call GC, unsafe for stop-the-world. */
@@ -408,6 +408,11 @@ static int maybe_check_signals(void)
         return 0;
 
     NY_START_WORLD();
+#else
+    /* In non-freethread build, we want to be able to resume from signal,
+       but the object being traversed is on borrowed reference, which might
+       be freed while we are interrupted, so incref it */
+    Py_INCREF(borrowed);
 #endif
 
     int r = -1;
@@ -424,6 +429,8 @@ static int maybe_check_signals(void)
 #else
     if (!PyErr_Occurred())
         r = 0;
+
+    Py_DECREF(borrowed);
 #endif
     return r;
 }
@@ -431,7 +438,7 @@ static int maybe_check_signals(void)
 static int
 xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
-    if (maybe_check_signals() == -1)
+    if (maybe_check_signals(obj) == -1)
         return -1;
 
     NyHeapTraverse ta;
