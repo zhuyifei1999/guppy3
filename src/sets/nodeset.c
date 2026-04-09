@@ -1233,7 +1233,7 @@ static NyNodeSet_Exports nynodeset_exports = {
     NyNodeSet_iterate,
 };
 
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 static PyMutex typeinit_mutex = {0};
 #else
 # define PyMutex_Lock(m) do {} while (0)

@@ -63,7 +63,7 @@ extern void NY_ASSERT_IMMUTABLE_BUILTIN(PyObject *obj);
                   "NYTUPLELIKE_ASSERT Header check failed for " #s ", check NYTUPLELIKE_HEAD")
 
 /* NYTUPLELIKE_HEAD should match PyTupleObject before ob_item */
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 # define NYTUPLELIKE_HEAD \
     PyObject_VAR_HEAD \
     Py_hash_t ob_hash;

@@ -1,6 +1,8 @@
 #ifndef GUPPY_H_INCLUDED
 
-#if PY_VERSION_HEX < 0x030e0000
+#define NY_MASKED_VERSION_HEX (PY_VERSION_HEX & 0xffff0000)
+
+#if NY_MASKED_VERSION_HEX < 0x030e0000
 # define Py_PACK_FULL_VERSION(X, Y, Z, LEVEL, SERIAL) ( \
    (((X) & 0xff) << 24) |                               \
    (((Y) & 0xff) << 16) |                               \

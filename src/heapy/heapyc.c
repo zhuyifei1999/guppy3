@@ -136,7 +136,7 @@ err:
 #ifdef Py_GIL_DISABLED
 # define Py_BUILD_CORE
 /* PyObject_HasDeferredRefcount */
-# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 #  include <internal/pycore_object_deferred.h>
 # else
 #  include <internal/pycore_object.h>
@@ -221,7 +221,7 @@ static struct PyModuleDef moduledef = {
     .m_slots = module_slots,
 };
 
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 static PyMutex typeinit_mutex = {0};
 #else
 # define PyMutex_Lock(m) do {} while (0)
@@ -231,7 +231,7 @@ static PyMutex typeinit_mutex = {0};
 static int module_exec(PyObject *m)
 {
     Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
     PyUnstable_SetImmortal(&_Ny_RootStateStruct);
 #endif
 

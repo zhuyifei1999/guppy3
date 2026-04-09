@@ -20,7 +20,7 @@
 
 #define Py_BUILD_CORE
 /* PyGC_Head */
-# if PY_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 #  include <internal/pycore_interp_structs.h>
 # else
 #  undef _PyGC_FINALIZED
@@ -28,7 +28,7 @@
 # endif
 #undef Py_BUILD_CORE
 
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 # define Py_BUILD_CORE
 /* _PySys_GetSizeOf */
 #  include <internal/pycore_sysmodule.h>
@@ -656,14 +656,14 @@ static int
 xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
     NY_ASSERT_WORLD_STOPPED();
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_MANAGED_DICT) {
         // FIXME: There's no way to distinguish between managed dict entries
         // and other references. To keep our results stable we have to
         // materialize this managed dict, which allocates a lot of memory
         // and will add additional overhead.
         _PyObject_GetDictPtr(obj);
-#if PY_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
         if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_INLINE_VALUES) {
             // Additionally, in 3.13, PyObject_VisitManagedDict skips traversing
             // the managed dict, and visits the values directly. Force visiting
