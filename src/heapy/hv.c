@@ -17,6 +17,7 @@
 #include "stdtypes_internal.h"
 #include "stoptheworld.h"
 #include "utils.h"
+#include "worklist.h"
 
 #define Py_BUILD_CORE
 /* PyGC_Head */
@@ -119,26 +120,6 @@ extern NyHeapDef NyHvTypes_HeapDef[];
 static ExtraType *hv_new_extra_type(NyHeapViewObject *hv, PyTypeObject *type);
 
 /* Helpers */
-
-static PyObject *
-hv_PyList_Pop(PyObject *list)
-{
-    Py_ssize_t size = PyList_Size(list);
-    if (size > 0) {
-        PyObject *r = PyList_GetItemRef(list, size - 1);
-        if (!r)
-            return NULL;
-        if (PyList_SetSlice(list, size - 1, size, 0) < 0) {
-            Py_DECREF(r);
-            return NULL;
-        }
-        return r;
-    } else {
-        if (size == 0)
-            PyErr_Format(PyExc_IndexError, "pop from empty list");
-        return NULL;
-    }
-}
 
 #ifndef NDEBUG
 void
@@ -727,7 +708,7 @@ hv_std_traverse(NyHeapViewObject *hv,
 typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *ns;
-    PyObject *rm;
+    NySTWWorkList *rm;
 } CMSTravArg;
 
 static int
@@ -760,7 +741,7 @@ static int
 hv_cms_rec(PyObject *obj, CMSTravArg *ta)
 {
     if (hv_is_obj_hidden(ta->hv, obj)) {
-        if (PyList_Append(ta->rm, obj) == -1)
+        if (NySTWWorkList_Push(ta->rm, obj) == -1)
             return -1;
     }
     return 0;
@@ -770,25 +751,26 @@ hv_cms_rec(PyObject *obj, CMSTravArg *ta)
 static int
 hv_cleanup_mutset(NyHeapViewObject *hv, NyNodeSetObject *ns)
 {
+    NY_ASSERT_WORLD_STOPPED();
+
     CMSTravArg ta;
     int ret = -1;
-    Py_ssize_t i, size;
+    NySTWWorkList rm;
     ta.hv = hv;
     ta.ns = ns;
-    ta.rm = PyList_New(0);
-    if (!ta.rm)
+    ta.rm = &rm;
+    if (NySTWWorkList_InitOnStack(&rm) == -1)
         goto err;
     if (NyNodeSet_iterate(ta.ns, (visitproc)hv_cms_rec, &ta) == -1)
         goto err;
-    size = PyList_Size(ta.rm);
-    for (i = 0; i < size; i++) {
-        PyObject *obj = PyList_GET_ITEM(ta.rm, i);
+    while (NySTWWorkList_Size(ta.rm)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.rm);
         if (NyNodeSet_clrobj(ta.ns, obj) == -1)
             goto err;
     }
     ret = 0;
 err:
-    Py_XDECREF(ta.rm);
+    NySTWWorkList_Destroy(&rm);
     return ret;
 }
 
@@ -971,21 +953,20 @@ typedef struct {
     NyNodeSetObject *hs;
     PyObject *arg;
     int (*visit)(PyObject *, void *);
-    PyObject *to_visit;
+    NySTWWorkList *to_visit;
 } IterTravArg;
 
 static int
 iter_rec(PyObject *obj, IterTravArg *ta) {
     int r;
-    if (Py_REFCNT(obj) > 1) {
+    if (!PyUnstable_Object_IsUniquelyReferenced(obj)) {
         r = NyNodeSet_setobj(ta->hs, obj);
         if (r)
             return r < 0 ? r : 0;
     }
     r = ta->visit(obj, ta->arg);
-    if (!r) {
-        r = PyList_Append(ta->to_visit, obj);
-    }
+    if (!r)
+        r = NySTWWorkList_Push(ta->to_visit, obj);
     return r;
 }
 
@@ -995,39 +976,36 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
 {
     IterTravArg ta;
     int r = -1;
-    NyNodeSetObject hs;
+    NyNodeSetObject hs = {0};
+    NySTWWorkList to_visit = {0};
     ta.hv = hv;
     ta.visit = visit;
     ta.arg = arg;
     ta.hs = &hs;
-    ta.to_visit = PyList_New(0);
-    if (!ta.to_visit)
-        goto err;
+    ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
     if (NySTWMutNodeSet_InitOnStack(&hs) == -1)
+        goto err_start;
+    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
         goto err_start;
     r = iter_rec(ta.hv->root, &ta);
     if (r == -1)
         goto err_start;
     r = -1;
-    while (PyList_Size(ta.to_visit)) {
-        PyObject *obj = hv_PyList_Pop(ta.to_visit);
+    while (NySTWWorkList_Size(ta.to_visit)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
         if (!obj)
             goto err_start;
-        if (hv_std_traverse(ta.hv, obj, (visitproc)iter_rec, &ta) == -1) {
-            Py_DECREF(obj);
+        if (hv_std_traverse(ta.hv, obj, (visitproc)iter_rec, &ta) == -1)
             goto err_start;
-        }
-        Py_DECREF(obj);
     }
 
     r = 0;
 err_start:
     NySTWMutNodeSet_Destroy(&hs);
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-err:
-    Py_XDECREF(ta.to_visit);
     return r;
 }
 
@@ -1040,7 +1018,7 @@ defined by HV. See also HeapView.__doc__.");
 typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *visited;
-    PyObject *to_visit;
+    NySTWWorkList *to_visit;
 } HeapTravArg;
 
 static int
@@ -1052,7 +1030,7 @@ hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     if (r)
         return r < 0 ? r : 0;
     else
-        return PyList_Append(ta->to_visit, obj);
+        return NySTWWorkList_Push(ta->to_visit, obj);
 }
 
 static int
@@ -1074,27 +1052,25 @@ PyObject *
 hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     HeapTravArg ta;
+    NySTWWorkList to_visit;
     ta.hv = self;
     ta.visited = NULL;
-    ta.to_visit = PyList_New(0);
-    if (!ta.to_visit)
-        goto err;
+    ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
+    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+        goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
         goto err_start;
     if (hv_heap_rec(ta.hv->root, &ta) == -1)
         goto err_start;
-    while (PyList_Size(ta.to_visit)) {
-        PyObject *obj = hv_PyList_Pop(ta.to_visit);
+    while (NySTWWorkList_Size(ta.to_visit)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
         if (!obj)
             goto err_start;
-        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_heap_rec, &ta) == -1) {
-            Py_DECREF(obj);
+        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_heap_rec, &ta) == -1)
             goto err_start;
-        }
-        Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err_start;
@@ -1103,15 +1079,15 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
             goto err_start;
     }
 
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
     Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 
 err_start:
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-err:
     Py_XDECREF(ta.visited);
-    Py_XDECREF(ta.to_visit);
     return 0;
 }
 
@@ -1225,7 +1201,7 @@ typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *start, *avoid;
     NyNodeSetObject *visited;
-    PyObject *to_visit;
+    NySTWWorkList *to_visit;
 } RATravArg;
 
 static int
@@ -1238,7 +1214,7 @@ hv_ra_rec(PyObject *obj, RATravArg *ta)
     if (r)
         return r < 0 ? r : 0;
     else
-        return PyList_Append(ta->to_visit, obj);
+        return NySTWWorkList_Push(ta->to_visit, obj);
 }
 
 PyDoc_STRVAR(hv_reachable_doc,
@@ -1251,6 +1227,7 @@ static PyObject *
 hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     RATravArg ta;
+    NySTWWorkList to_visit;
     static char *kwlist[] = {"start", "avoid", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:reachable", kwlist,
                                      &ta.start, &ta.avoid))
@@ -1268,38 +1245,34 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 
     ta.hv = self;
     ta.visited = NULL;
-    ta.to_visit = PyList_New(0);
-    if (!ta.to_visit)
-        goto err;
+    ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
+    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+        goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
         goto err_start;
     if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec, &ta) == -1)
         goto err_start;
-    while (PyList_Size(ta.to_visit)) {
-        PyObject *obj = hv_PyList_Pop(ta.to_visit);
+    while (NySTWWorkList_Size(ta.to_visit)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
         if (!obj)
             goto err_start;
-        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec, &ta) == -1) {
-            Py_DECREF(obj);
+        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec, &ta) == -1)
             goto err_start;
-        }
-        Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err_start;
 
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-    Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 
 err_start:
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-err:
     Py_XDECREF(ta.visited);
-    Py_XDECREF(ta.to_visit);
     return 0;
 }
 
@@ -1313,7 +1286,7 @@ hv_ra_rec_e(PyObject *obj, RATravArg *ta)
     else {
         if (NyNodeSet_hasobj(ta->avoid, obj))
             return 0;
-        return PyList_Append(ta->to_visit, obj);
+        return NySTWWorkList_Push(ta->to_visit, obj);
     }
 }
 
@@ -1328,6 +1301,7 @@ static PyObject *
 hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
     RATravArg ta;
+    NySTWWorkList to_visit;
     static char *kwlist[] = {"start", "avoid", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:reachable", kwlist,
                                      &ta.start, &ta.avoid))
@@ -1345,38 +1319,34 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 
     ta.hv = self;
     ta.visited = NULL;
-    ta.to_visit = PyList_New(0);
-    if (!ta.to_visit)
-        goto err;
+    ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
+    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+        goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
         goto err_start;
     if (NyNodeSet_iterate(ta.start, (visitproc)hv_ra_rec_e, &ta) == -1)
         goto err_start;
-    while (PyList_Size(ta.to_visit)) {
-        PyObject *obj = hv_PyList_Pop(ta.to_visit);
+    while (NySTWWorkList_Size(ta.to_visit)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
         if (!obj)
             goto err_start;
-        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec_e, &ta) == -1) {
-            Py_DECREF(obj);
+        if (hv_std_traverse(ta.hv, obj, (visitproc)hv_ra_rec_e, &ta) == -1)
             goto err_start;
-        }
-        Py_DECREF(obj);
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err_start;
 
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-    Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 
 err_start:
+    NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-err:
     Py_XDECREF(ta.visited);
-    Py_XDECREF(ta.to_visit);
     return 0;
 }
 
@@ -1793,11 +1763,11 @@ typedef struct {
     NyHeapViewObject *hv;
     NyNodeSetObject *targetset, *markset, *outset;
     NyNodeGraphObject *rg;
-    PyObject *to_visit;
+    NySTWWorkList *to_visit;
     PyObject *sentinel;
     NyNodeSetObject *trace_set;
-    PyObject *trace_stack;
-    PyObject *trace_res;
+    NySTWWorkList *trace_stack;
+    NySTWWorkList *trace_res;
     int trav_stat;
 } RetaTravArg;
 
@@ -1806,7 +1776,7 @@ static int
 rg_rec(PyObject *obj, RetaTravArg *ta) {
     if (obj == (PyObject *)ta->rg || obj == ta->hv->root)
         return 0;
-    return PyList_Append(ta->to_visit, obj);
+    return NySTWWorkList_Push(ta->to_visit, obj);
 }
 
 
@@ -1827,6 +1797,9 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
     NyNodeSetObject markset = {0};
     NyNodeSetObject outset = {0};
     NyNodeSetObject trace_set = {0};
+    NySTWWorkList to_visit = {0};
+    NySTWWorkList trace_stack = {0};
+    NySTWWorkList trace_res = {0};
 
     if (!PyArg_ParseTuple(args, "O!O:update_referrers",
                           &NyNodeGraph_Type, &ta.rg,
@@ -1842,14 +1815,11 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
     ta.markset = &markset;
     ta.outset = &outset;
     ta.trace_set = &trace_set;
-    ta.to_visit = PyList_New(0);
-    ta.trace_stack = PyList_New(0);
-    ta.trace_res = PyList_New(0);
+    ta.to_visit = &to_visit;
+    ta.trace_stack = &trace_stack;
+    ta.trace_res = &trace_res;
     ta.sentinel = PyObject_New(PyObject, &PyBaseObject_Type);
-    if (!(ta.to_visit && ta.trace_stack && ta.trace_res && ta.sentinel))
-        goto err;
-
-    if (PyList_Append(ta.to_visit, ta.hv->root) == -1)
+    if (!ta.sentinel)
         goto err;
 
     NY_STOP_WORLD();
@@ -1859,71 +1829,69 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
         goto err_start;
     if (NySTWMutNodeSet_InitOnStack(&trace_set) == -1)
         goto err_start;
-    while (PyList_Size(ta.to_visit)) {
-        PyObject *obj = hv_PyList_Pop(ta.to_visit);
+    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+        goto err_start;
+    if (NySTWWorkList_InitOnStack(&trace_stack) == -1)
+        goto err_start;
+    if (NySTWWorkList_InitOnStack(&trace_res) == -1)
+        goto err_start;
+    if (NySTWWorkList_Push(ta.to_visit, ta.hv->root) == -1)
+        goto err_start;
+    while (NySTWWorkList_Size(ta.to_visit)) {
+        PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
         if (!obj)
             goto err_start;
         if (obj == ta.sentinel) {
             // Recurse out
-            PyObject *last_obj = hv_PyList_Pop(ta.trace_stack);
-            PyObject *last_res = hv_PyList_Pop(ta.trace_res);
+            PyObject *last_obj = NySTWWorkList_Pop(ta.trace_stack);
+            PyObject *last_res = NySTWWorkList_Pop(ta.trace_res);
             if (!(last_obj && last_res))
-                goto err_inner;
+                goto err_start;
             if (NyNodeSet_clrobj(ta.trace_set, last_obj) == -1)
-                goto err_inner_inner;
+                goto err_start;
             if (last_res == Py_True) {
-                if (Py_REFCNT(last_obj) > 2)
+                if (!PyUnstable_Object_IsUniquelyReferenced(last_obj))
                     if (NyNodeSet_setobj(ta.outset, last_obj) == -1)
-                        goto err_inner_inner;
-                Py_ssize_t trace_len = PyList_Size(ta.trace_stack);
+                        goto err_start;
+                Py_ssize_t trace_len = NySTWWorkList_Size(ta.trace_stack);
                 if (trace_len) {
-                    PyObject *last_last_obj = PyList_GetItem(ta.trace_stack, trace_len - 1);
+                    PyObject *last_last_obj = NySTWWorkList_Peek(ta.trace_stack);
                     if (!last_last_obj)
-                        goto err_inner_inner;
+                        goto err_start;
                     if (NyNodeGraph_AddEdge(ta.rg, last_obj, last_last_obj) == -1)
-                        goto err_inner_inner;
-                    Py_INCREF(Py_True);
-                    if (PyList_SetItem(ta.trace_res, trace_len - 1, Py_True) == -1)
-                        goto err_inner_inner;
+                        goto err_start;
+                    if (NySTWWorkList_ReplaceLast(ta.trace_res, Py_True) == -1)
+                        goto err_start;
                 }
-            } else if (Py_REFCNT(last_obj) > 2)
+            } else if (!PyUnstable_Object_IsUniquelyReferenced(last_obj))
                 if (NyNodeSet_setobj(ta.markset, last_obj) == -1)
-                    goto err_inner_inner;
-
-            Py_DECREF(last_obj);
-            Py_DECREF(last_res);
-            goto next;
-
-err_inner_inner:
-            Py_DECREF(last_obj);
-            Py_DECREF(last_res);
-            goto err_inner;
+                    goto err_start;
         } else {
             // Recurse in
             int is_target = -1;
             ExtraType *xt = hv_extra_type(ta.hv, Py_TYPE(obj));
 
             if (xt == &xt_error) {
-                goto err_inner;
+                goto err_start;
             } else if (xt->xt_trav_code == XT_NO) {
                 is_target = ta.targetset ? NyNodeSet_hasobj(ta.targetset, obj) :
                                            obj != ta.hv->root;
                 if (!is_target)
-                    goto next;
+                    continue;
                 if (is_target == -1)
-                    goto err_inner;
+                    goto err_start;
             }
 
             if (NyNodeSet_hasobj(ta.markset, obj))
-                goto next;
+                continue;
 
             int in_trace = NyNodeSet_setobj(ta.trace_set, obj);
             if (in_trace == -1)
-                goto err_inner;
+                goto err_start;
 
             int no_recurse = in_trace || NyNodeSet_hasobj(ta.outset, obj);
             if (no_recurse == -1)
-                goto err_inner;
+                goto err_start;
 
             int do_trace = no_recurse;
             if (!do_trace) {
@@ -1931,33 +1899,24 @@ err_inner_inner:
                     is_target = ta.targetset ? NyNodeSet_hasobj(ta.targetset, obj) :
                                                obj != ta.hv->root;
                     if (is_target == -1)
-                        goto err_inner;
+                        goto err_start;
                 }
                 do_trace = is_target;
             }
 
             PyObject *res = do_trace ? Py_True : Py_False;
 
-            if (PyList_Append(ta.trace_stack, obj) == -1)
-                goto err_inner;
-            if (PyList_Append(ta.trace_res, res) == -1)
-                goto err_inner;
-
-            if (PyList_Append(ta.to_visit, ta.sentinel) == -1)
-                goto err_inner;
+            if (NySTWWorkList_Push(ta.trace_stack, obj) == -1)
+                goto err_start;
+            if (NySTWWorkList_Push(ta.trace_res, res) == -1)
+                goto err_start;
+            if (NySTWWorkList_Push(ta.to_visit, ta.sentinel) == -1)
+                goto err_start;
 
             if (!no_recurse)
                 if (xt_traverse(xt, obj, (visitproc)rg_rec, &ta) == -1)
-                    goto err_inner;
+                    goto err_start;
         }
-
-next:
-        Py_DECREF(obj);
-        continue;
-
-err_inner:
-        Py_DECREF(obj);
-        goto err_start;
     }
 
     ret = Py_None;
@@ -1966,11 +1925,11 @@ err_start:
     NySTWMutNodeSet_Destroy(&markset);
     NySTWMutNodeSet_Destroy(&outset);
     NySTWMutNodeSet_Destroy(&trace_set);
+    NySTWWorkList_Destroy(&to_visit);
+    NySTWWorkList_Destroy(&trace_stack);
+    NySTWWorkList_Destroy(&trace_res);
     NY_START_WORLD();
 err:
-    Py_XDECREF(ta.to_visit);
-    Py_XDECREF(ta.trace_stack);
-    Py_XDECREF(ta.trace_res);
     Py_XDECREF(ta.sentinel);
 
     Py_XINCREF(ret);

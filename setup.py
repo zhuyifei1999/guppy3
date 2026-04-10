@@ -35,6 +35,7 @@ heapyc = Extension('guppy.heapy.heapyc', [
     'src/heapy/nodegraph.c',
     'src/heapy/rootstate.c',
     'src/heapy/stdtypes.c',
+    'src/heapy/worklist.c',
     'src/heapy/xmemstats.c',
 ])
 
