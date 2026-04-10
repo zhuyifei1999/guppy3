@@ -107,7 +107,6 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
     if (!(lists[1] = gc_get_objects())) goto err;
 
-    /* FIXME; Why do we use GC here? Can we not use hv_update_referrers? */
     NY_STOP_WORLD();
     for (k = 0; k < 2; k++) {
         PyObject *objects = lists[k];
