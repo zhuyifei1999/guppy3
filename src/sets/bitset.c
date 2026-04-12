@@ -395,7 +395,7 @@ static int mutbitset_ior_field(NyMutBitSetObject *v, NyBitField *w);
 
 static int mutbitset_iop_PyLongObject(NyMutBitSetObject *ms, int op, PyObject *v);
 
-static NyImmBitSetObject * cplbitset_cpl(NyCplBitSetObject*v);
+static NyImmBitSetObject *cplbitset_cpl(NyCplBitSetObject*v);
 
 NyImmBitSetObject *sf_slice(NySetField *ss, NySetField *se, NyBit ilow, NyBit ihigh);
 
@@ -4672,7 +4672,7 @@ NyBitSet_Form(PyObject *args)
         return (PyObject *)ms;
     }
     if (flags & NyForm_CPL) {
-        NyCplBitSetObject * cpl = NyCplBitSet_New(bs);
+        NyCplBitSetObject *cpl = NyCplBitSet_New(bs);
         Py_DECREF(bs);
         return (PyObject *)cpl;
     }

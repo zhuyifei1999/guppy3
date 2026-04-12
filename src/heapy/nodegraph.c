@@ -8,6 +8,7 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "heapdef.h"
+#include "heapy.h"
 #include "impsets.h"
 #include "nodegraph.h"
 #include "roundupsize.h"
@@ -48,20 +49,31 @@ typedef struct {
 
 /* NodeGraphIter methods */
 
+static int
+ngiter_clear(NyNodeGraphIterObject *it)
+{
+    Py_CLEAR(it->nodegraph);
+    return 0;
+}
+
 static void
 ngiter_dealloc(NyNodeGraphIterObject *it)
 {
+    PyTypeObject *tp = Py_TYPE(it);
     PyObject_GC_UnTrack(it);
-    Py_XDECREF(it->nodegraph);
+    Py_TRASHCAN_BEGIN(it, ngiter_dealloc)
+    ngiter_clear(it);
     PyObject_GC_Del(it);
+    Py_CLEAR(tp);
+    Py_TRASHCAN_END
 }
 
 static int
 ngiter_traverse(NyNodeGraphIterObject *it, visitproc visit, void *arg)
 {
-    if (!it->nodegraph)
-        return 0;
-    return visit((PyObject *)it->nodegraph, arg);
+    Py_VISIT(Py_TYPE(it));
+    Py_VISIT(it->nodegraph);
+    return 0;
 }
 
 static PyObject *
@@ -98,16 +110,21 @@ out:
 
 /* NodeGraphIter type */
 
-PyTypeObject NyNodeGraphIter_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "nodegraph-iterator",
-    .tp_basicsize = sizeof(NyNodeGraphIterObject),
-    .tp_dealloc   = (destructor)ngiter_dealloc,
-    .tp_getattro  = PyObject_GenericGetAttr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    .tp_traverse  = (traverseproc)ngiter_traverse,
-    .tp_iter      = PyObject_SelfIter,
-    .tp_iternext  = (iternextfunc)ngiter_iternext,
+static PyType_Slot ngiter_slots[] = {
+    {Py_tp_dealloc,  ngiter_dealloc},
+    {Py_tp_getattro, PyObject_GenericGetAttr},
+    {Py_tp_traverse, ngiter_traverse},
+    {Py_tp_clear,    ngiter_clear},
+    {Py_tp_iter,     PyObject_SelfIter},
+    {Py_tp_iternext, ngiter_iternext},
+    {0, NULL}
+};
+
+PyType_Spec NyNodeGraphIter_Spec = {
+    .name      = "nodegraph-iterator",
+    .basicsize = sizeof(NyNodeGraphIterObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .slots     = ngiter_slots,
 };
 
 /* NodeGraph methods */
@@ -147,6 +164,7 @@ static void
 ng_dealloc(PyObject *v)
 {
     /* NOT LOCKED: Object is dying */
+    PyTypeObject *tp = Py_TYPE(v);
     NyNodeGraphObject *ng = (void *)v;
     Py_ssize_t i;
     PyObject_GC_UnTrack(v);
@@ -157,7 +175,8 @@ ng_dealloc(PyObject *v)
         Py_DECREF(ng->edges[i].tgt);
     }
     PyMem_FREE(ng->edges);
-    Py_TYPE(ng)->tp_free(v);
+    tp->tp_free(v);
+    Py_CLEAR(tp);
     Py_TRASHCAN_END
 }
 
@@ -166,17 +185,14 @@ ng_gc_traverse(NyNodeGraphObject *ng, visitproc visit, void *arg)
 {
     /* NOT LOCKED: Stop the world from GC */
     Py_ssize_t i;
-    int err = 0;
 
+    Py_VISIT(Py_TYPE(ng));
     for (i = 0; i < ng->used_size; i++) {
-        err = visit(ng->edges[i].src, arg) ;
-        if (err) return err;
-        err = visit(ng->edges[i].tgt, arg) ;
-        if (err) return err;
+        Py_VISIT(ng->edges[i].src) ;
+        Py_VISIT(ng->edges[i].tgt) ;
     }
-    if (ng->_hiding_tag_)
-        err = visit(ng->_hiding_tag_, arg);
-    return err;
+    Py_VISIT(ng->_hiding_tag_);
+    return 0;
 }
 
 int
@@ -369,12 +385,13 @@ ng_add_edges_n1_trav(PyObject *obj, AETravArg *ta)
 static PyObject *
 ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     AETravArg ta;
     PyObject *it;
     ta.ng = ng;
     if (!PyArg_ParseTuple(args, "OO:",  &it, &ta.tgt))
         return NULL;
-    if (iterable_iterate(it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
+    if (iterable_iterate(ms, it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
         return 0;
     Py_INCREF(Py_None);
     return Py_None;
@@ -512,13 +529,14 @@ Return True if each node in X is the source of some edge in NG, False otherwise.
 static PyObject *
 ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     DCTravArg ta;
     PyObject *result = NULL;
     ta.ng = ng;
     ta.ret = 1;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(X, (visitproc)ng_dc_trav, &ta) == -1)
+    if (iterable_iterate(ms, X, (visitproc)ng_dc_trav, &ta) == -1)
         goto out;
 
     result = ta.ret? Py_True:Py_False;
@@ -558,6 +576,7 @@ Return a new NodeGraph, containing those edges in NG that have source in X."
 static PyObject *
 ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     DRTravArg ta;
     ta.ng = ng;
     ta.ret = NyNodeGraph_SiblingNew(ng);
@@ -565,7 +584,7 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
         return 0;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(X, (visitproc)ng_dr_trav, &ta) == -1)
+    if (iterable_iterate(ms, X, (visitproc)ng_dr_trav, &ta) == -1)
         Py_CLEAR(ta.ret);
     Ny_END_CRITICAL_SECTION();
     return (PyObject *)ta.ret;
@@ -688,7 +707,8 @@ ng_inverted(NyNodeGraphObject *ng, void *notused)
 static PyObject *
 ng_iter(NyNodeGraphObject *v)
 {
-    NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, &NyNodeGraphIter_Type);
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(v), &heapyc_def);
+    NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, ms->NodeGraphIter_Type);
     if (!iter)
         return 0;
 
@@ -765,6 +785,7 @@ that are the target of some edge that have its source in X."
 static NyNodeSetObject *
 ng_relimg(NyNodeGraphObject *ng, PyObject *S)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     RITravArg ta;
     ta.ng = ng;
     ta.hs = NULL;
@@ -774,7 +795,7 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
     if (!ta.hs)
         return 0;
     ng_maybesortetc(ng);
-    if (iterable_iterate(S, (visitproc)ng_relimg_trav, &ta) == -1)
+    if (iterable_iterate(ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;
     goto out;
 
@@ -803,7 +824,8 @@ ng_update_visit(PyObject *obj, NyNodeGraphObject *ng)
 int
 NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *u)
 {
-    return iterable_iterate(u, (visitproc)ng_update_visit, a);
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(a), &heapyc_def);
+    return iterable_iterate(ms, u, (visitproc)ng_update_visit, a);
 }
 
 
@@ -1086,14 +1108,6 @@ out:
 }
 
 
-
-static PyMappingMethods ng_as_mapping = {
-    .mp_length = ng_length,
-    .mp_subscript = (binaryfunc)ng_subscript,
-    .mp_ass_subscript = (objobjargproc)ng_ass_sub,
-};
-
-
 static PyObject *
 ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -1120,28 +1134,34 @@ ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 
-PyTypeObject NyNodeGraph_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name       = "guppy.heapy.heapyc.NodeGraph",
-    .tp_basicsize  = sizeof(NyNodeGraphObject),
-    .tp_dealloc    = (destructor)ng_dealloc,
-    .tp_as_mapping = &ng_as_mapping,
-    .tp_getattro   = PyObject_GenericGetAttr,
-    .tp_flags      = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc        = ng_doc,
-    .tp_traverse   = (traverseproc)ng_gc_traverse,
-    .tp_clear      = (inquiry)ng_gc_clear,
-    .tp_iter       = (getiterfunc)ng_iter,
-    .tp_methods    = ng_methods,
-    .tp_members    = ng_members,
-    .tp_getset     = ng_getset,
-    .tp_alloc      = PyType_GenericAlloc,
-    .tp_new        = ng_new,
-    .tp_free       = PyObject_GC_Del,
+static PyType_Slot ng_slots[] = {
+    {Py_tp_dealloc,       ng_dealloc},
+    {Py_mp_length,        ng_length},
+    {Py_mp_subscript,     ng_subscript},
+    {Py_mp_ass_subscript, ng_ass_sub},
+    {Py_tp_getattro,      PyObject_GenericGetAttr},
+    {Py_tp_doc,           (void *)ng_doc},
+    {Py_tp_traverse,      ng_gc_traverse},
+    {Py_tp_clear,         ng_gc_clear},
+    {Py_tp_iter,          ng_iter},
+    {Py_tp_methods,       ng_methods},
+    {Py_tp_members,       ng_members},
+    {Py_tp_getset,        ng_getset},
+    {Py_tp_alloc,         PyType_GenericAlloc},
+    {Py_tp_new,           ng_new},
+    {Py_tp_free,          PyObject_GC_Del},
+    {0, NULL}
+};
+
+PyType_Spec NyNodeGraph_Spec = {
+    .name      = "guppy.heapy.heapyc.NodeGraph",
+    .basicsize = sizeof(NyNodeGraphObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .slots     = ng_slots,
 };
 
 NyNodeGraphObject *
-NyNodeGraph_New(void)
+NyNodeGraph_New(struct HeapycState *ms)
 {
-    return NyNodeGraph_SubtypeNew(&NyNodeGraph_Type);
+    return NyNodeGraph_SubtypeNew(ms->NodeGraph_Type);
 }

@@ -4,11 +4,11 @@
 
 #if NY_MASKED_VERSION_HEX < 0x030e0000
 # define Py_PACK_FULL_VERSION(X, Y, Z, LEVEL, SERIAL) ( \
-   (((X) & 0xff) << 24) |                               \
-   (((Y) & 0xff) << 16) |                               \
-   (((Z) & 0xff) << 8) |                                \
-   (((LEVEL) & 0xf) << 4) |                             \
-   (((SERIAL) & 0xf) << 0))
+    (((X) & 0xff) << 24) |                              \
+    (((Y) & 0xff) << 16) |                              \
+    (((Z) & 0xff) << 8) |                               \
+    (((LEVEL) & 0xf) << 4) |                            \
+    (((SERIAL) & 0xf) << 0))
 
 # define Py_PACK_VERSION(major, minor) \
    Py_PACK_FULL_VERSION(major, minor, 0, 0, 0)
@@ -42,5 +42,54 @@
 #define _Py_atomic_fence_acquire() ((void)0)
 #define _Py_atomic_fence_release() ((void)0)
 #endif
+
+static inline int
+NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
+                         bool addtomod, PyTypeObject **state)
+{
+    PyObject *t = PyType_FromModuleAndSpec(m, spec, bases);
+    if (!t)
+        return -1;
+
+    assert(PyType_Check(t));
+    if (addtomod) {
+        if (PyModule_AddType(m, (PyTypeObject *)t) == -1)
+            return -1;
+    }
+    if (state)
+        *state = (PyTypeObject *)t;
+    else
+        Py_DECREF(t);
+
+    return 0;
+}
+
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+#define Ny_TPFLAGS_BASETYPE_ON_PY3_11 Py_TPFLAGS_BASETYPE
+#else
+/* Python 3.10 doesn't have PyType_GetModuleByDef, so make types non-inheritable */
+#define Ny_TPFLAGS_BASETYPE_ON_PY3_11 0
+#endif
+
+static inline void *
+NyModule_AssertState(PyObject *module)
+{
+    void *state = PyModule_GetState(module);
+    assert(state);
+    return state;
+}
+
+static inline void *
+NyType_AssertModuleState(PyTypeObject *type, struct PyModuleDef *def)
+{
+    PyObject *module;
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+    module = PyType_GetModuleByDef(type, def);
+#else
+    module = PyType_GetModule(type);
+#endif
+    assert(module);
+    return NyModule_AssertState(module);
+}
 
 #endif /* GUPPY_H_INCLUDED */

@@ -6,8 +6,10 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
+#include "stoptheworld.h"
 
 const char hv_cli_user_defined_doc[] = PyDoc_STR(
 "\n"
@@ -27,8 +29,10 @@ typedef struct {
 NYTUPLELIKE_ASSERT(UserObject, cond_cli);
 
 static PyObject *
-hv_cli_user_memoized_kind(UserObject * self, PyObject *kind)
+hv_cli_user_memoized_kind(struct HeapycState *ms, UserObject *self, PyObject *kind)
 {
+    NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
+
     if (self->memoized_kind != Py_None && kind != Py_None) {
         kind = PyObject_CallFunctionObjArgs(self->memoized_kind, kind, 0);
     } else {
@@ -38,10 +42,12 @@ hv_cli_user_memoized_kind(UserObject * self, PyObject *kind)
 }
 
 static PyObject *
-hv_cli_user_classify(UserObject * self, PyObject *obj)
+hv_cli_user_classify(struct HeapycState *ms, UserObject *self, PyObject *obj)
 {
     PyObject *kind;
-    kind = self->cond_cli->def->classify(self->cond_cli->self, obj);
+
+    NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
+    kind = self->cond_cli->def->classify(ms, self->cond_cli->self, obj);
     if (!kind)
       return 0;
     if (kind != self->cond_kind) {
@@ -60,8 +66,8 @@ static NyObjectClassifierDef hv_cli_user_def = {
     sizeof(NyObjectClassifierDef),
     "cli_user_defined",
     "user defined classifier",
-    (binaryfunc)hv_cli_user_classify,
-    (binaryfunc)hv_cli_user_memoized_kind,
+    (modstatebinaryfunc)hv_cli_user_classify,
+    (modstatebinaryfunc)hv_cli_user_memoized_kind,
 };
 
 
@@ -73,7 +79,7 @@ hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     UserObject *s, tmp;
     PyObject *r;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!OOO:user_defined", kwlist,
-                                     &NyObjectClassifier_Type, &tmp.cond_cli,
+                                     self->ms->ObjectClassifier_Type, &tmp.cond_cli,
                                      &tmp.cond_kind,
                                      &tmp.classify,
                                      &tmp.memoized_kind
@@ -92,7 +98,7 @@ hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     Py_INCREF(s->classify);
     s->memoized_kind = tmp.memoized_kind;
     Py_INCREF(s->memoized_kind);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_user_def);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_user_def);
     Py_DECREF(s);
     return r;
 }

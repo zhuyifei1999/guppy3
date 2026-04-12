@@ -6,6 +6,7 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 
@@ -110,12 +111,12 @@ typedef struct {
 NYTUPLELIKE_ASSERT(ProdObject, hv);
 
 static PyObject *
-hv_cli_prod_memoized_kind(ProdObject * self, PyObject *kind)
+hv_cli_prod_memoized_kind(struct HeapycState *ms, ProdObject *self, PyObject *kind)
 {
     PyObject *result;
     int r;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;
@@ -130,7 +131,7 @@ hv_cli_prod_memoized_kind(ProdObject * self, PyObject *kind)
 }
 
 static PyObject *
-hv_cli_prod_classify(ProdObject *self, PyObject *obj)
+hv_cli_prod_classify(struct HeapycState *ms, ProdObject *self, PyObject *obj)
 {
     PyObject *result;
     PyObject *kind = NULL, *tb = NULL;
@@ -171,7 +172,7 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
     if (!kind)
         goto Err;
 
-    result = hv_cli_prod_memoized_kind(self, kind);
+    result = hv_cli_prod_memoized_kind(ms, self, kind);
     Py_DECREF(tb);
     Py_DECREF(kind);
     return result;
@@ -183,7 +184,7 @@ Err:
 }
 
 static int
-hv_cli_prod_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_prod_le(PyObject *self, PyObject *a, PyObject *b)
 {
     if (a == Py_None || b == Py_None)
         return a == Py_None && b == Py_None;
@@ -241,8 +242,8 @@ static NyObjectClassifierDef hv_cli_prod_def = {
     sizeof(NyObjectClassifierDef),
     "hv_cli_prod",
     "classifier returning object producer",
-    (binaryfunc)hv_cli_prod_classify,
-    (binaryfunc)hv_cli_prod_memoized_kind,
+    (modstatebinaryfunc)hv_cli_prod_classify,
+    (modstatebinaryfunc)hv_cli_prod_memoized_kind,
     hv_cli_prod_le
 };
 
@@ -267,7 +268,7 @@ hv_cli_prod(NyHeapViewObject *self, PyObject *args)
     Py_INCREF(s->hv);
     s->memo = memo;
     Py_INCREF(memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_prod_def);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_prod_def);
     Py_DECREF(s);
     return r;
 }

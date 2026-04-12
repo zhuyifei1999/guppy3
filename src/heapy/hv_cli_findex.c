@@ -10,6 +10,7 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 
@@ -28,12 +29,12 @@ typedef struct {
 NYTUPLELIKE_ASSERT(FindexObject, alts);
 
 static PyObject *
-hv_cli_findex_memoized_kind(FindexObject * self, PyObject *kind)
+hv_cli_findex_memoized_kind(struct HeapycState *ms, FindexObject *self, PyObject *kind)
 {
     PyObject *result;
     int r;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;
@@ -49,7 +50,7 @@ hv_cli_findex_memoized_kind(FindexObject * self, PyObject *kind)
 
 
 static PyObject *
-hv_cli_findex_classify(FindexObject * self, PyObject *obj)
+hv_cli_findex_classify(struct HeapycState *ms, FindexObject *self, PyObject *obj)
 {
     Py_ssize_t i, numalts;
     PyObject *kind, *ret, *index;
@@ -61,7 +62,7 @@ hv_cli_findex_classify(FindexObject * self, PyObject *obj)
         long cmp = PyLong_AsLong(PyTuple_GET_ITEM(self->cmps, i));
         if (cmp == -1 && PyErr_Occurred())
             return NULL;
-        kind = cli->def->classify(cli->self, obj);
+        kind = cli->def->classify(ms, cli->self, obj);
         if (!kind)
             return NULL;
         cmp = NyObjectClassifier_Compare(cli, kind, cmpkind, cmp);
@@ -74,13 +75,13 @@ hv_cli_findex_classify(FindexObject * self, PyObject *obj)
     index = PyLong_FromSsize_t(i);
     if (!index)
         return NULL;
-    ret = hv_cli_findex_memoized_kind(self, index);
+    ret = hv_cli_findex_memoized_kind(ms, self, index);
     Py_DECREF(index);
     return ret;
 }
 
 static int
-hv_cli_findex_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_findex_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -90,8 +91,8 @@ static NyObjectClassifierDef hv_cli_findex_def = {
     sizeof(NyObjectClassifierDef),
     "cli_findex",
     "classifier returning index of matching kind",
-    (binaryfunc)hv_cli_findex_classify,
-    (binaryfunc)hv_cli_findex_memoized_kind,
+    (modstatebinaryfunc)hv_cli_findex_classify,
+    (modstatebinaryfunc)hv_cli_findex_memoized_kind,
     hv_cli_findex_le,
 };
 
@@ -118,7 +119,7 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
             PyErr_SetString(PyExc_TypeError, "Tuple of TRIPLES expected.");
             return 0;
         }
-        if (!NyObjectClassifier_Check(PyTuple_GET_ITEM(ckc, 0))) {
+        if (!PyObject_TypeCheck(PyTuple_GET_ITEM(ckc, 0), hv->ms->ObjectClassifier_Type)) {
             PyErr_SetString(PyExc_TypeError, "Tuple of triples with [0] a CLASSIFIER expected.");
             return 0;
         }
@@ -146,7 +147,7 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(ckc, 0);
         PyObject *mk = PyTuple_GET_ITEM(ckc, 1);
         if (cli->def->memoized_kind) {
-            mk = cli->def->memoized_kind(cli->self, mk);
+            mk = cli->def->memoized_kind(hv->ms, cli->self, mk);
             if (!mk)
                 goto Err;
         } else {
@@ -159,7 +160,7 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
         PyTuple_SET_ITEM(s->cmps, i, mk);
 
     }
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_findex_def);
+    r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_findex_def);
     Py_DECREF(s);
     return r;
 Err:

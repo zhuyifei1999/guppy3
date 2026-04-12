@@ -10,10 +10,10 @@ typedef struct NyHeapViewObject NyHeapViewObject;
 typedef struct NyNodeGraphObject NyNodeGraphObject;
 typedef struct NyNodeSetObject NyNodeSetObject;
 
-extern PyTypeObject NyHeapView_Type;
-extern PyTypeObject NyHorizon_Type;
-extern PyTypeObject NyNodeTuple_Type;
-extern PyTypeObject NyRelation_Type;
+extern PyType_Spec NyHeapView_Spec;
+extern PyType_Spec NyHorizon_Spec;
+extern PyType_Spec NyNodeTuple_Spec;
+extern PyType_Spec NyRelation_Spec;
 
 ExtraType *hv_extra_type(NyHeapViewObject *hv, PyTypeObject *type);
 extern size_t hv_std_size(NyHeapViewObject *hv, PyObject *obj);
@@ -52,9 +52,9 @@ extern int hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg);
 extern PyObject *hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds);
 
 #ifdef NDEBUG
-#define NY_ASSERT_IMMUTABLE_BUILTIN(obj) ((void)0)
+#define NY_ASSERT_IMMUTABLE_BUILTIN(ms, obj) ((void)0)
 #else
-extern void NY_ASSERT_IMMUTABLE_BUILTIN(PyObject *obj);
+extern void NY_ASSERT_IMMUTABLE_BUILTIN(struct HeapycState *ms, PyObject *obj);
 #endif
 
 #define NYTUPLELIKE_NEW(t) ((t *)PyTuple_New((sizeof(t) - sizeof(PyTupleObject)) / sizeof(PyObject *) + 1))

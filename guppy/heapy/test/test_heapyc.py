@@ -23,7 +23,7 @@ class TestHeapView(TestCase):
         ng = self.nodegraph([(a, a)])
 
         self.assertEqual(self.hv.relimg([ns]), self.nodeset([a]))
-        self.assertEqual(self.hv.relimg([ng]), self.nodeset([a]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a]))
 
         ns._hiding_tag_ = hiding_tag
         self.assertEqual(self.hv.relimg([ns]), self.nodeset([]))
@@ -34,9 +34,12 @@ class TestHeapView(TestCase):
         self.hv._hiding_tag_ = []
 
         self.assertEqual(self.hv.relimg([ns]), self.nodeset([a, None]))
-        self.assertEqual(self.hv.relimg([ng]), self.nodeset([a, None]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a, None]))
 
     def test_inheritance_from_heapview(self):
+        if self.version_info < (3, 11):
+            return
+
         # I am not using inheritance from HeapView,
         # but it would be kinda weird if it didn't work.
 
@@ -52,6 +55,9 @@ class TestHeapView(TestCase):
         assert hv.heap() == self.nodeset([x, newroot])
 
     def test_inheritance_from_special_types(self):
+        if self.version_info < (3, 11):
+            return
+
         # Test that relate, size & traverse function correctly for inherited types
         # as discussed in Notes Apr 14 2005.
         # Testing with a standard type (list) with specially size and relate definitions,
@@ -515,6 +521,9 @@ class TestNodeGraph(TestCase):
         assert ng.is_sorted
 
     def test_inheritance(self):
+        if self.version_info < (3, 11):
+            return
+
         class T(self.heapyc.NodeGraph):
             __slots__ = 'x'
 

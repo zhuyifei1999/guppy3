@@ -5,134 +5,121 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
+#include "heapy.h"
 #include "stoptheworld.h"
 
-static NyNodeSet_Exports *nodeset_exports;
+/* For function pointers only */
+static NyNodeSet_Exports nodeset_exports;
 
-#define NODESET_EXPORTS \
-    ((NyNodeSet_Exports *)_Py_atomic_load_ptr_relaxed(&nodeset_exports))
-
-#define NyNodeSet_TYPE	(NODESET_EXPORTS->nodeset_type)
-#define NyMutNodeSet_TYPE	(NODESET_EXPORTS->mutnodeset_type)
-#define NyImmNodeSet_TYPE	(NODESET_EXPORTS->immnodeset_type)
-
-/* As of 3.14, PyCapsule_Import requires external synchronization if called
-   from multiple threads, and I believe module_exec can be, if we are GIL-less
-   eventually */
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-static PyMutex nodeset_exports_mutex = {0};
-#else
-# define PyMutex_Lock(m) do {} while (0)
-# define PyMutex_Unlock(m) do {} while (0)
-#endif
-
-bool NyNodeSet_Check(PyObject *op)
-{
-    return PyObject_TypeCheck(op, NyNodeSet_TYPE);
-}
-
-bool NyImmNodeSet_Check(PyObject *op)
-{
-    return PyObject_TypeCheck(op, NyImmNodeSet_TYPE);
-}
+#define NODESET_EXPORTED_FUNC(attr) \
+    ((typeof(nodeset_exports.attr))_Py_atomic_load_ptr_relaxed(&nodeset_exports.attr))
 
 
 NyNodeSetObject *
 NyMutNodeSet_New(void)
 {
-    return NODESET_EXPORTS->newMut();
+    return NODESET_EXPORTED_FUNC(newMut)();
 }
 
 NyNodeSetObject *
 NyMutNodeSet_NewHiding(PyObject *tag)
 {
-    return NODESET_EXPORTS->newMutHiding(tag);
+    return NODESET_EXPORTED_FUNC(newMutHiding)(tag);
 }
 
 NyNodeSetObject *
 NyMutNodeSet_NewFlags(int flags)
 {
-    return NODESET_EXPORTS->newMutFlags(flags);
+    return NODESET_EXPORTED_FUNC(newMutFlags)(flags);
 }
 
 int
 NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
 {
-    return NODESET_EXPORTS->setobj(v, obj);
+    return NODESET_EXPORTED_FUNC(setobj)(v, obj);
 }
 
 int
 NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
 {
-    return NODESET_EXPORTS->clrobj(v, obj);
+    return NODESET_EXPORTED_FUNC(clrobj)(v, obj);
 }
 
 
 int
 NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
 {
-    return NODESET_EXPORTS->hasobj(v, obj);
+    return NODESET_EXPORTED_FUNC(hasobj)(v, obj);
 }
 
 int NyNodeSet_iterate(NyNodeSetObject *ns,
                       int (*visit)(PyObject *, void *),
                       void *arg)
 {
-    return NODESET_EXPORTS->iterate(ns, visit, arg);;
+    return NODESET_EXPORTED_FUNC(iterate)(ns, visit, arg);;
 }
 
 
 NyNodeSetObject *
 NyImmNodeSet_NewCopy(NyNodeSetObject *v)
 {
-    return NODESET_EXPORTS->newImmCopy(v);
+    return NODESET_EXPORTED_FUNC(newImmCopy)(v);
 }
 
 NyNodeSetObject *
 NyImmNodeSet_NewSingleton(PyObject *element, PyObject *hiding_tag)
 {
-    return NODESET_EXPORTS->newImmSingleton(element, hiding_tag);
+    return NODESET_EXPORTED_FUNC(newImmSingleton)(element, hiding_tag);
 }
 
 int
 NyNodeSet_be_immutable(NyNodeSetObject **nsp)
 {
-    return NODESET_EXPORTS->be_immutable(nsp);
+    return NODESET_EXPORTED_FUNC(be_immutable)(nsp);
 }
 
 int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v)
 {
     NY_ASSERT_WORLD_STOPPED();
-    return NODESET_EXPORTS->initStw(v);
+    return NODESET_EXPORTED_FUNC(initStw)(v);
 }
 
 void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
 {
     NY_ASSERT_WORLD_STOPPED();
-    NODESET_EXPORTS->destroyStw(v);
+    NODESET_EXPORTED_FUNC(destroyStw)(v);
 }
 
 int
-import_sets(void)
+import_sets(struct HeapycState *ms)
 {
-    NyNodeSet_Exports *local_nodeset_exports;
+    ms->nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
+    if (!ms->nodeset_exports)
+        return -1;
 
-    if (_Py_atomic_load_ptr_relaxed(&nodeset_exports))
-        return 0;
-
-    PyMutex_Lock(&nodeset_exports_mutex);
-
-    if (_Py_atomic_load_ptr_relaxed(&nodeset_exports))
-        goto out;
-    local_nodeset_exports = PyCapsule_Import("guppy.sets.setsc.NyNodeSet_Exports", 0);
-    if (!local_nodeset_exports)
-        goto err;
-    _Py_atomic_store_ptr_relaxed(&nodeset_exports, local_nodeset_exports);
-
-out:
-    PyMutex_Unlock(&nodeset_exports_mutex);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.newMut,
+                                 ms->nodeset_exports->newMut);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.newMutHiding,
+                                 ms->nodeset_exports->newMutHiding);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.newMutFlags,
+                                 ms->nodeset_exports->newMutFlags);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.setobj,
+                                 ms->nodeset_exports->setobj);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.clrobj,
+                                 ms->nodeset_exports->clrobj);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.hasobj,
+                                 ms->nodeset_exports->hasobj);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.iterate,
+                                 ms->nodeset_exports->iterate);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.newImmCopy,
+                                 ms->nodeset_exports->newImmCopy);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.newImmSingleton,
+                                 ms->nodeset_exports->newImmSingleton);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.be_immutable,
+                                 ms->nodeset_exports->be_immutable);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.initStw,
+                                 ms->nodeset_exports->initStw);
+    _Py_atomic_store_ptr_relaxed(&nodeset_exports.destroyStw,
+                                 ms->nodeset_exports->destroyStw);
     return 0;
-err:
-    PyMutex_Unlock(&nodeset_exports_mutex);
-    return -1;
 }

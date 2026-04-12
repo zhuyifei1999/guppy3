@@ -36,7 +36,7 @@ NyNodeSetObject *NyImmNodeSet_NewSingleton(PyObject *element, PyObject *hiding_t
 int NyNodeSet_be_immutable(NyNodeSetObject **nsp);
 
 
-typedef struct {
+typedef struct NyNodeSet_Exports {
     int flags;
     int size;
     char *ident_and_version;

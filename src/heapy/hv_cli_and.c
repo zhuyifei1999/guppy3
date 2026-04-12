@@ -6,6 +6,7 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 
@@ -31,13 +32,12 @@ PyDoc_STRVAR(nodetuple_doc,
 "Tuple with comparison based on addresses on the elements.\n"
 );
 
-#define NyNodeTuple_Check(op) PyObject_TypeCheck(op, &NyNodeTuple_Type)
 
 static PyObject *
-NyNodeTuple_New(Py_ssize_t size)
+NyNodeTuple_New(struct HeapycState *ms, Py_ssize_t size)
 {
     PyTupleObject *op;
-    op = PyObject_GC_NewVar(PyTupleObject, &NyNodeTuple_Type, size);
+    op = PyObject_GC_NewVar(PyTupleObject, ms->NodeTuple_Type, size);
     if (op == NULL)
         return NULL;
     memset(op->ob_item, 0, sizeof(*op->ob_item) * size);
@@ -47,12 +47,12 @@ NyNodeTuple_New(Py_ssize_t size)
 
 
 static PyObject *
-hv_cli_and_fast_memoized_kind(CliAndObject * self, PyObject *kind)
+hv_cli_and_fast_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObject *kind)
 {
     PyObject *result;
     int r;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;
@@ -68,7 +68,7 @@ hv_cli_and_fast_memoized_kind(CliAndObject * self, PyObject *kind)
 
 
 static PyObject *
-hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
+hv_cli_and_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObject *kind)
 {
     Py_ssize_t i, size;
     PyObject *nt, *result;
@@ -83,14 +83,14 @@ hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
                         "cli_and_memoized_kind: wrong length of argument.");
         return 0;
     }
-    nt = NyNodeTuple_New(size);
+    nt = NyNodeTuple_New(ms, size);
     if (!nt)
         return 0;
     for (i = 0; i < size; i++) {
         PyObject *superkind = PyTuple_GET_ITEM(kind, i);
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(self->classifiers, i);
         if (cli->def->memoized_kind) {
-            superkind = cli->def->memoized_kind(cli->self, superkind);
+            superkind = cli->def->memoized_kind(ms, cli->self, superkind);
             if (!superkind) {
                 Py_DECREF(nt);
                 return 0;
@@ -100,7 +100,7 @@ hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
         }
         PyTuple_SET_ITEM(nt, i, superkind);
     }
-    result = hv_cli_and_fast_memoized_kind(self, nt);
+    result = hv_cli_and_fast_memoized_kind(ms, self, nt);
     Py_DECREF(nt);
     return result;
 }
@@ -109,25 +109,25 @@ hv_cli_and_memoized_kind(CliAndObject * self, PyObject *kind)
 
 
 static PyObject *
-hv_cli_and_classify(CliAndObject * self, PyObject *obj)
+hv_cli_and_classify(struct HeapycState *ms, CliAndObject *self, PyObject *obj)
 {
     Py_ssize_t i, n;
     PyObject *classifiers = self->classifiers;
     PyObject *kind, *result;
     n = PyTuple_GET_SIZE(classifiers);
-    kind = NyNodeTuple_New(n);
+    kind = NyNodeTuple_New(ms, n);
     if (!kind)
         goto Err;
     for (i = 0; i < n; i++) {
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(classifiers, i);
-        PyObject *superkind = cli->def->classify(cli->self, obj);
+        PyObject *superkind = cli->def->classify(ms, cli->self, obj);
         if (!superkind) {
             goto Err;
         }
         PyTuple_SET_ITEM(kind, i, superkind);
         /* superkind is incref'd already */
     }
-    result = hv_cli_and_fast_memoized_kind(self, kind);
+    result = hv_cli_and_fast_memoized_kind(ms, self, kind);
     Py_DECREF(kind);
     return result;
 Err:
@@ -140,8 +140,8 @@ static NyObjectClassifierDef hv_cli_and_def = {
     sizeof(NyObjectClassifierDef),
     "cli_and",
     "classifier based on a combination  of other subclassifiers",
-    (binaryfunc)hv_cli_and_classify,
-    (binaryfunc)hv_cli_and_memoized_kind
+    (modstatebinaryfunc)hv_cli_and_classify,
+    (modstatebinaryfunc)hv_cli_and_memoized_kind
 };
 
 
@@ -157,12 +157,10 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
                           )) {
         return 0;
     }
-    if (PyType_Ready(&NyNodeTuple_Type) == -1)
-        return 0;
 
     for (i = 0; i < PyTuple_GET_SIZE(tmp.classifiers); i++) {
         if (!PyObject_TypeCheck(PyTuple_GET_ITEM(tmp.classifiers, i),
-                                &NyObjectClassifier_Type)) {
+                                hv->ms->ObjectClassifier_Type)) {
             PyErr_SetString(PyExc_TypeError,
                             "cli_and: classifiers argument must contain classifier objects.");
             return 0;
@@ -176,7 +174,7 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
     Py_INCREF(s->classifiers);
     s->memo = tmp.memo;
     Py_INCREF(s->memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_and_def);
+    r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_and_def);
     Py_DECREF(s);
     return r;
 }
@@ -202,9 +200,7 @@ nodetuple_hash(PyTupleObject *v)
 static int
 nodetuple_traverse(PyObject *o, visitproc visit, void *arg)
 {
-    /* This is not automatically inherited!
-       And the GC actually seg-faulted without it.
-       */
+    Py_VISIT(Py_TYPE(o));
     return PyTuple_Type.tp_traverse(o, visit, arg);
 }
 
@@ -212,6 +208,7 @@ nodetuple_traverse(PyObject *o, visitproc visit, void *arg)
 static PyObject *
 nodetuple_richcompare(PyObject *v, PyObject *w, int op)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(v), &heapyc_def);
     PyTupleObject *vt, *wt;
     Py_ssize_t i;
     Py_ssize_t vlen, wlen;
@@ -219,10 +216,10 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     int cmp;
     PyObject *res;
 
-    if (!NyNodeTuple_Check(v) || !NyNodeTuple_Check(w)) {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
-    }
+    if (!PyObject_TypeCheck(v, ms->NodeTuple_Type) ||
+        !PyObject_TypeCheck(w, ms->NodeTuple_Type)
+    )
+        return Py_NewRef(Py_NotImplemented);
 
     vt = (PyTupleObject *)v;
     wt = (PyTupleObject *)w;
@@ -276,16 +273,20 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     return res;
 }
 
-PyTypeObject NyNodeTuple_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "guppy.heapy.heapyc.NodeTuple",
-    sizeof(PyTupleObject) - sizeof(PyObject *),
-    sizeof(PyObject *),
-    .tp_hash           = (hashfunc)nodetuple_hash,
-    .tp_getattro       = PyObject_GenericGetAttr,
-    .tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc            = nodetuple_doc,
-    .tp_traverse       = (traverseproc)nodetuple_traverse,
-    .tp_richcompare    = nodetuple_richcompare,
-    .tp_free           = PyObject_GC_Del,
+static PyType_Slot nodetuple_slots[] = {
+    {Py_tp_hash,        nodetuple_hash},
+    {Py_tp_getattro,    PyObject_GenericGetAttr},
+    {Py_tp_doc,         (void *)nodetuple_doc},
+    {Py_tp_traverse,    nodetuple_traverse},
+    {Py_tp_richcompare, nodetuple_richcompare},
+    {Py_tp_free,        PyObject_GC_Del},
+    {0, NULL},
+};
+
+PyType_Spec NyNodeTuple_Spec = {
+    .name      = "guppy.heapy.heapyc.NodeTuple",
+    .basicsize = offsetof(PyTupleObject, ob_item),
+    .itemsize  = sizeof(PyObject *),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .slots     = nodetuple_slots,
 };

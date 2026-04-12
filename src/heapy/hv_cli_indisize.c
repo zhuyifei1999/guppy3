@@ -6,6 +6,7 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 
@@ -19,12 +20,12 @@ NYTUPLELIKE_ASSERT(IndisizeObject, hv);
 
 
 static PyObject *
-hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
+hv_cli_indisize_memoized_kind(struct HeapycState *ms, IndisizeObject *self, PyObject *size)
 {
     PyObject *memoedsize;
     int r;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(size);
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, size);
     r = PyDict_GetItemRef(self->memo, size, &memoedsize);
     if (r == -1)
         return NULL;
@@ -39,7 +40,7 @@ hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
 }
 
 static PyObject *
-hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
+hv_cli_indisize_classify(struct HeapycState *ms, IndisizeObject *self, PyObject *obj)
 {
     PyObject *size, *memoedsize;
 
@@ -48,13 +49,13 @@ hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
     Ny_END_CRITICAL_SECTION();
     if (!size)
         return size;
-    memoedsize = hv_cli_indisize_memoized_kind(self, size);
+    memoedsize = hv_cli_indisize_memoized_kind(ms, self, size);
     Py_DECREF(size);
     return memoedsize;
 }
 
 static int
-hv_cli_indisize_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_indisize_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -65,8 +66,8 @@ static NyObjectClassifierDef hv_cli_indisize_def = {
     sizeof(NyObjectClassifierDef),
     "cli_type",
     "classifier returning object size",
-    (binaryfunc)hv_cli_indisize_classify,
-    (binaryfunc)hv_cli_indisize_memoized_kind,
+    (modstatebinaryfunc)hv_cli_indisize_classify,
+    (modstatebinaryfunc)hv_cli_indisize_memoized_kind,
     hv_cli_indisize_le,
 };
 
@@ -96,7 +97,7 @@ hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
     Py_INCREF(s->hv);
     s->memo = memo;
     Py_INCREF(memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_indisize_def);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_indisize_def);
     Py_DECREF(s);
     return r;
 }

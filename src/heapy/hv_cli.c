@@ -7,18 +7,19 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 
 static PyObject *
-hv_cli_none_classify(NyHeapViewObject *self, PyObject *arg)
+hv_cli_none_classify(struct HeapycState *ms, NyHeapViewObject *self, PyObject *arg)
 {
     Py_INCREF(Py_None);
     return Py_None;
 }
 
 static int
-hv_cli_none_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_none_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return 1;
 }
@@ -28,8 +29,8 @@ static NyObjectClassifierDef hv_cli_none_def = {
     sizeof(NyObjectClassifierDef),
     "cli_none",
     "classifier returning None",
-    (binaryfunc)hv_cli_none_classify,
-    (binaryfunc)0,
+    (modstatebinaryfunc)hv_cli_none_classify,
+    (modstatebinaryfunc)NULL,
     hv_cli_none_le,
 };
 
@@ -43,18 +44,18 @@ The classification of each object is None.");
 PyObject *
 hv_cli_none(NyHeapViewObject *self, PyObject *args)
 {
-    return NyObjectClassifier_New((PyObject *)self, &hv_cli_none_def);
+    return NyObjectClassifier_New(self->ms, (PyObject *)self, &hv_cli_none_def);
 }
 
 static PyObject *
-hv_cli_type_classify(NyHeapViewObject *hv, PyObject *obj)
+hv_cli_type_classify(struct HeapycState *ms, NyHeapViewObject *hv, PyObject *obj)
 {
     Py_INCREF(Py_TYPE(obj));
     return (PyObject *)Py_TYPE(obj);
 }
 
 static int
-hv_cli_type_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_type_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return (a == b) || PyType_IsSubtype((PyTypeObject *)a, (PyTypeObject *)b);
 
@@ -65,8 +66,8 @@ static NyObjectClassifierDef hv_cli_type_def = {
     sizeof(NyObjectClassifierDef),
     "cli_type",
     "classifier returning object type",
-    (binaryfunc)hv_cli_type_classify,
-    (binaryfunc)0,
+    (modstatebinaryfunc)hv_cli_type_classify,
+    (modstatebinaryfunc)NULL,
     hv_cli_type_le,
 };
 
@@ -82,5 +83,5 @@ by the Python-level builtin 'type'.)");
 PyObject *
 hv_cli_type(NyHeapViewObject *self, PyObject *args)
 {
-    return NyObjectClassifier_New((PyObject *)self, &hv_cli_type_def);
+    return NyObjectClassifier_New(self->ms, (PyObject *)self, &hv_cli_type_def);
 }

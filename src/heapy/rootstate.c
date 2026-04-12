@@ -165,10 +165,11 @@ rootstate_repr(PyObject *op)
 static void
 rootstate_dealloc(void *arg)
 {
-    /* This should never get called, but we also don't want to SEGV if
-     * we accidently decref RootState out of existance.
-     */
-    abort();
+    PyTypeObject *tp = Py_TYPE(arg);
+    Py_TRASHCAN_BEGIN(arg, rootstate_dealloc)
+    tp->tp_free(arg);
+    Py_CLEAR(tp);
+    Py_TRASHCAN_END
 }
 
 
@@ -767,18 +768,11 @@ rootstate_getattr(PyObject *obj, PyObject *name)
     return ret;
 }
 
-/* Dummy traverse function to make hv_std_traverse optimization not bypass this */
-static int
-rootstate_gc_traverse(PyObject *self, visitproc visit, void *arg)
-{
-    return 0;
-}
-
 static PyObject *
 rootstate_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
-    Py_INCREF(Ny_RootState);
-    return (PyObject *)Ny_RootState;
+    struct HeapycState *ms = NyType_AssertModuleState(subtype, &heapyc_def);
+    return Py_NewRef(ms->RootState);
 }
 
 static PyObject *
@@ -932,24 +926,21 @@ static PyMethodDef rootstate_methods[] =
     {0}
 };
 
-
-PyTypeObject NyRootState_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "guppy.heapy.heapyc.RootStateType",
-    .tp_basicsize = sizeof(PyObject),
-    .tp_dealloc   = (destructor)rootstate_dealloc,
-    .tp_repr      = rootstate_repr,
-    .tp_getattro  = rootstate_getattr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT,
-    .tp_doc       = rootstate_doc,
-    .tp_traverse  = (traverseproc)rootstate_gc_traverse, /* DUMMY */
-    .tp_methods   = rootstate_methods,
-    .tp_alloc     = PyType_GenericAlloc,
-    .tp_new       = rootstate_new,
-    .tp_free      = PyObject_Del,
+static PyType_Slot rootstate_slots[] = {
+    {Py_tp_dealloc,  rootstate_dealloc},
+    {Py_tp_repr,     rootstate_repr},
+    {Py_tp_getattro, rootstate_getattr},
+    {Py_tp_doc,      (void *)rootstate_doc},
+    {Py_tp_methods,  rootstate_methods},
+    {Py_tp_alloc,    PyType_GenericAlloc},
+    {Py_tp_new,      rootstate_new},
+    {Py_tp_free,     PyObject_Del},
+    {0, NULL}
 };
 
-PyObject _Ny_RootStateStruct = PyObject_HEAD_INIT(&NyRootState_Type)
-/* PyObject_HEAD_INIT annoyingly has an extra comma at the end, so
-   we just pretend to have an extra variable here */
-_Ny_RootStateUnused;
+PyType_Spec NyRootState_Spec = {
+    .name      = "guppy.heapy.heapyc.RootStateType",
+    .basicsize = sizeof(PyObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots     = rootstate_slots,
+};

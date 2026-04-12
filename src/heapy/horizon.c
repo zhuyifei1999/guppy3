@@ -9,6 +9,7 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
+#include "heapy.h"
 #include "hv.h"
 #include "utils.h"
 
@@ -243,7 +244,7 @@ horizon_update_trav(PyObject *obj, NyHorizonObject *ta) {
 static PyObject *
 horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-
+    struct HeapycState *ms = NyType_AssertModuleState(type, &heapyc_def);
     PyObject *X;
     NyHorizonObject *hz = 0;
     static char *kwlist[] = {"X", 0};
@@ -259,7 +260,7 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     hz->hs = NyMutNodeSet_NewFlags(0); /* I.E. not NS_HOLDOBJECTS */
     if (!hz->hs)
         goto err;
-    if (iterable_iterate((PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
+    if (iterable_iterate(ms, (PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
         horizon_update_trav((PyObject *)hz, hz) == -1)
         goto err;
 
@@ -313,6 +314,7 @@ PyDoc_STRVAR(news_doc,
 static PyObject *
 horizon_news(NyHorizonObject *self, PyObject *arg)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     NewsTravArg ta;
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
@@ -327,7 +329,7 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
     ta.result = NyMutNodeSet_New();
     if (!(ta.result))
         goto err;
-    if (iterable_iterate(arg, (visitproc)horizon_news_trav, &ta) == -1)
+    if (iterable_iterate(ms, arg, (visitproc)horizon_news_trav, &ta) == -1)
         goto err;
     return (PyObject *)ta.result;
 err:
@@ -341,16 +343,20 @@ static PyMethodDef horizon_methods[] = {
     {0} /* sentinel */
 };
 
-PyTypeObject NyHorizon_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "guppy.heapy.heapyc.Horizon",
-    .tp_basicsize = sizeof(NyHorizonObject),
-    .tp_dealloc   = (destructor)horizon_dealloc,
-    .tp_getattro  = PyObject_GenericGetAttr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT,
-    .tp_doc       = horizon_doc,
-    .tp_methods   = horizon_methods,
-    .tp_alloc     = PyType_GenericAlloc,
-    .tp_new       = horizon_new,
-    .tp_free      = PyObject_Del,
+static PyType_Slot horizon_slots[] = {
+    {Py_tp_dealloc,  horizon_dealloc},
+    {Py_tp_getattro, PyObject_GenericGetAttr},
+    {Py_tp_doc,      (void *)horizon_doc},
+    {Py_tp_methods,  horizon_methods},
+    {Py_tp_alloc,    PyType_GenericAlloc},
+    {Py_tp_new,      horizon_new},
+    {Py_tp_free,     PyObject_Del},
+    {0, NULL},
+};
+
+PyType_Spec NyHorizon_Spec = {
+    .name      = "guppy.heapy.heapyc.Horizon",
+    .basicsize = sizeof(NyHorizonObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots     = horizon_slots,
 };

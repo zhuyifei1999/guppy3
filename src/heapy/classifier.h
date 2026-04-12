@@ -1,13 +1,15 @@
 #ifndef NY_CLASSIFIER_H
 #define NY_CLASSIFIER_H
 
+struct HeapycState;
+
 typedef struct {
     int flags;
     int size;
     char *name;
     char *doc;
-    PyObject * (*classify)(PyObject *self, PyObject *arg);
-    PyObject * (*memoized_kind)(PyObject *self, PyObject *kind);
+    PyObject *(*classify)(struct HeapycState *ms, PyObject *self, PyObject *arg);
+    PyObject *(*memoized_kind)(struct HeapycState *ms, PyObject *self, PyObject *kind);
     int (*cmp_le)(PyObject *self, PyObject *a, PyObject *b);
 } NyObjectClassifierDef;
 
@@ -17,11 +19,11 @@ typedef struct{
     PyObject *self;
 } NyObjectClassifierObject;
 
-extern PyTypeObject NyObjectClassifier_Type;
+typedef PyObject *(*modstatebinaryfunc)(struct HeapycState *ms, PyObject *self, PyObject *arg);
 
-#define NyObjectClassifier_Check(op) PyObject_TypeCheck(op, &NyObjectClassifier_Type)
+extern PyType_Spec NyObjectClassifier_Spec;
 
-extern PyObject *NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
+extern PyObject *NyObjectClassifier_New(struct HeapycState *ms, PyObject *self, NyObjectClassifierDef *def);
 extern int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp);
 
 /* cmp argument (to select etc)

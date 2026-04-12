@@ -93,6 +93,7 @@ hv_cli_dictof_update_rec(PyObject *obj, DictofTravArg *ta) {
 int
 hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
+    NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
     DictofTravArg ta;
     ta.hv = hv;
     ta.rg = rg;
@@ -162,7 +163,7 @@ err:
 
 
 static PyObject *
-hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
+hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj)
 {
     if (!DictofDict_Check(obj)) {
         Py_INCREF(self->notdictkind);
@@ -183,7 +184,7 @@ hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
         }
         if (lo < hi && lo->tgt != Py_None) {
             r = self->ownerclassifier->def->classify(
-                    self->ownerclassifier->self, lo->tgt);
+                    ms, self->ownerclassifier->self, lo->tgt);
         } else {
             r = Py_NewRef(self->notownedkind);
         }
@@ -196,10 +197,11 @@ out:
 }
 
 static PyObject *
-hv_cli_dictof_memoized_kind(DictofObject *self, PyObject *obj)
+hv_cli_dictof_memoized_kind(struct HeapycState *ms, DictofObject *self, PyObject *obj)
 {
     if (self->ownerclassifier->def->memoized_kind)
-        return self->ownerclassifier->def->memoized_kind(self->ownerclassifier->self, obj);
+        return self->ownerclassifier->def->memoized_kind(
+            ms, self->ownerclassifier->self, obj);
     else {
         Py_INCREF(obj);
         return obj;
@@ -211,8 +213,8 @@ static NyObjectClassifierDef hv_cli_dictof_def = {
     sizeof(NyObjectClassifierDef),
     "cli_dictof",
     "classifier returning ...",
-    (binaryfunc)hv_cli_dictof_classify,
-    (binaryfunc)hv_cli_dictof_memoized_kind,
+    (modstatebinaryfunc)hv_cli_dictof_classify,
+    (modstatebinaryfunc)hv_cli_dictof_memoized_kind,
 };
 
 PyObject *
@@ -221,8 +223,8 @@ hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
     PyObject *r;
     DictofObject *s, tmp;
     if (!PyArg_ParseTuple(args, "O!O!OO:cli_dictof",
-                          &NyNodeGraph_Type, &tmp.owners,
-                          &NyObjectClassifier_Type,&tmp.ownerclassifier,
+                          self->ms->NodeGraph_Type, &tmp.owners,
+                          self->ms->ObjectClassifier_Type, &tmp.ownerclassifier,
                           &tmp.notdictkind,
                           &tmp.notownedkind
                           ))
@@ -246,7 +248,7 @@ hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
     s->notownedkind = tmp.notownedkind;
     Py_INCREF(s->notownedkind);
 
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_dictof_def);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_dictof_def);
     Py_DECREF(s);
     return r;
 }

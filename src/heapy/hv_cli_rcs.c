@@ -7,6 +7,7 @@
 #include "../include/pythoncapi_compat.h"
 
 #include "impsets.h"
+#include "heapy.h"
 #include "classifier.h"
 #include "hv.h"
 #include "nodegraph.h"
@@ -43,12 +44,12 @@ typedef struct {
 NYTUPLELIKE_ASSERT(RetclasetObject, hv);
 
 static PyObject *
-hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)
+hv_cli_rcs_fast_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject *kind)
 {
     PyObject *result;
     int r;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(kind);
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
     r = PyDict_GetItemRef(self->memo, kind, &result);
     if (r == -1)
         return NULL;
@@ -63,6 +64,7 @@ hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)
 }
 
 typedef struct {
+    struct HeapycState *ms;
     NyObjectClassifierObject *cli;
     NyNodeSetObject *ns;
 } MemoRcsArg;
@@ -70,7 +72,7 @@ typedef struct {
 static int
 rcs_visit_memoize_sub(PyObject *obj, MemoRcsArg *arg)
 {
-    obj = arg->cli->def->memoized_kind(arg->cli->self, obj);
+    obj = arg->cli->def->memoized_kind(arg->ms, arg->cli->self, obj);
     if (!obj)
        return -1;
     if (NyNodeSet_setobj(arg->ns, obj) == -1) {
@@ -82,29 +84,30 @@ rcs_visit_memoize_sub(PyObject *obj, MemoRcsArg *arg)
 }
 
 static PyObject *
-hv_cli_rcs_memoized_kind(RetclasetObject * self, PyObject *kind)
+hv_cli_rcs_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject *kind)
 {
-    if (!NyNodeSet_Check(kind)) {
+    if (!PyObject_TypeCheck(kind, ms->nodeset_exports->nodeset_type)) {
         PyErr_SetString(PyExc_TypeError,
                         "hv_cli_rcs_memoized_kind: nodeset object (immutable) expected.");
         return 0;
     }
     if (!self->cli->def->memoized_kind) {
-        return hv_cli_rcs_fast_memoized_kind(self, kind);
+        return hv_cli_rcs_fast_memoized_kind(ms, self, kind);
     } else {
         MemoRcsArg arg;
         PyObject *result;
+        arg.ms = ms;
         arg.cli = self->cli;
         Ny_BEGIN_CRITICAL_SECTION(self->hv);
         arg.ns = hv_mutnodeset_new(self->hv);
         Ny_END_CRITICAL_SECTION();
         if (!arg.ns)
             return 0;
-        if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
+        if (iterable_iterate(ms, kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
             goto Err;
         if (NyNodeSet_be_immutable(&arg.ns) == -1)
             goto Err;
-        result = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)arg.ns);
+        result = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)arg.ns);
 Ret:
         Py_DECREF(arg.ns);
         return result;
@@ -118,7 +121,7 @@ Err:
 
 
 static PyObject *
-hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
+hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
     PyObject *kind = NULL;
@@ -136,7 +139,7 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
     for (cur = lo; cur < hi; cur++) {
         if (cur->tgt == Py_None)
             continue;
-        kind = self->cli->def->classify(self->cli->self, cur->tgt);
+        kind = self->cli->def->classify(ms, self->cli->self, cur->tgt);
         if (!kind)
             goto err;
         if (NyNodeSet_setobj(Ri, kind) == -1)
@@ -145,7 +148,7 @@ hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
     }
     if (NyNodeSet_be_immutable(&Ri) == -1)
         goto err;
-    kind = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)Ri);
+    kind = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)Ri);
     goto out;
 
 err:
@@ -157,7 +160,7 @@ out:
 }
 
 static int
-hv_cli_rcs_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_rcs_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -167,8 +170,8 @@ static NyObjectClassifierDef hv_cli_rcs_def = {
     sizeof(NyObjectClassifierDef),
     "hv_cli_rcs",
     "classifier returning ...",
-    (binaryfunc)hv_cli_rcs_classify,
-    (binaryfunc)hv_cli_rcs_memoized_kind,
+    (modstatebinaryfunc)hv_cli_rcs_classify,
+    (modstatebinaryfunc)hv_cli_rcs_memoized_kind,
     hv_cli_rcs_le
 };
 
@@ -179,8 +182,8 @@ hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
     PyObject *r;
     RetclasetObject *s, tmp;
     if (!PyArg_ParseTuple(args, "O!O!O!:cli_rcs",
-                          &NyNodeGraph_Type, &tmp.rg,
-                          &NyObjectClassifier_Type, &tmp.cli,
+                          hv->ms->NodeGraph_Type, &tmp.rg,
+                          hv->ms->ObjectClassifier_Type, &tmp.cli,
                           &PyDict_Type, &tmp.memo)) {
         return 0;
     }
@@ -196,7 +199,7 @@ hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
     Py_INCREF(tmp.cli);
     s->memo = tmp.memo;
     Py_INCREF(tmp.memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_rcs_def);
+    r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_rcs_def);
     Py_DECREF(s);
     return r;
 }

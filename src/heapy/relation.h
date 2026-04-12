@@ -6,6 +6,4 @@ typedef struct {
     PyObject *relator;
 } NyRelationObject;
 
-#define NyRelation_Check(op) PyObject_TypeCheck(op, &NyRelation_Type)
-
 #endif /* #ifndef Ny_RELATION_H */

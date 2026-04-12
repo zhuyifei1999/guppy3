@@ -20,13 +20,13 @@ The classification of an object is a singleton immnodeset containing the object 
 
 
 static PyObject *
-hv_cli_idset_classify(NyHeapViewObject *self, PyObject *arg)
+hv_cli_idset_classify(struct HeapycState *ms, NyHeapViewObject *self, PyObject *arg)
 {
     return (PyObject *)NyImmNodeSet_NewSingleton(arg, self->_hiding_tag_);
 }
 
 static int
-hv_cli_idset_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_idset_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -37,13 +37,13 @@ static NyObjectClassifierDef hv_cli_idset_def = {
     sizeof(NyObjectClassifierDef),
     "cli_idset",
     "classifier returning singleton set containing object itself",
-    (binaryfunc)hv_cli_idset_classify,
-    (binaryfunc)0,
+    (modstatebinaryfunc)hv_cli_idset_classify,
+    (modstatebinaryfunc)NULL,
     hv_cli_idset_le,
 };
 
 PyObject *
 hv_cli_idset(NyHeapViewObject *self, PyObject *args)
 {
-    return NyObjectClassifier_New((PyObject *)self, &hv_cli_idset_def);
+    return NyObjectClassifier_New(self->ms, (PyObject *)self, &hv_cli_idset_def);
 }

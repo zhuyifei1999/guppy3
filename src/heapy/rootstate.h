@@ -1,7 +1,7 @@
 #ifndef NY_ROOTSTATE_H
 #define NY_ROOTSTATE_H
 
-extern PyTypeObject NyRootState_Type;
+extern PyType_Spec NyRootState_Spec;
 
 struct NyHeapTraverse;
 struct NyHeapRelate;

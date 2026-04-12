@@ -16,13 +16,11 @@ typedef struct NyNodeGraphObject {
     char is_preserving_duplicates;
 } NyNodeGraphObject;
 
-extern PyTypeObject NyNodeGraph_Type;
-extern PyTypeObject NyNodeGraphIter_Type;
-
-#define NyNodeGraph_Check(op) PyObject_TypeCheck(op, &NyNodeGraph_Type)
+extern PyType_Spec NyNodeGraph_Spec;
+extern PyType_Spec NyNodeGraphIter_Spec;
 
 
-extern NyNodeGraphObject *NyNodeGraph_New(void);
+extern NyNodeGraphObject *NyNodeGraph_New(struct HeapycState *ms);
 extern int NyNodeGraph_Region(NyNodeGraphObject *rg, PyObject *key,
                               NyNodeGraphEdge **lop, NyNodeGraphEdge **hip);
 extern int NyNodeGraph_AddEdge(NyNodeGraphObject *rg, PyObject *src, PyObject *tgt);

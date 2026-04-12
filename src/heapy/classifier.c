@@ -7,6 +7,7 @@
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
+#include "heapy.h"
 #include "classifier.h"
 #include "stoptheworld.h"
 #include "nodegraph.h"
@@ -50,18 +51,20 @@ NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject 
 static void
 cli_dealloc(NyObjectClassifierObject *op)
 {
+    PyTypeObject *tp = Py_TYPE(op);
     PyObject_GC_UnTrack(op);
     Py_TRASHCAN_BEGIN(op, cli_dealloc)
-    Py_XDECREF(op->self);
+    Py_CLEAR(op->self);
     PyObject_GC_Del(op);
+    Py_CLEAR(tp);
     Py_TRASHCAN_END
 }
 
 static int
 cli_traverse(NyObjectClassifierObject *op, visitproc visit, void *arg)
 {
-    if (op->self)
-        return visit(op->self, arg);
+    Py_VISIT(Py_TYPE(op));
+    Py_VISIT(op->self);
     return 0;
 }
 
@@ -69,8 +72,7 @@ cli_traverse(NyObjectClassifierObject *op, visitproc visit, void *arg)
 static int
 cli_clear(NyObjectClassifierObject *op)
 {
-    Py_XDECREF(op->self);
-    op->self = NULL;
+    Py_CLEAR(op->self);
     return 0;
 }
 
@@ -85,12 +87,14 @@ PyDoc_STRVAR(cli_classify_doc,
 static PyObject *
 cli_classify(NyObjectClassifierObject *self, PyObject *object)
 {
-    return self->def->classify(self->self, object);
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
+    return self->def->classify(ms, self->self, object);
 }
 
 
 typedef struct {
     NyObjectClassifierObject *self;
+    struct HeapycState *ms;
     PyObject *map;
     NyNodeGraphObject *emap;
 } PATravArg;
@@ -109,7 +113,7 @@ static int
 cli_partition_iter(PyObject *obj, PATravArg *ta)
 {
     PyObject *sp = NULL;
-    PyObject *kind = ta->self->def->classify(ta->self->self, obj);
+    PyObject *kind = ta->self->def->classify(ta->ms, ta->self->self, obj);
     int r;
 
     if (!kind)
@@ -145,16 +149,18 @@ Err:
 static PyObject *
 cli_partition(NyObjectClassifierObject *self, PyObject *args)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     PATravArg ta;
     PyObject *iterable;
     if (!PyArg_ParseTuple(args, "O:partition",
                           &iterable))
         return NULL;
     ta.self = self;
+    ta.ms = ms;
     ta.map = PyDict_New();
     if (!ta.map)
         goto Err;
-    if (iterable_iterate(iterable, (visitproc)cli_partition_iter, &ta) == -1)
+    if (iterable_iterate(ms, iterable, (visitproc)cli_partition_iter, &ta) == -1)
         goto Err;
     return ta.map;
 
@@ -166,7 +172,7 @@ Err:
 static int
 cli_epartition_iter(PyObject *obj, PATravArg *ta)
 {
-    PyObject *kind = ta->self->def->classify(ta->self->self, obj);
+    PyObject *kind = ta->self->def->classify(ta->ms, ta->self->self, obj);
     if (!kind)
         return -1;
 
@@ -181,12 +187,14 @@ cli_epartition_iter(PyObject *obj, PATravArg *ta)
 static PyObject *
 cli_epartition(NyObjectClassifierObject *self, PyObject *iterable)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     PATravArg ta;
     ta.self = self;
-    ta.emap = NyNodeGraph_New();
+    ta.ms = ms;
+    ta.emap = NyNodeGraph_New(ms);
     if (!ta.emap)
         goto Err;
-    if (iterable_iterate(iterable, (visitproc)cli_epartition_iter, &ta) == -1)
+    if (iterable_iterate(ms, iterable, (visitproc)cli_epartition_iter, &ta) == -1)
         goto Err;
     return (PyObject *)ta.emap;
 
@@ -225,6 +233,7 @@ PyDoc_STRVAR(cli_select_doc,
 
 typedef struct {
     NyObjectClassifierObject *cli;
+    struct HeapycState *ms;
     PyObject *kind, *ret;
     int cmp;
 } SELTravArg;
@@ -232,7 +241,7 @@ typedef struct {
 static int
 cli_select_kind(PyObject *obj, SELTravArg *ta)
 {
-    PyObject *kind = ta->cli->def->classify(ta->cli->self, obj);
+    PyObject *kind = ta->cli->def->classify(ta->ms, ta->cli->self, obj);
     int cmp;
     if (!kind)
         return -1;
@@ -283,6 +292,7 @@ cli_cmp_as_int(PyObject *cmp)
 static PyObject *
 cli_select(NyObjectClassifierObject *self, PyObject *args)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     SELTravArg ta;
     PyObject *X, *cmp;
 
@@ -303,7 +313,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
         return 0;
     }
     if (self->def->memoized_kind) {
-        if (!(ta.kind = self->def->memoized_kind(self->self, ta.kind)))
+        if (!(ta.kind = self->def->memoized_kind(ms, self->self, ta.kind)))
             return 0;
     } else {
         Py_INCREF(ta.kind);
@@ -312,7 +322,8 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     if (!ta.ret)
         goto err;
     ta.cli = self;
-    r = iterable_iterate(X, (visitproc)cli_select_kind, &ta);
+    ta.ms = ms;
+    r = iterable_iterate(ms, X, (visitproc)cli_select_kind, &ta);
     if (r == -1) {
         Py_DECREF(ta.ret);
         ta.ret = 0;
@@ -341,27 +352,31 @@ static PyMemberDef cli_members[] = {
 
 #undef OFF
 
-PyTypeObject NyObjectClassifier_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "guppy.heapy.heapyc.ObjectClassifier",
-    .tp_basicsize = sizeof(NyObjectClassifierObject),
-    .tp_dealloc   = (destructor)cli_dealloc,
-    .tp_getattro  = PyObject_GenericGetAttr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    .tp_doc       = cli_doc,
-    .tp_traverse  = (traverseproc)cli_traverse,
-    .tp_clear     = (inquiry)cli_clear,
-    .tp_methods   = cli_methods,
-    .tp_members   = cli_members,
-    .tp_alloc     = PyType_GenericAlloc,
-    .tp_free      = PyObject_GC_Del,
+static PyType_Slot cli_slots[] = {
+    {Py_tp_dealloc,  cli_dealloc},
+    {Py_tp_getattro, PyObject_GenericGetAttr},
+    {Py_tp_doc,      (void *)cli_doc},
+    {Py_tp_traverse, cli_traverse},
+    {Py_tp_clear,    cli_clear},
+    {Py_tp_methods,  cli_methods},
+    {Py_tp_members,  cli_members},
+    {Py_tp_alloc,    PyType_GenericAlloc},
+    {Py_tp_free,     PyObject_GC_Del},
+    {0, NULL},
+};
+
+PyType_Spec NyObjectClassifier_Spec = {
+    .name      = "guppy.heapy.heapyc.ObjectClassifier",
+    .basicsize = sizeof(NyObjectClassifierObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .slots     = cli_slots,
 };
 
 PyObject *
-NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def)
+NyObjectClassifier_New(struct HeapycState *ms, PyObject *self, NyObjectClassifierDef *def)
 {
     NyObjectClassifierObject *op;
-    op = PyObject_GC_New(NyObjectClassifierObject, &NyObjectClassifier_Type);
+    op = PyObject_GC_New(NyObjectClassifierObject, ms->ObjectClassifier_Type);
     if (!op)
         return 0;
     Py_INCREF(self);
