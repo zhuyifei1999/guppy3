@@ -67,7 +67,13 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
 }
 
 /* Py_NewRef, but cast to the original C type */
-#define Ny_NEWREF(obj) ((typeof(obj))Py_NewRef(obj))
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+# define Ny_NEWREF(obj) ((typeof(obj))Py_NewRef(obj))
+#elif defined(__GNUC__) || defined(__clang__)
+# define Ny_NEWREF(obj) ((__typeof__(obj))Py_NewRef(obj))
+#else
+# define Ny_NEWREF(obj) ((void *)Py_NewRef(obj))
+#endif
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
 #define Ny_TPFLAGS_BASETYPE_ON_PY3_11 Py_TPFLAGS_BASETYPE

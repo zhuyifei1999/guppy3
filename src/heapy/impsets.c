@@ -11,9 +11,16 @@
 /* For function pointers only */
 static NyNodeSet_Exports nodeset_exports;
 
-#define NODESET_EXPORTED_FUNC(attr) \
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+# define NODESET_EXPORTED_FUNC(attr) \
     ((typeof(nodeset_exports.attr))_Py_atomic_load_ptr_relaxed(&nodeset_exports.attr))
-
+#elif defined(__GNUC__) || defined(__clang__)
+# define NODESET_EXPORTED_FUNC(attr) \
+    ((__typeof__(nodeset_exports.attr))_Py_atomic_load_ptr_relaxed(&nodeset_exports.attr))
+#else
+# define NODESET_EXPORTED_FUNC(attr) \
+    ((NyNodeSet_Exports){.attr = (_Py_atomic_load_ptr_relaxed(&nodeset_exports.attr))}).attr
+#endif
 
 NyNodeSetObject *
 NyMutNodeSet_New(struct SetscState *ms)
