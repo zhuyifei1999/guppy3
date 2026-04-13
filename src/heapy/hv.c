@@ -127,7 +127,7 @@ NY_ASSERT_IMMUTABLE_BUILTIN(struct HeapycState *ms, PyObject *obj)
 {
     Py_ssize_t i;
 
-    if (obj == Py_None || obj == Py_True || obj == Py_False)
+    if (Py_IsNone(obj) || Py_IsTrue(obj) || Py_IsFalse(obj))
         return;
 
     if (Py_IS_TYPE(obj, &PyBool_Type) ||
@@ -190,11 +190,11 @@ xt_free_table(ExtraType **xt_table, size_t size)
         while (xt) {
             ExtraType *xt_next = xt->xt_next;
             Py_DECREF(xt->xt_weak_type);
-            PyMem_Del(xt);
+            PyMem_Free(xt);
             xt = xt_next;
         }
     }
-    PyMem_Del(xt_table);
+    PyMem_Free(xt_table);
 }
 
 static int
@@ -476,7 +476,7 @@ hv_new_xt_for_type_at_xtp(NyHeapViewObject *hv, PyTypeObject *type, ExtraType **
     xt->xt_type = type;
     xt->xt_weak_type = PyWeakref_NewRef((PyObject *)type, hv->weak_type_callback);
     if (!xt->xt_weak_type) {
-        PyMem_Del(xt);
+        PyMem_Free(xt);
         return 0;
     }
     return xt;
@@ -902,7 +902,7 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
         for (xtp = &hv->xt_table[i]; (xt = *xtp); xtp = &xt->xt_next) {
             if (xt->xt_weak_type == wr) {
                 *xtp = xt->xt_next;
-                PyMem_Del(xt);
+                PyMem_Free(xt);
                 Py_DECREF(wr);
                 r = Py_NewRef(Py_None);
                 goto out;
@@ -1648,7 +1648,7 @@ hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
 
     Ny_BEGIN_CRITICAL_SECTION(self);
     orf = self->limitframe;
-    if (arg == Py_None) {
+    if (Py_IsNone(arg)) {
         self->limitframe = 0;
     } else if (PyFrame_Check(arg)) {
         self->limitframe = arg;
@@ -1787,7 +1787,7 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
                 goto err_start;
             if (NyNodeSet_clrobj(ta.trace_set, last_obj) == -1)
                 goto err_start;
-            if (last_res == Py_True) {
+            if (Py_IsTrue(last_res)) {
                 if (!PyUnstable_Object_IsUniquelyReferenced(last_obj))
                     if (NyNodeSet_setobj(ta.outset, last_obj) == -1)
                         goto err_start;

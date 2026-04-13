@@ -186,8 +186,8 @@ Err:
 static int
 hv_cli_prod_le(PyObject *self, PyObject *a, PyObject *b)
 {
-    if (a == Py_None || b == Py_None)
-        return a == Py_None && b == Py_None;
+    if (Py_IsNone(a) || Py_IsNone(b))
+        return Py_IsNone(a) && Py_IsNone(b);
 
     if (!PyTuple_Check(a) || !PyTuple_Check(b))
         return 0;
@@ -200,7 +200,7 @@ hv_cli_prod_le(PyObject *self, PyObject *a, PyObject *b)
         if (!a_elem || !b_elem)
             return -1;
 
-        if (a_elem == Py_None || b_elem == Py_None)
+        if (Py_IsNone(a_elem) || Py_IsNone(b_elem))
             continue;
 
         int k = PyObject_RichCompareBool(a_elem, b_elem, Py_EQ);

@@ -137,7 +137,7 @@ hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err;
     for (cur = lo; cur < hi; cur++) {
-        if (cur->tgt == Py_None)
+        if (Py_IsNone(cur->tgt))
             continue;
         kind = self->cli->def->classify(ms, self->cli->self, cur->tgt);
         if (!kind)

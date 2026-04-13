@@ -146,7 +146,7 @@ NyNodeGraph_Clear(NyNodeGraphObject *ng)
         Py_DECREF(edges[i].src);
         Py_DECREF(edges[i].tgt);
     }
-    PyMem_FREE(edges);
+    PyMem_Free(edges);
     Ny_END_CRITICAL_SECTION();
 }
 
@@ -177,7 +177,7 @@ ng_dealloc(PyObject *v)
         Py_DECREF(ng->edges[i].src);
         Py_DECREF(ng->edges[i].tgt);
     }
-    PyMem_FREE(ng->edges);
+    PyMem_Free(ng->edges);
     tp->tp_free(v);
     Py_CLEAR(tp);
     Py_TRASHCAN_END
@@ -1125,7 +1125,7 @@ ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (is_mapping && PyObject_IsTrue(is_mapping)) {
         ng->is_mapping = 1;
     }
-    if (iterable && iterable != Py_None && NyNodeGraph_Update(ng, iterable) == -1) {
+    if (iterable && !Py_IsNone(iterable) && NyNodeGraph_Update(ng, iterable) == -1) {
         Py_DECREF(ng);
         return 0;
     }

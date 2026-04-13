@@ -182,7 +182,7 @@ hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj
             if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
                 goto out;
         }
-        if (lo < hi && lo->tgt != Py_None) {
+        if (lo < hi && !Py_IsNone(lo->tgt)) {
             r = self->ownerclassifier->def->classify(
                     ms, self->ownerclassifier->self, lo->tgt);
         } else {

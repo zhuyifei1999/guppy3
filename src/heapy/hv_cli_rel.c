@@ -348,7 +348,7 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     crva.err = 0;
     crva.ms = ms;
     crva.memorel = self->memorel;
-    assert(self->rel->relator == Py_None); /* This will be restored, w/o incref, at return. */
+    assert(Py_IsNone(self->rel->relator)); /* This will be restored, w/o incref, at return. */
     crva.rel = self->rel;
     crva.relset = &relset;
 
@@ -358,7 +358,7 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err_start;
     for (cur = lo; cur < hi; cur++) {
-        if (cur->tgt == Py_None)
+        if (Py_IsNone(cur->tgt))
             continue;
         crva.hr.src = cur->tgt;
         xt = hv_extra_type(self->hv, Py_TYPE(crva.hr.src));
@@ -379,7 +379,7 @@ err_start:
     NySTWMutNodeSet_Destroy(&relset);
     NY_START_WORLD();
     Py_XDECREF(crva.relset);
-    assert(self->rel->relator == Py_None);
+    assert(Py_IsNone(self->rel->relator));
     return result;
 
 }

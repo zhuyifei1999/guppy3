@@ -489,7 +489,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
     PyInterpreterState *is;
 
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
-        if (hv->is_hiding_calling_interpreter && is == bts->interp)
+        if (hv->is_hiding_calling_interpreter && is == PyThreadState_GetInterpreter(bts))
             continue;
         if (is != PyInterpreterState_Get())
             continue;

@@ -33,7 +33,7 @@ hv_cli_user_memoized_kind(struct HeapycState *ms, UserObject *self, PyObject *ki
 {
     NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
 
-    if (self->memoized_kind != Py_None && kind != Py_None) {
+    if (!Py_IsNone(self->memoized_kind) && !Py_IsNone(kind)) {
         kind = PyObject_CallFunctionObjArgs(self->memoized_kind, kind, 0);
     } else {
         Py_INCREF(kind);
