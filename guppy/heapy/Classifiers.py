@@ -32,7 +32,7 @@ class Classifier:
 
     def call_with_referrers(self, x, f):
         # Default is to not use referrers.
-        return f(x)
+        return self.mod.View.signal_wrap(lambda: f(x))
 
     # This is not redefined by subclass unless they set cli property.
     def _get_cli(self):

@@ -189,6 +189,7 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->Relation_Type);
     Py_VISIT(ms->RootState_Type);
     Py_VISIT(ms->RootState);
+    Py_VISIT(ms->HandleSignalException);
 
     return 0;
 }
@@ -207,6 +208,7 @@ module_gc_clear(PyObject *m)
     Py_CLEAR(ms->Relation_Type);
     Py_CLEAR(ms->RootState_Type);
     Py_CLEAR(ms->RootState);
+    Py_CLEAR(ms->HandleSignalException);
 
     return 0;
 }
@@ -220,7 +222,7 @@ module_free(void *mod)
 static int module_exec(PyObject *m)
 {
     struct HeapycState *ms = NyModule_AssertState(m);
-    PyObject *RootState;
+    PyObject *RootState, *HandleSignalException;
 
     if (import_sets(ms) == -1)
         return -1;
@@ -254,6 +256,11 @@ static int module_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "RootState", RootState) == -1)
         return -1;
     ms->RootState = RootState;
+
+    HandleSignalException = PyErr_NewException("guppy.heapy.heapyc.HandleSignalException", NULL, NULL);
+    if (PyModule_AddObjectRef(m, "HandleSignalException", HandleSignalException) == -1)
+        return -1;
+    ms->HandleSignalException = HandleSignalException;
 
     ms->HvTypes_HeapDef[0] = (NyHeapDef){
         0,                   /* flags */

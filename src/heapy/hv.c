@@ -353,79 +353,41 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
     return Py_TYPE(obj)->tp_traverse(obj, visit, arg);
 }
 
-static int maybe_check_signals(PyObject *borrowed)
+static int maybe_check_signals(struct HeapycState *ms, PyObject *borrowed)
 {
 #ifdef Py_GIL_DISABLED
-    /* May call GC, unsafe for stop-the-world. */
-
-    /* Restarting the would and re-stopping it is an extremely expensive
-       process, so we really don't want to do this, but I think I can assume
-       that signals are a rare event, and still, avoid this as much as I can */
+    /* PyErr_CheckSignals may call GC, unsafe for stop-the-world. */
     NY_ASSERT_WORLD_STOPPED();
-
-    if (PyThread_get_thread_ident() != _PyRuntime.main_thread)
+    /* Instead of dancing with start-the-world and re-stop-the-world, just
+       raise an exception to exit to userspace... I mean to the Python
+       interpreter... to deal with the signal */
+    if (!PyOS_InterruptOccurred())
         return 0;
-    if (PyInterpreterState_Get() != _PyInterpreterState_Main())
-        return 0;
-
-    /* should be atomic load, but I don't really want to deal with casting
-       to an _Atomic */
-    if (!_PyRuntime.signals.is_tripped)
-        return 0;
-
-    /* Try our best to make sure it is SIGINT being called, and the handler
-       is the default one, which will raise KeyboardInterrupt.
-
-       NY_START_WORLD may have left guppy in an inconsistent state, so
-       traversal cannot continue after this. An exception must be set.
-       If we got lied to somehow, set an exception handler anyways */
-    if (!_PyRuntime.signals.handlers[SIGINT].tripped)
-        return 0;
-
-    PyObject *handler = _PyRuntime.signals.handlers[SIGINT].func;
-
-    if (!PyCFunction_CheckExact(handler))
-        return 0;
-    if (strcmp(((PyCFunctionObject *)handler)->m_ml->ml_name,
-               "default_int_handler"))
-        return 0;
-
-    NY_START_WORLD();
+    PyErr_SetInterrupt();
+    PyErr_SetNone(ms->HandleSignalException);
+    return -1;
 #else
     /* In non-freethread build, we want to be able to resume from signal,
        but the object being traversed is on borrowed reference, which might
        be freed while we are interrupted, so incref it */
-    Py_INCREF(borrowed);
-#endif
-
     int r = -1;
+    Py_INCREF(borrowed);
     PyErr_CheckSignals();
-
-#ifdef Py_GIL_DISABLED
-    if (!PyErr_Occurred()) {
-        PyErr_SetString(PyExc_SystemError,
-                        "Signal received during guppy heap traveral. "
-                        "Traversal cannot continue and can only be restarted.");
-    }
-
-    NY_STOP_WORLD();
-#else
     if (!PyErr_Occurred())
         r = 0;
-
     Py_DECREF(borrowed);
-#endif
     return r;
+#endif
+
 }
 
 static int
 xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
-    if (maybe_check_signals(obj) == -1)
-        return -1;
-
     NyHeapTraverse ta;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
+    if (maybe_check_signals(hv->ms, obj) == -1)
+        return -1;
     ta.flags = 0;
     ta.obj = obj;
     ta.visit = visit;

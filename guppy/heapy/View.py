@@ -202,8 +202,8 @@ class _GLUECLAMP_:
     def call_with_referrers(self, X, f):
         self.referrers_lock += 1
         try:
-            self.update_referrers(X)
-            return f(X)
+            self.signal_wrap(lambda: self.update_referrers(X))
+            return self.signal_wrap(lambda: f(X))
         finally:
             self.referrers_lock -= 1
 
@@ -250,16 +250,25 @@ Return a tuple of dominated sizes for the tuple of sets of objects X."""
         if self.hv.is_hiding_calling_interpreter:
             self.hv.limitframe = None
         elif self.hv.limitframe is not None:
-            return func()
+            return self.signal_wrap(lambda: func())
         else:
             import inspect
             self.hv.limitframe = inspect.currentframe().f_back.f_back
 
         try:
-            retval = func()
+            retval = self.signal_wrap(lambda: func())
         finally:
             self.hv.limitframe = None
         return retval
+
+    def signal_wrap(self, func):
+        while True:
+            try:
+                return func()
+            except self.heapyc.HandleSignalException:
+                continue
+            # Unreachable: returned, continued, or raised
+            assert False
 
     def gchook(self, func):
         c = self.gchook_type()
