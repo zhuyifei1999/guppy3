@@ -1435,6 +1435,8 @@ mutbitset_clear(NyMutBitSetObject *v)
 static void
 mutbitset_dealloc(NyMutBitSetObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     mutbitset_clear(v);
     tp->tp_free((PyObject *)v);
@@ -2987,6 +2989,8 @@ immbitset_contains(NyImmBitSetObject *v, PyObject *w)
 static void
 immbitset_dealloc(PyObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc(v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     tp->tp_free((PyObject *)v);
     Py_CLEAR(tp);
@@ -3756,6 +3760,8 @@ cplbitset_contains(NyCplBitSetObject *v, PyObject *w)
 static void
 cplbitset_dealloc(NyCplBitSetObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     Py_DECREF(v->ob_val);
     tp->tp_free((PyObject *)v);

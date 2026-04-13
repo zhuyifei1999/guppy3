@@ -860,6 +860,8 @@ hv_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static void
 hv_dealloc(PyObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc(v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, hv_dealloc)

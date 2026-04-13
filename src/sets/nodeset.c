@@ -365,6 +365,7 @@ void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
     NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
 #endif
 
+    Py_SET_REFCNT(v->u.bitset, 0);
     Py_TYPE(v->u.bitset)->tp_dealloc(v->u.bitset);
 }
 
@@ -431,24 +432,19 @@ mutnodeset_gc_clear(NyNodeSetObject *v)
     assert(!(v->flags & _NS_STW));
 
     if (v->u.bitset) {
-        PyObject *x = v->u.bitset;
-        if (v->flags & NS_HOLDOBJECTS) {
+        if (v->flags & NS_HOLDOBJECTS)
             NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
-        }
-        v->u.bitset = 0;
-        Py_DECREF(x);
+        Py_CLEAR(v->u.bitset);
     }
-    if (v->_hiding_tag_) {
-        PyObject *x = v->_hiding_tag_;
-        v->_hiding_tag_ = 0;
-        Py_DECREF(x);
-    }
+    Py_CLEAR(v->_hiding_tag_);
     return 0;
 }
 
 static void
 mutnodeset_dealloc(NyNodeSetObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, mutnodeset_dealloc)

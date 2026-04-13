@@ -239,20 +239,11 @@ immnodeset_gc_clear(NyNodeSetObject *v)
     /* NOT LOCKED: Object is dying */
     assert(!(v->flags & _NS_STW));
 
-    if (v->_hiding_tag_) {
-        PyObject *x = v->_hiding_tag_;
-        v->_hiding_tag_ = 0;
-        Py_DECREF(x);
-    }
+    Py_CLEAR(v->_hiding_tag_);
     if (v->flags & NS_HOLDOBJECTS) {
         NyBit i;
-        for (i = 0; i < Py_SIZE(v); i++) {
-            PyObject *x = v->u.nodes[i];
-            if (x) {
-                v->u.nodes[i] = 0;
-                Py_DECREF(x);
-            }
-        }
+        for (i = 0; i < Py_SIZE(v); i++)
+            Py_CLEAR(v->u.nodes[i]);
     }
     return 0;
 }
@@ -260,6 +251,8 @@ immnodeset_gc_clear(NyNodeSetObject *v)
 static void
 immnodeset_dealloc(NyNodeSetObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, immnodeset_dealloc)

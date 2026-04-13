@@ -155,7 +155,7 @@ ng_gc_clear(NyNodeGraphObject *ng)
 {
     /* NOT LOCKED: Object is dying */
     PyObject *hn = ng->_hiding_tag_;
-    ng->_hiding_tag_ = 0;
+    ng->_hiding_tag_ = NULL;
     NyNodeGraph_Clear(ng);
     Py_XDECREF(hn);
     return 0;
@@ -165,6 +165,8 @@ static void
 ng_dealloc(PyObject *v)
 {
     /* NOT LOCKED: Object is dying */
+    if (PyObject_CallFinalizerFromDealloc(v))
+        return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     NyNodeGraphObject *ng = (void *)v;
     Py_ssize_t i;
