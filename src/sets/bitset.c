@@ -3506,6 +3506,9 @@ claset_richcompare(struct SetscState *ms, PyObject *v, int vt, PyObject *w, int 
     NY_ASSERT_OBJ_IMM_OR_LOCKED(ms, v);
     NY_ASSERT_OBJ_IMM_OR_LOCKED(ms, w);
 
+    /* avoid warning */
+    vs = vse = ws = wse = NULL;
+    vcpl = wcpl = 0;
     anybitset_classify(ms, w, &wt);
     if (wt == NOSET) {
         PyErr_SetString(PyExc_TypeError, "bitset_richcompare: some bitset expected");
