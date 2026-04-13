@@ -287,6 +287,8 @@ PyType_Spec NyNodeTuple_Spec = {
     .name      = "guppy.heapy.heapyc.NodeTuple",
     .basicsize = offsetof(PyTupleObject, ob_item),
     .itemsize  = sizeof(PyObject *),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION |
+                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = nodetuple_slots,
 };

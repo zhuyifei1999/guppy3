@@ -260,7 +260,8 @@ static PyType_Slot mutnsiter_slots[] = {
 PyType_Spec NyMutNodeSetIter_Spec = {
     .name      = "nodeset-iterator",
     .basicsize = sizeof(NyMutNodeSetIterObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = mutnsiter_slots,
 };
 
@@ -1249,7 +1250,8 @@ static PyType_Slot nodeset_slots[] = {
 PyType_Spec NyNodeSet_Spec = {
     .name      = "guppy.sets.setsc.NodeSet",
     .basicsize = offsetof(NyNodeSetObject, u.nodes),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_BASETYPE,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_BASETYPE,
     .slots     = nodeset_slots,
 };
 
@@ -1274,7 +1276,8 @@ static PyType_Slot mutnodeset_slots[] = {
 PyType_Spec NyMutNodeSet_Spec = {
     .name      = "guppy.sets.setsc.MutNodeSet",
     .basicsize = sizeof(NyNodeSetObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = mutnodeset_slots,
 };
 

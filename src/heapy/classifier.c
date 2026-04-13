@@ -368,7 +368,8 @@ static PyType_Slot cli_slots[] = {
 PyType_Spec NyObjectClassifier_Spec = {
     .name      = "guppy.heapy.heapyc.ObjectClassifier",
     .basicsize = sizeof(NyObjectClassifierObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = cli_slots,
 };
 

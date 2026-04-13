@@ -2102,6 +2102,7 @@ static PyType_Slot hv_slots[] = {
 PyType_Spec NyHeapView_Spec = {
     .name      = "guppy.heapy.heapyc.HeapView",
     .basicsize = sizeof(NyHeapViewObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = hv_slots,
 };

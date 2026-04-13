@@ -123,7 +123,8 @@ static PyType_Slot ngiter_slots[] = {
 PyType_Spec NyNodeGraphIter_Spec = {
     .name      = "nodegraph-iterator",
     .basicsize = sizeof(NyNodeGraphIterObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = ngiter_slots,
 };
 
@@ -1152,7 +1153,8 @@ static PyType_Slot ng_slots[] = {
 PyType_Spec NyNodeGraph_Spec = {
     .name      = "guppy.heapy.heapyc.NodeGraph",
     .basicsize = sizeof(NyNodeGraphObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = ng_slots,
 };
 

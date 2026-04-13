@@ -91,7 +91,8 @@ static PyType_Slot immnsiter_slots[] = {
 PyType_Spec NyImmNodeSetIter_Spec = {
     .name      = "immnodeset-iterator",
     .basicsize = sizeof(NyImmNodeSetIterObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = immnsiter_slots,
 };
 
@@ -470,6 +471,7 @@ PyType_Spec NyImmNodeSet_Spec = {
     .name      = "guppy.sets.setsc.ImmNodeSet",
     .basicsize = offsetof(NyNodeSetObject, u.nodes),
     .itemsize  = sizeof(PyObject *),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = immnodeset_slots,
 };

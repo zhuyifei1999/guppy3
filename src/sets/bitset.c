@@ -408,7 +408,8 @@ static PyType_Slot bitset_slots[] = {
 
 PyType_Spec NyBitSet_Spec = {
     .name      = "guppy.sets.setsc.BitSet",
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_BASETYPE | Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = bitset_slots,
 };
 
@@ -4113,7 +4114,8 @@ PyType_Spec NyImmBitSet_Spec = {
     .name      = "guppy.sets.setsc.ImmBitSet",
     .basicsize = offsetof(NyImmBitSetObject, ob_field),
     .itemsize  = sizeof(NyBitField),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = immbitset_slots,
 };
 
@@ -4178,7 +4180,8 @@ static PyType_Slot cplbitset_slots[] = {
 PyType_Spec NyCplBitSet_Spec = {
     .name      = "guppy.sets.setsc.CplBitSet",
     .basicsize = sizeof(NyCplBitSetObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = cplbitset_slots,
 };
 
@@ -4360,7 +4363,8 @@ static PyType_Slot mutbitset_slots[] = {
 PyType_Spec NyMutBitSet_Spec = {
     .name      = "guppy.sets.setsc.MutBitSet",
     .basicsize = sizeof(NyMutBitSetObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
     .slots     = mutbitset_slots,
 };
 
@@ -4376,7 +4380,8 @@ static PyType_Slot bsiter_slots[] = {
 PyType_Spec NyImmBitSetIter_Spec = {
     .name      = "immbitset-iterator",
     .basicsize = sizeof(NyImmBitSetIterObject),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = bsiter_slots,
 };
 
@@ -4391,7 +4396,8 @@ PyType_Spec NyUnion_Spec = {
     .name      = "guppy.sets.setsc.Union",
     .basicsize = offsetof(NyUnionObject, ob_field),
     .itemsize  = sizeof(NySetField),
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_DISALLOW_INSTANTIATION,
     .slots     = union_slots,
 };
 
