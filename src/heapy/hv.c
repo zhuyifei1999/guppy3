@@ -340,7 +340,7 @@ xt_tp_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 }
 
 static int
-maybe_check_signals(struct HeapycState *ms, PyObject *borrowed)
+maybe_check_signals(struct HeapycState *ms)
 {
 #ifdef Py_GIL_DISABLED
     /* PyErr_CheckSignals may call GC, unsafe for stop-the-world. */
@@ -354,16 +354,10 @@ maybe_check_signals(struct HeapycState *ms, PyObject *borrowed)
     PyErr_SetNone(ms->HandleSignalException);
     return -1;
 #else
-    /* In non-freethread build, we want to be able to resume from signal,
-       but the object being traversed is on borrowed reference, which might
-       be freed while we are interrupted, so incref it */
-    int r = -1;
-    Py_INCREF(borrowed);
     PyErr_CheckSignals();
-    if (!PyErr_Occurred())
-        r = 0;
-    Py_DECREF(borrowed);
-    return r;
+    if (PyErr_Occurred())
+        return -1;
+    return 0;
 #endif
 
 }
@@ -373,15 +367,32 @@ xt_hd_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
     NyHeapTraverse ta;
     NyHeapViewObject *hv = (void *)xt->xt_hv;
-    if (maybe_check_signals(hv->ms, obj) == -1)
-        return -1;
+    int r = 0;
     ta.flags = 0;
     ta.obj = obj;
     ta.visit = visit;
     ta.arg = arg;
     ta._hiding_tag_ = hv->_hiding_tag_;
     ta.hv = (PyObject *)hv;
-    return xt->xt_hd->traverse(&ta);
+
+#ifndef Py_GIL_DISABLED
+    /* In non-freethread build, we want to be able to resume from signal,
+       but the object being traversed is on borrowed reference, which might
+       be freed while we are interrupted, so incref it */
+    Py_INCREF(obj);
+#endif
+
+    if (maybe_check_signals(hv->ms) == -1) {
+        r = -1;
+        goto out;
+    }
+    r = xt->xt_hd->traverse(&ta);
+
+out:
+#ifndef Py_GIL_DISABLED
+    Py_DECREF(obj);
+#endif
+    return r;
 }
 
 static int
