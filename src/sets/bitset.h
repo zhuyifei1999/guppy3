@@ -73,6 +73,7 @@ typedef struct {
 
 typedef struct {
     PyObject_VAR_HEAD
+    struct SetscState *ms;
     Py_ssize_t ob_length;	/* Result for len(), -1 if not yet calculated */
     NyBitField ob_field[1];	/* The bit fields, ob_size of these */
 } NyImmBitSetObject;
@@ -100,6 +101,7 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
+    struct SetscState *ms;
     int cpl;
     NyBit splitting_size;
     NyBitField *cur_field;
@@ -125,7 +127,7 @@ typedef struct {
     int flags;
     int size;
     char *ident_and_version;
-    NyMutBitSetObject *(*mbs_new)(void);
+    NyMutBitSetObject *(*mbs_new)(struct SetscState *ms);
     /* setbit & clrbit sets or clears bit bitno
        set_or_clr sets or clears it depending on set_or_clr parameter
        All 3 functions return previous bit: 0 (clr) or 1 (set)

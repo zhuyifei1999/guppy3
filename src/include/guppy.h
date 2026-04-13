@@ -64,6 +64,9 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
     return 0;
 }
 
+/* Py_NewRef, but cast to the original C type */
+#define Ny_NEWREF(obj) ((typeof(obj))Py_NewRef(obj))
+
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
 #define Ny_TPFLAGS_BASETYPE_ON_PY3_11 Py_TPFLAGS_BASETYPE
 #else
@@ -90,6 +93,31 @@ NyType_AssertModuleState(PyTypeObject *type, struct PyModuleDef *def)
 #endif
     assert(module);
     return NyModule_AssertState(module);
+}
+
+static inline void *
+NyType_AssertModuleState2(PyTypeObject *type1, PyTypeObject *type2,
+                          struct PyModuleDef *def)
+{
+    /* Annoyingly, binaryfuncs of the number protocol may invoke our functions
+       with no way to tell which of the two arguments has a type we are looking for */
+
+    if (type1 == type2)
+        return NyType_AssertModuleState(type1, def);
+
+    PyObject *module;
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+    module = PyType_GetModuleByDef(type1, def);
+#else
+    module = PyType_GetModule(type1);
+#endif
+    if (module)
+        return NyModule_AssertState(module);
+
+    assert(PyErr_ExceptionMatches(PyExc_TypeError));
+    PyErr_Clear();
+
+    return NyType_AssertModuleState(type2, def);
 }
 
 #endif /* GUPPY_H_INCLUDED */

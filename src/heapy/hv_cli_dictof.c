@@ -104,7 +104,7 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     int result = -1;
     PyObject *lists[2] = {0, 0};
 
-    if (!(ta.dictsowned = NyMutNodeSet_New())) goto err;
+    if (!(ta.dictsowned = NyMutNodeSet_New(hv->ms->nodeset_exports->ms))) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
     if (!(lists[1] = gc_get_objects())) goto err;
 

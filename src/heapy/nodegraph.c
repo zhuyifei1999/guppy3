@@ -385,13 +385,12 @@ ng_add_edges_n1_trav(PyObject *obj, AETravArg *ta)
 static PyObject *
 ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     AETravArg ta;
     PyObject *it;
     ta.ng = ng;
     if (!PyArg_ParseTuple(args, "OO:",  &it, &ta.tgt))
         return NULL;
-    if (iterable_iterate(ms, it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
         return 0;
     Py_INCREF(Py_None);
     return Py_None;
@@ -443,9 +442,11 @@ ng_clear_method(NyNodeGraphObject *ng, PyObject *arg_notused)
 static NyNodeGraphObject *
 NyNodeGraph_SubtypeNew(PyTypeObject *type)
 {
+    struct HeapycState *ms = NyType_AssertModuleState(type, &heapyc_def);
     NyNodeGraphObject *ng = (NyNodeGraphObject *)type->tp_alloc(type, 1);
     if (!ng)
         return NULL;
+    ng->ms = ms;
     ng->_hiding_tag_ = 0;
     ng->allo_size = ng->used_size = 0;
     ng->is_sorted = 0;
@@ -529,14 +530,13 @@ Return True if each node in X is the source of some edge in NG, False otherwise.
 static PyObject *
 ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     DCTravArg ta;
     PyObject *result = NULL;
     ta.ng = ng;
     ta.ret = 1;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(ms, X, (visitproc)ng_dc_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, X, (visitproc)ng_dc_trav, &ta) == -1)
         goto out;
 
     result = ta.ret? Py_True:Py_False;
@@ -576,7 +576,6 @@ Return a new NodeGraph, containing those edges in NG that have source in X."
 static PyObject *
 ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     DRTravArg ta;
     ta.ng = ng;
     ta.ret = NyNodeGraph_SiblingNew(ng);
@@ -584,7 +583,7 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
         return 0;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(ms, X, (visitproc)ng_dr_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, X, (visitproc)ng_dr_trav, &ta) == -1)
         Py_CLEAR(ta.ret);
     Ny_END_CRITICAL_SECTION();
     return (PyObject *)ta.ret;
@@ -604,7 +603,7 @@ ng_get_domain(NyNodeGraphObject *ng, void *closure)
     Py_ssize_t i;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
+    ns = NyMutNodeSet_NewHiding(ng->ms->nodeset_exports->ms, ng->_hiding_tag_);
     if (!ns)
         goto out;
     for (i = 0; i < ng->used_size; i++) {
@@ -631,7 +630,7 @@ ng_get_range(NyNodeGraphObject *ng, void *closure)
     Py_ssize_t i;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    ns = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
+    ns = NyMutNodeSet_NewHiding(ng->ms->nodeset_exports->ms, ng->_hiding_tag_);
     if (!ns)
         goto out;
     for (i = 0; i < ng->used_size; i++) {
@@ -707,8 +706,7 @@ ng_inverted(NyNodeGraphObject *ng, void *notused)
 static PyObject *
 ng_iter(NyNodeGraphObject *v)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(v), &heapyc_def);
-    NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, ms->NodeGraphIter_Type);
+    NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, v->ms->NodeGraphIter_Type);
     if (!iter)
         return 0;
 
@@ -785,17 +783,16 @@ that are the target of some edge that have its source in X."
 static NyNodeSetObject *
 ng_relimg(NyNodeGraphObject *ng, PyObject *S)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(ng), &heapyc_def);
     RITravArg ta;
     ta.ng = ng;
     ta.hs = NULL;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    ta.hs = NyMutNodeSet_NewHiding(ng->_hiding_tag_);
+    ta.hs = NyMutNodeSet_NewHiding(ng->ms->nodeset_exports->ms, ng->_hiding_tag_);
     if (!ta.hs)
         return 0;
     ng_maybesortetc(ng);
-    if (iterable_iterate(ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;
     goto out;
 
@@ -824,8 +821,7 @@ ng_update_visit(PyObject *obj, NyNodeGraphObject *ng)
 int
 NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *u)
 {
-    struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(a), &heapyc_def);
-    return iterable_iterate(ms, u, (visitproc)ng_update_visit, a);
+    return iterable_iterate(a->ms, u, (visitproc)ng_update_visit, a);
 }
 
 

@@ -9,6 +9,7 @@
 typedef struct NyNodeSetObject {
     PyObject_VAR_HEAD
     int flags;
+    struct SetscState *ms;
     PyObject *_hiding_tag_;
     union {
         PyObject *bitset;   /* If mutable type, a mutable bitset with addresses (divided). */
@@ -16,11 +17,11 @@ typedef struct NyNodeSetObject {
     } u;
 } NyNodeSetObject;
 
-NyNodeSetObject *NyMutNodeSet_New(void);
-NyNodeSetObject *NyMutNodeSet_NewFlags(int flags);
-NyNodeSetObject *NyMutNodeSet_NewHiding(PyObject *hiding_tag);
+NyNodeSetObject *NyMutNodeSet_New(struct SetscState *ms);
+NyNodeSetObject *NyMutNodeSet_NewFlags(struct SetscState *ms, int flags);
+NyNodeSetObject *NyMutNodeSet_NewHiding(struct SetscState *ms, PyObject *hiding_tag);
 
-int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v);
+int NySTWMutNodeSet_InitOnStack(struct SetscState *ms, NyNodeSetObject *v);
 void NySTWMutNodeSet_Destroy(NyNodeSetObject *v);
 
 int NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj);
@@ -32,7 +33,7 @@ int NyNodeSet_iterate(NyNodeSetObject *hs,
                       void *arg);
 
 NyNodeSetObject *NyImmNodeSet_NewCopy(NyNodeSetObject *v);
-NyNodeSetObject *NyImmNodeSet_NewSingleton(PyObject *element, PyObject *hiding_tag);
+NyNodeSetObject *NyImmNodeSet_NewSingleton(struct SetscState *ms, PyObject *element, PyObject *hiding_tag);
 int NyNodeSet_be_immutable(NyNodeSetObject **nsp);
 
 
@@ -40,14 +41,15 @@ typedef struct NyNodeSet_Exports {
     int flags;
     int size;
     char *ident_and_version;
+    struct SetscState *ms;
     PyTypeObject *nodeset_type;
     PyTypeObject *mutnodeset_type;
     PyTypeObject *immnodeset_type;
-    NyNodeSetObject *(*newMut)(void);
-    NyNodeSetObject *(*newMutHiding)(PyObject *tag);
-    NyNodeSetObject *(*newMutFlags)(int flags);
+    NyNodeSetObject *(*newMut)(struct SetscState *ms);
+    NyNodeSetObject *(*newMutHiding)(struct SetscState *ms, PyObject *tag);
+    NyNodeSetObject *(*newMutFlags)(struct SetscState *ms, int flags);
     NyNodeSetObject *(*newImmCopy)(NyNodeSetObject *v);
-    NyNodeSetObject *(*newImmSingleton)(PyObject *v, PyObject *hiding_tag);
+    NyNodeSetObject *(*newImmSingleton)(struct SetscState *ms, PyObject *v, PyObject *hiding_tag);
     int (*be_immutable)(NyNodeSetObject **nsp);
     int (*setobj)(NyNodeSetObject *v, PyObject *obj);
     int (*clrobj)(NyNodeSetObject *v, PyObject *obj);
@@ -55,7 +57,7 @@ typedef struct NyNodeSet_Exports {
     int (*iterate)(NyNodeSetObject *ns,
                    int (*visit)(PyObject *, void *),
                    void *arg);
-    int (*initStw)(NyNodeSetObject *v);
+    int (*initStw)(struct SetscState *ms, NyNodeSetObject *v);
     void (*destroyStw)(NyNodeSetObject *v);
 } NyNodeSet_Exports;
 

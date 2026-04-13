@@ -7,6 +7,7 @@ typedef struct {
 
 typedef struct NyNodeGraphObject {
     PyObject_HEAD
+    struct HeapycState *ms;
     PyObject *_hiding_tag_;
     NyNodeGraphEdge *edges;
     Py_ssize_t used_size;

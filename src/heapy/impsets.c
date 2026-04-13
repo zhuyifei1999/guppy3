@@ -16,21 +16,21 @@ static NyNodeSet_Exports nodeset_exports;
 
 
 NyNodeSetObject *
-NyMutNodeSet_New(void)
+NyMutNodeSet_New(struct SetscState *ms)
 {
-    return NODESET_EXPORTED_FUNC(newMut)();
+    return NODESET_EXPORTED_FUNC(newMut)(ms);
 }
 
 NyNodeSetObject *
-NyMutNodeSet_NewHiding(PyObject *tag)
+NyMutNodeSet_NewHiding(struct SetscState *ms, PyObject *tag)
 {
-    return NODESET_EXPORTED_FUNC(newMutHiding)(tag);
+    return NODESET_EXPORTED_FUNC(newMutHiding)(ms, tag);
 }
 
 NyNodeSetObject *
-NyMutNodeSet_NewFlags(int flags)
+NyMutNodeSet_NewFlags(struct SetscState *ms, int flags)
 {
-    return NODESET_EXPORTED_FUNC(newMutFlags)(flags);
+    return NODESET_EXPORTED_FUNC(newMutFlags)(ms, flags);
 }
 
 int
@@ -67,9 +67,9 @@ NyImmNodeSet_NewCopy(NyNodeSetObject *v)
 }
 
 NyNodeSetObject *
-NyImmNodeSet_NewSingleton(PyObject *element, PyObject *hiding_tag)
+NyImmNodeSet_NewSingleton(struct SetscState *ms, PyObject *element, PyObject *hiding_tag)
 {
-    return NODESET_EXPORTED_FUNC(newImmSingleton)(element, hiding_tag);
+    return NODESET_EXPORTED_FUNC(newImmSingleton)(ms, element, hiding_tag);
 }
 
 int
@@ -78,10 +78,10 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp)
     return NODESET_EXPORTED_FUNC(be_immutable)(nsp);
 }
 
-int NySTWMutNodeSet_InitOnStack(NyNodeSetObject *v)
+int NySTWMutNodeSet_InitOnStack(struct SetscState *ms, NyNodeSetObject *v)
 {
     NY_ASSERT_WORLD_STOPPED();
-    return NODESET_EXPORTED_FUNC(initStw)(v);
+    return NODESET_EXPORTED_FUNC(initStw)(ms, v);
 }
 
 void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)

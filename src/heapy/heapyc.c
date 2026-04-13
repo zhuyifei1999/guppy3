@@ -256,25 +256,25 @@ static int module_exec(PyObject *m)
     ms->RootState = RootState;
 
     ms->HvTypes_HeapDef[0] = (NyHeapDef){
-        0,                           /* flags */
+        0,                   /* flags */
         ms->NodeGraph_Type,  /* type */
-        nodegraph_size,              /* size */
-        nodegraph_traverse,          /* traverse */
-        nodegraph_relate             /* relate */
+        nodegraph_size,      /* size */
+        nodegraph_traverse,  /* traverse */
+        nodegraph_relate     /* relate */
     };
     ms->HvTypes_HeapDef[1] = (NyHeapDef){
-        0,                           /* flags */
+        0,                   /* flags */
         ms->RootState_Type,  /* type */
-        0,                           /* size */
-        rootstate_traverse,          /* traverse */
-        rootstate_relate             /* relate */
+        NULL,                /* size */
+        rootstate_traverse,  /* traverse */
+        rootstate_relate     /* relate */
     };
     ms->HvTypes_HeapDef[2] = (NyHeapDef){
-        0,                           /* flags */
+        0,                   /* flags */
         ms->Horizon_Type,    /* type */
-        0,                           /* size */
-        0,                           /* traverse */
-        0                            /* relate */
+        NULL,                /* size */
+        NULL,                /* traverse */
+        NULL                 /* relate */
     };
     /* End mark */
     ms->HvTypes_HeapDef[3] = (NyHeapDef){0};

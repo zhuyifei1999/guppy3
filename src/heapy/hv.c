@@ -211,13 +211,13 @@ hv_gc_clear(NyHeapViewObject *hv)
     PyObject *wtc = hv->weak_type_callback;
     void *xt = hv->xt_table;
 
-    hv->root = 0;
-    hv->limitframe = 0;
-    hv->_hiding_tag_ = 0;
-    hv->_hiding_tag__name = 0;
-    hv->static_types = 0;
-    hv->weak_type_callback = 0;
-    hv->xt_table = 0;
+    hv->root = NULL;
+    hv->limitframe = NULL;
+    hv->_hiding_tag_ = NULL;
+    hv->_hiding_tag__name = NULL;
+    hv->static_types = NULL;
+    hv->weak_type_callback = NULL;
+    hv->xt_table = NULL;
 
     xt_free_table(xt, hv->xt_size);
 
@@ -685,7 +685,7 @@ NyNodeSetObject *
 hv_mutnodeset_new(NyHeapViewObject *hv)
 {
     NY_ASSERT_OBJ_LOCKED_OR_STW(hv);
-    return NyMutNodeSet_NewHiding(hv->_hiding_tag_);
+    return NyMutNodeSet_NewHiding(hv->ms->nodeset_exports->ms, hv->_hiding_tag_);
 }
 
 size_t
@@ -761,7 +761,7 @@ hv_cleanup_mutset(NyHeapViewObject *hv, NyNodeSetObject *ns)
     ta.hv = hv;
     ta.ns = ns;
     ta.rm = &rm;
-    if (NySTWWorkList_InitOnStack(&rm) == -1)
+    if (NySTWWorkList_InitOnStack(hv->ms, &rm) == -1)
         goto err;
     if (NyNodeSet_iterate(ta.ns, (visitproc)hv_cms_rec, &ta) == -1)
         goto err;
@@ -835,14 +835,14 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
     Py_INCREF(root);
     hv->ms = ms;
     hv->root = root;
-    hv->limitframe = 0;
+    hv->limitframe = NULL;
     hv->_hiding_tag_ = Py_None;
     Py_INCREF(Py_None);
-    hv->static_types = 0;
+    hv->static_types = NULL;
     hv->xt_size = XT_SIZE;
     hv->xt_mask = XT_MASK;
     hv->weak_type_callback = 0;
-    hv->xt_table = 0;
+    hv->xt_table = NULL;
 
     hv->_hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
     if (!hv->_hiding_tag__name)
@@ -863,7 +863,7 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
     for (i = 0; i < hv->xt_size; i++)
         hv->xt_table[i] = 0;
 
-    hv->static_types = (PyObject *)NyMutNodeSet_New();
+    hv->static_types = (PyObject *)NyMutNodeSet_New(hv->ms->nodeset_exports->ms);
     if (!(hv->static_types))
         goto err;
 
@@ -991,9 +991,9 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
     ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
-    if (NySTWMutNodeSet_InitOnStack(&hs) == -1)
+    if (NySTWMutNodeSet_InitOnStack(hv->ms->nodeset_exports->ms, &hs) == -1)
         goto err_start;
-    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+    if (NySTWWorkList_InitOnStack(hv->ms, &to_visit) == -1)
         goto err_start;
     r = iter_rec(ta.hv->root, &ta);
     if (r == -1)
@@ -1064,7 +1064,7 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
-    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &to_visit) == -1)
         goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
@@ -1245,7 +1245,7 @@ hv_reachable(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
-    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &to_visit) == -1)
         goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
@@ -1310,7 +1310,7 @@ hv_reachable_x(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
     ta.to_visit = &to_visit;
 
     NY_STOP_WORLD();
-    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &to_visit) == -1)
         goto err_start;
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
@@ -1797,17 +1797,17 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
         goto err;
 
     NY_STOP_WORLD();
-    if (NySTWMutNodeSet_InitOnStack(&markset) == -1)
+    if (NySTWMutNodeSet_InitOnStack(self->ms->nodeset_exports->ms, &markset) == -1)
         goto err_start;
-    if (NySTWMutNodeSet_InitOnStack(&outset) == -1)
+    if (NySTWMutNodeSet_InitOnStack(self->ms->nodeset_exports->ms, &outset) == -1)
         goto err_start;
-    if (NySTWMutNodeSet_InitOnStack(&trace_set) == -1)
+    if (NySTWMutNodeSet_InitOnStack(self->ms->nodeset_exports->ms, &trace_set) == -1)
         goto err_start;
-    if (NySTWWorkList_InitOnStack(&to_visit) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &to_visit) == -1)
         goto err_start;
-    if (NySTWWorkList_InitOnStack(&trace_stack) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &trace_stack) == -1)
         goto err_start;
-    if (NySTWWorkList_InitOnStack(&trace_res) == -1)
+    if (NySTWWorkList_InitOnStack(self->ms, &trace_res) == -1)
         goto err_start;
     if (NySTWWorkList_Push(ta.to_visit, ta.hv->root) == -1)
         goto err_start;

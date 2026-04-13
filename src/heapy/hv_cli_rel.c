@@ -353,7 +353,7 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     crva.relset = &relset;
 
     NY_STOP_WORLD();
-    if (NySTWMutNodeSet_InitOnStack(&relset) == -1)
+    if (NySTWMutNodeSet_InitOnStack(ms->nodeset_exports->ms, &relset) == -1)
         goto err_start;
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err_start;

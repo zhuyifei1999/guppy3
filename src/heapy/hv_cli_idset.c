@@ -22,7 +22,7 @@ The classification of an object is a singleton immnodeset containing the object 
 static PyObject *
 hv_cli_idset_classify(struct HeapycState *ms, NyHeapViewObject *self, PyObject *arg)
 {
-    return (PyObject *)NyImmNodeSet_NewSingleton(arg, self->_hiding_tag_);
+    return (PyObject *)NyImmNodeSet_NewSingleton(ms->nodeset_exports->ms, arg, self->_hiding_tag_);
 }
 
 static int

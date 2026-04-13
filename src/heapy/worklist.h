@@ -2,6 +2,7 @@
 #define NY_WORKLIST_H
 
 #include "impsets.h"
+#include "heapy.h"
 #include "stoptheworld.h"
 
 /* Stop-the-world worklist running on borrowed refs */
@@ -20,7 +21,7 @@ typedef struct NySTWWorkList {
 } NySTWWorkList;
 
 static inline int
-NySTWWorkList_InitOnStack(NySTWWorkList *w)
+NySTWWorkList_InitOnStack(struct HeapycState *ms, NySTWWorkList *w)
 {
     NY_ASSERT_WORLD_STOPPED();
     w->allo_size = 0;
@@ -28,7 +29,7 @@ NySTWWorkList_InitOnStack(NySTWWorkList *w)
     w->arr = NULL;
 #ifndef Py_GIL_DISABLED
     /* In !Py_GIL_DISABLED, NySTWMutNodeSet holds objects */
-    return NySTWMutNodeSet_InitOnStack(&w->keepalive);
+    return NySTWMutNodeSet_InitOnStack(ms->nodeset_exports->ms, &w->keepalive);
 #endif
     return 0;
 }

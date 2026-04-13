@@ -22,7 +22,7 @@ class TestHeapView(TestCase):
         ns = self.mutnodeset([a])
         ng = self.nodegraph([(a, a)])
 
-        self.assertEqual(self.hv.relimg([ns]), self.nodeset([a]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([self.mutnodeset, a]))
         self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a]))
 
         ns._hiding_tag_ = hiding_tag
@@ -33,7 +33,7 @@ class TestHeapView(TestCase):
 
         self.hv._hiding_tag_ = []
 
-        self.assertEqual(self.hv.relimg([ns]), self.nodeset([a, None]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([self.mutnodeset, a, None]))
         self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a, None]))
 
     def test_inheritance_from_heapview(self):
@@ -71,7 +71,6 @@ class TestHeapView(TestCase):
         mutnodeset = self.sets.mutnodeset
 
         for base in (list, mutnodeset):
-
             class T(base):
                 __slots__ = 't',
 
@@ -100,7 +99,10 @@ class TestHeapView(TestCase):
 
             # Test traverse
 
-            self.assertEqual(hv.relimg([a]), immnodeset(data))
+            if base is list:  # list is not a heap type, but mutnodeset is
+                self.assertEqual(hv.relimg([a]), immnodeset(data))
+            else:
+                self.assertEqual(hv.relimg([a]), immnodeset(data+[base]))
             self.assertEqual(hv.relimg([t]), immnodeset(data+[T, t.t]))
             self.assertEqual(hv.relimg([u]), immnodeset(data+[U, u.t, u.u]))
 

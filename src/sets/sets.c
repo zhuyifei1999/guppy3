@@ -44,14 +44,100 @@ static PyMethodDef module_methods[] = {
     {NULL, NULL}
 };
 
-static NyHeapDef nysets_heapdefs[] = {
-    {0, 0, (NyHeapDef_SizeGetter) mutbitset_indisize},
-    {0, 0, 0, cplbitset_traverse},
-    {0, 0, nodeset_indisize,  nodeset_traverse, nodeset_relate},
-    {0}
-};
+static int
+module_gc_traverse(PyObject *m, visitproc visit, void *arg)
+{
+    struct SetscState *ms = NyModule_AssertState(m);
 
-static int module_exec(PyObject *m);
+    Py_VISIT(ms->BitSet_Type);
+    Py_VISIT(ms->ImmBitSet_Type);
+    Py_VISIT(ms->ImmBitSetIter_Type);
+    Py_VISIT(ms->CplBitSet_Type);
+    Py_VISIT(ms->MutBitSet_Type);
+    Py_VISIT(ms->Union_Type);
+    Py_VISIT(ms->NodeSet_Type);
+    Py_VISIT(ms->MutNodeSet_Type);
+    Py_VISIT(ms->ImmNodeSet_Type);
+    Py_VISIT(ms->MutNodeSetIter_Type);
+    Py_VISIT(ms->ImmNodeSetIter_Type);
+
+    Py_VISIT(ms->ImmBitSet_Empty);
+    Py_VISIT(ms->ImmBitSet_Omega);
+    Py_VISIT(ms->BitSet_FormMethod);
+
+    return 0;
+}
+
+static int
+module_gc_clear(PyObject *m)
+{
+    struct SetscState *ms = NyModule_AssertState(m);
+
+    Py_CLEAR(ms->BitSet_Type);
+    Py_CLEAR(ms->ImmBitSet_Type);
+    Py_CLEAR(ms->ImmBitSetIter_Type);
+    Py_CLEAR(ms->CplBitSet_Type);
+    Py_CLEAR(ms->MutBitSet_Type);
+    Py_CLEAR(ms->Union_Type);
+    Py_CLEAR(ms->NodeSet_Type);
+    Py_CLEAR(ms->MutNodeSet_Type);
+    Py_CLEAR(ms->ImmNodeSet_Type);
+    Py_CLEAR(ms->MutNodeSetIter_Type);
+    Py_CLEAR(ms->ImmNodeSetIter_Type);
+
+    Py_CLEAR(ms->ImmBitSet_Empty);
+    Py_CLEAR(ms->ImmBitSet_Omega);
+    Py_CLEAR(ms->BitSet_FormMethod);
+
+    return 0;
+}
+
+static void
+module_free(void *mod)
+{
+    module_gc_clear(mod);
+}
+
+static int module_exec(PyObject *m)
+{
+    struct SetscState *ms = NyModule_AssertState(m);
+
+    if (fsb_dx_nybitset_init(m) == -1)
+        return -1;
+    if (fsb_dx_nynodeset_init(m) == -1)
+        return -1;
+
+    ms->Sets_HeapDef[0] = (NyHeapDef){
+        0,                   /* flags */
+        ms->MutBitSet_Type,  /* type */
+        (NyHeapDef_SizeGetter)mutbitset_indisize, /* size */
+        NULL,                /* traverse */
+        NULL                 /* relate */
+    };
+    ms->Sets_HeapDef[1] = (NyHeapDef){
+        0,                   /* flags */
+        ms->CplBitSet_Type,  /* type */
+        NULL,                /* size */
+        cplbitset_traverse,  /* traverse */
+        NULL                 /* relate */
+    };
+    ms->Sets_HeapDef[2] = (NyHeapDef){
+        0,                   /* flags */
+        ms->NodeSet_Type,    /* type */
+        nodeset_indisize,    /* size */
+        nodeset_traverse,    /* traverse */
+        nodeset_relate       /* relate */
+    };
+    /* End mark */
+    ms->Sets_HeapDef[3] = (NyHeapDef){0};
+
+    if (PyModule_Add(m, "_NyHeapDefs_",
+            PyCapsule_New(&ms->Sets_HeapDef, "guppy.sets.setsc._NyHeapDefs_", 0)
+    ) == -1)
+        return -1;
+
+    return 0;
+}
 
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_exec, module_exec},
@@ -64,37 +150,22 @@ static PyModuleDef_Slot module_slots[] = {
     {0, NULL}  /* Sentinel */
 };
 
-static struct PyModuleDef moduledef = {
+struct PyModuleDef setsc_def = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "setsc",
     .m_doc = PyDoc_STR(sets_doc),
-    .m_size = 0,
+    .m_size = sizeof(struct SetscState),
     .m_methods = module_methods,
     .m_slots = module_slots,
+    .m_traverse = module_gc_traverse,
+    .m_clear = module_gc_clear,
+    .m_free = module_free,
 };
-
-static int module_exec(PyObject *m)
-{
-    nysets_heapdefs[0].type = &NyMutBitSet_Type;
-    nysets_heapdefs[1].type = &NyCplBitSet_Type;
-    nysets_heapdefs[2].type = &NyNodeSet_Type;
-
-    if (fsb_dx_nybitset_init(m) == -1)
-        return -1;
-    if (fsb_dx_nynodeset_init(m) == -1)
-        return -1;
-    if (PyModule_Add(m, "_NyHeapDefs_",
-            PyCapsule_New(&nysets_heapdefs, "guppy.sets.setsc._NyHeapDefs_", 0)
-    ) == -1)
-        return -1;
-
-    return 0;
-}
 
 /* -Wmissing-prototypes */
 extern PyMODINIT_FUNC PyInit_setsc(void);
 
 PyMODINIT_FUNC PyInit_setsc(void)
 {
-    return PyModuleDef_Init(&moduledef);
+    return PyModuleDef_Init(&setsc_def);
 }

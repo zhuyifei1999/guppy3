@@ -36,31 +36,33 @@ typedef struct {
 } NyImmNodeSetIterObject;
 
 
+static int
+immnsiter_clear(NyImmNodeSetIterObject *it)
+{
+    Py_XDECREF(it->nodeset);
+    return 0;
+}
+
 static void
 immnsiter_dealloc(NyImmNodeSetIterObject *it)
 {
+    PyTypeObject *tp = Py_TYPE(it);
     PyObject_GC_UnTrack(it);
     Py_TRASHCAN_BEGIN(it, immnsiter_dealloc)
-    Py_XDECREF(it->nodeset);
+    immnsiter_clear(it);
     PyObject_GC_Del(it);
+    Py_CLEAR(tp);
     Py_TRASHCAN_END
 }
 
-static PyObject *
-immnsiter_getiter(PyObject *it)
-{
-    Py_INCREF(it);
-    return it;
-}
 
 static int
 immnsiter_traverse(NyImmNodeSetIterObject *it, visitproc visit, void *arg)
 {
-    if (it->nodeset == NULL)
-        return 0;
-    return visit((PyObject *)it->nodeset, arg);
+    Py_VISIT(Py_TYPE(it));
+    Py_VISIT(it->nodeset);
+    return 0;
 }
-
 
 
 static PyObject *
@@ -69,28 +71,29 @@ immnsiter_iternext(NyImmNodeSetIterObject *it)
     if (it->nodeset && it->i < Py_SIZE(it->nodeset)) {
         PyObject *ret = it->nodeset->u.nodes[it->i];
         it->i += 1;
-        Py_INCREF(ret);
-        return ret;
+        return Py_NewRef(ret);
     } else {
-        Py_XDECREF(it->nodeset);
-        it->nodeset = NULL;
+        Py_CLEAR(it->nodeset);
         return NULL;
     }
 }
 
-PyTypeObject NyImmNodeSetIter_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "immnodeset-iterator",
-    .tp_basicsize = sizeof(NyImmNodeSetIterObject),
-    .tp_dealloc   = (destructor)immnsiter_dealloc,
-    .tp_getattro  = PyObject_GenericGetAttr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    .tp_traverse  = (traverseproc)immnsiter_traverse,
-    .tp_iter      = (getiterfunc)immnsiter_getiter,
-    .tp_iternext  = (iternextfunc)immnsiter_iternext,
+static PyType_Slot immnsiter_slots[] = {
+    {Py_tp_dealloc,  immnsiter_dealloc},
+    {Py_tp_getattro, PyObject_GenericGetAttr},
+    {Py_tp_traverse, immnsiter_traverse},
+    {Py_tp_clear,    immnsiter_clear},
+    {Py_tp_iter,     PyObject_SelfIter},
+    {Py_tp_iternext, immnsiter_iternext},
+    {0, NULL}
 };
 
-
+PyType_Spec NyImmNodeSetIter_Spec = {
+    .name      = "immnodeset-iterator",
+    .basicsize = sizeof(NyImmNodeSetIterObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC,
+    .slots     = immnsiter_slots,
+};
 
 
 /* immnodeset specific methods */
@@ -99,10 +102,12 @@ PyTypeObject NyImmNodeSetIter_Type = {
 static NyNodeSetObject *
 NyImmNodeSet_SubtypeNew(PyTypeObject *type, NyBit size, PyObject *hiding_tag)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     NyNodeSetObject *v = (void *)type->tp_alloc(type, size);
     if (!v)
         return NULL;
     v->flags = NS_HOLDOBJECTS;
+    v->ms = ms;
     v->_hiding_tag_ = hiding_tag;
     Py_XINCREF(hiding_tag);
     memset(v->u.nodes, 0, sizeof(*v->u.nodes) * size);
@@ -110,16 +115,16 @@ NyImmNodeSet_SubtypeNew(PyTypeObject *type, NyBit size, PyObject *hiding_tag)
 }
 
 NyNodeSetObject *
-NyImmNodeSet_New(NyBit size, PyObject *hiding_tag)
+NyImmNodeSet_New(struct SetscState *ms, NyBit size, PyObject *hiding_tag)
 {
-    return NyImmNodeSet_SubtypeNew(&NyImmNodeSet_Type, size, hiding_tag);
+    return NyImmNodeSet_SubtypeNew(ms->ImmNodeSet_Type, size, hiding_tag);
 }
 
 
 NyNodeSetObject *
-NyImmNodeSet_NewSingleton(PyObject *element, PyObject *hiding_tag)
+NyImmNodeSet_NewSingleton(struct SetscState *ms, PyObject *element, PyObject *hiding_tag)
 {
-    NyNodeSetObject *s = NyImmNodeSet_New(1, hiding_tag);
+    NyNodeSetObject *s = NyImmNodeSet_New(ms, 1, hiding_tag);
     if (!s)
         return 0;
     s->u.nodes[0] = element;
@@ -165,15 +170,16 @@ NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
 NyNodeSetObject *
 NyImmNodeSet_NewCopy(NyNodeSetObject *v)
 {
-    return NyImmNodeSet_SubtypeNewCopy(&NyImmNodeSet_Type, v);
+    return NyImmNodeSet_SubtypeNewCopy(v->ms->ImmNodeSet_Type, v);
 }
 
 
 static NyNodeSetObject *
 NyImmNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject *hiding_tag)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     NyNodeSetObject *imms, *muts;
-    muts = NyMutNodeSet_SubtypeNewIterable(&NyMutNodeSet_Type, iterable, hiding_tag);
+    muts = NyMutNodeSet_SubtypeNewIterable(ms->MutNodeSet_Type, iterable, hiding_tag);
     if (!muts)
         return 0;
     imms = NyImmNodeSet_SubtypeNewCopy(type, muts);
@@ -196,6 +202,7 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp) {
 static PyObject *
 immnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     PyObject *iterable = NULL;
     PyObject *hiding_tag = NULL;
     bool hiding_tag_diff;
@@ -206,9 +213,9 @@ immnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                                      &hiding_tag
                                      ))
         return NULL;
-    if (type != &NyImmNodeSet_Type)
+    if (type != ms->ImmNodeSet_Type)
         goto new;
-    if (!iterable || Py_TYPE(iterable) != &NyImmNodeSet_Type)
+    if (!iterable || Py_TYPE(iterable) != ms->ImmNodeSet_Type)
         goto new;
 
     Ny_BEGIN_CRITICAL_SECTION(iterable);
@@ -252,10 +259,12 @@ immnodeset_gc_clear(NyNodeSetObject *v)
 static void
 immnodeset_dealloc(NyNodeSetObject *v)
 {
+    PyTypeObject *tp = Py_TYPE(v);
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, immnodeset_dealloc)
     immnodeset_gc_clear(v);
-    Py_TYPE(v)->tp_free((PyObject *)v);
+    tp->tp_free((PyObject *)v);
+    Py_CLEAR(tp);
     Py_TRASHCAN_END
 }
 
@@ -268,22 +277,12 @@ immnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
     assert(!(v->flags & _NS_STW));
 
     NyBit i;
-    int err;
-    err = 0;
-    if (v->flags & NS_HOLDOBJECTS) {
-        for (i = 0; i < Py_SIZE(v); i++) {
-            PyObject *x = v->u.nodes[i];
-            if (x) {
-                err = visit(x, arg);
-                if (err)
-                    return err;
-            }
-        }
-    }
-    if (v->_hiding_tag_) {
-        err = visit(v->_hiding_tag_, arg);
-    }
-    return err;
+    Py_VISIT(Py_TYPE(v));
+    if (v->flags & NS_HOLDOBJECTS)
+        for (i = 0; i < Py_SIZE(v); i++)
+            Py_VISIT(v->u.nodes[i]);
+    Py_VISIT(v->_hiding_tag_);
+    return 0;
 }
 
 static Py_hash_t
@@ -319,7 +318,7 @@ static  PyGetSetDef immnodeset_getset[] = {
 static PyObject *
 immnodeset_iter(NyNodeSetObject *ns)
 {
-    NyImmNodeSetIterObject *it = PyObject_GC_New(NyImmNodeSetIterObject, &NyImmNodeSetIter_Type);
+    NyImmNodeSetIterObject *it = PyObject_GC_New(NyImmNodeSetIterObject, ns->ms->ImmNodeSetIter_Type);
     if (!it)
         return 0;
     it->i = 0;
@@ -394,7 +393,7 @@ immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op)
         if (zf) {
             return dst;
         } else {
-            dst = NyImmNodeSet_New(z, v->_hiding_tag_);
+            dst = NyImmNodeSet_New(v->ms, z, v->_hiding_tag_);
             if (!dst)
                 return dst;
             zf = &dst->u.nodes[0];
@@ -449,26 +448,28 @@ static PyMethodDef immnodeset_methods[] = {
 };
 
 
+static PyType_Slot immnodeset_slots[] = {
+    {Py_tp_dealloc,     immnodeset_dealloc},
+    {Py_tp_hash,        immnodeset_hash},
+    {Py_tp_getattro,    PyObject_GenericGetAttr},
+    {Py_tp_doc,         (void *)immnodeset_doc},
+    {Py_tp_traverse,    immnodeset_gc_traverse},
+    {Py_tp_clear,       immnodeset_gc_clear},
+    {Py_tp_richcompare, nodeset_richcompare},
+    {Py_tp_iter,        immnodeset_iter},
+    {Py_tp_methods,     immnodeset_methods},
+    {Py_tp_members,     immnodeset_members},
+    {Py_tp_getset,      immnodeset_getset},
+    {Py_tp_alloc,       PyType_GenericAlloc},
+    {Py_tp_new,         immnodeset_new},
+    {Py_tp_free,        PyObject_GC_Del},
+    {0, NULL}
+};
 
-PyTypeObject NyImmNodeSet_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name        = "guppy.sets.setsc.ImmNodeSet",
-    .tp_basicsize   = sizeof(NyNodeSetObject)-sizeof(PyObject *),
-    .tp_itemsize    = sizeof(PyObject *),
-    .tp_dealloc     = (destructor)immnodeset_dealloc,
-    .tp_hash        = (hashfunc)immnodeset_hash,
-    .tp_getattro    = PyObject_GenericGetAttr,
-    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc         = immnodeset_doc,
-    .tp_traverse    = (traverseproc)immnodeset_gc_traverse,
-    .tp_clear       = (inquiry)immnodeset_gc_clear,
-    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
-    .tp_iter        = (getiterfunc)immnodeset_iter,
-    .tp_methods     = immnodeset_methods,
-    .tp_members     = immnodeset_members,
-    .tp_getset      = immnodeset_getset,
-    .tp_base        = &NyNodeSet_Type,
-    .tp_alloc       = PyType_GenericAlloc,
-    .tp_new         = immnodeset_new,
-    .tp_free        = PyObject_GC_Del,
+PyType_Spec NyImmNodeSet_Spec = {
+    .name      = "guppy.sets.setsc.ImmNodeSet",
+    .basicsize = offsetof(NyNodeSetObject, u.nodes),
+    .itemsize  = sizeof(PyObject *),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE | Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+    .slots     = immnodeset_slots,
 };

@@ -145,15 +145,16 @@ def eltime(f, args=(), N=1, retx=0):
 '.nython on'
 
 
-class IdSet(bitsmut):
-    def append(self, x):
-        bitsmut.append(self, id(x) // 12)
+if sys.version_info >= (3, 11):
+    class IdSet(bitsmut):
+        def append(self, x):
+            bitsmut.append(self, id(x) // 12)
 
-    def remove(self, x):
-        bitsmut.remove(self, id(x) // 12)
+        def remove(self, x):
+            bitsmut.remove(self, id(x) // 12)
 
-    def __contains__(self, x):
-        return bitsmut.__contains__(self, id(x) // 12)
+        def __contains__(self, x):
+            return bitsmut.__contains__(self, id(x) // 12)
 
 
 '.nython off'
@@ -713,6 +714,9 @@ MutBitSet([])
         print(tlo(rng), tbs(rng))
 
     def test8(self):
+        if sys.version_info < (3, 11):
+            return
+
         # Subclassing a bitsmut
         BS = IdSet
         for bs in (BS(), BS([]), BS([0])):
@@ -1583,6 +1587,9 @@ MutBitSet([])
             bs |= bitsingle((i*2+1)*100000+50000)
 
     def test34(self):
+        if sys.version_info < (3, 11):
+            return
+
         # Test nodeset inheritance
         # This leaks in Python 2.3.3; whether or not H is MutNodeSet or list.
         H = MutNodeSet
@@ -1599,6 +1606,9 @@ MutBitSet([])
         assert e1 in s
 
     def test35(self):
+        if sys.version_info < (3, 11):
+            return
+
         # Test bitset inheritance
 
         for i in range(2):

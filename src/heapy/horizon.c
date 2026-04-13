@@ -214,12 +214,16 @@ horizon_remove(NyHorizonObject *v)
 }
 
 static void
-horizon_dealloc(NyHorizonObject *rg)
+horizon_dealloc(NyHorizonObject *v)
 {
-    if (rg->installed)
-        horizon_remove(rg);
-    Py_XDECREF(rg->hs);
-    Py_TYPE(rg)->tp_free((PyObject *)rg);
+    PyTypeObject *tp = Py_TYPE(v);
+    Py_TRASHCAN_BEGIN(v, horizon_dealloc)
+    if (v->installed)
+        horizon_remove(v);
+    Py_XDECREF(v->hs);
+    tp->tp_free((PyObject *)v);
+    Py_CLEAR(tp);
+    Py_TRASHCAN_END
 }
 
 static int
@@ -257,7 +261,7 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     hz = (NyHorizonObject *)type->tp_alloc(type, 1);
     if (!hz)
         return NULL;
-    hz->hs = NyMutNodeSet_NewFlags(0); /* I.E. not NS_HOLDOBJECTS */
+    hz->hs = NyMutNodeSet_NewFlags(ms->nodeset_exports->ms, 0); /* I.E. not NS_HOLDOBJECTS */
     if (!hz->hs)
         goto err;
     if (iterable_iterate(ms, (PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
@@ -326,7 +330,7 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
 #endif
 
     ta.rg = self;
-    ta.result = NyMutNodeSet_New();
+    ta.result = NyMutNodeSet_New(ms->nodeset_exports->ms);
     if (!(ta.result))
         goto err;
     if (iterable_iterate(ms, arg, (visitproc)horizon_news_trav, &ta) == -1)
