@@ -1,4 +1,5 @@
 #ifndef Ny_HEAPY_H
+#define Ny_HEAPY_H
 
 #include "heapdef.h"
 

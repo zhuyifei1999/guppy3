@@ -1,5 +1,7 @@
 #ifndef GUPPY_H_INCLUDED
 
+#include <stdbool.h>
+
 #define NY_MASKED_VERSION_HEX (PY_VERSION_HEX & 0xffff0000)
 
 #if NY_MASKED_VERSION_HEX < 0x030e0000
@@ -59,7 +61,7 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
     if (state)
         *state = (PyTypeObject *)t;
     else
-        Py_DECREF(t);
+        Py_CLEAR(t);
 
     return 0;
 }

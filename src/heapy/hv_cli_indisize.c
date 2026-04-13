@@ -35,8 +35,7 @@ hv_cli_indisize_memoized_kind(struct HeapycState *ms, IndisizeObject *self, PyOb
     if (PyDict_SetItem(self->memo, size, size) == -1)
         return NULL;
     /* Caller assumes it owns both size and the return value */
-    Py_INCREF(size);
-    return size;
+    return Py_NewRef(size);
 }
 
 static PyObject *
@@ -48,9 +47,9 @@ hv_cli_indisize_classify(struct HeapycState *ms, IndisizeObject *self, PyObject 
     size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
     Ny_END_CRITICAL_SECTION();
     if (!size)
-        return size;
+        return NULL;
     memoedsize = hv_cli_indisize_memoized_kind(ms, self, size);
-    Py_DECREF(size);
+    Py_CLEAR(size);
     return memoedsize;
 }
 
@@ -92,12 +91,10 @@ hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
         return NULL;
     s = NYTUPLELIKE_NEW(IndisizeObject);
     if (!s)
-        return 0;
-    s->hv = self;
-    Py_INCREF(s->hv);
-    s->memo = memo;
-    Py_INCREF(memo);
+        return NULL;
+    s->hv = Ny_NEWREF(self);
+    s->memo = Py_NewRef(memo);
     r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_indisize_def);
-    Py_DECREF(s);
+    Py_CLEAR(s);
     return r;
 }

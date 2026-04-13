@@ -2,8 +2,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include <stdbool.h>
-
 #include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
@@ -57,7 +55,8 @@ horizon_on_dealloc(PyObject *v);
 /* Post 3.13: Implemented via PyRefTracer */
 static PyMutex rm_mutex = {0};
 
-static int horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
+static int
+horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
 {
     if (event == PyRefTracer_DESTROY)
         horizon_on_dealloc(v);
@@ -132,8 +131,7 @@ horizon_uninstall(void)
     while (PyDict_Next(rm.types, &i, &pk, &pv)) {
         ((PyTypeObject *)pk)->tp_dealloc = (destructor)PyLong_AsSsize_t(pv);
     }
-    Py_DECREF(rm.types);
-    rm.types = 0;
+    Py_CLEAR(rm.types);
 }
 
 
@@ -170,11 +168,11 @@ horizon_patch_dealloc(PyTypeObject *t)
     if (!(org = PyLong_FromSsize_t((Py_ssize_t)t->tp_dealloc)))
         return -1;
     if (PyDict_SetItem(rm.types, (PyObject *)t, org) == -1) {
-        Py_DECREF(org);
+        Py_CLEAR(org);
         return -1;
     }
     t->tp_dealloc = horizon_patched_dealloc;
-    Py_DECREF(org);
+    Py_CLEAR(org);
     return 0;
 }
 #endif
@@ -220,7 +218,7 @@ horizon_dealloc(NyHorizonObject *v)
     Py_TRASHCAN_BEGIN(v, horizon_dealloc)
     if (v->installed)
         horizon_remove(v);
-    Py_XDECREF(v->hs);
+    Py_CLEAR(v->hs);
     tp->tp_free((PyObject *)v);
     Py_CLEAR(tp);
     Py_TRASHCAN_END
@@ -250,8 +248,8 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     struct HeapycState *ms = NyType_AssertModuleState(type, &heapyc_def);
     PyObject *X;
-    NyHorizonObject *hz = 0;
-    static char *kwlist[] = {"X", 0};
+    NyHorizonObject *hz = NULL;
+    static char *kwlist[] = {"X", NULL};
     bool should_install;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:Horizon.__new__",
@@ -284,7 +282,7 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyMutex_Unlock(&rm_mutex);
     return (PyObject *)hz;
 err:
-    Py_XDECREF(hz);
+    Py_CLEAR(hz);
     return NULL;
 
 }
@@ -337,8 +335,8 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
         goto err;
     return (PyObject *)ta.result;
 err:
-    Py_XDECREF(ta.result);
-    return 0;
+    Py_CLEAR(ta.result);
+    return NULL;
 }
 
 

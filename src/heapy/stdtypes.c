@@ -64,11 +64,9 @@ dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
             if (r->visit(k, PyLong_FromSsize_t(ix), r))
                 return 0;
         }
-        if (pv == r->tgt) {
-            Py_INCREF(pk);
-            if (r->visit(v, pk, r))
+        if (pv == r->tgt)
+            if (r->visit(v, Py_NewRef(pk), r))
                 return 0;
-        }
         ix++;
     }
     return 0;
@@ -169,14 +167,14 @@ set_relate(NyHeapRelate *r)
     while ((obj = PyIter_Next(it))) {
         if (r->tgt == obj) {
             r->visit(NYHR_INSET, PyLong_FromSsize_t(i++), r);
-            Py_DECREF(obj);
+            Py_CLEAR(obj);
             goto out;
         }
-        Py_DECREF(obj);
+        Py_CLEAR(obj);
     }
 
 out:
-    Py_DECREF(it);
+    Py_CLEAR(it);
 
     if (PyErr_Occurred())
         return -1;
@@ -222,12 +220,10 @@ frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int
         if ((!deref && v->f_localsplus[i] == r->tgt) ||
             (deref && PyCell_GET(v->f_localsplus[i]) == r->tgt)) {
             PyObject *name;
-            if (PyTuple_Check(map) && (i - start) < PyTuple_Size(map)) {
-                name = PyTuple_GetItem(map, i - start);
-                Py_INCREF(name);
-            } else {
+            if (PyTuple_Check(map) && (i - start) < PyTuple_Size(map))
+                name = Py_NewRef(PyTuple_GetItem(map, i - start));
+            else
                 name = PyUnicode_FromString("?");
-            }
             if (r->visit(deref? NYHR_CELL : NYHR_LOCAL_VAR, name, r))
                 return 1;
         }
@@ -265,10 +261,10 @@ frame_relate(NyHeapRelate *r)
     PyFrameObject *next_frame = PyFrame_GetBack(v);
     if ((PyObject *)next_frame == r->tgt && r->visit(
             NYHR_ATTRIBUTE, PyUnicode_FromString("f_back"), r)) {
-        Py_XDECREF(next_frame);
+        Py_CLEAR(next_frame);
         return 1;
     }
-    Py_XDECREF(next_frame);
+    Py_CLEAR(next_frame);
 #endif
     ATTR(f_back)
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
@@ -314,20 +310,16 @@ frame_relate(NyHeapRelate *r)
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
         PyObject *val = PyStackRef_AsPyObjectBorrow(iv->localsplus[i]);
 
-        if (val == r->tgt) {
-            Py_INCREF(name);
-            if (r->visit(NYHR_LOCAL_VAR, name, r))
+        if (val == r->tgt)
+            if (r->visit(NYHR_LOCAL_VAR, Py_NewRef(name), r))
                 return 1;
-        }
 
         if (!(kind & CO_FAST_CELL) && !(kind & CO_FAST_FREE))
             continue;
 
-        if (PyCell_GET(val) == r->tgt) {
-            Py_INCREF(name);
-            if (r->visit(NYHR_CELL, name, r))
+        if (PyCell_GET(val) == r->tgt)
+            if (r->visit(NYHR_CELL, Py_NewRef(name), r))
                 return 1;
-        }
     }
 #else
     if (
@@ -426,7 +418,7 @@ frame_traverse(NyHeapTraverse *ta) {
       calls it when FRAME_OWNED_BY_FRAME_OBJECT :( */
     PyFrameObject *next_frame = PyFrame_GetBack(v);
     Py_VISIT(next_frame);
-    Py_XDECREF(next_frame);
+    Py_CLEAR(next_frame);
 
     Py_VISIT(v->f_trace);
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
@@ -720,87 +712,87 @@ type_relate(NyHeapRelate *r)
 NyHeapDef NyStdTypes_HeapDef[] = {
     {
         0,             /* flags */
-        0,             /* type */
-        0,             /* size */
+        NULL,          /* type */
+        NULL,          /* size */
         dict_traverse, /* traverse */
         dict_relate    /* relate */
     }, {
         0,          /* flags */
-        0,          /* type */
-        0,          /* size */
-        0,          /* traverse */
+        NULL,       /* type */
+        NULL,       /* size */
+        NULL,       /* traverse */
         list_relate /* relate */
     }, {
         0,           /* flags */
-        0,           /* type */
-        0,           /* size */
-        0,           /* traverse */
+        NULL,        /* type */
+        NULL,        /* size */
+        NULL,        /* traverse */
         tuple_relate /* relate */
     }, {
         0,         /* flags */
-        0,         /* type */
-        0,         /* size */
-        0,         /* traverse */
+        NULL,      /* type */
+        NULL,      /* size */
+        NULL,      /* traverse */
         set_relate /* relate */
     }, {
         0,         /* flags */
-        0,         /* type */
-        0,         /* size */
-        0,         /* traverse */
+        NULL,      /* type */
+        NULL,      /* size */
+        NULL,      /* traverse */
         set_relate /* relate */
     }, {
         0,              /* flags */
-        0,              /* type */
-        0,              /* size */
-        0,              /* traverse */
+        NULL,           /* type */
+        NULL,           /* size */
+        NULL,           /* traverse */
         function_relate /* relate */
     }, {
         0,            /* flags */
-        0,            /* type */
-        0,            /* size */
-        0,            /* traverse */
+        NULL,         /* type */
+        NULL,         /* size */
+        NULL,         /* traverse */
         module_relate /* relate */
     }, {
         0,              /* flags */
-        0,              /* type */
-        0,              /* size */
+        NULL,           /* type */
+        NULL,           /* size */
         frame_traverse, /* traverse */
         frame_relate    /* relate */
     }, {
         0,               /* flags */
-        0,               /* type */
-        0,               /* size */
-        0,               /* traverse */
+        NULL,            /* type */
+        NULL,            /* size */
+        NULL,            /* traverse */
         traceback_relate /* relate */
     }, {
         0,          /* flags */
-        0,          /* type */
-        0,          /* size */
-        0,          /* traverse */
+        NULL,       /* type */
+        NULL,       /* size */
+        NULL,       /* traverse */
         cell_relate /* relate */
     }, {
         0,          /* flags */
-        0,          /* type */
-        0,          /* size */
-        0,          /* traverse */
+        NULL,       /* type */
+        NULL,       /* size */
+        NULL,       /* traverse */
         meth_relate /* relate */
     }, {
         0,             /* flags */
-        0,             /* type */
-        0,             /* size */
+        NULL,          /* type */
+        NULL,          /* size */
         code_traverse, /* traverse */
         code_relate    /* relate */
     }, {
         0,             /* flags */
-        0,             /* type */
-        0,             /* size */
+        NULL,          /* type */
+        NULL,          /* size */
         type_traverse, /* traverse */
         type_relate    /* relate */
     }, {
         0,               /* flags */
-        0,               /* type */ /* To be patched-in from a dictproxy ! */
-        0,               /* size */
-        0,               /* traverse */
+        NULL,            /* type */ /* To be patched-in from a dictproxy ! */
+        NULL,            /* size */
+        NULL,            /* traverse */
         dictproxy_relate /* relate */
     },
 

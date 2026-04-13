@@ -3,6 +3,8 @@
 
 #ifdef Py_GIL_DISABLED
 
+#include <stdbool.h>
+
 /* This is in <internal/pycore_pystate.h>, but I don't want to Py_BUILD_CORE
    for everything using this header */
 extern PyAPI_FUNC(void) _PyEval_StopTheWorld(PyInterpreterState *interp);

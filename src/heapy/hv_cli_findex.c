@@ -44,8 +44,7 @@ hv_cli_findex_memoized_kind(struct HeapycState *ms, FindexObject *self, PyObject
     if (PyDict_SetItem(self->memo, kind, kind) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    Py_INCREF(kind);
-    return kind;
+    return Py_NewRef(kind);
 }
 
 
@@ -66,7 +65,7 @@ hv_cli_findex_classify(struct HeapycState *ms, FindexObject *self, PyObject *obj
         if (!kind)
             return NULL;
         cmp = NyObjectClassifier_Compare(cli, kind, cmpkind, cmp);
-        Py_DECREF(kind);
+        Py_CLEAR(kind);
         if (cmp == -1)
             return NULL;
         if (cmp)
@@ -76,7 +75,7 @@ hv_cli_findex_classify(struct HeapycState *ms, FindexObject *self, PyObject *obj
     if (!index)
         return NULL;
     ret = hv_cli_findex_memoized_kind(ms, self, index);
-    Py_DECREF(index);
+    Py_CLEAR(index);
     return ret;
 }
 
@@ -99,49 +98,47 @@ static NyObjectClassifierDef hv_cli_findex_def = {
 PyObject *
 hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
 {
-    PyObject *r;
+    PyObject *r = NULL;
     FindexObject *s, tmp;
     Py_ssize_t numalts;
     Py_ssize_t i;
     if (!PyArg_ParseTuple(args, "O!O!:cli_findex",
                           &PyTuple_Type, &tmp.alts,
                           &PyDict_Type, &tmp.memo)) {
-        return 0;
+        return NULL;
     }
     numalts = PyTuple_GET_SIZE(tmp.alts);
     for (i = 0; i < numalts; i++) {
         PyObject *ckc = PyTuple_GET_ITEM(tmp.alts, i);
         if (!PyTuple_Check(ckc)) {
             PyErr_SetString(PyExc_TypeError, "Tuple of TUPLES expected.");
-            return 0;
+            return NULL;
         }
         if (PyTuple_GET_SIZE(ckc) != 3) {
             PyErr_SetString(PyExc_TypeError, "Tuple of TRIPLES expected.");
-            return 0;
+            return NULL;
         }
         if (!PyObject_TypeCheck(PyTuple_GET_ITEM(ckc, 0), hv->ms->ObjectClassifier_Type)) {
             PyErr_SetString(PyExc_TypeError, "Tuple of triples with [0] a CLASSIFIER expected.");
-            return 0;
+            return NULL;
         }
         if (!PyUnicode_Check(PyTuple_GET_ITEM(ckc, 2))) {
             PyErr_SetString(PyExc_TypeError, "Tuple of triples with [2] a STRING expected.");
-            return 0;
+            return NULL;
         }
         if (cli_cmp_as_int(PyTuple_GET_ITEM(ckc, 2)) == -1) {
-            return 0;
+            return NULL;
         }
     }
     s = NYTUPLELIKE_NEW(FindexObject);
     if (!s)
-        return 0;
-    s->alts = tmp.alts;
-    Py_INCREF(tmp.alts);
-    s->memo = tmp.memo;
-    Py_INCREF(tmp.memo);
+        return NULL;
+    s->alts = Py_NewRef(tmp.alts);
+    s->memo = Py_NewRef(tmp.memo);
     s->kinds = PyTuple_New(numalts);
     s->cmps = PyTuple_New(numalts);
     if (!s->kinds || !s->cmps)
-        goto Err;
+        goto err;
     for (i = 0; i < numalts; i++) {
         PyObject *ckc = PyTuple_GET_ITEM(tmp.alts, i);
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(ckc, 0);
@@ -149,21 +146,19 @@ hv_cli_findex(NyHeapViewObject *hv, PyObject *args)
         if (cli->def->memoized_kind) {
             mk = cli->def->memoized_kind(hv->ms, cli->self, mk);
             if (!mk)
-                goto Err;
+                goto err;
         } else {
             Py_INCREF(mk);
         }
         PyTuple_SET_ITEM(s->kinds, i, mk);
         mk = PyLong_FromLong(cli_cmp_as_int(PyTuple_GET_ITEM(ckc, 2)));
         if (!mk)
-            goto Err;
+            goto err;
         PyTuple_SET_ITEM(s->cmps, i, mk);
 
     }
     r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_findex_def);
-    Py_DECREF(s);
+err:
+    Py_CLEAR(s);
     return r;
-Err:
-    Py_DECREF(s);
-    return 0;
 }

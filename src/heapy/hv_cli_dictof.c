@@ -65,8 +65,8 @@ hv_cli_dictof_get_static_types_list(NyHeapViewObject *hv) {
     if (PyObject_Length(hv->static_types) == 0) {
         PyObject *h = hv_heap(hv, Py_None, Py_None); /* It updates static_types */
         if (!h)
-            return 0;
-        Py_DECREF(h);
+            return NULL;
+        Py_CLEAR(h);
     }
     return PySequence_List(hv->static_types);
 }
@@ -102,7 +102,7 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     Py_ssize_t i, len;
     int k;
     int result = -1;
-    PyObject *lists[2] = {0, 0};
+    PyObject *lists[2] = {NULL, NULL};
 
     if (!(ta.dictsowned = NyMutNodeSet_New(hv->ms->nodeset_exports->ms))) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
@@ -155,9 +155,9 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 err_start:
     NY_START_WORLD();
 err:
-    Py_XDECREF(ta.dictsowned);
-    Py_XDECREF(lists[0]);
-    Py_XDECREF(lists[1]);
+    Py_CLEAR(ta.dictsowned);
+    Py_CLEAR(lists[0]);
+    Py_CLEAR(lists[1]);
     return result;
 }
 
@@ -166,8 +166,7 @@ static PyObject *
 hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj)
 {
     if (!DictofDict_Check(obj)) {
-        Py_INCREF(self->notdictkind);
-        return self->notdictkind;
+        return Py_NewRef(self->notdictkind);
     } else {
         PyObject *r = NULL;
         NyNodeGraphEdge *lo, *hi;
@@ -202,10 +201,8 @@ hv_cli_dictof_memoized_kind(struct HeapycState *ms, DictofObject *self, PyObject
     if (self->ownerclassifier->def->memoized_kind)
         return self->ownerclassifier->def->memoized_kind(
             ms, self->ownerclassifier->self, obj);
-    else {
-        Py_INCREF(obj);
-        return obj;
-    }
+    else
+        return Py_NewRef(obj);
 }
 
 static NyObjectClassifierDef hv_cli_dictof_def = {
@@ -228,27 +225,18 @@ hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
                           &tmp.notdictkind,
                           &tmp.notownedkind
                           ))
-        return 0;
+        return NULL;
 
     s = NYTUPLELIKE_NEW(DictofObject);
     if (!s)
-        return 0;
-    s->hv = self;
-    Py_INCREF(s->hv);
-
-    s->owners = tmp.owners;
-    Py_INCREF(s->owners);
-
-    s->ownerclassifier = tmp.ownerclassifier;
-    Py_INCREF(s->ownerclassifier);
-
-    s->notdictkind = tmp.notdictkind;
-    Py_INCREF(s->notdictkind);
-
-    s->notownedkind = tmp.notownedkind;
-    Py_INCREF(s->notownedkind);
+        return NULL;
+    s->hv = Ny_NEWREF(self);
+    s->owners = Ny_NEWREF(tmp.owners);
+    s->ownerclassifier = Ny_NEWREF(tmp.ownerclassifier);
+    s->notdictkind = Py_NewRef(tmp.notdictkind);
+    s->notownedkind = Py_NewRef(tmp.notownedkind);
 
     r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_dictof_def);
-    Py_DECREF(s);
+    Py_CLEAR(s);
     return r;
 }

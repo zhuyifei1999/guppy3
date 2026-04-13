@@ -80,10 +80,9 @@ iterable_iterate(struct HeapycState *ms, PyObject *v,
         int r;
         PyObject *item;
         for (i = 0; i < PyList_GET_SIZE(v); i++) {
-            item = PyList_GET_ITEM(v, i);
-            Py_INCREF(item);
+            item = PyList_GetItemRef(v, i);
             r = visit(item, arg);
-            Py_DECREF(item);
+            Py_CLEAR(item);
             if (r == -1)
                 return -1;
             if (r == 1)
@@ -104,16 +103,16 @@ iterable_iterate(struct HeapycState *ms, PyObject *v,
                 break;
             }
             r = visit(item, arg);
-            Py_DECREF(item);
+            Py_CLEAR(item);
             if (r == -1)
                 goto Err;
             if (r == 1)
                 break;
         }
-        Py_DECREF(it);
+        Py_CLEAR(it);
         return 0;
 Err:
-        Py_XDECREF(it);
+        Py_CLEAR(it);
         return -1;
     }
 }
@@ -121,15 +120,14 @@ Err:
 PyObject *
 gc_get_objects(void)
 {
-    PyObject *gc=0, *objects=0;
+    PyObject *gc = NULL, *objects = NULL;
 
     NY_ASSERT_WORLD_RUNNING();
     gc = PyImport_ImportModule("gc");
     if (!gc)
-        goto err;
+        return NULL;
     objects = PyObject_CallMethod(gc, "get_objects", "");
-err:
-    Py_XDECREF(gc);
+    Py_CLEAR(gc);
     return objects;
 }
 
@@ -219,7 +217,8 @@ module_free(void *mod)
     module_gc_clear(mod);
 }
 
-static int module_exec(PyObject *m)
+static int
+module_exec(PyObject *m)
 {
     struct HeapycState *ms = NyModule_AssertState(m);
     PyObject *RootState, *HandleSignalException;

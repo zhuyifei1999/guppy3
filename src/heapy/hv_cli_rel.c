@@ -44,7 +44,7 @@ rel_dealloc(NyRelationObject *op)
     PyTypeObject *tp = Py_TYPE(op);
     PyObject_GC_UnTrack(op);
     Py_TRASHCAN_BEGIN(op, rel_dealloc)
-    Py_XDECREF(op->relator);
+    Py_CLEAR(op->relator);
     tp->tp_free(op);
     Py_CLEAR(tp);
     Py_TRASHCAN_END
@@ -55,13 +55,9 @@ NyRelation_SubTypeNew(PyTypeObject *type, int kind, PyObject *relator)
 {
     NyRelationObject *rel = (NyRelationObject *)type->tp_alloc(type, 1);
     if (!rel)
-        return 0;
+        return NULL;
     rel->kind = kind;
-    if (!relator) {
-        relator = Py_None;
-    }
-    rel->relator = relator;
-    Py_INCREF(relator);
+    rel->relator = Py_NewRef(relator ? relator : Py_None);
     return (PyObject *)rel;
 }
 
@@ -76,7 +72,7 @@ rel_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     int kind;
     PyObject *relator;
-    static char *kwlist[] = {"kind", "relator", 0};
+    static char *kwlist[] = {"kind", "relator", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "iO:rel_new",kwlist,
                                      &kind,
                                      &relator))
@@ -86,7 +82,7 @@ rel_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                      "rel_new: Invalid relation kind: %d, must be > 0 and < %d.",
                      kind,
                      NYHR_LIMIT);
-        return 0;
+        return NULL;
     }
     return NyRelation_SubTypeNew(type, kind, relator);
 }
@@ -103,8 +99,7 @@ rel_traverse(NyRelationObject *op, visitproc visit, void *arg)
 static int
 rel_clear(NyRelationObject *op)
 {
-    Py_XDECREF(op->relator);
-    op->relator = NULL;
+    Py_CLEAR(op->relator);
     return 0;
 }
 
@@ -136,7 +131,6 @@ rel_richcompare(PyObject *v, PyObject *w, int op)
     vkind = vr->kind;
     wkind = wr->kind;
     if (vkind != wkind) {
-        PyObject *result;
         int cmp;
         switch (op) {
         case Py_LT: cmp = vkind <  wkind; break;
@@ -147,9 +141,7 @@ rel_richcompare(PyObject *v, PyObject *w, int op)
         case Py_GE: cmp = vkind >= wkind; break;
         default: return NULL; /* cannot happen */
         }
-        result = cmp? Py_True:Py_False;
-        Py_INCREF(result);
-        return result;
+        return Py_NewRef(cmp ? Py_True : Py_False);
     }
     return PyObject_RichCompare(vr->relator, wr->relator, op);
 }
@@ -249,8 +241,7 @@ inrel_fast_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *ki
     if (PyDict_SetItem(self->memokind, kind, kind) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    Py_INCREF(kind);
-    return kind;
+    return Py_NewRef(kind);
 }
 
 
@@ -258,25 +249,22 @@ static PyObject *
 hv_cli_inrel_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *kind)
 {
     MemoRelArg arg;
-    PyObject *result;
+    PyObject *result = NULL;
     arg.ms = ms;
     arg.memorel = self->memorel;
     Ny_BEGIN_CRITICAL_SECTION(self->hv);
     arg.ns = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
     if (!arg.ns)
-        return 0;
+        return NULL;
     if (iterable_iterate(ms, kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
-        goto Err;
+        goto err;
     if (NyNodeSet_be_immutable(&arg.ns) == -1)
-        goto Err;
+        goto err;
     result = inrel_fast_memoized_kind(ms, self, (PyObject *)arg.ns);
-Ret:
-    Py_DECREF(arg.ns);
+err:
+    Py_CLEAR(arg.ns);
     return result;
-Err:
-    result = 0;
-    goto Ret;
 }
 
 typedef struct {
@@ -300,8 +288,7 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     if (!relator) {
         if (PyErr_Occurred())
             return -1;
-        relator = Py_None;
-        Py_INCREF(relator);
+        relator = Py_NewRef(Py_None);
     }
 
     arg->rel->kind = kind;
@@ -322,8 +309,8 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     if (NyNodeSet_setobj(arg->relset, rel) != -1)
         arg->err = 0;
 ret:
-    Py_XDECREF(rel);
-    Py_DECREF(relator);
+    Py_CLEAR(rel);
+    Py_CLEAR(relator);
     /* NyNodeSet_be_immutable might call into GC, causing arg->rel to be traversed
        this no longer happens after Py 3.12:
        https://github.com/python/cpython/commit/83eb827247dd */
@@ -378,7 +365,7 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
 err_start:
     NySTWMutNodeSet_Destroy(&relset);
     NY_START_WORLD();
-    Py_XDECREF(crva.relset);
+    Py_CLEAR(crva.relset);
     assert(Py_IsNone(self->rel->relator));
     return result;
 
@@ -417,22 +404,18 @@ hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
     }
     s = NYTUPLELIKE_NEW(InRelObject);
     if (!s)
-        return 0;
-    s->hv = hv;
-    Py_INCREF(s->hv);
-    s->rg = tmp.rg;
-    Py_INCREF(s->rg);
-    s->memokind = tmp.memokind;
-    Py_INCREF(s->memokind);
-    s->memorel = tmp.memorel;
-    Py_INCREF(s->memorel);
+        return NULL;
+    s->hv = Ny_NEWREF(hv);
+    s->rg = Ny_NEWREF(tmp.rg);
+    s->memokind = Py_NewRef(tmp.memokind);
+    s->memorel = Py_NewRef(tmp.memorel);
     /* Init a relation object used for lookup, to save an allocation per relation. */
     s->rel = NyRelation_New(hv->ms, 1, Py_None); /* kind & relator will be changed  */
     if (!s->rel) {
-        Py_DECREF(s);
-        return 0;
+        Py_CLEAR(s);
+        return NULL;
     }
     r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_inrel_def);
-    Py_DECREF(s);
+    Py_CLEAR(s);
     return r;
 }

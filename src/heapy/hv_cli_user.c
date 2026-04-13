@@ -22,9 +22,6 @@ typedef struct {
     PyObject *cond_kind;
     PyObject *classify;
     PyObject *memoized_kind;
-    NyNodeGraphObject *rg;
-    NyNodeSetObject *norefer;
-    PyObject *dict;
 } UserObject;
 NYTUPLELIKE_ASSERT(UserObject, cond_cli);
 
@@ -49,14 +46,12 @@ hv_cli_user_classify(struct HeapycState *ms, UserObject *self, PyObject *obj)
     NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
     kind = self->cond_cli->def->classify(ms, self->cond_cli->self, obj);
     if (!kind)
-      return 0;
+        return NULL;
     if (kind != self->cond_kind) {
-        Py_DECREF(kind);
-        kind = Py_None;
-        Py_INCREF(kind);
-        return kind;
+        Py_CLEAR(kind);
+        Py_RETURN_NONE;
     } else {
-        Py_DECREF(kind);
+        Py_CLEAR(kind);
         return PyObject_CallFunctionObjArgs(self->classify, obj, 0);
     }
 }
@@ -75,7 +70,7 @@ static NyObjectClassifierDef hv_cli_user_def = {
 PyObject *
 hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"cond_cli", "cond_kind", "classify", "memoized_kind", 0};
+    static char *kwlist[] = {"cond_cli", "cond_kind", "classify", "memoized_kind", NULL};
     UserObject *s, tmp;
     PyObject *r;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!OOO:user_defined", kwlist,
@@ -84,21 +79,17 @@ hv_cli_user_defined(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
                                      &tmp.classify,
                                      &tmp.memoized_kind
                                      ))
-      return 0;
+        return NULL;
 
     s = NYTUPLELIKE_NEW(UserObject);
     if (!s)
-      return 0;
+        return NULL;
 
-    s->cond_cli = tmp.cond_cli;
-    Py_INCREF(s->cond_cli);
-    s->cond_kind = tmp.cond_kind;
-    Py_INCREF(s->cond_kind);
-    s->classify = tmp.classify;
-    Py_INCREF(s->classify);
-    s->memoized_kind = tmp.memoized_kind;
-    Py_INCREF(s->memoized_kind);
+    s->cond_cli = Ny_NEWREF(tmp.cond_cli);
+    s->cond_kind = Py_NewRef(tmp.cond_kind);
+    s->classify = Py_NewRef(tmp.classify);
+    s->memoized_kind = Py_NewRef(tmp.memoized_kind);
     r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_user_def);
-    Py_DECREF(s);
+    Py_CLEAR(s);
     return r;
 }

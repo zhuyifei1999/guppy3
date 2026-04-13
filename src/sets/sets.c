@@ -98,7 +98,8 @@ module_free(void *mod)
     module_gc_clear(mod);
 }
 
-static int module_exec(PyObject *m)
+static int
+module_exec(PyObject *m)
 {
     struct SetscState *ms = NyModule_AssertState(m);
 
@@ -132,7 +133,7 @@ static int module_exec(PyObject *m)
     ms->Sets_HeapDef[3] = (NyHeapDef){0};
 
     if (PyModule_Add(m, "_NyHeapDefs_",
-            PyCapsule_New(&ms->Sets_HeapDef, "guppy.sets.setsc._NyHeapDefs_", 0)
+            PyCapsule_New(&ms->Sets_HeapDef, "guppy.sets.setsc._NyHeapDefs_", NULL)
     ) == -1)
         return -1;
 

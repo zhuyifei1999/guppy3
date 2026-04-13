@@ -62,8 +62,7 @@ hv_cli_and_fast_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObje
     if (PyDict_SetItem(self->memo, kind, kind) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    Py_INCREF(kind);
-    return kind;
+    return Py_NewRef(kind);
 }
 
 
@@ -75,25 +74,25 @@ hv_cli_and_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObject *k
     if (!PyTuple_Check(kind)) {
         PyErr_SetString(PyExc_TypeError,
                         "cli_and_memoized_kind: argument must be a (subtype of) tuple.");
-        return 0;
+        return NULL;
     }
     size = PyTuple_GET_SIZE(kind);
     if (size != PyTuple_GET_SIZE(self->classifiers)) {
         PyErr_SetString(PyExc_ValueError,
                         "cli_and_memoized_kind: wrong length of argument.");
-        return 0;
+        return NULL;
     }
     nt = NyNodeTuple_New(ms, size);
     if (!nt)
-        return 0;
+        return NULL;
     for (i = 0; i < size; i++) {
         PyObject *superkind = PyTuple_GET_ITEM(kind, i);
         NyObjectClassifierObject *cli = (void *)PyTuple_GET_ITEM(self->classifiers, i);
         if (cli->def->memoized_kind) {
             superkind = cli->def->memoized_kind(ms, cli->self, superkind);
             if (!superkind) {
-                Py_DECREF(nt);
-                return 0;
+                Py_CLEAR(nt);
+                return NULL;
             }
         } else {
             Py_INCREF(superkind);
@@ -101,7 +100,7 @@ hv_cli_and_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObject *k
         PyTuple_SET_ITEM(nt, i, superkind);
     }
     result = hv_cli_and_fast_memoized_kind(ms, self, nt);
-    Py_DECREF(nt);
+    Py_CLEAR(nt);
     return result;
 }
 
@@ -128,11 +127,11 @@ hv_cli_and_classify(struct HeapycState *ms, CliAndObject *self, PyObject *obj)
         /* superkind is incref'd already */
     }
     result = hv_cli_and_fast_memoized_kind(ms, self, kind);
-    Py_DECREF(kind);
+    Py_CLEAR(kind);
     return result;
 Err:
-    Py_XDECREF(kind);
-    return 0;
+    Py_CLEAR(kind);
+    return NULL;
 }
 
 static NyObjectClassifierDef hv_cli_and_def = {
@@ -155,7 +154,7 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
                           &PyTuple_Type, &tmp.classifiers,
                           &PyDict_Type, &tmp.memo
                           )) {
-        return 0;
+        return NULL;
     }
 
     for (i = 0; i < PyTuple_GET_SIZE(tmp.classifiers); i++) {
@@ -163,19 +162,17 @@ hv_cli_and(NyHeapViewObject *hv, PyObject *args)
                                 hv->ms->ObjectClassifier_Type)) {
             PyErr_SetString(PyExc_TypeError,
                             "cli_and: classifiers argument must contain classifier objects.");
-            return 0;
+            return NULL;
         }
     }
 
     s = NYTUPLELIKE_NEW(CliAndObject);
     if (!s)
-        return 0;
-    s->classifiers = tmp.classifiers;
-    Py_INCREF(s->classifiers);
-    s->memo = tmp.memo;
-    Py_INCREF(s->memo);
+        return NULL;
+    s->classifiers = Py_NewRef(tmp.classifiers);
+    s->memo = Py_NewRef(tmp.memo);
     r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_and_def);
-    Py_DECREF(s);
+    Py_CLEAR(s);
     return r;
 }
 
@@ -212,9 +209,8 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     PyTupleObject *vt, *wt;
     Py_ssize_t i;
     Py_ssize_t vlen, wlen;
-    Py_ssize_t vi=0, wi=0;
+    Py_ssize_t vi = 0, wi = 0;
     int cmp;
-    PyObject *res;
 
     if (!PyObject_TypeCheck(v, ms->NodeTuple_Type) ||
         !PyObject_TypeCheck(w, ms->NodeTuple_Type)
@@ -228,14 +224,11 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     wlen = Py_SIZE(wt);
 
     if (vlen != wlen) {
-        if (op == Py_EQ) {
+        if (op == Py_EQ)
             /* Should be a common case, for dict lookup which is our primary intended usage. */
-            Py_INCREF(Py_False);
-            return Py_False;
-        } else if (op == Py_NE) {
-            Py_INCREF(Py_True);
-            return Py_True;
-        }
+            return Py_NewRef(Py_False);
+        else if (op == Py_NE)
+            return Py_NewRef(Py_True);
     }
 
 
@@ -265,12 +258,7 @@ nodetuple_richcompare(PyObject *v, PyObject *w, int op)
     case Py_GE: cmp = vi >= wi; break;
     default: return NULL; /* cannot happen */
     }
-    if (cmp)
-        res = Py_True;
-    else
-        res = Py_False;
-    Py_INCREF(res);
-    return res;
+    return Py_NewRef(cmp ? Py_True : Py_False);
 }
 
 static PyType_Slot nodetuple_slots[] = {
