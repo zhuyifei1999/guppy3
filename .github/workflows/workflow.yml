@@ -3,11 +3,9 @@ name: Workflow
 on:
   push:
     branches:
-      - master
+      - win-crash-debug
     tags:
       - v*
-  pull_request:
-  workflow_dispatch:
 
 jobs:
   build_sdist:
@@ -32,8 +30,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        os: [windows]
+        python-version: ["3.11"]
         tracemalloc: [true, false]
         codecov: [true, false]
         sdist: [true, false]
@@ -104,149 +102,3 @@ jobs:
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  test_arches:
-    name: Test on docker ${{ matrix.arch }} with Python ${{ matrix.python-version }}
-    needs: build_sdist
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [amd64, i386, arm64/v8, ppc64le, s390x, arm/v7]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-
-    steps:
-    - name: Download sdist
-      uses: actions/download-artifact@v4
-      with:
-        name: sdist
-        path: dist
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: all
-
-    - name: Build & Test
-      run: >
-        docker run --rm -v $PWD:$PWD -w $PWD --platform linux/${{ matrix.arch }}
-        python:${{ matrix.python-version }} bash -c "
-        pip install -v dist/*.tar.gz &&
-        python -c 'import guppy; guppy.hpy().test()'
-        "
-
-  build_wheels_native:
-    name: Build wheels on ${{ matrix.os }} with Python 3.${{ matrix.python-minor }}
-    runs-on: ${{ matrix.os }}
-    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-15-intel, macos-14]
-        python-minor: ["10", "11", "12", "13", "14"]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
-        env:
-          CIBW_BUILD: cp3${{ matrix.python-minor }}-*
-          CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
-          CIBW_TEST_COMMAND_WINDOWS: python -c "import guppy; guppy.hpy().test()"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheel-${{ matrix.os }}-py3.${{ matrix.python-minor }}
-          path: ./wheelhouse/*.whl
-
-  build_wheels_linux_qemu:
-    name: Build wheels on ubuntu ${{ matrix.arch }} with Python 3.${{ matrix.python-minor }}
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        arch: [ppc64le, s390x, armv7l]
-        python-minor: ["10", "11", "12", "13", "14"]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
-        env:
-          CIBW_BUILD: cp3${{ matrix.python-minor }}-*
-          CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_TEST_COMMAND: python -c 'import guppy; guppy.hpy().test()'
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheel-linux-${{ matrix.arch }}-py3.${{ matrix.python-minor }}
-          path: ./wheelhouse/*.whl
-
-  upload_pypi:
-    needs: [test_matrix, test_arches, build_wheels_native, build_wheels_linux_qemu, build_sdist]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: sdist
-          path: dist
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: wheel-*
-          merge-multiple: true
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/
-
-  create_github_release:
-    needs: upload_pypi
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: sdist
-          path: dist
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: wheel-*
-          merge-multiple: true
-          path: dist
-
-      - id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - uses: actions/github-script@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const path = require('path');
-            const fs = require('fs');
-            const release_id = '${{ steps.create_release.outputs.id }}';
-            for (let file of await fs.readdirSync('dist')) {
-              console.log('uploadReleaseAsset', file);
-              await github.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: release_id,
-                name: file,
-                data: await fs.readFileSync(`dist/${file}`)
-              });
-            }
