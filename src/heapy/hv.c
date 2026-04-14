@@ -1061,7 +1061,6 @@ hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
 
     NySTWWorkList_Destroy(&to_visit);
     NY_START_WORLD();
-    Py_XDECREF(ta.to_visit);
     return (PyObject *)ta.visited;
 
 err_start:
