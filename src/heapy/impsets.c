@@ -85,15 +85,13 @@ NyNodeSet_be_immutable(NyNodeSetObject **nsp)
     return NODESET_EXPORTED_FUNC(be_immutable)(nsp);
 }
 
-int
-NySTWMutNodeSet_InitOnStack(struct SetscState *ms, NyNodeSetObject *v)
+int NySTWMutNodeSet_InitOnStack(struct SetscState *ms, NyNodeSetObject *v)
 {
     NY_ASSERT_WORLD_STOPPED();
     return NODESET_EXPORTED_FUNC(initStw)(ms, v);
 }
 
-void
-NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
+void NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
 {
     NY_ASSERT_WORLD_STOPPED();
     NODESET_EXPORTED_FUNC(destroyStw)(v);

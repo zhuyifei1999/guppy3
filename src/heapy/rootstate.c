@@ -315,10 +315,10 @@ static struct PyMemberDef ts_members[] = {
     attr = PyUnicode_FromFormat("i%d_%s", isno, #name); \
     if (attr) {                                         \
         if (PyList_Append(list, attr)) {                \
-            Py_CLEAR(attr);                             \
+            Py_DECREF(attr);                            \
             goto Err;                                   \
         }                                               \
-        Py_CLEAR(attr);                                 \
+        Py_DECREF(attr);                                \
     }                                                   \
 } while (0)
 
@@ -326,10 +326,10 @@ static struct PyMemberDef ts_members[] = {
     attr = PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #name); \
     if (attr) {                                                             \
         if (PyList_Append(list, attr)) {                                    \
-            Py_CLEAR(attr);                                                 \
+            Py_DECREF(attr);                                                \
             goto Err;                                                       \
         }                                                                   \
-        Py_CLEAR(attr);                                                     \
+        Py_DECREF(attr);                                                    \
     }                                                                       \
 } while (0)
 
@@ -410,7 +410,8 @@ rootstate_relate_unlocked(NyHeapRelate *r)
                     numframes++;
                     if ((PyObject *)frame == r->tgt)
                         frameno = numframes;
-                    Py_CLEAR(frame);
+
+                    Py_DECREF(frame);
                     frame = next_frame;
                 }
 #else
@@ -550,7 +551,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
                 PyFrameObject *frame = PyThreadState_GetFrame(ts);
                 Py_VISIT(frame);
-                Py_CLEAR(frame);
+                Py_XDECREF(frame);
 #else
                 Py_VISIT(ts->frame);
 #endif
@@ -633,7 +634,7 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
     int ino;
     unsigned long tno;
     if (!s)
-        return NULL;
+        return 0;
     if (sscanf(s, "i%d_%n", &ino, &n) == 1) {
         s += n;
         int countis;
@@ -664,34 +665,36 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                                 for (frame = (PyFrameObject *)Py_XNewRef(current_frame); frame;) {
                                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                                     numframes++;
-                                    Py_CLEAR(frame);
+                                    Py_DECREF(frame);
                                     frame = next_frame;
                                 }
                                 for (frame = (PyFrameObject *)Py_XNewRef(current_frame); frame;) {
                                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                                     numframes--;
                                     if (numframes == frameno) {
-                                        Py_CLEAR(current_frame);
+                                        Py_DECREF(current_frame);
                                         return (PyObject *)frame;
                                     }
-                                    Py_CLEAR(frame);
+                                    Py_DECREF(frame);
                                     frame = next_frame;
                                 }
-                                Py_CLEAR(current_frame);
+                                Py_DECREF(current_frame);
 #else
                                 for (frame = ts->frame; frame; frame = frame->f_back) {
                                     numframes++;
                                 }
                                 for (frame = ts->frame; frame; frame = frame->f_back) {
                                     numframes--;
-                                    if (numframes == frameno)
-                                        return Py_NewRef(frame);
+                                    if (numframes == frameno) {
+                                        Py_INCREF(frame);
+                                        return (PyObject *)frame;
+                                    }
                                 }
 #endif
                                 PyErr_Format(PyExc_AttributeError,
                                              "thread state has no frame numbered %d from bottom",
                                              frameno);
-                                return NULL;
+                                return 0;
                             } else {
                                 PyObject *ret = _shim_PyMember_Get((char *)ts, ts_members, s);
                                 if (!ret)
@@ -703,7 +706,7 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                         }
                     }
                     PyErr_SetString(PyExc_AttributeError, "no such thread state number");
-                    return NULL;
+                    return 0;
                 } else {
                     PyObject *ret = _shim_PyMember_Get((char *)is, is_members, s);
                     if (!ret)
@@ -715,7 +718,7 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
             }
         }
         PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
-        return NULL;
+        return 0;
     }
     if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
         s += n;
@@ -736,20 +739,21 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                  ts = PyThreadState_Next(ts)) {
                 if (THREAD_ID(ts) == tno) {
                     PyObject *fullname = PyUnicode_FromFormat("i%d_%U", isno, name);
-                    if (!fullname)
-                        return NULL;
+                    if (!fullname) {
+                        return 0;
+                    }
                     PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
                         "Getting thread state without an interpreter number "
                         "is deprecated. Use %R instead", fullname);
                     PyObject *res = rootstate_getattr_unlocked(obj, fullname);
-                    Py_CLEAR(fullname);
+                    Py_DECREF(fullname);
                     return res;
                 }
             }
         }
     }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute %R", name);
-    return NULL;
+    return 0;
 }
 
 static PyObject *
@@ -776,7 +780,7 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 {
     PyObject *list = PyList_New(0);
     if (!list)
-        return NULL;
+        return 0;
 
     PyObject *attr;
     PyThreadState *ts;
@@ -834,7 +838,7 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
             for (frame = PyThreadState_GetFrame(ts); frame;) {
                 PyFrameObject *next_frame = PyFrame_GetBack(frame);
                 numframes++;
-                Py_CLEAR(frame);
+                Py_DECREF(frame);
                 frame = next_frame;
             }
 #else
@@ -849,10 +853,10 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
                     goto Err;
 
                 if (PyList_Append(list, attr)) {
-                    Py_CLEAR(attr);
+                    Py_DECREF(attr);
                     goto Err;
                 }
-                Py_CLEAR(attr);
+                Py_DECREF(attr);
             }
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
@@ -896,8 +900,8 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
     return list;
 
 Err:
-    Py_CLEAR(list);
-    return NULL;
+    Py_DECREF(list);
+    return 0;
 }
 
 static PyObject *

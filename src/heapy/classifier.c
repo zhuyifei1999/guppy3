@@ -137,12 +137,12 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
     }
     if (PyList_Append(sp, obj) == -1)
         goto Err;
-    Py_CLEAR(sp);
-    Py_CLEAR(kind);
+    Py_DECREF(sp);
+    Py_DECREF(kind);
     return 0;
 Err:
-    Py_CLEAR(sp);
-    Py_CLEAR(kind);
+    Py_XDECREF(sp);
+    Py_XDECREF(kind);
     return -1;
 }
 
@@ -165,7 +165,7 @@ cli_partition(NyObjectClassifierObject *self, PyObject *args)
     return ta.map;
 
 Err:
-    Py_CLEAR(ta.map);
+    Py_XDECREF(ta.map);
     return NULL;
 }
 
@@ -177,10 +177,10 @@ cli_epartition_iter(PyObject *obj, PATravArg *ta)
         return -1;
 
     if (NyNodeGraph_AddEdge(ta->emap, kind, obj) == -1) {
-        Py_CLEAR(kind);
+        Py_DECREF(kind);
         return -1;
     }
-    Py_CLEAR(kind);
+    Py_DECREF(kind);
     return 0;
 }
 
@@ -199,7 +199,7 @@ cli_epartition(NyObjectClassifierObject *self, PyObject *iterable)
     return (PyObject *)ta.emap;
 
 Err:
-    Py_CLEAR(ta.emap);
+    Py_XDECREF(ta.emap);
     return NULL;
 }
 
@@ -254,10 +254,10 @@ cli_select_kind(PyObject *obj, SELTravArg *ta)
             goto Err;
         }
     }
-    Py_CLEAR(kind);
+    Py_DECREF(kind);
     return 0;
 Err:
-    Py_CLEAR(kind);
+    Py_DECREF(kind);
     return -1;
 }
 
@@ -268,7 +268,7 @@ static const char *cmp_strings[] = {
     "!=",
     ">",
     ">=",
-    NULL
+    0
 };
 
 int
@@ -303,18 +303,18 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     }
     ta.cmp = cli_cmp_as_int(cmp);
     if (ta.cmp == -1)
-        return NULL;
+        return 0;
     if (!(0 <= ta.cmp && ta.cmp <= CLI_MAX)) {
         PyErr_SetString(PyExc_ValueError, "Invalid value of cmp argument.");
-        return NULL;
+        return 0;
     }
     if (!(ta.cmp == CLI_EQ || ta.cmp == CLI_NE || self->def->cmp_le)) {
         PyErr_SetString(PyExc_ValueError, "This classifier supports only equality selection.");
-        return NULL;
+        return 0;
     }
     if (self->def->memoized_kind) {
         if (!(ta.kind = self->def->memoized_kind(ms, self->self, ta.kind)))
-            return NULL;
+            return 0;
     } else {
         Py_INCREF(ta.kind);
     }
@@ -324,10 +324,12 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     ta.cli = self;
     ta.ms = ms;
     r = iterable_iterate(ms, X, (visitproc)cli_select_kind, &ta);
-    if (r == -1)
-        Py_CLEAR(ta.ret);
+    if (r == -1) {
+        Py_DECREF(ta.ret);
+        ta.ret = 0;
+    }
 err:
-    Py_CLEAR(ta.kind);
+    Py_DECREF(ta.kind);
     return ta.ret;
 }
 
@@ -377,8 +379,9 @@ NyObjectClassifier_New(struct HeapycState *ms, PyObject *self, NyObjectClassifie
     NyObjectClassifierObject *op;
     op = PyObject_GC_New(NyObjectClassifierObject, ms->ObjectClassifier_Type);
     if (!op)
-        return NULL;
-    op->self = Py_NewRef(self);
+        return 0;
+    Py_INCREF(self);
+    op->self = self;
     op->def = def;
     PyObject_GC_Track(op);
     return (PyObject *)op;

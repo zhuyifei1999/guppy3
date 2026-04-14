@@ -20,7 +20,8 @@ The classification of an object is the object itself.");
 static PyObject *
 hv_cli_id_classify(struct HeapycState *ms, NyHeapViewObject *self, PyObject *arg)
 {
-    return Py_NewRef(arg);
+    Py_INCREF(arg);
+    return arg;
 }
 
 static int

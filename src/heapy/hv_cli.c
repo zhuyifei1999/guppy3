@@ -14,7 +14,8 @@
 static PyObject *
 hv_cli_none_classify(struct HeapycState *ms, NyHeapViewObject *self, PyObject *arg)
 {
-    Py_RETURN_NONE;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static int
@@ -49,7 +50,8 @@ hv_cli_none(NyHeapViewObject *self, PyObject *args)
 static PyObject *
 hv_cli_type_classify(struct HeapycState *ms, NyHeapViewObject *hv, PyObject *obj)
 {
-    return Py_NewRef(Py_TYPE(obj));
+    Py_INCREF(Py_TYPE(obj));
+    return (PyObject *)Py_TYPE(obj);
 }
 
 static int

@@ -74,7 +74,7 @@ static void *addr_of_symbol(const char *symbol)
             return addr;
     }
 
-    return NULL;
+    return 0;
 #endif
 }
 
@@ -246,5 +246,6 @@ hp_xmemstats(PyObject *self, PyObject *args)
 
     fprintf(stderr, "======================================================================\n");
 
-    Py_RETURN_NONE;
+    Py_INCREF(Py_None);
+    return Py_None;
 }

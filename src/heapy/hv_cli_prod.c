@@ -76,13 +76,13 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head < 0)
         goto Err;
 
-    Py_CLEAR(_testcapimodule);
-    Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
+    Py_DECREF(_testcapimodule);
+    Py_DECREF(_testcapi_SIZEOF_PYGC_HEAD);
     return 0;
 
 Err:
-    Py_CLEAR(_testcapimodule);
-    Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
+    Py_XDECREF(_testcapimodule);
+    Py_XDECREF(_testcapi_SIZEOF_PYGC_HEAD);
 
     if (!PyErr_ExceptionMatches(PyExc_Exception))
         return -1;
@@ -126,13 +126,14 @@ hv_cli_prod_memoized_kind(struct HeapycState *ms, ProdObject *self, PyObject *ki
     if (PyDict_SetItem(self->memo, kind, kind) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    return Py_NewRef(kind);
+    Py_INCREF(kind);
+    return kind;
 }
 
 static PyObject *
 hv_cli_prod_classify(struct HeapycState *ms, ProdObject *self, PyObject *obj)
 {
-    PyObject *result = NULL;
+    PyObject *result;
     PyObject *kind = NULL, *tb = NULL;
     Py_uintptr_t ptr;
 
@@ -159,21 +160,27 @@ hv_cli_prod_classify(struct HeapycState *ms, ProdObject *self, PyObject *obj)
     tb = _PyTraceMalloc_GetTraceback(0, (Py_uintptr_t)ptr);
 
     if (!tb)
-        goto err;
+        goto Err;
 
-    if (PySequence_Check(tb) && PySequence_Length(tb) > 0)
+    if (PySequence_Check(tb) && PySequence_Length(tb) > 0) {
         kind = PySequence_GetItem(tb, 0);
-    else if (!PyErr_Occurred())
-        kind = Py_NewRef(Py_None);
+    } else if (!PyErr_Occurred()) {
+        kind = Py_None;
+        Py_INCREF(Py_None);
+    }
 
     if (!kind)
-        goto err;
+        goto Err;
 
     result = hv_cli_prod_memoized_kind(ms, self, kind);
-err:
-    Py_CLEAR(tb);
-    Py_CLEAR(kind);
+    Py_DECREF(tb);
+    Py_DECREF(kind);
     return result;
+
+Err:
+    Py_XDECREF(tb);
+    Py_XDECREF(kind);
+    return 0;
 }
 
 static int
@@ -215,7 +222,7 @@ hv_cli_prod_le(PyObject *self, PyObject *a, PyObject *b)
             if (!substr)
                 return -1;
             k = PyObject_RichCompareBool(substr, b_elem, Py_EQ);
-            Py_CLEAR(substr);
+            Py_DECREF(substr);
             break;
         case 1:
             // lineno
@@ -256,10 +263,12 @@ hv_cli_prod(NyHeapViewObject *self, PyObject *args)
 
     s = NYTUPLELIKE_NEW(ProdObject);
     if (!s)
-        return NULL;
-    s->hv = Ny_NEWREF(self);
-    s->memo = Py_NewRef(memo);
+        return 0;
+    s->hv = self;
+    Py_INCREF(s->hv);
+    s->memo = memo;
+    Py_INCREF(memo);
     r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_prod_def);
-    Py_CLEAR(s);
+    Py_DECREF(s);
     return r;
 }

@@ -61,7 +61,7 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
     if (state)
         *state = (PyTypeObject *)t;
     else
-        Py_CLEAR(t);
+        Py_DECREF(t);
 
     return 0;
 }

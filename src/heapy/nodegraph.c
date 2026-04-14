@@ -94,8 +94,10 @@ ngiter_iternext(NyNodeGraphIterObject *ngi)
         goto err;
     }
     e = &ngi->nodegraph->edges[ngi->i];
-    PyTuple_SET_ITEM(ret, 0, Py_NewRef(e->src));
-    PyTuple_SET_ITEM(ret, 1, Py_NewRef(e->tgt));
+    Py_INCREF(e->src);
+    PyTuple_SET_ITEM(ret, 0, e->src);
+    Py_INCREF(e->tgt);
+    PyTuple_SET_ITEM(ret, 1, e->tgt);
     ngi->i++;
     goto out;
 
@@ -138,11 +140,11 @@ NyNodeGraph_Clear(NyNodeGraphObject *ng)
     Ny_BEGIN_CRITICAL_SECTION(ng);
     edges = ng->edges;
     N = ng->used_size;
-    ng->edges = NULL;
+    ng->edges = 0;
     ng->used_size = ng->allo_size = 0;
     for (i = 0; i < N; i++) {
-        Py_CLEAR(edges[i].src);
-        Py_CLEAR(edges[i].tgt);
+        Py_DECREF(edges[i].src);
+        Py_DECREF(edges[i].tgt);
     }
     PyMem_Free(edges);
     Ny_END_CRITICAL_SECTION();
@@ -152,8 +154,10 @@ static int
 ng_gc_clear(NyNodeGraphObject *ng)
 {
     /* NOT LOCKED: Object is dying */
-    Py_CLEAR(ng->_hiding_tag_);
+    PyObject *hn = ng->_hiding_tag_;
+    ng->_hiding_tag_ = NULL;
     NyNodeGraph_Clear(ng);
+    Py_XDECREF(hn);
     return 0;
 }
 
@@ -170,8 +174,8 @@ ng_dealloc(PyObject *v)
     Py_TRASHCAN_BEGIN(v, ng_dealloc)
     ng_gc_clear(ng);
     for (i = 0; i < ng->used_size; i++) {
-        Py_CLEAR(ng->edges[i].src);
-        Py_CLEAR(ng->edges[i].tgt);
+        Py_DECREF(ng->edges[i].src);
+        Py_DECREF(ng->edges[i].tgt);
     }
     PyMem_Free(ng->edges);
     tp->tp_free(v);
@@ -241,8 +245,10 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         ng->edges = edges;
         ng->allo_size = allo;
     }
-    ng->edges[ng->used_size].src = Py_NewRef(src);
-    ng->edges[ng->used_size].tgt = Py_NewRef(tgt);
+    Py_INCREF(src);
+    Py_INCREF(tgt);
+    ng->edges[ng->used_size].src = src;
+    ng->edges[ng->used_size].tgt = tgt;
     ng->used_size ++;
     ng->is_sorted = 0;
     r = 0;
@@ -291,8 +297,8 @@ ng_remove_dups(NyNodeGraphObject *ng)
     src = ng->edges + 1;
     while( src < hi )  {
         if (src[0].src == dst[-1].src && src[0].tgt == dst[-1].tgt) {
-            Py_CLEAR(src[0].src);
-            Py_CLEAR(src[0].tgt);
+            Py_DECREF(src[0].src);
+            Py_DECREF(src[0].tgt);
             src++;
         } else {
             if (src != dst)
@@ -355,7 +361,8 @@ ng_add_edge(NyNodeGraphObject *ng, PyObject *args)
         return NULL;
     if (NyNodeGraph_AddEdge(ng, src, tgt) == -1)
         return NULL;
-    Py_RETURN_NONE;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 PyDoc_STRVAR(ng_add_edges_n1_doc,
@@ -387,8 +394,9 @@ ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO:",  &it, &ta.tgt))
         return NULL;
     if (iterable_iterate(ng->ms, it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
-        return NULL;
-    Py_RETURN_NONE;
+        return 0;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
@@ -430,7 +438,8 @@ static PyObject *
 ng_clear_method(NyNodeGraphObject *ng, PyObject *arg_notused)
 {
     NyNodeGraph_Clear(ng);
-    Py_RETURN_NONE;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static NyNodeGraphObject *
@@ -441,12 +450,12 @@ NyNodeGraph_SubtypeNew(PyTypeObject *type)
     if (!ng)
         return NULL;
     ng->ms = ms;
-    ng->_hiding_tag_ = NULL;
+    ng->_hiding_tag_ = 0;
     ng->allo_size = ng->used_size = 0;
     ng->is_sorted = 0;
     ng->is_mapping = 0;
     ng->is_preserving_duplicates = 0;
-    ng->edges = NULL;
+    ng->edges = 0;
     return ng;
 }
 
@@ -456,12 +465,13 @@ NyNodeGraph_SiblingNew(NyNodeGraphObject *ng)
     NyNodeGraphObject *cp = NyNodeGraph_SubtypeNew(Py_TYPE(ng));
     PyObject *he;
     if (!cp)
-        return NULL;
+        return 0;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
     he = cp->_hiding_tag_;
-    cp->_hiding_tag_ = Py_XNewRef(ng->_hiding_tag_);
-    Py_CLEAR(he);
+    cp->_hiding_tag_ = ng->_hiding_tag_;
+    Py_XINCREF(cp->_hiding_tag_);
+    Py_XDECREF(he);
     cp->is_mapping = ng->is_mapping;
     Ny_END_CRITICAL_SECTION();
 
@@ -473,9 +483,11 @@ NyNodeGraph_Copy(NyNodeGraphObject *ng)
 {
     NyNodeGraphObject *cp = NyNodeGraph_SiblingNew(ng);
     if (!cp)
-        return NULL;
-    if (NyNodeGraph_Update(cp, (PyObject *)ng) == -1)
-        Py_CLEAR(cp);
+        return 0;
+    if (NyNodeGraph_Update(cp, (PyObject *)ng) == -1) {
+        Py_DECREF(cp);
+        return 0;
+    }
     return cp;
 }
 
@@ -530,7 +542,8 @@ ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
     if (iterable_iterate(ng->ms, X, (visitproc)ng_dc_trav, &ta) == -1)
         goto out;
 
-    result = Py_NewRef(ta.ret ? Py_True : Py_False);
+    result = ta.ret? Py_True:Py_False;
+    Py_INCREF(result);
 out:
     Ny_END_CRITICAL_SECTION();
     return result;
@@ -570,7 +583,7 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
     ta.ng = ng;
     ta.ret = NyNodeGraph_SiblingNew(ng);
     if (!ta.ret)
-        return NULL;
+        return 0;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
     if (iterable_iterate(ng->ms, X, (visitproc)ng_dr_trav, &ta) == -1)
@@ -661,8 +674,9 @@ static PyObject *
 ng_invert(NyNodeGraphObject *ng, void *notused)
 {
     if (NyNodeGraph_Invert(ng) == -1)
-        return NULL;
-    Py_RETURN_NONE;
+        return 0;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 NyNodeGraphObject *
@@ -671,9 +685,11 @@ NyNodeGraph_Inverted(NyNodeGraphObject *ng)
     NyNodeGraphObject *ob;
     ob = NyNodeGraph_Copy(ng);
     if (!ob)
-        return NULL;
-    if (NyNodeGraph_Invert(ob) == -1)
-        Py_CLEAR(ob);
+        return 0;
+    if (NyNodeGraph_Invert(ob) == -1) {
+        Py_DECREF(ob);
+        return 0;
+    }
     return ob;
 
 }
@@ -695,9 +711,10 @@ ng_iter(NyNodeGraphObject *v)
 {
     NyNodeGraphIterObject *iter = PyObject_GC_New(NyNodeGraphIterObject, v->ms->NodeGraphIter_Type);
     if (!iter)
-        return NULL;
+        return 0;
 
-    iter->nodegraph = Ny_NEWREF(v);
+    iter->nodegraph = v;
+    Py_INCREF(v);
     iter->i = 0;
     Ny_BEGIN_CRITICAL_SECTION(v);
     ng_maybesortetc(v);
@@ -776,7 +793,7 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
     Ny_BEGIN_CRITICAL_SECTION(ng);
     ta.hs = NyMutNodeSet_NewHiding(ng->ms->nodeset_exports->ms, ng->_hiding_tag_);
     if (!ta.hs)
-        return NULL;
+        return 0;
     ng_maybesortetc(ng);
     if (iterable_iterate(ng->ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;
@@ -823,8 +840,9 @@ static PyObject *
 ng_update(NyNodeGraphObject *ng, PyObject *arg)
 {
     if (NyNodeGraph_Update(ng, arg) == -1)
-        return NULL;
-    Py_RETURN_NONE;
+        return 0;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 PyDoc_STRVAR(ng_updated_doc,
@@ -839,9 +857,11 @@ ng_updated(NyNodeGraphObject *ng, PyObject *arg)
 {
     ng = NyNodeGraph_Copy(ng);
     if (!ng)
-        return NULL;
-    if (NyNodeGraph_Update(ng, arg) == -1)
-        Py_CLEAR(ng);
+        return 0;
+    if (NyNodeGraph_Update(ng, arg) == -1) {
+        Py_DECREF(ng);
+        return 0;
+    }
     return (PyObject *)ng;
 }
 
@@ -1012,13 +1032,16 @@ ng_subscript(NyNodeGraphObject *ng, PyObject *obj)
             PyErr_SetString(PyExc_ValueError, "Ambiguos mapping");
             goto out;
         }
-        ret = Py_NewRef(lo->tgt);
+        ret = lo->tgt;
+        Py_INCREF(ret);
     } else {
         ret = PyTuple_New(size);
         if (!ret)
             goto out;
-        for (i = 0; i < size; i++, lo++)
-            PyTuple_SET_ITEM(ret, i, Py_NewRef(lo->tgt));
+        for (i = 0; i < size; i++, lo++) {
+            Py_INCREF(lo->tgt);
+            PyTuple_SET_ITEM(ret, i, lo->tgt);
+        }
     }
 
 out:
@@ -1053,8 +1076,9 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
             goto out;
         } else {
             PyObject *old = lo->tgt;
-            lo->tgt = Py_NewRef(w);
-            Py_CLEAR(old);
+            lo->tgt = w;
+            Py_INCREF(w);
+            Py_DECREF(old);
         }
     } else {
         if (!PyTuple_Check(w)) {
@@ -1070,8 +1094,9 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
         }
         for (i = 0; i < regsize; i++) {
             PyObject *old = lo[i].tgt;
-            lo[i].tgt = Py_NewRef(PyTuple_GET_ITEM(w, i));
-            Py_CLEAR(old);
+            lo[i].tgt = PyTuple_GET_ITEM(w, i);
+            Py_INCREF(lo->tgt);
+            Py_XDECREF(old);
         }
     }
     r = 0;
@@ -1087,21 +1112,23 @@ ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     PyObject *iterable = 0;
     PyObject *is_mapping = 0;
-    static char *kwlist[] = {"iterable", "is_mapping", NULL};
+    static char *kwlist[] = {"iterable", "is_mapping", 0};
     NyNodeGraphObject *ng;
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO:NodeGraph.__new__",
                                      kwlist,
                                      &iterable,
                                      &is_mapping))
-        return NULL;
+        return 0;
     ng = NyNodeGraph_SubtypeNew(type);
     if (!ng)
-        return NULL;
+        return 0;
     if (is_mapping && PyObject_IsTrue(is_mapping)) {
         ng->is_mapping = 1;
     }
-    if (iterable && !Py_IsNone(iterable) && NyNodeGraph_Update(ng, iterable) == -1)
-        Py_CLEAR(ng);
+    if (iterable && !Py_IsNone(iterable) && NyNodeGraph_Update(ng, iterable) == -1) {
+        Py_DECREF(ng);
+        return 0;
+    }
     return (PyObject *)ng;
 }
 
