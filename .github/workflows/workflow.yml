@@ -81,6 +81,14 @@ jobs:
         heapy.heapyc.xmemstats()
         EOF
 
+    # https://gist.github.com/mkckr0/70d3aa343e0ecb4bd080c0dc90d38195
+    - name: Enable WER
+      shell: powershell
+      run: |
+        REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
+        REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d "%%LOCALAPPDATA%%\CrashDumps" /f
+        REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
+        REG ADD "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f
     - name: Test
       if: ${{ !matrix.codecov }}
       shell: bash
