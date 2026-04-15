@@ -967,7 +967,7 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
         v_hiding_tag = Py_XNewRef(v->_hiding_tag_);
         Ny_END_CRITICAL_SECTION();
 
-        ret = NyImmNodeSet_New(ms, length, v->_hiding_tag_);
+        ret = NyImmNodeSet_New(ms, length, v_hiding_tag);
         Py_CLEAR(v_hiding_tag);
         if (!ret)
             goto err;
