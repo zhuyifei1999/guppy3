@@ -626,7 +626,7 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
             // hidden object, because Py_TPFLAGS_INLINE_VALUES will traverse
             // into the values of the dict, ignoring the _hiding_tag_ handling
             // in stdtypes.c
-            if (PyDict_GetItem((PyObject *)dict, xt->xt_hv->_hiding_tag__name) ==
+            if (dict && PyDict_GetItem((PyObject *)dict, xt->xt_hv->_hiding_tag__name) ==
                     xt->xt_hv->_hiding_tag_)
                 return 0;
         }
