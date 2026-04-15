@@ -768,7 +768,7 @@ hv_add_heapdefs_tuple(NyHeapViewObject *hv, PyTupleObject *heapdefs)
             return -1;
         }
         const char *name = PyCapsule_GetName(obj);
-        const char *dot = strrchr(name, '.');
+        const char *dot = name ? strrchr(name, '.') : NULL;
         if (!dot || strcmp(dot, "._NyHeapDefs_")) {
             PyErr_SetString(PyExc_TypeError, "heapdefs must be named <package name>._NyHeapDefs_");
             return -1;
