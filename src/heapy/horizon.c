@@ -323,11 +323,13 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
     NewsTravArg ta;
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
-    if (_Py_atomic_load_int(&rm.replaced))
+    if (_Py_atomic_load_int(&rm.replaced)) {
 # else
-    if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
+    if (PyRefTracer_GetTracer(NULL) != &horizon_tracer) {
 # endif
         PyErr_SetString(PyExc_RuntimeError, "PyRefTracer was replaced");
+        return NULL;
+    }
 #endif
 
     ta.rg = self;
