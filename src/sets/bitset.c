@@ -2742,9 +2742,9 @@ NySlice_GetIndices(PySliceObject *r, NyBit *start, NyBit *stop)
 {
     NyBit sstep, *step = &sstep;
     if (Py_IsNone(r->step)) {
-            *step = 1;
+        *step = 1;
     } else {
-        if (!PyLong_Check(r->step)) return -1;
+        if (!PyLong_Check(r->step)) goto notlong;
         *step = PyLong_AsSsize_t(r->step);
         if (*step != 1) {
             PyErr_SetString(PyExc_IndexError, "bitset slicing step must be 1");
@@ -2754,16 +2754,20 @@ NySlice_GetIndices(PySliceObject *r, NyBit *start, NyBit *stop)
     if (Py_IsNone(r->start)) {
         *start = 0;
     } else {
-        if (!PyLong_Check(r->start)) return -1;
+        if (!PyLong_Check(r->start)) goto notlong;
         *start = PyLong_AsSsize_t(r->start);
     }
     if (Py_IsNone(r->stop)) {
         *stop = PY_SSIZE_T_MAX;
     } else {
-        if (!PyLong_Check(r->stop)) return -1;
+        if (!PyLong_Check(r->stop)) goto notlong;
         *stop = PyLong_AsSsize_t(r->stop);
     }
     return 0;
+
+notlong:
+    PyErr_SetString(PyExc_TypeError, "bitset slicing must use integers or None");
+    return -1;
 }
 
 
