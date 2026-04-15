@@ -391,7 +391,7 @@ frame_traverse(NyHeapTraverse *ta) {
     for (i = 0; co && i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
-        if (kind & CO_FAST_LOCAL && strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
+        if (kind & CO_FAST_LOCAL && PyUnicode_EqualToUTF8(name, "_hiding_tag_")) {
             if (PyStackRef_AsPyObjectBorrow(iv->localsplus[i]) == ta->_hiding_tag_)
                 return 0;
             else
@@ -403,7 +403,7 @@ frame_traverse(NyHeapTraverse *ta) {
     if (PyTuple_Check(co->co_varnames)) {
         for (i = 0; i < nlocals; i++) {
             PyObject *name = PyTuple_GET_ITEM(co->co_varnames, i);
-            if (strcmp(PyUnicode_AsUTF8(name), "_hiding_tag_") == 0) {
+            if (PyUnicode_EqualToUTF8(name, "_hiding_tag_")) {
                 if (v->f_localsplus[i] == ta->_hiding_tag_)
                     return 0;
                 else

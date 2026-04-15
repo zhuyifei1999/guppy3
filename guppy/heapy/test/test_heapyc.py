@@ -1,4 +1,5 @@
 from guppy.heapy.test import support
+import inspect
 
 
 class TestCase(support.TestCase):
@@ -35,6 +36,42 @@ class TestHeapView(TestCase):
 
         self.assertEqual(self.hv.relimg([ns]), self.nodeset([self.mutnodeset, a, None]))
         self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a, None]))
+
+    def test_hiding_tag_frame(self):
+        # Construct a frame with a bad unicode name for a local and
+        # heapy should not crash or recognize the local as hiding tag
+
+        # Control group
+        def inner():
+            f = inspect.currentframe()
+            a = []
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+            _hiding_tag_ = self.hv._hiding_tag_
+
+            self.assertEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertNotIn(a, self.hv.relimg([f]))
+
+        inner()
+
+        # Treatment group
+        def inner():
+            f = inspect.currentframe()
+            a = []
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+            _hiding_tag_ = self.hv._hiding_tag_
+
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+        co_varnames = inner.__code__.co_varnames
+        co_varnames = tuple('\ud800' if name == '_hiding_tag_' else name
+                            for name in co_varnames)
+        inner.__code__ = inner.__code__.replace(co_varnames=co_varnames)
+        inner()
 
     def test_inheritance_from_heapview(self):
         if self.version_info < (3, 11):
