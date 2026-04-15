@@ -615,6 +615,13 @@ class TestClassifiers(TestCase):
         part = cli.partition([1, 2, 'a', 3, 'b', 'c', 4])
         self.assertEqual(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
 
+    def test_select_unicodeerror(self):
+        hv = self.hv
+        cli = hv.cli_type()
+
+        with self.assertRaises(UnicodeEncodeError):
+            cli.select([1, 2, 3], int, '\ud800')
+
     def test_nodetuple_richcompare(self):
         hv = self.hv
 

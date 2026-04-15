@@ -281,12 +281,14 @@ cli_cmp_as_int(PyObject *cmp)
         return -1;
     }
     s = PyUnicode_AsUTF8(cmp);
+    if (!s)
+        return -1;
     for (i = 0; (c = cmp_strings[i]); i++) {
         if (strcmp(c, s) == 0)
             return i;
     }
     PyErr_SetString(PyExc_ValueError, "Compare argument must be one of < <= == != > >=");
-        return -1;
+    return -1;
 }
 
 static PyObject *
