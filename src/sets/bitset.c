@@ -4592,7 +4592,7 @@ NyBitSet_Form(struct SetscState *ms, PyObject *args)
     char *s;
     Py_ssize_t len,sz;
     int flags;
-    if (!(args && PyTuple_Check(args)) && PyTuple_GET_SIZE(args) == 2) {
+    if (!(args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) == 2)) {
         PyErr_SetString(PyExc_TypeError, "NyBitSet_Form() requires exactly 2 arguments");
         return NULL;
     }
