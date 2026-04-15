@@ -277,10 +277,13 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
            may load the list on a different thread */
         _Py_atomic_fence_release();
         if (horizon_install() == -1)
-            goto err;
+            goto err_unlock;
     }
     PyMutex_Unlock(&rm_mutex);
     return (PyObject *)hz;
+
+err_unlock:
+    PyMutex_Unlock(&rm_mutex);
 err:
     Py_CLEAR(hz);
     return NULL;
