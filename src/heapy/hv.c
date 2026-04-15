@@ -469,7 +469,6 @@ hv_new_xt_for_type_at_xtp(NyHeapViewObject *hv, PyTypeObject *type, ExtraType **
         return NULL;
     }
     memset(xt, 0, sizeof(ExtraType));
-    *xtp = xt;
     xt->xt_hv = (void *)hv;
     xt->xt_type = type;
     xt->xt_weak_type = PyWeakref_NewRef((PyObject *)type, hv->weak_type_callback);
@@ -477,6 +476,7 @@ hv_new_xt_for_type_at_xtp(NyHeapViewObject *hv, PyTypeObject *type, ExtraType **
         PyMem_Free(xt);
         return NULL;
     }
+    *xtp = xt;
     return xt;
 }
 
