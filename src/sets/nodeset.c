@@ -12,6 +12,8 @@
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
+bool bad;
+
 PyDoc_STRVAR(nodeset_doc,
 "The class NodeSet is the base class for ImmNodeSet and MutNodeSet.\n"
 "A nodeset is a set of objects with equality based on heap address.\n"
@@ -238,10 +240,6 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
     if (bitno == -1 && PyErr_Occurred())
         return 0;
     ret = nodeset_bitno_to_obj(bitno);
-    if (!NyNodeSet_hasobj(hi->nodeset, ret)) {
-        PyErr_SetNone(PyExc_AssertionError);
-        return NULL;
-    }
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
     } else if (!(hi->nodeset->flags & _NS_STW)) {
@@ -589,11 +587,15 @@ mutnodeset_iter(NyNodeSetObject *v)
 {
     PyObject *bitset_iter;
     NyMutNodeSetIterObject *iter;
+    bad = true;
     bitset_iter = Py_TYPE(v->u.bitset)->tp_iter(v->u.bitset);
-    if (!bitset_iter)
+    if (!bitset_iter) {
+        bad = false;
         return 0;
+    }
     iter = PyObject_GC_New(NyMutNodeSetIterObject, v->ms->MutNodeSetIter_Type);
     if (!iter) {
+        bad = false;
         Py_DECREF(bitset_iter);
         return 0;
     }
@@ -601,6 +603,7 @@ mutnodeset_iter(NyNodeSetObject *v)
     iter->nodeset = v;
     Py_INCREF(v);
     PyObject_GC_Track(iter);
+    bad = false;
     return (PyObject *)iter;
 }
 
@@ -797,9 +800,21 @@ PyDoc_STRVAR(clear_doc,
 "Remove all elements from S, and compact its storage."
 );
 
+
+PyAPI_FUNC(void) _Py_DumpTraceback(
+    int fd,
+    PyThreadState *tstate);
+
 static PyObject *
 nodeset_clear(NyNodeSetObject *v, PyObject *notused)
 {
+    if (bad) {
+        PyErr_SetNone(PyExc_AssertionError);
+        PyErr_Print();
+        _Py_DumpTraceback(2, PyThreadState_GET());
+        PyErr_SetNone(PyExc_AssertionError);
+        return NULL;
+    }
     if (NyNodeSet_clear(v) == -1)
         return 0;
     Py_INCREF(Py_None);
