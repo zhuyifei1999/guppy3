@@ -58,7 +58,6 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->NodeSet_Type);
     Py_VISIT(ms->MutNodeSet_Type);
     Py_VISIT(ms->ImmNodeSet_Type);
-    Py_VISIT(ms->MutNodeSetIter_Type);
     Py_VISIT(ms->ImmNodeSetIter_Type);
 
     Py_VISIT(ms->ImmBitSet_Empty);
@@ -82,7 +81,6 @@ module_gc_clear(PyObject *m)
     Py_CLEAR(ms->NodeSet_Type);
     Py_CLEAR(ms->MutNodeSet_Type);
     Py_CLEAR(ms->ImmNodeSet_Type);
-    Py_CLEAR(ms->MutNodeSetIter_Type);
     Py_CLEAR(ms->ImmNodeSetIter_Type);
 
     Py_CLEAR(ms->ImmBitSet_Empty);
