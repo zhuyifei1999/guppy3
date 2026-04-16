@@ -237,16 +237,18 @@ class SpecialCases(TestCase):
 
         gc.collect()
         dn = self.View.immnodeset([{} for i in range(N)])
+        it = iter(dn)
         for i in range(N):
-            print(iso(list(dn)[i]).kind, file=o)
+            print(iso(next(it)).kind, file=o)
 
         # Now measure it
         gc.collect()
         dn = self.View.immnodeset([{} for i in range(M)])
 
         t = clock()
+        it = iter(dn)
         for i in range(M):
-            iso(list(dn)[i]).kind
+            iso(next(it)).kind
         slow = clock()-t
 
         # Sometimes M might be huge, and the vast majority of time it is not
