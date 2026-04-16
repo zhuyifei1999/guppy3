@@ -955,9 +955,9 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
     assert(where <= cur_size);
     if (where < cur_size) {
         assert(sf + 1 + cur_size - where <= &bs->ob_field[Py_SIZE(bs)]);
-        sfp_move(sf+1, sf, cur_size - where);
+        sfp_move(sf + 1, sf, cur_size - where);
     }
-    bs->cur_size = cur_size + 1;
+    bs->cur_size++;
     sf->pos = pos;
     sf->set = NULL;
     sf->lo = sf->hi = NULL;
@@ -1108,25 +1108,35 @@ mutbitset_split_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, NyBit 
 
     NY_ASSERT_OBJ_IMM_OR_LOCKED(v->ms, v);
 
-    nsf = root_ins1(v, sf+1, pos);
+    nsf = root_ins1(v, sf + 1, pos);
     assert(a_size >= 0);
     assert(b_size >= 0);
     if (!nsf)
-        return 0;
+        return NULL;
+    /* root_ins1 may mutate v->root, recalculate */
     sf = v->root->ob_field + sfpos;
+    assert(nsf == sf + 1);
     if (sf_realloc(v->ms, nsf, b_size) == -1)
-        return 0;
+        goto kill_slot;
     nsf->lo = nsf->set->ob_field + (Py_SIZE(nsf->set) - b_size) / 2;
     nsf->hi = nsf->lo + b_size;
     fp_move(nsf->lo, f, b_size);
     nsf->pos = nsf->lo->pos;
-    sf->hi = f;
+    sf->hi = f;  /* Needed for sf_realloc assertion */
     if (sf_realloc(v->ms, sf, f + 1 - sf->set->ob_field) == -1)
         return 0;
     f = sf->lo + a_size;
     sf->hi = f + 1;
     assert(sf->hi <= sf->set->ob_field+Py_SIZE(sf->set));
     return f;
+kill_slot:
+    sf->hi = sf->lo + a_size + b_size;  /* Undo sf->hi = f */
+    /* Undo root_ins1 inserting nsf into the union */
+    /* nsfpos = sfpos + 1 */
+    Py_CLEAR(nsf->set);
+    if (sfpos + 1 < --v->root->cur_size)
+        sfp_move(sf + 1, sf + 2, v->root->cur_size - (sfpos + 1));
+    return NULL;
 }
 
 static NyBitField *
