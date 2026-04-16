@@ -958,6 +958,7 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
     bs->cur_size = cur_size + 1;
     sf->pos = pos;
     sf->set = NULL;
+    sf->lo = sf->hi = NULL;
     return sf;
 }
 
