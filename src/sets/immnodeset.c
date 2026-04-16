@@ -68,14 +68,15 @@ immnsiter_traverse(NyImmNodeSetIterObject *it, visitproc visit, void *arg)
 static PyObject *
 immnsiter_iternext(NyImmNodeSetIterObject *it)
 {
-    if (it->nodeset && it->i < Py_SIZE(it->nodeset)) {
-        PyObject *ret = it->nodeset->u.nodes[it->i];
-        it->i += 1;
-        return Py_NewRef(ret);
-    } else {
+    PyObject *ret = NULL;
+
+    Ny_BEGIN_CRITICAL_SECTION(it);
+    if (it->nodeset && it->i < Py_SIZE(it->nodeset))
+        ret = Py_NewRef(it->nodeset->u.nodes[it->i++]);
+    else
         Py_CLEAR(it->nodeset);
-        return NULL;
-    }
+    Ny_END_CRITICAL_SECTION();
+    return ret;
 }
 
 static PyType_Slot immnsiter_slots[] = {

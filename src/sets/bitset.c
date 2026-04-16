@@ -3732,8 +3732,13 @@ bsiter_dealloc(NyImmBitSetIterObject *v)
 static PyObject *
 bsiter_iternext(NyImmBitSetIterObject *bi)
 {
-    NyImmBitSetObject *bs = bi->immbitset;
-    NyBit fldpos = bi->fldpos;
+    NyImmBitSetObject *bs;
+    PyObject *ret = NULL;
+    NyBit fldpos;
+
+    Ny_BEGIN_CRITICAL_SECTION(bi);
+    bs = bi->immbitset;
+    fldpos = bi->fldpos;
     if (fldpos < Py_SIZE(bs)) {
         NyBit bitpos = bi->bitpos;
         NyBitField *f = &bs->ob_field[fldpos];
@@ -3752,10 +3757,10 @@ bsiter_iternext(NyImmBitSetIterObject *bi)
             bitpos = 0;
         }
         bi->bitpos = bitpos;
-        return PyLong_FromSsize_t(rebit);
-    } else {
-        return NULL;
+        ret = PyLong_FromSsize_t(rebit);
     }
+    Ny_END_CRITICAL_SECTION();
+    return ret;
 }
 
 static int
