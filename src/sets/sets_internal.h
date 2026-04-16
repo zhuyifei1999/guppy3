@@ -56,6 +56,7 @@ int nodeset_relate(NyHeapRelate *r);
 extern PyType_Spec NyNodeSet_Spec;
 extern PyType_Spec NyMutNodeSet_Spec;
 extern PyType_Spec NyImmNodeSet_Spec;
+extern PyType_Spec NyMutNodeSetIter_Spec;
 extern PyType_Spec NyImmNodeSetIter_Spec;
 
 PyObject *nodeset_richcompare(NyNodeSetObject *v, NyNodeSetObject *w, int op);
@@ -80,6 +81,7 @@ struct SetscState {
     PyTypeObject *NodeSet_Type;
     PyTypeObject *MutNodeSet_Type;
     PyTypeObject *ImmNodeSet_Type;
+    PyTypeObject *MutNodeSetIter_Type;
     PyTypeObject *ImmNodeSetIter_Type;
 
     NyImmBitSetObject *ImmBitSet_Empty; /* The predefined empty set */
