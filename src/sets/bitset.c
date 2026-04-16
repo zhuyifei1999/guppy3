@@ -898,11 +898,16 @@ union_dealloc(NyUnionObject *v)
 static NyUnionObject *
 union_realloc(struct SetscState *ms, NyUnionObject *self, NyBit size)
 {
+    NyUnionObject *ret;
     /* Changes the allocated size to make room for up-rounded size items */
     size = roundupsize(size);
-    if (!self)
-        return PyObject_NewVar(NyUnionObject, ms->Union_Type, size);
-    else {
+    if (!self) {
+        ret = PyObject_NewVar(NyUnionObject, ms->Union_Type, size);
+        if (!ret)
+            return NULL;
+        ret->cur_size = 0;
+        return ret;
+    } else {
         NyUnionObject *ret;
         assert(PyUnstable_Object_IsUniquelyReferenced((PyObject *)self));
         _Py_ForgetReference((PyObject *)self);
@@ -938,6 +943,7 @@ root_ins1(NyMutBitSetObject *v, NySetField *sf, NyBit pos)
                 if (!bs)
                     return NULL;
                 sfp_move(&bs->ob_field[0], &v->fst_root.ob_field[0], cur_size);
+                bs->cur_size = v->fst_root.cur_size;
             } else {
                 Py_SET_SIZE(bs, cur_size + 1);
             }
