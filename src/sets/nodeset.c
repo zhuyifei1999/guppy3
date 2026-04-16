@@ -239,6 +239,7 @@ mutnsiter_iternext(NyMutNodeSetIterObject *hi)
         return 0;
     ret = nodeset_bitno_to_obj(bitno);
     assert(NyNodeSet_hasobj(hi->nodeset, ret));
+    assert(0);
     if (hi->nodeset->flags & NS_HOLDOBJECTS) {
         Py_INCREF(ret);
     } else if (!(hi->nodeset->flags & _NS_STW)) {
