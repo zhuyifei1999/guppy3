@@ -89,12 +89,9 @@ class _GLUECLAMP_:
         return self.mutnodeset()
 
     def clear_check(self):
-        global bad
         ch = self._clear_hook
         try:
-            bad = True
             wr = list(ch)[0]
-            bad = False
         except IndexError:
             self.clear_setup()
         else:
@@ -109,7 +106,6 @@ class _GLUECLAMP_:
                 c[0].cb.callback = None
 
     def clear_callback(self, wr):
-        assert not bad
         self._clear_hook.clear()
         for m in self.clear_methods:
             m()
