@@ -381,6 +381,7 @@ mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static NyBit
 nodeset_obj_to_bitno(PyObject *obj)
 {
+    assert(!((NyBit) obj % ALIGN));
     return (NyBit) obj / ALIGN;
 }
 
