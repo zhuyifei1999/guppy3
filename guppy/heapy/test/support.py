@@ -18,17 +18,6 @@ class TestFailed(Error):
     """Test failed."""
 
 
-class TestSkipped(Error):
-    """Test skipped.
-
-    This can be raised to indicate that a test was deliberatly
-    skipped, but not because a feature wasn't available.  For
-    example, if some resource can't be used, such as the network
-    appears to be unavailable, this should be raised instead of
-    TestFailed.
-    """
-
-
 verbose = 1              # Flag set to 0 by regrtest.py
 use_resources = None       # Flag set to [] by regrtest.py
 

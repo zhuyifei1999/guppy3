@@ -391,8 +391,7 @@ class RootTestCase(TestCase):
         try:
             import _thread
         except ImportError:
-            print('threading not enabled - skipping test')
-            return
+            self.skipTest('threading not enabled')
 
         root = self.View.root
 

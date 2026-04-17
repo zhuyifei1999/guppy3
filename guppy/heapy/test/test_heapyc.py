@@ -75,7 +75,7 @@ class TestHeapView(TestCase):
 
     def test_inheritance_from_heapview(self):
         if self.version_info < (3, 11):
-            return
+            self.skipTest('inheriting from C types requires Python 3.12')
 
         # I am not using inheritance from HeapView,
         # but it would be kinda weird if it didn't work.
@@ -93,7 +93,7 @@ class TestHeapView(TestCase):
 
     def test_inheritance_from_special_types(self):
         if self.version_info < (3, 11):
-            return
+            self.skipTest('inheriting from C types requires Python 3.12')
 
         # Test that relate, size & traverse function correctly for inherited types
         # as discussed in Notes Apr 14 2005.
@@ -561,7 +561,7 @@ class TestNodeGraph(TestCase):
 
     def test_inheritance(self):
         if self.version_info < (3, 11):
-            return
+            self.skipTest('inheriting from C types requires Python 3.12')
 
         class T(self.heapyc.NodeGraph):
             __slots__ = 'x'
