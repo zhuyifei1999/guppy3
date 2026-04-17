@@ -4,10 +4,8 @@ Addapted from Python standard module test_support.
 
 import contextlib
 import unittest
-import pdb
 import sys
 import sysconfig
-import tracemalloc
 
 
 class Error(Exception):
@@ -100,6 +98,10 @@ class TestCase(unittest.TestCase):
 
     @contextlib.contextmanager
     def tracemalloc_state(self, enabled=True):
+        try:
+            import tracemalloc
+        except ImportError:
+            self.skipTest('tracemalloc not available')
         orig_enabled = tracemalloc.is_tracing()
 
         def set_enabled(new_enabled):
