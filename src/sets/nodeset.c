@@ -292,6 +292,10 @@ mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static NyBit
 nodeset_obj_to_bitno(PyObject *obj)
 {
+    if ((NyBit)obj & (ALIGN - 1)) {
+        PyErr_Format(PyExc_SystemError, "Object at address %p is not aligned", obj);
+        return 0;
+    }
     return (NyBit) obj / ALIGN;
 }
 
@@ -313,7 +317,12 @@ nodeset_bitset(NyNodeSetObject *v) {
 
         /* NOT LOCKED: v is immutable */
         for (i = 0; i < Py_SIZE(v); i++) {
-            int r = NyMutBitSet_setbit(bitset, nodeset_obj_to_bitno(v->u.nodes[i]));
+            NyBit bitno = nodeset_obj_to_bitno(v->u.nodes[i]);
+            if (!bitno) {
+                Py_CLEAR(bitset);
+                return NULL;
+            }
+            int r = NyMutBitSet_setbit(bitset, bitno);
             if (r == -1) {
                 Py_CLEAR(bitset);
                 return NULL;
@@ -552,6 +561,8 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
         return 0;
     } else {
         NyBit bitno = nodeset_obj_to_bitno(obj);
+        if (!bitno)
+            return -1;
         return NyMutBitSet_hasbit((NyMutBitSetObject *)v->u.bitset, bitno);
     }
 }
@@ -563,6 +574,8 @@ NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
     int r = -1;
     if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
         NyBit bitno = nodeset_obj_to_bitno(obj);
+        if (!bitno)
+            return -1;
 
         Ny_BEGIN_CRITICAL_SECTION(v);
         r = NyMutBitSet_setbit((NyMutBitSetObject *)v->u.bitset, bitno);
@@ -609,6 +622,8 @@ NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
     int r = -1;
     if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
         NyBit bitno = nodeset_obj_to_bitno(obj);
+        if (!bitno)
+            return -1;
 
         Ny_BEGIN_CRITICAL_SECTION(v);
         r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
