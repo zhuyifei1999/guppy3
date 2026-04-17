@@ -425,9 +425,7 @@ mutnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
         if (err)
             return err;
     }
-    if (v->_hiding_tag_) {
-        err = visit(v->_hiding_tag_, arg);
-    }
+    Py_VISIT(v->_hiding_tag_);
     return err;
 }
 
