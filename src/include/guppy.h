@@ -21,7 +21,7 @@
     (*(__typeof__((is)->attr) *)NYINTERPSTATE_PTR(is, attr, refattr, refdbgoff))
 # else
 #  define NYINTERPSTATE_DEREF_PTR(is, attr, refattr, refdbgoff) \
-    ((PyInterpreterState){.attr = (*(void **)NYINTERPSTATE_PTR(is, attr, refattr, refdbgoff))}).attr
+    (*(void **)NYINTERPSTATE_PTR(is, attr, refattr, refdbgoff))
 # endif
 #endif
 
