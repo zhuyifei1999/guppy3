@@ -8,6 +8,8 @@
 #  include <internal/pycore_typeobject.h>
 /* PyInterpreterState */
 #  include <internal/pycore_interp.h>
+/* _PyRuntime */
+# include <internal/pycore_runtime.h>
 # undef Py_BUILD_CORE
 #endif
 
@@ -25,6 +27,7 @@
 #include "frameobject.h"
 #include "unicodeobject.h"
 
+#include "../include/guppy.h"
 #include "heapdef.h"
 #include "heapy.h"
 #include "stdtypes.h"
@@ -589,23 +592,23 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     // but with per-interp GIL, it's only safe to traverse
     // current interpreter anyways.
     PyInterpreterState *is = PyInterpreterState_Get();
+    ny_static_type_state *state;
 
     assert(self->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN);
 
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    managed_static_type_state *state;
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
 
     // FIXME: These constants may be subject to change within a Python version
     if (index <= _Py_MAX_MANAGED_STATIC_BUILTIN_TYPES) {
-        state = &is->types.builtins.initialized[index];
+        state = NYINTERPSTATE_PTR(is, types.builtins.initialized[index], _gil, gil_runtime_state);
         if (state->type == self)
             return state;
     }
     if (index <= _Py_MAX_MANAGED_STATIC_EXT_TYPES) {
-        state = &is->types.for_extensions.initialized[index];
+        state = NYINTERPSTATE_PTR(is, types.for_extensions.initialized[index], _gil, gil_runtime_state);
         if (state->type == self)
             return state;
     }
@@ -617,7 +620,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
-    return &is->types.builtins[index];
+    return NYINTERPSTATE_PTR(is, types.builtins[index], dummy, dummy);
 # endif
 }
 #endif

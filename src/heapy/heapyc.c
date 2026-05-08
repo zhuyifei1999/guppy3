@@ -231,6 +231,8 @@ static int module_exec(PyObject *m)
     if (import_sets() == -1)
         return -1;
 
+    rootstate_init();
+
     if (PyModule_AddType(m, &NyHeapView_Type) == -1)
         return -1;
     if (PyModule_AddType(m, &NyHorizon_Type) == -1)
