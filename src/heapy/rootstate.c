@@ -969,7 +969,7 @@ static PyMutex rootstate_init_mutex = {0};
 static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    void *offs = &_PyRuntime.debug_offsets;
+    uintptr_t offs = (uintptr_t)&_PyRuntime.debug_offsets;
     struct NyDbgOffMemberDef *l;
 
     /* I'm sorry for the pointer manipulation here */

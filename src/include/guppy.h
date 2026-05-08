@@ -9,7 +9,7 @@
 # define NYINTERPSTATE_DEREF_PTR(is, attr, refattr, refdbgoff) ((is)->attr)
 #else
 # define NYINTERPSTATE_PTR(is, attr, refattr, refdbgoff) \
-    ((void *)(&(is)->attr) \
+    (void *)((uintptr_t)(&(is)->attr) \
         + _PyRuntime.debug_offsets.interpreter_state.refdbgoff \
         - offsetof(PyInterpreterState, refattr))
 
