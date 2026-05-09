@@ -53,6 +53,8 @@
 #define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE);
 #define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR);
 
+extern ptrdiff_t heapy_py314_interp_qsbr_adj;
+
 int
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
 {
@@ -592,23 +594,23 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     // but with per-interp GIL, it's only safe to traverse
     // current interpreter anyways.
     PyInterpreterState *is = PyInterpreterState_Get();
-    ny_static_type_state *state;
 
     assert(self->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN);
 
 # if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+    ny_static_type_state *state;
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
 
     // FIXME: These constants may be subject to change within a Python version
     if (index <= _Py_MAX_MANAGED_STATIC_BUILTIN_TYPES) {
-        state = NYINTERPSTATE_PTR(is, types.builtins.initialized[index], _gil, gil_runtime_state);
+        state = NYPTR_ADJUSTED(is, types.builtins.initialized[index], NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
         if (state->type == self)
             return state;
     }
     if (index <= _Py_MAX_MANAGED_STATIC_EXT_TYPES) {
-        state = NYINTERPSTATE_PTR(is, types.for_extensions.initialized[index], _gil, gil_runtime_state);
+        state = NYPTR_ADJUSTED(is, types.for_extensions.initialized[index], NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
         if (state->type == self)
             return state;
     }
@@ -620,7 +622,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
-    return NYINTERPSTATE_PTR(is, types.builtins[index], dummy, dummy);
+    return NYPTR_ADJUSTED(is, types.builtins[index], 0);
 # endif
 }
 #endif

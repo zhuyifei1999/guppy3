@@ -149,75 +149,81 @@ rootstate_dealloc(void *arg)
     abort();
 }
 
+ptrdiff_t heapy_py314_interp_qsbr_adj;
 
 struct NyDbgOffMemberDef {
     struct PyMemberDef member;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    ptrdiff_t refattroff;
-    ptrdiff_t refdbgoff;
+    ptrdiff_t attroff;
+    ptrdiff_t dbgoff;
 #endif
+    ptrdiff_t *extraoff;
 };
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
-# define MEMBER(name, refattr, refdbgoff) {{#name, T_OBJECT, offsetof(PyInterpreterState, name)}}
-# define RENAMEMEMBER(name, newname, refattr, refdbgoff) {{#newname, T_OBJECT, offsetof(PyInterpreterState, name)}}
+# define MEMBER(name, refattr, dbgoff, extraoff)                \
+    {{#name, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
+# define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) \
+    {{#newname, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
 #else
-# define MEMBER(name, refattr, refdbgoff) {                   \
-    {#name, T_OBJECT, offsetof(PyInterpreterState, name)},    \
-    offsetof(PyInterpreterState, refattr),                    \
-    offsetof(_Py_DebugOffsets, interpreter_state.refdbgoff)}
-# define RENAMEMEMBER(name, newname, refattr, refdbgoff) {    \
-    {#newname, T_OBJECT, offsetof(PyInterpreterState, name)}, \
-    offsetof(PyInterpreterState, refattr),                    \
-    offsetof(_Py_DebugOffsets, interpreter_state.refdbgoff)}
+# define MEMBER(name, refattr, dbgoff, extraoff) {                \
+    {#name, T_OBJECT, offsetof(PyInterpreterState, name)},        \
+    offsetof(PyInterpreterState, refattr),                        \
+    offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
+    extraoff}
+# define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) { \
+    {#newname, T_OBJECT, offsetof(PyInterpreterState, name)},     \
+    offsetof(PyInterpreterState, refattr),                        \
+    offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
+    extraoff}
 #endif
 
 static struct NyDbgOffMemberDef is_members[] = {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-    RENAMEMEMBER(imports.modules, modules, imports.modules, imports_modules),
-    RENAMEMEMBER(imports.modules_by_index, modules_by_index, imports.modules, imports_modules),
-    RENAMEMEMBER(imports.importlib, importlib, imports.modules, imports_modules),
-    RENAMEMEMBER(imports.import_func, import_func, imports.modules, imports_modules),
+    RENAMEMEMBER(imports.modules, modules, imports.modules, imports_modules, NULL),
+    RENAMEMEMBER(imports.modules_by_index, modules_by_index, imports.modules, imports_modules, NULL),
+    RENAMEMEMBER(imports.importlib, importlib, imports.modules, imports_modules, NULL),
+    RENAMEMEMBER(imports.import_func, import_func, imports.modules, imports_modules, NULL),
 #else
-    MEMBER(modules, dummy, dummy),
-    MEMBER(modules_by_index, dummy, dummy),
-    MEMBER(importlib, dummy, dummy),
-    MEMBER(import_func, dummy, dummy),
+    MEMBER(modules, dummy, dummy, NULL),
+    MEMBER(modules_by_index, dummy, dummy, NULL),
+    MEMBER(importlib, dummy, dummy, NULL),
+    MEMBER(import_func, dummy, dummy, NULL),
 #endif
 
-    MEMBER(sysdict, sysdict, sysdict),
-    MEMBER(builtins, builtins, builtins),
+    MEMBER(sysdict, sysdict, sysdict, NULL),
+    MEMBER(builtins, builtins, builtins, NULL),
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    RENAMEMEMBER(codecs.search_path, codec_search_path, _gil, gil_runtime_state),
-    RENAMEMEMBER(codecs.search_cache, codec_search_cache, _gil, gil_runtime_state),
-    RENAMEMEMBER(codecs.error_registry, codec_error_registry, _gil, gil_runtime_state),
+    RENAMEMEMBER(codecs.search_path, codec_search_path, _gil, gil_runtime_state, NULL),
+    RENAMEMEMBER(codecs.search_cache, codec_search_cache, _gil, gil_runtime_state, NULL),
+    RENAMEMEMBER(codecs.error_registry, codec_error_registry, _gil, gil_runtime_state, NULL),
 #else
-    MEMBER(codec_search_path, dummy, dummy),
-    MEMBER(codec_search_cache, dummy, dummy),
-    MEMBER(codec_error_registry, dummy, dummy),
+    MEMBER(codec_search_path, dummy, dummy, NULL),
+    MEMBER(codec_search_cache, dummy, dummy, NULL),
+    MEMBER(codec_error_registry, dummy, dummy, NULL),
 #endif
 
-    MEMBER(dict, _gil, gil_runtime_state),
+    MEMBER(dict, _gil, gil_runtime_state, NULL),
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-    MEMBER(sysdict_copy, _gil, gil_runtime_state),
+    MEMBER(sysdict_copy, _gil, gil_runtime_state, NULL),
 #endif
-    MEMBER(builtins_copy, _gil, gil_runtime_state),
+    MEMBER(builtins_copy, _gil, gil_runtime_state, NULL),
 
 #ifdef HAVE_FORK
-    MEMBER(before_forkers, _gil, gil_runtime_state),
-    MEMBER(after_forkers_parent, _gil, gil_runtime_state),
-    MEMBER(after_forkers_child, _gil, gil_runtime_state),
+    MEMBER(before_forkers, _gil, gil_runtime_state, NULL),
+    MEMBER(after_forkers_parent, _gil, gil_runtime_state, NULL),
+    MEMBER(after_forkers_child, _gil, gil_runtime_state, NULL),
 #endif
 
-    MEMBER(audit_hooks, _gil, gil_runtime_state),
+    MEMBER(audit_hooks, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj),
 
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
-    MEMBER(optimizer, _gil, gil_runtime_state),
+    MEMBER(optimizer, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj),
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    MEMBER(executor_list_head, _gil, gil_runtime_state), // TODO: Iterate this list
+    MEMBER(executor_list_head, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj), // TODO: Iterate this list
 #endif
 
     {{0}} /* Sentinel */
@@ -279,15 +285,15 @@ static struct PyMemberDef ts_members[] = {
 #undef MEMBER
 #undef RENAMEMEMBER
 
-#define ISATTR(name, refattr, refdbgoff) do {                                          \
-    if ((PyObject *)NYINTERPSTATE_DEREF_PTR(is, name, refattr, refdbgoff) == r->tgt) { \
+#define ISATTR(name, adj) do {                                          \
+    if ((PyObject *)NYPTR_ADJUSTED_DEREF(is, name, adj) == r->tgt) { \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #name), r))  \
             return 1;                                                                  \
     }                                                                                  \
 } while (0)
 
-#define RENAMEISATTR(name, newname, refattr, refdbgoff) do {                             \
-    if ((PyObject *)NYINTERPSTATE_DEREF_PTR(is, name, refattr, refdbgoff) == r->tgt) {   \
+#define RENAMEISATTR(name, newname, adj) do {                             \
+    if ((PyObject *)NYPTR_ADJUSTED_DEREF(is, name, adj) == r->tgt) {   \
         if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_%s", isno, #newname), r)) \
             return 1;                                                                    \
     }                                                                                    \
@@ -345,50 +351,50 @@ rootstate_relate_unlocked(NyHeapRelate *r)
         if (is != PyInterpreterState_Get())
             continue;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        RENAMEISATTR(imports.modules, modules, imports.modules, imports_modules);
-        RENAMEISATTR(imports.modules_by_index, modules_by_index, imports.modules, imports_modules);
-        RENAMEISATTR(imports.importlib, importlib, imports.modules, imports_modules);
-        RENAMEISATTR(imports.import_func, import_func, imports.modules, imports_modules);
+        RENAMEISATTR(imports.modules, modules, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
+        RENAMEISATTR(imports.modules_by_index, modules_by_index, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
+        RENAMEISATTR(imports.importlib, importlib, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
+        RENAMEISATTR(imports.import_func, import_func, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
 #else
-        ISATTR(modules, dummy, dummy);
-        ISATTR(modules_by_index, dummy, dummy);
-        ISATTR(importlib, dummy, dummy);
-        ISATTR(import_func, dummy, dummy);
+        ISATTR(modules, 0);
+        ISATTR(modules_by_index, 0);
+        ISATTR(importlib, 0);
+        ISATTR(import_func, 0);
 #endif
 
-        ISATTR(sysdict, sysdict, sysdict);
-        ISATTR(builtins, builtins, builtins);
+        ISATTR(sysdict, NYPTR_ADJ_INTEPSTATE(sysdict, sysdict));
+        ISATTR(builtins, NYPTR_ADJ_INTEPSTATE(builtins, builtins));
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        RENAMEISATTR(codecs.search_path, codec_search_path, _gil, gil_runtime_state);
-        RENAMEISATTR(codecs.search_cache, codec_search_cache, _gil, gil_runtime_state);
-        RENAMEISATTR(codecs.error_registry, codec_error_registry, _gil, gil_runtime_state);
+        RENAMEISATTR(codecs.search_path, codec_search_path, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
+        RENAMEISATTR(codecs.search_cache, codec_search_cache, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
+        RENAMEISATTR(codecs.error_registry, codec_error_registry, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 #else
-        ISATTR(codec_search_path, dummy, dummy);
-        ISATTR(codec_search_cache, dummy, dummy);
-        ISATTR(codec_error_registry, dummy, dummy);
+        ISATTR(codec_search_path, 0);
+        ISATTR(codec_search_cache, 0);
+        ISATTR(codec_error_registry, 0);
 #endif
 
-        ISATTR(dict, _gil, gil_runtime_state);
+        ISATTR(dict, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        ISATTR(sysdict_copy, _gil, gil_runtime_state);
+        ISATTR(sysdict_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 #endif
-        ISATTR(builtins_copy, _gil, gil_runtime_state);
+        ISATTR(builtins_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 
 #ifdef HAVE_FORK
-        ISATTR(before_forkers, _gil, gil_runtime_state);
-        ISATTR(after_forkers_parent, _gil, gil_runtime_state);
-        ISATTR(after_forkers_child, _gil, gil_runtime_state);
+        ISATTR(before_forkers, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
+        ISATTR(after_forkers_parent, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
+        ISATTR(after_forkers_child, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 #endif
 
-        ISATTR(audit_hooks, _gil, gil_runtime_state);
+        ISATTR(audit_hooks, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
-        ISATTR(optimizer, _gil, gil_runtime_state);
+        ISATTR(optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        ISATTR(executor_list_head, _gil, gil_runtime_state);
+        ISATTR(executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -488,52 +494,52 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
         if (is != PyInterpreterState_Get())
             continue;
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, imports.modules, imports.modules, imports_modules));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, imports.modules, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules)));
         // Not traversing through this because it is of the same level as
         // modules, making pathfinding generate an extra path.
-        // Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, imports.modules_by_index, imports.modules, imports_modules));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, imports.importlib, imports.modules, imports_modules));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, imports.import_func, imports.modules, imports_modules));
+        // Py_VISIT(NYPTR_ADJUSTED_DEREF(is, imports.modules_by_index, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, imports.importlib, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, imports.import_func, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules)));
 #else
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, modules, dummy, dummy));
-        // Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, modules_by_index, dummy, dummy));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, importlib, dummy, dummy));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, import_func, dummy, dummy));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, modules, 0));
+        // Py_VISIT(NYPTR_ADJUSTED_DEREF(is, modules_by_index, 0));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, importlib, 0));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, import_func, 0));
 #endif
 
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, sysdict, sysdict, sysdict));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, builtins, builtins, builtins));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, sysdict, NYPTR_ADJ_INTEPSTATE(sysdict, sysdict)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, builtins, NYPTR_ADJ_INTEPSTATE(builtins, builtins)));
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codecs.search_path, _gil, gil_runtime_state));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codecs.search_cache, _gil, gil_runtime_state));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codecs.error_registry, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.search_path, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.search_cache, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.error_registry, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 #else
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codec_search_path, dummy, dummy));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codec_search_cache, dummy, dummy));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, codec_error_registry, dummy, dummy));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codec_search_path, 0));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codec_search_cache, 0));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codec_error_registry, 0));
 #endif
 
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, dict, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, dict, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, sysdict_copy, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, sysdict_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 #endif
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, builtins_copy, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, builtins_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 
 #ifdef HAVE_FORK
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, before_forkers, _gil, gil_runtime_state));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, after_forkers_parent, _gil, gil_runtime_state));
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, after_forkers_child, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, before_forkers, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, after_forkers_parent, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, after_forkers_child, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 #endif
 
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, audit_hooks, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, audit_hooks, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, optimizer, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 #endif
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, executor_list_head, _gil, gil_runtime_state));
+        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -970,14 +976,24 @@ static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     uintptr_t offs = (uintptr_t)&_PyRuntime.debug_offsets;
+#endif
     struct NyDbgOffMemberDef *l;
 
     /* I'm sorry for the pointer manipulation here */
-    for (l = mlist; l->member.name != NULL; l++)
-        l->member.offset += (ptrdiff_t)*(uint64_t *)(offs + l->refdbgoff)
-                - l->refattroff;
+    // FIXME: extraoff for pre 3.13
+    for (l = mlist; l->member.name != NULL; l++) {
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+        l->member.offset += (ptrdiff_t)*(uint64_t *)(offs + l->dbgoff)
+                - l->attroff;
 #endif
+        if (l->extraoff)
+            l->member.offset += *l->extraoff;
+    }
 }
+
+#ifndef MAX
+# define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
 
 void rootstate_init(void)
 {
@@ -987,6 +1003,19 @@ void rootstate_init(void)
     PyMutex_Lock(&rootstate_init_mutex);
     if (rootstate_init_done)
         goto out;
+
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 14
+    /* Between Python 3.14.3 and 3.14.4, PyInterpreterState.qsbr increased by
+       size of a pointer, causing entries to be shifted. */
+    /* See https://github.com/zhuyifei1999/guppy3/issues/53#issuecomment-4410652591 */
+
+    if (((PY_VERSION_HEX >> 8) & 0xff) < 4 && ((Py_Version >> 8) & 0xff) >= 4)
+        /* Built with increased qsbr size but runtime does not */
+        heapy_py314_interp_qsbr_adj = -MAX(_Alignof(uint64_t), sizeof(void *));
+    else if (((PY_VERSION_HEX >> 8) & 0xff) >= 4 && ((Py_Version >> 8) & 0xff) < 4)
+        /* Built without increased qsbr size but runtime does */
+        heapy_py314_interp_qsbr_adj = MAX(_Alignof(uint64_t), sizeof(void *));
+#endif
 
     NyDbgOffMemberDef_Init(is_members);
     rootstate_init_done = true;
