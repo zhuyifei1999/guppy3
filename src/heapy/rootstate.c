@@ -132,6 +132,13 @@ char rootstate_doc[] =
     PyThread_release_lock((runtime)->interpreters.mutex)
 #endif
 
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION != 14
+/* Exclude entries after PyInterpreterState.qsbr for Python 3.14 */
+/* See https://github.com/zhuyifei1999/guppy3/issues/53#issuecomment-4410652591 */
+# define PY_314_UNSAFE_QSBR
+#endif
+
+
 #define THREAD_ID(ts)    (ts->thread_id)
 
 static PyObject *
@@ -211,13 +218,15 @@ static struct NyDbgOffMemberDef is_members[] = {
     MEMBER(after_forkers_child, _gil, gil_runtime_state),
 #endif
 
+#ifdef PY_314_UNSAFE_QSBR
     MEMBER(audit_hooks, _gil, gil_runtime_state),
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+# if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
     MEMBER(optimizer, _gil, gil_runtime_state),
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
     MEMBER(executor_list_head, _gil, gil_runtime_state), // TODO: Iterate this list
+# endif
 #endif
 
     {{0}} /* Sentinel */
@@ -382,13 +391,15 @@ rootstate_relate_unlocked(NyHeapRelate *r)
         ISATTR(after_forkers_child, _gil, gil_runtime_state);
 #endif
 
+#ifdef PY_314_UNSAFE_QSBR
         ISATTR(audit_hooks, _gil, gil_runtime_state);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+# if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         ISATTR(optimizer, _gil, gil_runtime_state);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         ISATTR(executor_list_head, _gil, gil_runtime_state);
+# endif
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -527,13 +538,15 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
         Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, after_forkers_child, _gil, gil_runtime_state));
 #endif
 
+#ifdef PY_314_UNSAFE_QSBR
         Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, audit_hooks, _gil, gil_runtime_state));
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+# if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, optimizer, _gil, gil_runtime_state));
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         Py_VISIT(NYINTERPSTATE_DEREF_PTR(is, executor_list_head, _gil, gil_runtime_state));
+# endif
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -831,13 +844,15 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
         ISATTR_DIR(after_forkers_child);
 #endif
 
+#ifdef PY_314_UNSAFE_QSBR
         ISATTR_DIR(audit_hooks);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+# if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
         ISATTR_DIR(optimizer);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+# endif
+# if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
         ISATTR_DIR(executor_list_head);
+# endif
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
