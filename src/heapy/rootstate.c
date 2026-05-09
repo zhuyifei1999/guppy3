@@ -1010,11 +1010,11 @@ void rootstate_init(void)
     /* See https://github.com/zhuyifei1999/guppy3/issues/53#issuecomment-4410652591 */
 
     if (((PY_VERSION_HEX >> 8) & 0xff) < 4 && ((Py_Version >> 8) & 0xff) >= 4)
-        /* Built with increased qsbr size but runtime does not */
-        heapy_py314_interp_qsbr_adj = -MAX(_Alignof(uint64_t), sizeof(void *));
-    else if (((PY_VERSION_HEX >> 8) & 0xff) >= 4 && ((Py_Version >> 8) & 0xff) < 4)
         /* Built without increased qsbr size but runtime does */
         heapy_py314_interp_qsbr_adj = MAX(_Alignof(uint64_t), sizeof(void *));
+    else if (((PY_VERSION_HEX >> 8) & 0xff) >= 4 && ((Py_Version >> 8) & 0xff) < 4)
+        /* Built with increased qsbr size but runtime does not */
+        heapy_py314_interp_qsbr_adj = -MAX(_Alignof(uint64_t), sizeof(void *));
 #endif
 
     NyDbgOffMemberDef_Init(is_members);
