@@ -1,4 +1,4 @@
-I am happy to announce Guppy 3 3.1.6
+I am happy to announce Guppy 3 3.1.7
 
 Guppy 3 is a library and programming environment for Python,
 currently providing in particular the Heapy subsystem, which supports
@@ -10,15 +10,22 @@ common source.
 
 Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
-This release adds support for Python 3.14, and support for Python 3.9
-was dropped. Support for free-threaded mode is planned for a future
-release.
+This release unbreaks wheel builds for Python 3.14.4 and Python 3.14.5,
+due to modified ABI in PyInterpreterState. Additionally, many bugs has
+been found by Daniel Diniz with LLM and has been fixed in this release.
+(This was featured in LWN! https://lwn.net/Articles/1067234/). This
+includes several segfaults, error propagation bugs, and refcounting bugs.
 
-This release also fixes a few bugs, including:
+Support for free-threaded mode is still in development. Existing unit
+tests are passing but many edge cases are still being worked on.
 
-o Fix a segfault in hv_cli_inrel_classify caused by a GC race
-o Fix relate of frame objects showing some attributes as exposed Python
-  when they are not
+Other notable changes:
+
+o Both C extension modules are now using multi-phase init.
+o A new implementation for Horizon using PyRefTracer is added for
+  Python 3.13+.
+o Internal tuples (NYTUPLELIKE) now account for PyTupleObject having an
+  additional field Py_hash_t ob_hash in Python 3.14
 
 License: MIT
 
@@ -26,6 +33,6 @@ The project homepage is on GitHub:
 
 https://github.com/zhuyifei1999/guppy3
 
-Enjoy and Happy New Year,
+Enjoy,
 
 YiFei Zhu

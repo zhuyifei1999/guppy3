@@ -18,6 +18,8 @@
 #  include <internal/pycore_typeobject.h>
 /* PyInterpreterState */
 #  include <internal/pycore_interp.h>
+/* _PyRuntime */
+# include <internal/pycore_runtime.h>
 # undef Py_BUILD_CORE
 #endif
 
@@ -50,6 +52,8 @@
 #define ATTR(name) GATTR(v->name, name, NYHR_ATTRIBUTE);
 #define RENAMEATTR(name, newname) GATTR(v->name, newname, NYHR_ATTRIBUTE);
 #define INTERATTR(name) GATTR(v->name, name, NYHR_INTERATTR);
+
+extern ptrdiff_t heapy_py314_interp_qsbr_adj;
 
 int
 dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
@@ -590,19 +594,19 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     assert(self->tp_flags & _Py_TPFLAGS_STATIC_BUILTIN);
 
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-    managed_static_type_state *state;
+    ny_static_type_state *state;
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
 
     // FIXME: These constants may be subject to change within a Python version
     if (index <= _Py_MAX_MANAGED_STATIC_BUILTIN_TYPES) {
-        state = &is->types.builtins.initialized[index];
+        state = NYPTR_ADJUSTED(is, types.builtins.initialized[index], NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
         if (state->type == self)
             return state;
     }
     if (index <= _Py_MAX_MANAGED_STATIC_EXT_TYPES) {
-        state = &is->types.for_extensions.initialized[index];
+        state = NYPTR_ADJUSTED(is, types.for_extensions.initialized[index], NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
         if (state->type == self)
             return state;
     }
@@ -614,7 +618,7 @@ static ny_static_type_state *NyStaticType_GetState(PyTypeObject *self)
     size_t index;
 
     index = (size_t)self->tp_subclasses - 1;
-    return &is->types.builtins[index];
+    return NYPTR_ADJUSTED(is, types.builtins[index], 0);
 # endif
 }
 #endif

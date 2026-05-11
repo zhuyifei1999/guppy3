@@ -128,4 +128,26 @@ NyType_AssertModuleState2(PyTypeObject *type1, PyTypeObject *type2,
     return NyType_AssertModuleState(type2, def);
 }
 
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
+# define NYPTR_ADJUSTED(is, attr, adj) ((void *)&(is)->attr)
+# define NYPTR_ADJUSTED_DEREF(is, attr, adj) ((is)->attr)
+# define NYPTR_ADJUST_FROM_INTEPSTATE(attr, dbgoff) 0
+#else
+# define NYPTR_ADJUSTED(is, attr, adj) ((void *)((uintptr_t)(&(is)->attr) + adj))
+
+# if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+#  define NYPTR_ADJUSTED_DEREF(is, attr, adj) \
+    (*(typeof((is)->attr) *)NYPTR_ADJUSTED(is, attr, adj))
+# elif defined(__GNUC__) || defined(__clang__)
+#  define NYPTR_ADJUSTED_DEREF(is, attr, adj) \
+    (*(__typeof__((is)->attr) *)NYPTR_ADJUSTED(is, attr, adj))
+# else
+#  define NYPTR_ADJUSTED_DEREF(is, attr, adj) \
+    (*(void **)NYPTR_ADJUSTED(is, attr, adj))
+# endif
+
+# define NYPTR_ADJ_INTEPSTATE(attr, dbgoff) \
+    ((ptrdiff_t)_PyRuntime.debug_offsets.interpreter_state.dbgoff - offsetof(PyInterpreterState, attr))
+#endif
+
 #endif /* GUPPY_H_INCLUDED */

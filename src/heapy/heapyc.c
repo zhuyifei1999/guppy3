@@ -226,6 +226,8 @@ module_exec(PyObject *m)
     if (import_sets(ms) == -1)
         return -1;
 
+    rootstate_init();
+
     if (NyModule_AddTypeWithSpec(m, &NyHeapView_Spec, NULL, true,
                                  &ms->HeapView_Type) == -1)
         return -1;

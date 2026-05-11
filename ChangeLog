@@ -1,3 +1,61 @@
+    Version 3.1.7
+
+2026-05-10  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.1.7
+
+2026-05-09  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added pointer arithmetic to account for Python 3.14.4 increase to
+      PyInterpreterState.qsbr size, using basic sizeof
+
+2026-05-08  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added pointer arithmetic to account for Python 3.14.5 increase to
+      PyInterpreterState.gc size, using _Py_DebugOffsets
+
+2026-04-08  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed test_Path for Python 3.14.4
+
+2026-04-03  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Made Ny_RootState immortal
+    * Hide internal weakrefs in OutputHandling
+    * New Horizon implementation for Python 3.13+ using PyRefTracer
+
+2026-04-02  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Lock runtime when accessing interpreters & threads list
+    * Pass through some exceptions in hv_cli_prod lasy init
+    * Fixed hv_cli_prod PySequence_Length -1 treated as truthy
+    * Removed heapyc global state _hiding_tag__name
+
+2026-04-01  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Converted heapyc to multi-phase init
+    * Removed Py_TRACE_REFS logic from xmemstats
+    * Removed setsc global state NyBitSet_FormMethod
+    * Converted setsc to multi-phase init
+    * Added traversal hv->_hiding_tag_ in hv_gc_traverse
+    * Fixed mutnsiter_iternext error path refcounting
+    * Fixed hv_PyList_Pop error path refcounting
+    * Fixed NyImmBitSet_SubtypeNewArg error path NULL segfault
+    * Converted PyDict_GetItem into PyDict_GetItem{Ref,WithError}
+    * Fixed sf_slice error path NULL segfault
+    * Fixed hv_cli_findex error path NULL segfault
+    * Fixed NYTUPLELIKE header for Python 3.14, which added Py_hash_t ob_hash
+      field to PyTupleObject
+
+2026-03-31  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Removed default filling of tp_new to PyType_GenericNew in NYFILL
+    * Fixed PyMem_RESIZE and PyObject_Realloc usage
+    * Fixed bitset OOM instantiation segfault
+    * Fixed set_relate reference leak
+    * Fixed ng_iter NULL check for PyObject_GC_New checking wrong variable
+    * Fixed frame_traverse iterator iterating on wrong variable
+
     Version 3.1.6
 
 2026-01-05  YiFei Zhu  <zhuyifei1999@gmail.com>
