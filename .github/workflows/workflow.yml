@@ -113,7 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, i386, arm64/v8, ppc64le, s390x, arm/v7]
+        arch: [amd64, i386, arm64/v8, ppc64le, riscv64 s390x, arm/v7]
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
@@ -166,7 +166,7 @@ jobs:
     if: github.event_name == 'push'
     strategy:
       matrix:
-        arch: [ppc64le, s390x, armv7l]
+        arch: [ppc64le, riscv64 s390x, armv7l]
         python-minor: ["10", "11", "12", "13", "14"]
 
     steps:
