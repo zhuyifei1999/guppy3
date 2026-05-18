@@ -82,6 +82,7 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
           classifiers=[
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",
+              "Programming Language :: Python :: Free Threading :: 2 - Beta",
               "Programming Language :: C",
               "Operating System :: OS Independent",
               "Development Status :: 4 - Beta",
