@@ -221,18 +221,15 @@ class TestHeapView(TestCase):
         gc.disable()  # a NULL-metatype type is a landmine for gc traversal
         try:
             header[idx] = None  # mimic an un-PyType_Ready'd type
-            try:
+            with self.assertRaises(SystemError) as cm:
                 hv.heap()  # must raise, not segfault
-            except SystemError as exc:
-                message = str(exc)
-            else:
-                raise AssertionError('expected SystemError for a NULL metatype')
         finally:
             header[idx] = original_metatype  # restore before anything else runs
             if gc_was_enabled:
                 gc.enable()
 
         # The error must name the offending type so its source is traceable.
+        message = str(cm.exception)
         assert 'NullMeta' in message
         assert 'metatype' in message
 
