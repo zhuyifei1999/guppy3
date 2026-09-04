@@ -154,7 +154,7 @@ xt_free_table(ExtraType **xt_table, size_t size)
         ExtraType *xt = xt_table[i];
         while (xt) {
             ExtraType *xt_next = xt->xt_next;
-            Py_DECREF(xt->xt_weak_type);
+            Py_XDECREF(xt->xt_weak_type);  /* may be NULL for a NULL-metatype type */
             PyMem_Del(xt);
             xt = xt_next;
         }
@@ -404,6 +404,12 @@ hv_new_xt_for_type_at_xtp(NyHeapViewObject *hv, PyTypeObject *type, ExtraType **
     *xtp = xt;
     xt->xt_hv = (void *)hv;
     xt->xt_type = type;
+    /* Skip the weak ref for types with a NULL metatype; PyWeakref_NewRef
+       would deref the NULL ob_type. */
+    if (Py_TYPE(type) == NULL) {
+        xt->xt_weak_type = NULL;
+        return xt;
+    }
     xt->xt_weak_type = PyWeakref_NewRef((PyObject *)type, hv->weak_type_callback);
     if (!xt->xt_weak_type) {
         PyMem_Del(xt);
@@ -603,6 +609,10 @@ int
 hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 {
     PyTypeObject *type = Py_TYPE(obj);
+    /* Hide objects whose type has a NULL metatype (never PyType_Ready'd),
+       they crash type introspection during classify. */
+    if (Py_TYPE(type) == NULL)
+        return 1;
     ExtraType *xt = hv_extra_type(hv, type);
     if (xt->xt_trav_code == XT_HE) {
         Py_ssize_t offs = xt->xt_he_offs;

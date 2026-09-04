@@ -179,6 +179,62 @@ class TestHeapView(TestCase):
         assert d in x
         assert t in x
 
+    def test_null_metatype_is_hidden(self):
+        # Regression test: an object whose type has a NULL metatype (ob_type)
+        # must not crash the heap walk. Calling PyWeakref_NewRef on such a type
+        # dereferences the NULL metatype and segfaults -- instead the walk must
+        # treat these objects as hidden.
+        import ctypes
+        import gc
+        import sys
+
+        if sys.implementation.name != 'cpython':
+            self.skipTest('requires the CPython object memory layout')
+
+        ptr_size = ctypes.sizeof(ctypes.c_void_p)
+
+        def ob_type_offset():
+            # Locate ob_type in the object header without hardcoding an offset
+            # (it differs between default and free-threaded builds) by finding
+            # the header word equal to the address of a probe object's type.
+            probe = object()
+            want = id(type(probe))
+            words = (ctypes.c_size_t * 8).from_address(id(probe))
+            for i in range(8):
+                if words[i] == want:
+                    return i * ptr_size
+            raise RuntimeError('could not locate ob_type in the object header')
+
+        hv = self.hv
+
+        class NullMeta:
+            __slots__ = ()
+
+        obj = NullMeta()
+        self.root.append(obj)
+
+        # With a valid metatype the object is an ordinary heap member.
+        assert obj in hv.heap()
+
+        idx = ob_type_offset() // ptr_size
+        header = (ctypes.c_void_p * (idx + 1)).from_address(id(NullMeta))
+        original_metatype = header[idx]
+        assert original_metatype == id(type(NullMeta))
+
+        gc_was_enabled = gc.isenabled()
+        gc.disable()  # a NULL-metatype type is a landmine for gc traversal
+        try:
+            header[idx] = None  # mimic an un-PyType_Ready'd type
+            x = hv.heap()       # must not segfault
+        finally:
+            header[idx] = original_metatype  # restore before anything else runs
+            if gc_was_enabled:
+                gc.enable()
+
+        # The NULL-metatype object is excluded; the rest of the heap is intact.
+        assert obj not in x
+        assert self.root in x
+
     def test_timing(self):
         # Test some timing aspects of heap traversal
 
