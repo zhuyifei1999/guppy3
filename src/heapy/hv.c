@@ -392,10 +392,32 @@ xt_findout_relate(ExtraType *xt)
         xt->xt_relate = xt_default_relate;
 }
 
+/* Raise for an object whose type was never PyType_Ready'd, i.e. its metatype
+   (ob_type) is NULL - a broken but reachable object would otherwise segfault
+   the walk in PyWeakref_NewRef below. Only tp_name is touched: it lives in
+   the type struct and does not need the metatype. Do not repr the type or the
+   object; that would dereference the NULL metatype too. */
+static void
+hv_set_null_metatype_error(PyTypeObject *type)
+{
+    PyErr_Format(PyExc_SystemError,
+                 "heapy: cannot inspect an object whose type '%.200s' (at %p) "
+                 "has a NULL metatype (ob_type); the type was never "
+                 "PyType_Ready()'d, which is invalid. This usually means a C "
+                 "extension statically declared a type with "
+                 "PyVarObject_HEAD_INIT(NULL, ...) and never readied it.",
+                 type->tp_name ? type->tp_name : "<unknown>", (void *)type);
+}
+
 static ExtraType *
 hv_new_xt_for_type_at_xtp(NyHeapViewObject *hv, PyTypeObject *type, ExtraType **xtp)
 {
-    ExtraType *xt = PyMem_New(ExtraType, 1);
+    ExtraType *xt;
+    if (Py_TYPE(type) == NULL) {
+        hv_set_null_metatype_error(type);
+        return 0;
+    }
+    xt = PyMem_New(ExtraType, 1);
     if (!xt) {
         PyErr_NoMemory();
         return 0;
@@ -904,6 +926,13 @@ typedef struct {
 static int
 hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
     int r;
+    /* Detect a NULL metatype before hv_is_obj_hidden() introspects the type, so
+       the walk raises instead of segfaulting (and the object never reaches the
+       result set or the classifier). */
+    if (Py_TYPE(Py_TYPE(obj)) == NULL) {
+        hv_set_null_metatype_error(Py_TYPE(obj));
+        return -1;
+    }
     if (hv_is_obj_hidden(ta->hv, obj) && Py_TYPE(obj) != &NyRootState_Type)
         return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
