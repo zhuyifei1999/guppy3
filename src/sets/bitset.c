@@ -2215,6 +2215,9 @@ Err1:
 static PyObject *
 mutbitset_iop(NyMutBitSetObject *v, int op, PyObject *w)
 {
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 15)
+#define PyAnyDict_Check PyDict_Check
+#endif
     int wt = 0;
     int r;
     anybitset_classify(v->ms, w, &wt);
@@ -2230,7 +2233,7 @@ mutbitset_iop(NyMutBitSetObject *v, int op, PyObject *w)
         r = mutbitset_iop_PyListObject(v, op, w);
     else if (PyTuple_Check(w))
         r = mutbitset_iop_PyTupleObject(v, op, w);
-    else if (PyDict_Check(w))
+    else if (PyAnyDict_Check(w))
         r = mutbitset_iop_PyDictObject(v, op, w);
     else if (NyIterable_Check(w))
         r = mutbitset_iop_iterable(v, op, w);
