@@ -4131,7 +4131,7 @@ PyType_Spec NyImmBitSet_Spec = {
 
 
 static NyMutBitSetObject *
-cplbitset_mutable_copy(NyCplBitSetObject *self)
+cplbitset_mutable_copy(NyCplBitSetObject *self, PyObject *args)
 {
     return mutbitset_new_from_arg(cplbitset_cpl(self)->ms, (PyObject *)self);
 }
@@ -4217,7 +4217,7 @@ mutbitset_reduce(NyMutBitSetObject *self, PyObject *args)
 
 
 static NyMutBitSetObject *
-mutbitset_mutable_copy(NyMutBitSetObject *self)
+mutbitset_mutable_copy(NyMutBitSetObject *self, PyObject *args)
 {
     return mutbitset_new_from_arg(self->ms, (PyObject *)self);
 }

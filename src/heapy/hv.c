@@ -1044,7 +1044,7 @@ hv_update_static_types(NyHeapViewObject *hv, PyObject *it)
 
 
 PyObject *
-hv_heap(NyHeapViewObject *self, PyObject *args, PyObject *kwds)
+hv_heap(NyHeapViewObject *self, PyObject *args)
 {
     HeapTravArg ta;
     NySTWWorkList to_visit;

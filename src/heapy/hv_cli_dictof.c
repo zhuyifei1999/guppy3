@@ -63,7 +63,7 @@ NYTUPLELIKE_ASSERT(DictofObject, hv);
 static PyObject *
 hv_cli_dictof_get_static_types_list(NyHeapViewObject *hv) {
     if (PyObject_Length(hv->static_types) == 0) {
-        PyObject *h = hv_heap(hv, Py_None, Py_None); /* It updates static_types */
+        PyObject *h = hv_heap(hv, Py_None); /* It updates static_types */
         if (!h)
             return NULL;
         Py_CLEAR(h);
