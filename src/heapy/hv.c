@@ -1047,6 +1047,7 @@ hv_heap(NyHeapViewObject *self, PyObject *args)
 {
     HeapTravArg ta;
     NySTWWorkList to_visit;
+    Py_ssize_t len;
     ta.hv = self;
     ta.visited = NULL;
     ta.to_visit = &to_visit;
@@ -1068,7 +1069,10 @@ hv_heap(NyHeapViewObject *self, PyObject *args)
     }
     if (hv_cleanup_mutset(ta.hv, ta.visited) == -1)
         goto err_start;
-    if (PyObject_Length(self->static_types) == 0) {
+    len = PyObject_Length(self->static_types);
+    if (len == -1)
+        goto err_start;
+    if (len == 0) {
         if (hv_update_static_types(self, (PyObject *)ta.visited) == -1)
             goto err_start;
     }
