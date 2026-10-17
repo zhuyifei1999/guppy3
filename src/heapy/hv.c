@@ -647,9 +647,17 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
             // hidden object, because Py_TPFLAGS_INLINE_VALUES will traverse
             // into the values of the dict, ignoring the _hiding_tag_ handling
             // in stdtypes.c
-            if (dict && PyDict_GetItem((PyObject *)dict, xt->xt_hv->_hiding_tag__name) ==
-                    xt->xt_hv->_hiding_tag_)
-                return 0;
+            if (dict) {
+                PyObject *hiding_tag;
+                int r;
+
+                r = PyDict_GetItemRef((PyObject *)dict, xt->xt_hv->_hiding_tag__name, &hiding_tag);
+                if (r == -1)
+                    return -1;
+                Py_XDECREF(hiding_tag);  /* Reference is also held by xt->xt_hv->_hiding_tag_ */
+                if (hiding_tag && hiding_tag == xt->xt_hv->_hiding_tag_)
+                    return 0;
+            }
         }
 #endif
     }
@@ -712,8 +720,16 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
         return 1;
     } else {
         PyObject **dp = _PyObject_GetDictPtr(obj);
-        if (dp && *dp && PyDict_GetItem(*dp, hv->_hiding_tag__name) == hv->_hiding_tag_) {
-            return 1;
+        if (dp && *dp) {
+            PyObject *hiding_tag;
+            int r;
+
+            r = PyDict_GetItemRef(*dp, hv->_hiding_tag__name, &hiding_tag);
+            if (r == -1)
+                return -1;
+            Py_XDECREF(hiding_tag);  /* Reference is also held by hv->_hiding_tag_ */
+            if (hiding_tag && hiding_tag == hv->_hiding_tag_)
+                return 1;
         }
     }
     return 0;
@@ -723,7 +739,10 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 static int
 hv_cms_rec(PyObject *obj, CMSTravArg *ta)
 {
-    if (hv_is_obj_hidden(ta->hv, obj)) {
+    int hidden = hv_is_obj_hidden(ta->hv, obj);
+    if (hidden == -1)
+        return -1;
+    if (hidden) {
         if (NySTWWorkList_Push(ta->rm, obj) == -1)
             return -1;
     }
@@ -1010,7 +1029,7 @@ typedef struct {
 
 static int
 hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
-    int r;
+    int r, hidden;
     /* Detect a NULL metatype before hv_is_obj_hidden() introspects the type, so
        the walk raises instead of segfaulting (and the object never reaches the
        result set or the classifier). */
@@ -1018,7 +1037,10 @@ hv_heap_rec(PyObject *obj, HeapTravArg *ta) {
         hv_set_null_metatype_error(Py_TYPE(obj));
         return -1;
     }
-    if (hv_is_obj_hidden(ta->hv, obj) && Py_TYPE(obj) != ta->hv->ms->RootState_Type)
+    hidden = hv_is_obj_hidden(ta->hv, obj);
+    if (hidden == -1)
+        return -1;
+    if (hidden && Py_TYPE(obj) != ta->hv->ms->RootState_Type)
         return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
@@ -1928,7 +1950,10 @@ int dummy;
 static int
 urco_traverse(PyObject *obj, URCOTravArg *ta)
 {
-    if (hv_is_obj_hidden(ta->hv, obj))
+    int hidden = hv_is_obj_hidden(ta->hv, obj);
+    if (hidden == -1)
+        return -1;
+    if (hidden)
         return 0;
     if (NyNodeGraph_AddEdge(ta->rg, obj, ta->retainer) == -1)
         return -1;

@@ -62,16 +62,19 @@ dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
     Py_ssize_t ix = 0;
     if (!dict)
         return 0;
+    Ny_BEGIN_CRITICAL_SECTION(dict);
     while (PyDict_Next(dict, &i, &pk, &pv)) {
         if (pk == r->tgt) {
             if (r->visit(k, PyLong_FromSsize_t(ix), r))
-                return 0;
+                goto out;
         }
         if (pv == r->tgt)
             if (r->visit(v, Py_NewRef(pk), r))
-                return 0;
+                goto out;
         ix++;
     }
+out:
+    Ny_END_CRITICAL_SECTION();
     return 0;
 }
 
@@ -85,8 +88,14 @@ static int
 dict_traverse(NyHeapTraverse *ta)
 {
     PyObject *v = (void *)ta->obj;
-    if (PyDict_GetItem(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name)
-            == ta->_hiding_tag_)
+    PyObject *hiding_tag;
+    int r;
+
+    r = PyDict_GetItemRef(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name, &hiding_tag);
+    if (r == -1)
+        return -1;
+    Py_XDECREF(hiding_tag);  /* Reference is also held by ta->_hiding_tag_ */
+    if (hiding_tag && hiding_tag == ta->_hiding_tag_)
         return 0;
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
@@ -96,8 +105,10 @@ dict_traverse(NyHeapTraverse *ta)
     Py_ssize_t i = 0;
     PyObject *pv;
 
+    Ny_BEGIN_CRITICAL_SECTION(v);
     while (PyDict_Next(v, &i, NULL, &pv))
         Py_VISIT(pv);
+    Ny_END_CRITICAL_SECTION();
 #endif
 
     return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
