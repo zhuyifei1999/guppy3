@@ -1928,7 +1928,7 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
 {
     PyObject *it = NULL;      /* iter(v) */
     NyMutBitSetObject *tms;
-    int r = -1;
+    int r = -1, r_iopbit;
 
     if (op == NyBits_AND) {
         tms = NyMutBitSet_New(muts->ms);
@@ -1943,7 +1943,6 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
         goto out;
 
     /* Run iterator to exhaustion. */
-    Ny_BEGIN_CRITICAL_SECTION(muts);
     for (;;) {
         PyObject *item = PyIter_Next(it);
         NyBit bit;
@@ -1956,13 +1955,17 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
         Py_CLEAR(item);
         if (bit == -1 && PyErr_Occurred())
             goto err;
-        if (mutbitset_iop_bitno(tms, op, bit) == -1)
+        /* PyIter_Next may yield back to python, so critical section cannot
+           cover the whole loop */
+        Ny_BEGIN_CRITICAL_SECTION(tms);
+        r_iopbit = mutbitset_iop_bitno(tms, op, bit);
+        Ny_END_CRITICAL_SECTION();
+        if (r_iopbit == -1)
             goto err;
     }
     r = 0;
 
 err:
-    Ny_END_CRITICAL_SECTION();
     if (tms != muts) {
         if (!PyErr_Occurred())
             if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
