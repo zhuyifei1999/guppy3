@@ -56,6 +56,8 @@ struct HeapycState {
     PyObject *RootState;
     PyObject *HandleSignalException;
 
+    PyObject *gc_mod;
+
     NyNodeSet_Exports *nodeset_exports;
     NyHeapDef HvTypes_HeapDef[4];
 };

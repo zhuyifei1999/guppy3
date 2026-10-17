@@ -1931,7 +1931,7 @@ hv_update_referrers_completely(NyHeapViewObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O!:update_referrers_completely",
                           self->ms->NodeGraph_Type, &ta.rg))
         goto err;
-    objects = gc_get_objects();
+    objects = gc_get_objects(self->ms);
     if (!objects)
         goto err;
     len = PyList_Size(objects);

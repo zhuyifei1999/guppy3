@@ -106,7 +106,7 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 
     if (!(ta.dictsowned = NyMutNodeSet_New(hv->ms->nodeset_exports->ms))) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
-    if (!(lists[1] = gc_get_objects())) goto err;
+    if (!(lists[1] = gc_get_objects(hv->ms))) goto err;
 
     NY_STOP_WORLD();
     for (k = 0; k < 2; k++) {

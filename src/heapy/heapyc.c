@@ -118,17 +118,10 @@ Err:
 }
 
 PyObject *
-gc_get_objects(void)
+gc_get_objects(struct HeapycState *ms)
 {
-    PyObject *gc = NULL, *objects = NULL;
-
     NY_ASSERT_WORLD_RUNNING();
-    gc = PyImport_ImportModule("gc");
-    if (!gc)
-        return NULL;
-    objects = PyObject_CallMethod(gc, "get_objects", "");
-    Py_CLEAR(gc);
-    return objects;
+    return PyObject_CallMethod(ms->gc_mod, "get_objects", "");
 }
 
 /* objects */
@@ -188,6 +181,7 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->RootState_Type);
     Py_VISIT(ms->RootState);
     Py_VISIT(ms->HandleSignalException);
+    Py_VISIT(ms->gc_mod);
 
     return 0;
 }
@@ -207,6 +201,7 @@ module_gc_clear(PyObject *m)
     Py_CLEAR(ms->RootState_Type);
     Py_CLEAR(ms->RootState);
     Py_CLEAR(ms->HandleSignalException);
+    Py_CLEAR(ms->gc_mod);
 
     return 0;
 }
@@ -262,6 +257,10 @@ module_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "HandleSignalException", HandleSignalException) == -1)
         return -1;
     ms->HandleSignalException = HandleSignalException;
+
+    ms->gc_mod = PyImport_ImportModule("gc");
+    if (!ms->gc_mod)
+        return -1;
 
     ms->HvTypes_HeapDef[0] = (NyHeapDef){
         0,                   /* flags */
