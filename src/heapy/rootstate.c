@@ -245,9 +245,6 @@ static struct NyDbgOffMemberDef is_members[] = {
 #if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
     MEMBER(optimizer, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj),
 #endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-    MEMBER(executor_list_head, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj), // TODO: Iterate this list
-#endif
 
     {{0}} /* Sentinel */
 };
@@ -416,9 +413,6 @@ rootstate_relate_unlocked(NyHeapRelate *r)
 #if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         ISATTR(optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 #endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-        ISATTR(executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
-#endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
              ts;
@@ -560,9 +554,6 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
 
 #if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
-#endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -857,9 +848,6 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 
 #if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         ISATTR_DIR(optimizer);
-#endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-        ISATTR_DIR(executor_list_head);
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);

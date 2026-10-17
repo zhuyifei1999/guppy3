@@ -351,6 +351,10 @@ frame_relate(NyHeapRelate *r)
     _PyStackRef *s = iv->localsplus + co->co_nlocalsplus;
     _PyStackRef *e = iv->stackpointer;
     for (p = s; p < e; p++) {
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
+        if (PyStackRef_IsNullOrInt(*p))
+            continue;
+# endif
         if (PyStackRef_AsPyObjectBorrow(*p) == r->tgt) {
             if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-s), r))
                 return 1;
@@ -462,8 +466,13 @@ frame_traverse(NyHeapTraverse *ta) {
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
         _PyStackRef *p;
 
-        for (p = iv->localsplus; p < iv->stackpointer; p++)
+        for (p = iv->localsplus; p < iv->stackpointer; p++) {
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
+            if (PyStackRef_IsNullOrInt(*p))
+                continue;
+# endif
             Py_VISIT(PyStackRef_AsPyObjectBorrow(*p));
+        }
 #else
         for (i = 0; i < iv->stacktop; i++)
             Py_VISIT(iv->localsplus[i]);
