@@ -165,15 +165,9 @@ ng_dealloc(PyObject *v)
         return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
     NyNodeGraphObject *ng = (void *)v;
-    Py_ssize_t i;
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, ng_dealloc)
     ng_gc_clear(ng);
-    for (i = 0; i < ng->used_size; i++) {
-        Py_CLEAR(ng->edges[i].src);
-        Py_CLEAR(ng->edges[i].tgt);
-    }
-    PyMem_Free(ng->edges);
     tp->tp_free(v);
     Py_CLEAR(tp);
     Py_TRASHCAN_END
