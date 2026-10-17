@@ -721,7 +721,7 @@ NyImmBitSet_SubtypeNewArg(PyTypeObject *type, PyObject *v)
     struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     int vt;
     NyMutBitSetObject *muts;
-    NyImmBitSetObject *ret;
+    NyImmBitSetObject *ret = NULL;
     if (!v) {
         return NyImmBitSet_SubtypeNew(type, 0);
     }
@@ -739,14 +739,14 @@ NyImmBitSet_SubtypeNewArg(PyTypeObject *type, PyObject *v)
         muts = mutbitset_new_from_arg(ms, v);
     if (!muts)
         return NULL;
-    if (muts->cpl) {
-        PyErr_SetString(PyExc_TypeError, "ImmBitSet.__new__ : complemented arg not supported");
-        Py_CLEAR(muts);
-        return NULL;
-    }
     /* Lock needed when vt == MUTSET */
     Ny_BEGIN_CRITICAL_SECTION(muts);
+    if (muts->cpl) {
+        PyErr_SetString(PyExc_TypeError, "ImmBitSet.__new__ : complemented arg not supported");
+        goto out;
+    }
     ret = mutbitset_as_noncomplemented_immbitset_subtype(muts, type);
+out:
     Ny_END_CRITICAL_SECTION();
     Py_CLEAR(muts);
     return ret;
