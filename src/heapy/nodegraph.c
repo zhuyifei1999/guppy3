@@ -233,7 +233,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         Py_ssize_t allo = roundupsize(ng->used_size + 1);
         NyNodeGraphEdge *edges = ng->edges;
 
-        PyMem_RESIZE(edges, NyNodeGraphEdge, allo);
+        PyMem_Resize(edges, NyNodeGraphEdge, allo);
         if (!edges) {
             PyErr_NoMemory();
             goto out;
@@ -311,7 +311,7 @@ ng_trim(NyNodeGraphObject *ng)
 
     NY_ASSERT_OBJ_LOCKED_OR_STW(ng);
 
-    PyMem_RESIZE(edges, NyNodeGraphEdge, ng->used_size);
+    PyMem_Resize(edges, NyNodeGraphEdge, ng->used_size);
     if (!edges)
         return;
 

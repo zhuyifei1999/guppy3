@@ -17,7 +17,7 @@ NySTWWorkList_Push(NySTWWorkList *w, PyObject *ob)
         Py_ssize_t allo = roundupsize(w->allo_size + 1);
         PyObject **arr = w->arr;
 
-        PyMem_RESIZE(arr, PyObject *, allo);
+        PyMem_Resize(arr, PyObject *, allo);
         if (!arr) {
             PyErr_NoMemory();
             return -1;
