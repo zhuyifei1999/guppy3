@@ -139,6 +139,9 @@ typedef struct {
 static int
 as_immutable_visit(PyObject *obj, NSISetArg *v)
 {
+    /* NyImmNodeSet_SubtypeNewCopy does not yield to GC, so the critical
+       section should hold */
+    assert(v->i < Py_SIZE(v->ns));
     v->ns->u.nodes[v->i] = Py_NewRef(obj);
     v->i += 1;
     return 0;
@@ -149,18 +152,22 @@ NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
 {
     PyObject *v_hiding_tag;
     NSISetArg sa;
+    NyNodeSetObject *r = NULL;
 
     Ny_BEGIN_CRITICAL_SECTION(v);
     v_hiding_tag = Py_XNewRef(v->_hiding_tag_);
-    Ny_END_CRITICAL_SECTION();
 
     sa.i = 0;
     sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v_hiding_tag);
     Py_CLEAR(v_hiding_tag);
     if (!sa.ns)
-        return NULL;
+        goto out;
     NyNodeSet_iterate(v, (visitproc)as_immutable_visit, &sa);
-    return sa.ns;
+    r = sa.ns;
+
+out:
+    Ny_END_CRITICAL_SECTION();
+    return r;
 }
 
 NyNodeSetObject *
