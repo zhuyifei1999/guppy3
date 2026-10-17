@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -296,7 +295,7 @@ immnodeset_hash(NyNodeSetObject *v)
 #define OFF(x) offsetof(NyNodeSetObject, x)
 
 static PyMemberDef immnodeset_members[] = {
-    {"_hiding_tag_",     T_OBJECT_EX, OFF(_hiding_tag_), READONLY},
+    {"_hiding_tag_",     Py_T_OBJECT_EX, OFF(_hiding_tag_), Py_READONLY},
     {0} /* Sentinel */
 };
 

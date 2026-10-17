@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -4337,7 +4336,7 @@ static PyGetSetDef mutbitset_getsets[] = {
 
 #define OFF(x) offsetof(NyMutBitSetObject, x)
 static PyMemberDef mutbitset_members[] = {
-    {"_splitting_size", T_INT, OFF(splitting_size)},
+    {"_splitting_size", Py_T_INT, OFF(splitting_size)},
     {0} /* Sentinel */
 };
 

@@ -1,7 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 

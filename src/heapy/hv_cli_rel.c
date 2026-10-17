@@ -7,7 +7,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -153,8 +152,8 @@ static PyMethodDef rel_methods[] = {
 #define OFF(x) offsetof(NyRelationObject, x)
 
 static PyMemberDef rel_members[] = {
-    {"kind", T_INT, OFF(kind), READONLY},
-    {"relator", T_OBJECT, OFF(relator), READONLY},
+    {"kind", Py_T_INT, OFF(kind), Py_READONLY},
+    {"relator", _Py_T_OBJECT, OFF(relator), Py_READONLY},
     {0} /* Sentinel */
 };
 

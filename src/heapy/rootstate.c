@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -186,17 +185,17 @@ struct NyDbgOffMemberDef {
 
 #if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
 # define MEMBER(name, refattr, dbgoff, extraoff)                \
-    {{#name, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
+    {{#name, _Py_T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
 # define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) \
-    {{#newname, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
+    {{#newname, _Py_T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
 #else
 # define MEMBER(name, refattr, dbgoff, extraoff) {                \
-    {#name, T_OBJECT, offsetof(PyInterpreterState, name)},        \
+    {#name, _Py_T_OBJECT, offsetof(PyInterpreterState, name)},        \
     offsetof(PyInterpreterState, refattr),                        \
     offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
     extraoff}
 # define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) { \
-    {#newname, T_OBJECT, offsetof(PyInterpreterState, name)},     \
+    {#newname, _Py_T_OBJECT, offsetof(PyInterpreterState, name)},     \
     offsetof(PyInterpreterState, refattr),                        \
     offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
     extraoff}
@@ -256,8 +255,8 @@ static struct NyDbgOffMemberDef is_members[] = {
 #undef MEMBER
 #undef RENAMEMEMBER
 
-#define MEMBER(name) {#name, T_OBJECT, offsetof(PyThreadState, name)}
-#define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyThreadState, name)}
+#define MEMBER(name) {#name, _Py_T_OBJECT, offsetof(PyThreadState, name)}
+#define RENAMEMEMBER(name, newname) {#newname, _Py_T_OBJECT, offsetof(PyThreadState, name)}
 
 static struct PyMemberDef ts_members[] = {
 #if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 11)

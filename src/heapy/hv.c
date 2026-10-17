@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -253,7 +252,7 @@ owht_relate(NyHeapRelate *r, PyTypeObject *type)
     PyMemberDef *mp = type->tp_members;
     if (mp) {
         while (mp->name) {
-            if ((mp->type == T_OBJECT_EX || mp->type == T_OBJECT) &&
+            if ((mp->type == Py_T_OBJECT_EX || mp->type == _Py_T_OBJECT) &&
                 *((PyObject **)((char *)v+mp->offset)) == r->tgt) {
                 if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromString(mp->name), r))
                     return 1;
@@ -2019,7 +2018,7 @@ static PyMethodDef hv_methods[] = {
 
 
 static PyMemberDef hv_members[] = {
-    {"_hiding_tag_",     T_OBJECT, OFF(_hiding_tag_), 0,
+    {"_hiding_tag_",     _Py_T_OBJECT, OFF(_hiding_tag_), 0,
 "HV._hiding_tag_\n\
 \n\
 The hiding tag defining what objects are hidden from the view defined\n\
@@ -2032,7 +2031,7 @@ o The object is of a type that has been registered for hiding\n\
 o The object is of instance type. Such an object will be checked\n\
     for a _hiding_tag_ item in its __dict__.\n\
 "},
-    {"is_hiding_calling_interpreter", T_UBYTE, OFF(is_hiding_calling_interpreter), 0,
+    {"is_hiding_calling_interpreter", Py_T_UBYTE, OFF(is_hiding_calling_interpreter), 0,
 "HV.is_hiding_calling_interpreter : boolean kind\n\
 \n\
 If True, the data of the interpreter using the HV will be hidden from\n\
@@ -2044,7 +2043,7 @@ interpreter(s). It would set is_hiding_calling_interpreter to True in\n\
 the HV it is using. Its own data will then be hidden from view, making\n\
 memory leak detection more practical."},
 
-    {"root",     T_OBJECT, OFF(root), 0,
+    {"root",     _Py_T_OBJECT, OFF(root), 0,
 "HV.root\n\
 \n\
 An object that is used as the starting point when traversing the\n\
@@ -2054,7 +2053,7 @@ Python interpreter structures. It can be set to any other object,\n\
 especially for test purposes.\n\
 \n\
 See also: RootState"},
-    {"static_types",     T_OBJECT , OFF(static_types), READONLY,
+    {"static_types",     _Py_T_OBJECT , OFF(static_types), Py_READONLY,
 "HV.static_types : NodeSet, read only\n\
 \n\
 The 'static types' that have been found.\n\
@@ -2062,7 +2061,7 @@ The 'static types' that have been found.\n\
 The static types are the type objects that are not heap allocated, but\n\
 are defined directly in C code. HeapView searches for these among all\n\
 reachable objects (at a suitable time or as needed)."},
-    {"_hiding_tag__name",     T_OBJECT , OFF(_hiding_tag__name), READONLY,
+    {"_hiding_tag__name",     _Py_T_OBJECT , OFF(_hiding_tag__name), Py_READONLY,
 "HV._hiding_tag__name : string, read only\n\
 \n\
 Cached string \"_hiding_tag_\" for dict lookups."},

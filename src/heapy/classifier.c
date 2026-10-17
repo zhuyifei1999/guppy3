@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -346,7 +345,7 @@ static PyMethodDef cli_methods[] = {
 #define OFF(x) offsetof(NyObjectClassifierObject, x)
 
 static PyMemberDef cli_members[] = {
-    {"self",  T_OBJECT,     OFF(self), READONLY},
+    {"self",  _Py_T_OBJECT,     OFF(self), Py_READONLY},
     {0} /* Sentinel */
 };
 

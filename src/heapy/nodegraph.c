@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -948,16 +947,16 @@ static PyGetSetDef ng_getset[] = {
 #define OFF(x) offsetof(NyNodeGraphObject, x)
 
 static PyMemberDef ng_members[] = {
-    {"_hiding_tag_",     T_OBJECT_EX, OFF(_hiding_tag_), 0,
+    {"_hiding_tag_",     Py_T_OBJECT_EX, OFF(_hiding_tag_), 0,
 "The hiding tag: if it is the the same object as the hiding tag\n\
 of a HeapView object, the nodegraph will be hidden from that view."},
-    {"is_mapping", T_UBYTE, OFF(is_mapping), READONLY,
+    {"is_mapping", Py_T_UBYTE, OFF(is_mapping), Py_READONLY,
 "NG.is_mapping : boolean kind, read only\n\
 \n\
 True if NG is a 'mapping'. Then, only one edge is allowed for each\n\
 source; indexing returns the actual target object instead of a tuple\n\
 of targets."},
-    {"is_sorted", T_UBYTE, OFF(is_sorted), READONLY,
+    {"is_sorted", Py_T_UBYTE, OFF(is_sorted), Py_READONLY,
 "NG.is_sorted : boolean kind, read only\n\
 \n\
 True if NG is sorted. It will become unsorted after any update. It\n\

@@ -3,7 +3,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
 
@@ -1091,7 +1090,7 @@ static PyMethodDef mutnodeset_methods[] = {
 #define OFF(x) offsetof(NyNodeSetObject, x)
 
 static PyMemberDef mutnodeset_members[] = {
-    {"_hiding_tag_",       T_OBJECT_EX, OFF(_hiding_tag_)},
+    {"_hiding_tag_",       Py_T_OBJECT_EX, OFF(_hiding_tag_)},
     {0} /* Sentinel */
 };
 
