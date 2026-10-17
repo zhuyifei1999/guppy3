@@ -2731,18 +2731,21 @@ static PyObject *
 mutbitset_slice(NyMutBitSetObject *a, NyBit ilow, NyBit ihigh)
 {
     NySetField *ss, *se;
-    PyObject *r;
+    PyObject *r = NULL;
     if (ilow == 0 && ihigh == PY_SSIZE_T_MAX) {
         return NyMutBitSet_AsImmBitSet(a);
     }
+
+    Ny_BEGIN_CRITICAL_SECTION(a);
     if (a->cpl) {
         PyErr_SetString(PyExc_IndexError,
 "mutbitset_slice(): The mutset is complemented, and doesn't support other slice than [:].\n");
-        return NULL;
+        goto out;
     }
-    Ny_BEGIN_CRITICAL_SECTION(a);
     ss = mutbitset_getrange(a, &se);
     r = (PyObject *)sf_slice(a->ms, ss, se, ilow, ihigh);
+
+out:
     Ny_END_CRITICAL_SECTION();
     return r;
 }
