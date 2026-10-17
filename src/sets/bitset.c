@@ -1928,6 +1928,8 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
 {
     PyObject *it = NULL;      /* iter(v) */
     NyMutBitSetObject *tms;
+    int r = -1;
+
     if (op == NyBits_AND) {
         tms = NyMutBitSet_New(muts->ms);
         if (!tms) return -1;
@@ -1938,7 +1940,7 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
 
     it = PyObject_GetIter(v);
     if (it == NULL)
-        goto Err;
+        goto out;
 
     /* Run iterator to exhaustion. */
     Ny_BEGIN_CRITICAL_SECTION(muts);
@@ -1947,30 +1949,29 @@ mutbitset_iop_iterable(NyMutBitSetObject *muts, int op, PyObject *v)
         NyBit bit;
         if (item == NULL) {
             if (PyErr_Occurred())
-                goto Err;
+                goto err;
             break;
         }
         bit = bitno_from_object(item);
         Py_CLEAR(item);
         if (bit == -1 && PyErr_Occurred())
-            goto Err;
+            goto err;
         if (mutbitset_iop_bitno(tms, op, bit) == -1)
-            goto Err;
+            goto err;
     }
-    Ny_END_CRITICAL_SECTION();
+    r = 0;
 
+err:
+    Ny_END_CRITICAL_SECTION();
     if (tms != muts) {
-        if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
-            goto Err;
+        if (!PyErr_Occurred())
+            if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
+                r = -1;
         Py_CLEAR(tms);
     }
+out:
     Py_CLEAR(it);
-    return 0;
-Err:
-    if (tms != muts)
-        Py_CLEAR(tms);
-    Py_CLEAR(it);
-    return -1;
+    return r;
 }
 
 static int
@@ -1979,6 +1980,8 @@ mutbitset_iop_PyListObject(NyMutBitSetObject *muts, int op, PyObject *v)
     NyBit size;
     NyBit i;
     NyMutBitSetObject *tms;
+    int r = -1;
+
     if (op == NyBits_AND) {
         tms = NyMutBitSet_New(muts->ms);
         if (!tms) return -1;
@@ -1992,23 +1995,21 @@ mutbitset_iop_PyListObject(NyMutBitSetObject *muts, int op, PyObject *v)
     for (i = 0; i < size; i++) {
         NyBit bit = bitno_from_object(PyList_GET_ITEM(v, i));
         if (bit == -1 && PyErr_Occurred())
-            goto Err;
+            goto err;
         if (mutbitset_iop_bitno(tms, op, bit) == -1)
-            goto Err;
+            goto err;
     }
+    r = 0;
+
+err:
     Ny_END_CRITICAL_SECTION2();
-
     if (tms != muts) {
-        if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
-            goto Err;
+        if (!PyErr_Occurred())
+            if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
+                r = -1;
         Py_CLEAR(tms);
     }
-    return 0;
-
-Err:
-    if (tms != muts)
-        Py_CLEAR(tms);
-    return -1;
+    return r;
 }
 
 static int
@@ -2017,6 +2018,8 @@ mutbitset_iop_PyTupleObject(NyMutBitSetObject *muts, int op, PyObject *v)
     NyBit size = PyTuple_GET_SIZE(v);
     NyBit i;
     NyMutBitSetObject *tms;
+    int r = -1;
+
     if (op == NyBits_AND) {
         tms = NyMutBitSet_New(muts->ms);
         if (!tms) return -1;
@@ -2030,23 +2033,21 @@ mutbitset_iop_PyTupleObject(NyMutBitSetObject *muts, int op, PyObject *v)
     for (i = 0; i < size; i++) {
         NyBit bit = bitno_from_object(PyTuple_GET_ITEM(v, i));
         if (bit == -1 && PyErr_Occurred())
-            goto Err;
+            goto err;
         if (mutbitset_iop_bitno(tms, op, bit) == -1)
-            goto Err;
+            goto err;
     }
+    r = 0;
+
+err:
     Ny_END_CRITICAL_SECTION();
-
     if (tms != muts) {
-        if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
-            goto Err;
+        if (!PyErr_Occurred())
+            if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
+                r = -1;
         Py_CLEAR(tms);
     }
-    return 0;
-
-Err:
-    if (tms != muts)
-        Py_CLEAR(tms);
-    return -1;
+    return r;
 }
 
 static int
@@ -2055,6 +2056,8 @@ mutbitset_iop_PyDictObject(NyMutBitSetObject *muts, int op, PyObject *v)
     Py_ssize_t i;
     NyMutBitSetObject *tms;
     PyObject *key, *value;
+    int r = -1;
+
     if (op == NyBits_AND) {
         tms = NyMutBitSet_New(muts->ms);
         if (!tms) return -1;
@@ -2068,23 +2071,21 @@ mutbitset_iop_PyDictObject(NyMutBitSetObject *muts, int op, PyObject *v)
     while (PyDict_Next(v, &i, &key, &value)) {
         NyBit bit = bitno_from_object(key);
         if (bit == -1 && PyErr_Occurred())
-            goto Err;
+            goto err;
         if (mutbitset_iop_bitno(tms, op, bit) == -1)
-            goto Err;
+            goto err;
     }
+    r = 0;
+
+err:
     Ny_END_CRITICAL_SECTION2();
-
     if (tms != muts) {
-        if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
-            goto Err;
+        if (!PyErr_Occurred())
+            if (mutbitset_iop_mutset(muts, NyBits_AND, tms) == -1)
+                r = -1;
         Py_CLEAR(tms);
     }
-    return 0;
-
-Err:
-    if (tms != muts)
-        Py_CLEAR(tms);
-    return -1;
+    return r;
 }
 
 static int
