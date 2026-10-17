@@ -1328,7 +1328,14 @@ err_start:
 static Py_ssize_t
 hv_get_member_offset(PyTypeObject *type, char *member_name)
 {
-    PyObject *mro = type->tp_mro;
+    Py_ssize_t r = -1;
+    PyObject *mro;
+
+    /* With freethreading, tp_mro slot can be atomically swapped. Proper access
+       requires a dance of incref and xcmpchg. However this path should be
+       very cold, so I'm just opting for a stop the world instead. */
+    NY_STOP_WORLD();
+    mro = type->tp_mro;
     if (mro) {
         Py_ssize_t i;
         for (i = 0; i < PyTuple_GET_SIZE(mro); i++) {
@@ -1337,15 +1344,20 @@ hv_get_member_offset(PyTypeObject *type, char *member_name)
                 PyMemberDef *mp = ((PyTypeObject *)t)->tp_members;
                 if (mp) {
                     while (mp->name) {
-                        if (strcmp(mp->name, member_name) == 0)
-                            return mp->offset;
+                        if (strcmp(mp->name, member_name) == 0) {
+                            r = mp->offset;
+                            goto out;
+                        }
                         mp++;
                     }
                 }
             }
         }
     }
-    return -1;
+
+out:
+    NY_START_WORLD();
+    return r;
 }
 
 PyDoc_STRVAR(hv_register__hiding_tag__type_doc,
