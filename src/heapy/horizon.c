@@ -356,7 +356,7 @@ static PyType_Slot horizon_slots[] = {
     {Py_tp_methods,  horizon_methods},
     {Py_tp_alloc,    PyType_GenericAlloc},
     {Py_tp_new,      horizon_new},
-    {Py_tp_free,     PyObject_Del},
+    {Py_tp_free,     PyObject_Free},
     {0, NULL},
 };
 

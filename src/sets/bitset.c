@@ -4117,7 +4117,7 @@ static PyType_Slot immbitset_slots[] = {
     {Py_tp_getset,      immbitset_getsets},
     {Py_tp_alloc,       PyType_GenericAlloc},
     {Py_tp_new,         immbitset_new},
-    {Py_tp_free,        PyObject_Del},
+    {Py_tp_free,        PyObject_Free},
     {0, NULL}
 };
 
@@ -4184,7 +4184,7 @@ static PyType_Slot cplbitset_slots[] = {
     {Py_tp_getset,      cplbitset_getsets},
     {Py_tp_alloc,       PyType_GenericAlloc},
     {Py_tp_new,         cplbitset_new},
-    {Py_tp_free,        PyObject_Del},
+    {Py_tp_free,        PyObject_Free},
     {0, NULL}
 };
 
@@ -4367,7 +4367,7 @@ static PyType_Slot mutbitset_slots[] = {
     {Py_tp_getset,           mutbitset_getsets},
     {Py_tp_alloc,            PyType_GenericAlloc},
     {Py_tp_new,              mutbitset_new},
-    {Py_tp_free,             PyObject_Del},
+    {Py_tp_free,             PyObject_Free},
     {0, NULL}
 };
 

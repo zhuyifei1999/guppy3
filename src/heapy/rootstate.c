@@ -967,7 +967,7 @@ static PyType_Slot rootstate_slots[] = {
     {Py_tp_methods,  rootstate_methods},
     {Py_tp_alloc,    PyType_GenericAlloc},
     {Py_tp_new,      rootstate_new},
-    {Py_tp_free,     PyObject_Del},
+    {Py_tp_free,     PyObject_Free},
     {0, NULL}
 };
 
