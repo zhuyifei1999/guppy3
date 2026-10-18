@@ -16,6 +16,10 @@
    Py_PACK_FULL_VERSION(major, minor, 0, 0, 0)
 #endif
 
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 12)
+# include "structmember.h"  // PyMemberDef
+#endif
+
 #ifdef Py_GIL_DISABLED
 # define Ny_BEGIN_CRITICAL_SECTION(op) Py_BEGIN_CRITICAL_SECTION(op)
 # define Ny_END_CRITICAL_SECTION() Py_END_CRITICAL_SECTION()
