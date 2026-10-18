@@ -114,7 +114,9 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, i386, arm64/v8, ppc64le, riscv64, s390x, arm/v7]
-        python-version: ["3.11", "3.12", "3.13", "3.14", "3.14t", "3.15", "3.15t"]
+        # TODO: "3.14t", "3.15t"
+        # https://github.com/docker-library/python/issues/1082
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
 
     steps:
     - name: Download sdist
