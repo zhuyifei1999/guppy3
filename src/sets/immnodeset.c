@@ -461,6 +461,6 @@ PyType_Spec NyImmNodeSet_Spec = {
     .basicsize = offsetof(NyNodeSetObject, u.nodes),
     .itemsize  = sizeof(PyObject *),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
     .slots     = immnodeset_slots,
 };

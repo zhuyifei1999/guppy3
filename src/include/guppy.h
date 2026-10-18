@@ -75,13 +75,6 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
 # define Ny_NEWREF(obj) ((void *)Py_NewRef(obj))
 #endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-#define Ny_TPFLAGS_BASETYPE_ON_PY3_11 Py_TPFLAGS_BASETYPE
-#else
-/* Python 3.10 doesn't have PyType_GetModuleByDef, so make types non-inheritable */
-#define Ny_TPFLAGS_BASETYPE_ON_PY3_11 0
-#endif
-
 static inline void *
 NyModule_AssertState(PyObject *module)
 {
@@ -93,12 +86,7 @@ NyModule_AssertState(PyObject *module)
 static inline void *
 NyType_AssertModuleState(PyTypeObject *type, struct PyModuleDef *def)
 {
-    PyObject *module;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-    module = PyType_GetModuleByDef(type, def);
-#else
-    module = PyType_GetModule(type);
-#endif
+    PyObject *module = PyType_GetModuleByDef(type, def);
     assert(module);
     return NyModule_AssertState(module);
 }
@@ -113,12 +101,7 @@ NyType_AssertModuleState2(PyTypeObject *type1, PyTypeObject *type2,
     if (type1 == type2)
         return NyType_AssertModuleState(type1, def);
 
-    PyObject *module;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-    module = PyType_GetModuleByDef(type1, def);
-#else
-    module = PyType_GetModule(type1);
-#endif
+    PyObject *module = PyType_GetModuleByDef(type1, def);
     if (module)
         return NyModule_AssertState(module);
 

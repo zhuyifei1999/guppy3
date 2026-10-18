@@ -4129,7 +4129,7 @@ PyType_Spec NyImmBitSet_Spec = {
     .basicsize = offsetof(NyImmBitSetObject, ob_field),
     .itemsize  = sizeof(NyBitField),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_BASETYPE,
     .slots     = immbitset_slots,
 };
 
@@ -4195,7 +4195,7 @@ PyType_Spec NyCplBitSet_Spec = {
     .name      = "guppy.sets.setsc.CplBitSet",
     .basicsize = sizeof(NyCplBitSetObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_BASETYPE,
     .slots     = cplbitset_slots,
 };
 
@@ -4378,7 +4378,7 @@ PyType_Spec NyMutBitSet_Spec = {
     .name      = "guppy.sets.setsc.MutBitSet",
     .basicsize = sizeof(NyMutBitSetObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_BASETYPE,
     .slots     = mutbitset_slots,
 };
 

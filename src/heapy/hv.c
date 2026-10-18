@@ -627,7 +627,6 @@ static int
 xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 {
     NY_ASSERT_WORLD_STOPPED();
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     if (Py_TYPE(obj)->tp_flags & Py_TPFLAGS_MANAGED_DICT) {
         // FIXME: There's no way to distinguish between managed dict entries
         // and other references. To keep our results stable we have to
@@ -661,7 +660,6 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
         }
 #endif
     }
-#endif
     if (xt->xt_trav_code == XT_NO)
         return 0;
     else if (xt->xt_trav_code == XT_TP)
@@ -2125,6 +2123,6 @@ PyType_Spec NyHeapView_Spec = {
     .name      = "guppy.heapy.heapyc.HeapView",
     .basicsize = sizeof(NyHeapViewObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
     .slots     = hv_slots,
 };

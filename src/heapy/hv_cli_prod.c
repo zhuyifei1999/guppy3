@@ -32,13 +32,11 @@ const char hv_cli_prod_doc[] = PyDoc_STR(
 # endif
 #undef Py_BUILD_CORE
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-# define Py_BUILD_CORE
-#  undef _PyObject_LookupSpecial
+#define Py_BUILD_CORE
+# undef _PyObject_LookupSpecial
 /* _PyType_PreHeaderSize */
-#  include <internal/pycore_object.h>
-# undef Py_BUILD_CORE
-#endif
+# include <internal/pycore_object.h>
+#undef Py_BUILD_CORE
 
 #ifndef Py_GIL_DISABLED
 // The sizeof of PyGC_Head is not to be trusted upon even across Python minor
@@ -52,11 +50,7 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head)
         return 0;
 
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     if (Py_Version == PY_VERSION_HEX) {
-# else
-    if (PyLong_AsLong(PySys_GetObject("hexversion")) == PY_VERSION_HEX) {
-# endif
         sizeof_PyGC_Head = sizeof(PyGC_Head);
         return 0;
     }
@@ -146,14 +140,12 @@ hv_cli_prod_classify(struct HeapycState *ms, ProdObject *self, PyObject *obj)
         ptr = (Py_uintptr_t)obj;
     }
 
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     // https://github.com/python/cpython/issues/101430
     ptr -= _PyType_PreHeaderSize(Py_TYPE(obj));
     // _PyType_PreHeaderSize would add an extra compile-time sizeof(PyGC_Head),
     // which may be different from the true value in sizeof_PyGC_Head
     if (PyType_IS_GC(Py_TYPE(obj)))
         ptr += sizeof(PyGC_Head);
-# endif
 #endif
 
     tb = _PyTraceMalloc_GetTraceback(0, (Py_uintptr_t)ptr);

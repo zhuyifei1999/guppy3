@@ -74,9 +74,6 @@ class TestHeapView(TestCase):
         inner()
 
     def test_inheritance_from_heapview(self):
-        if self.version_info < (3, 11):
-            self.skipTest('inheriting from C types requires Python 3.12')
-
         # I am not using inheritance from HeapView,
         # but it would be kinda weird if it didn't work.
 
@@ -92,9 +89,6 @@ class TestHeapView(TestCase):
         assert hv.heap() == self.nodeset([x, newroot])
 
     def test_inheritance_from_special_types(self):
-        if self.version_info < (3, 11):
-            self.skipTest('inheriting from C types requires Python 3.12')
-
         # Test that relate, size & traverse function correctly for inherited types
         # as discussed in Notes Apr 14 2005.
         # Testing with a standard type (list) with specially size and relate definitions,
@@ -614,9 +608,6 @@ class TestNodeGraph(TestCase):
         assert ng.is_sorted
 
     def test_inheritance(self):
-        if self.version_info < (3, 11):
-            self.skipTest('inheriting from C types requires Python 3.12')
-
         class T(self.heapyc.NodeGraph):
             __slots__ = 'x'
 

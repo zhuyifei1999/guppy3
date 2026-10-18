@@ -277,6 +277,6 @@ PyType_Spec NyNodeTuple_Spec = {
     .itemsize  = sizeof(PyObject *),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
                  Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION |
-                 Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_BASETYPE,
     .slots     = nodetuple_slots,
 };

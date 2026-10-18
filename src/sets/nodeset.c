@@ -1172,7 +1172,7 @@ PyType_Spec NyMutNodeSet_Spec = {
     .name      = "guppy.sets.setsc.MutNodeSet",
     .basicsize = sizeof(NyNodeSetObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
     .slots     = mutnodeset_slots,
 };
 

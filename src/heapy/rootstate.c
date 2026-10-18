@@ -256,10 +256,6 @@ static struct NyDbgOffMemberDef is_members[] = {
 #define RENAMEMEMBER(name, newname) {#newname, _Py_T_OBJECT, offsetof(PyThreadState, name)}
 
 static struct PyMemberDef ts_members[] = {
-#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 11)
-    MEMBER(frame),
-#endif
-
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
 
@@ -271,13 +267,7 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(curexc_traceback),
 #endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     RENAMEMEMBER(exc_state.exc_value, exc_value),
-#else
-    RENAMEMEMBER(exc_state.exc_type, exc_type),
-    RENAMEMEMBER(exc_state.exc_value, exc_value),
-    RENAMEMEMBER(exc_state.exc_traceback, exc_traceback),
-#endif
 
     MEMBER(dict),
     MEMBER(async_exc),
@@ -422,7 +412,6 @@ rootstate_relate_unlocked(NyHeapRelate *r)
                 int frameno = -1;
                 int numframes = 0;
                 PyFrameObject *frame;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
                 for (frame = PyThreadState_GetFrame(ts); frame;) {
                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                     numframes++;
@@ -431,13 +420,6 @@ rootstate_relate_unlocked(NyHeapRelate *r)
                     Py_CLEAR(frame);
                     frame = next_frame;
                 }
-#else
-                for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-                    numframes++;
-                    if ((PyObject *)frame == r->tgt)
-                        frameno = numframes;
-                }
-#endif
                 if (frameno != -1) {
                     frameno = numframes - frameno;
                     if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno), r))
@@ -455,13 +437,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
             TSATTR(curexc_traceback);
 #endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
             RENAMETSATTR(exc_state.exc_value, exc_value);
-#else
-            RENAMETSATTR(exc_state.exc_type, exc_type);
-            RENAMETSATTR(exc_state.exc_value, exc_value);
-            RENAMETSATTR(exc_state.exc_traceback, exc_traceback);
-#endif
 
             TSATTR(dict);
             TSATTR(async_exc);
@@ -562,13 +538,9 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
                 PyFrameObject *frame = PyThreadState_GetFrame(ts);
                 Py_VISIT(frame);
                 Py_CLEAR(frame);
-#else
-                Py_VISIT(ts->frame);
-#endif
             }
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
@@ -581,13 +553,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
             Py_VISIT(ts->curexc_traceback);
 #endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
             Py_VISIT(ts->exc_state.exc_value);
-#else
-            Py_VISIT(ts->exc_state.exc_type);
-            Py_VISIT(ts->exc_state.exc_value);
-            Py_VISIT(ts->exc_state.exc_traceback);
-#endif
 
             Py_VISIT(ts->dict);
             Py_VISIT(ts->async_exc);
@@ -687,7 +653,6 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                             if (sscanf(s, "f%d%n", &frameno, &n) == 1 && s[n] == '\0') {
                                 int numframes = 0;
                                 PyFrameObject *frame;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
                                 PyFrameObject *current_frame = PyThreadState_GetFrame(ts);
                                 for (frame = (PyFrameObject *)Py_XNewRef(current_frame); frame;) {
                                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
@@ -706,16 +671,6 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                                     frame = next_frame;
                                 }
                                 Py_CLEAR(current_frame);
-#else
-                                for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes++;
-                                }
-                                for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes--;
-                                    if (numframes == frameno)
-                                        return Py_NewRef(frame);
-                                }
-#endif
                                 PyErr_Format(PyExc_AttributeError,
                                              "thread state has no frame numbered %d from bottom",
                                              frameno);
@@ -855,18 +810,12 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
              ts = PyThreadState_Next(ts)) {
             int numframes = 0;
             PyFrameObject *frame;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
             for (frame = PyThreadState_GetFrame(ts); frame;) {
                 PyFrameObject *next_frame = PyFrame_GetBack(frame);
                 numframes++;
                 Py_CLEAR(frame);
                 frame = next_frame;
             }
-#else
-            for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-                numframes++;
-            }
-#endif
             int frameno;
             for (frameno = 0; frameno < numframes; frameno++) {
                 attr = PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno);

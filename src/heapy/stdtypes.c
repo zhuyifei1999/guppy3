@@ -22,14 +22,12 @@
 # undef Py_BUILD_CORE
 #endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-# define Py_BUILD_CORE
+#define Py_BUILD_CORE
 /* PyFrameObject */
-#  include <internal/pycore_frame.h>
+# include <internal/pycore_frame.h>
 /* _PyLocals_GetKind */
-#  include <internal/pycore_code.h>
-# undef Py_BUILD_CORE
-#endif
+# include <internal/pycore_code.h>
+#undef Py_BUILD_CORE
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 # define Py_BUILD_CORE
@@ -224,39 +222,13 @@ module_relate(NyHeapRelate *r)
     return dict_relate_kv(r, dct, NYHR_HASATTR, NYHR_ATTRIBUTE);
 }
 
-#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 11)
-static int
-frame_locals(NyHeapRelate *r, PyObject *map, Py_ssize_t start, Py_ssize_t n, int deref)
-{
-    PyFrameObject *v = (void *)r->src;
-    Py_ssize_t i;
-    for (i = start; i < start + n; i++) {
-        if ((!deref && v->f_localsplus[i] == r->tgt) ||
-            (deref && PyCell_GET(v->f_localsplus[i]) == r->tgt)) {
-            PyObject *name;
-            if (PyTuple_Check(map) && (i - start) < PyTuple_Size(map))
-                name = Py_NewRef(PyTuple_GetItem(map, i - start));
-            else
-                name = PyUnicode_FromString("?");
-            if (r->visit(deref? NYHR_CELL : NYHR_LOCAL_VAR, name, r))
-                return 1;
-        }
-    }
-    return 0;
-}
-#endif
-
 static int
 frame_relate(NyHeapRelate *r)
 {
     NY_ASSERT_WORLD_STOPPED();
 
     PyFrameObject *v = (void *)r->src;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     _PyInterpreterFrame *iv = v->f_frame;
-#else
-    PyFrameObject *iv = v;
-#endif
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     PyCodeObject *co = (PyCodeObject *)PyStackRef_AsPyObjectBorrow(iv->f_executable);
 
@@ -265,12 +237,6 @@ frame_relate(NyHeapRelate *r)
 #else
     PyCodeObject *co = iv->f_code;
 #endif
-#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 11)
-    Py_ssize_t ncells = PyTuple_GET_SIZE(co->co_cellvars);
-    Py_ssize_t nlocals = co->co_nlocals;;
-    Py_ssize_t nfreevars = PyTuple_GET_SIZE(co->co_freevars);
-#endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     // Py 3.11 only holds f_back when FRAME_OWNED_BY_FRAME_OBJECT
     PyFrameObject *next_frame = PyFrame_GetBack(v);
     if ((PyObject *)next_frame == r->tgt && r->visit(
@@ -279,11 +245,10 @@ frame_relate(NyHeapRelate *r)
         return 1;
     }
     Py_CLEAR(next_frame);
-#endif
     ATTR(f_back)
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     GATTR(PyStackRef_AsPyObjectBorrow(iv->f_funcobj), f_funcobj, NYHR_INTERATTR);
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+#else
     GATTR(iv->f_func, f_func, NYHR_INTERATTR);
 #endif
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
@@ -317,7 +282,6 @@ frame_relate(NyHeapRelate *r)
         return 0;
 
     /* locals */
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     Py_ssize_t i;
     for (i = 0; i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
@@ -335,15 +299,6 @@ frame_relate(NyHeapRelate *r)
             if (r->visit(NYHR_CELL, Py_NewRef(name), r))
                 return 1;
     }
-#else
-    if (
-        frame_locals(r, co->co_varnames, 0, nlocals, 0) ||
-        frame_locals(r, co->co_cellvars, nlocals, ncells, 0) ||
-        frame_locals(r, co->co_cellvars, nlocals, ncells, 1) ||
-        frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 0) ||
-        frame_locals(r, co->co_freevars, nlocals + ncells, nfreevars, 1))
-        return 1;
-#endif
 
     /* stack */
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
@@ -360,22 +315,13 @@ frame_relate(NyHeapRelate *r)
                 return 1;
         }
     }
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+#else
     PyObject **p;
     PyObject **s = iv->localsplus + co->co_nlocalsplus;
     PyObject **e = iv->localsplus + iv->stacktop;
     for (p = s; p < e; p++) {
         if (*p == r->tgt) {
             if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-s), r))
-                return 1;
-        }
-    }
-#else
-    PyObject **p;
-    PyObject **l = v->f_valuestack + v->f_stackdepth;
-    for (p = v->f_valuestack; p < l; p++) {
-        if (*p == r->tgt) {
-            if (r->visit(NYHR_STACK, PyLong_FromSsize_t(p-v->f_valuestack), r))
                 return 1;
         }
     }
@@ -390,11 +336,7 @@ frame_traverse(NyHeapTraverse *ta) {
     PyFrameObject *v = (void *)ta->obj;
     visitproc visit = ta->visit;
     void *arg = ta->arg;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     _PyInterpreterFrame *iv = v->f_frame;
-#else
-    PyFrameObject *iv = v;
-#endif
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     PyCodeObject *co = (PyCodeObject *)PyStackRef_AsPyObjectBorrow(iv->f_executable);
 
@@ -404,8 +346,6 @@ frame_traverse(NyHeapTraverse *ta) {
     PyCodeObject *co = iv->f_code;
 #endif
     int i;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-    // FIXME: What happens if JIT?
     for (i = 0; co && i < co->co_nlocalsplus; i++) {
         _PyLocals_Kind kind = _PyLocals_GetKind(co->co_localspluskinds, i);
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
@@ -416,22 +356,7 @@ frame_traverse(NyHeapTraverse *ta) {
                 break;
         }
     }
-#else
-    int nlocals = co->co_nlocals;
-    if (PyTuple_Check(co->co_varnames)) {
-        for (i = 0; i < nlocals; i++) {
-            PyObject *name = PyTuple_GET_ITEM(co->co_varnames, i);
-            if (PyUnicode_EqualToUTF8(name, "_hiding_tag_")) {
-                if (v->f_localsplus[i] == ta->_hiding_tag_)
-                    return 0;
-                else
-                    break;
-            }
-        }
-    }
-#endif
 
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     /* _PyFrame_Traverse is not exposed and CPython's frame_traverse only
       calls it when FRAME_OWNED_BY_FRAME_OBJECT :( */
     PyFrameObject *next_frame = PyFrame_GetBack(v);
@@ -439,26 +364,26 @@ frame_traverse(NyHeapTraverse *ta) {
     Py_CLEAR(next_frame);
 
     Py_VISIT(v->f_trace);
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     Py_VISIT(PyStackRef_AsPyObjectBorrow(iv->f_funcobj));
-# else
+#else
     Py_VISIT(iv->f_func);
-# endif
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#endif
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     Py_VISIT(PyStackRef_AsPyObjectBorrow(iv->f_executable));
-# else
+#else
     Py_VISIT(iv->f_code);
-# endif
+#endif
     Py_VISIT(iv->f_builtins);
     Py_VISIT(iv->f_globals);
     Py_VISIT(iv->f_locals);
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     Py_VISIT(v->f_extra_locals);
     Py_VISIT(v->f_locals_cache);
-# endif
-# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#endif
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
     Py_VISIT(v->f_overwritten_fast_locals);
-# endif
+#endif
 
     /* locals */
     if (!co) {
@@ -483,9 +408,6 @@ frame_traverse(NyHeapTraverse *ta) {
     }
 
     return 0;
-#else
-    return Py_TYPE(v)->tp_traverse(ta->obj, visit, arg);
-#endif
 }
 
 
@@ -529,29 +451,17 @@ code_traverse(NyHeapTraverse *ta) {
         Py_VISIT(co->_co_cached->_co_freevars);
         Py_VISIT(co->_co_cached->_co_varnames);
     }
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-    Py_VISIT(co->_co_code);
 #else
-    Py_VISIT(co->co_code);
+    Py_VISIT(co->_co_code);
 #endif
     Py_VISIT(co->co_consts);
     Py_VISIT(co->co_names);
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     Py_VISIT(co->co_exceptiontable);
-#endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     Py_VISIT(co->co_localsplusnames);
     Py_VISIT(co->co_localspluskinds);
-#else
-    Py_VISIT(co->co_varnames);
-    Py_VISIT(co->co_freevars);
-    Py_VISIT(co->co_cellvars);
-#endif
     Py_VISIT(co->co_filename);
     Py_VISIT(co->co_name);
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     Py_VISIT(co->co_qualname);
-#endif
     Py_VISIT(co->co_linetable);
     Py_VISIT(co->co_weakreflist);
     return 0;
@@ -568,29 +478,17 @@ code_relate(NyHeapRelate *r)
         RENAMEATTR(_co_cached->_co_freevars, co_freevars);
         RENAMEATTR(_co_cached->_co_varnames, co_varnames);
     }
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
-    RENAMEATTR(_co_code, co_code);
 #else
-    ATTR(co_code);
+    RENAMEATTR(_co_code, co_code);
 #endif
     ATTR(co_consts);
     ATTR(co_names);
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     ATTR(co_exceptiontable);
-#endif
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     INTERATTR(co_localsplusnames);
     INTERATTR(co_localspluskinds);
-#else
-    ATTR(co_varnames);
-    ATTR(co_freevars);
-    ATTR(co_cellvars);
-#endif
     ATTR(co_filename);
     ATTR(co_name);
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
     ATTR(co_qualname);
-#endif
     ATTR(co_linetable);
     ATTR(co_weakreflist);
     return 0;

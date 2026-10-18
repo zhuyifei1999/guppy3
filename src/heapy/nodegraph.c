@@ -209,7 +209,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
             (Py_REFCNT(src) < 0xa000000 || _Py_IsImmortal(src)));
     assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 &&
             (Py_REFCNT(tgt) < 0xa000000 || _Py_IsImmortal(tgt)));
-#elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 11)
+#else
     /* Py >= 3.11 _PyObject_IMMORTAL_INIT sets initial refcount of 999999999 */
     assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 &&
             (Py_REFCNT(src) < 0xa000000 ||
@@ -217,9 +217,6 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
     assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 &&
             (Py_REFCNT(tgt) < 0xa000000 ||
              (Py_REFCNT(tgt) >= 999999999 && Py_REFCNT(tgt) < 999999999 + 0xa000000)));
-#else
-    assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 && Py_REFCNT(src) < 0xa000000);
-    assert((Py_uintptr_t)Py_TYPE(tgt) > 0x1000 && Py_REFCNT(tgt) < 0xa000000);
 #endif
 
     if (ng->used_size >= ng->allo_size) {
@@ -1122,7 +1119,7 @@ PyType_Spec NyNodeGraph_Spec = {
     .name      = "guppy.heapy.heapyc.NodeGraph",
     .basicsize = sizeof(NyNodeGraphObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-                 Py_TPFLAGS_HAVE_GC | Ny_TPFLAGS_BASETYPE_ON_PY3_11,
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
     .slots     = ng_slots,
 };
 
