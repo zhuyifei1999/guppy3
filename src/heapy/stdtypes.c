@@ -58,21 +58,22 @@ dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
     PyObject *pk, *pv;
     Py_ssize_t i = 0;
     Py_ssize_t ix = 0;
+
+    /* Avoid critical section around PyDict_Next */
+    NY_ASSERT_WORLD_STOPPED();
+
     if (!dict)
         return 0;
-    Ny_BEGIN_CRITICAL_SECTION(dict);
     while (PyDict_Next(dict, &i, &pk, &pv)) {
         if (pk == r->tgt) {
             if (r->visit(k, PyLong_FromSsize_t(ix), r))
-                goto out;
+                return 0;
         }
         if (pv == r->tgt)
             if (r->visit(v, Py_NewRef(pk), r))
-                goto out;
+                return 0;
         ix++;
     }
-out:
-    Ny_END_CRITICAL_SECTION();
     return 0;
 }
 
@@ -89,6 +90,9 @@ dict_traverse(NyHeapTraverse *ta)
     PyObject *hiding_tag;
     int r;
 
+    /* Avoid critical section around PyDict_Next */
+    NY_ASSERT_WORLD_STOPPED();
+
     r = PyDict_GetItemRef(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name, &hiding_tag);
     if (r == -1)
         return -1;
@@ -103,7 +107,6 @@ dict_traverse(NyHeapTraverse *ta)
     Py_ssize_t i = 0;
     PyObject *pv;
 
-    NY_ASSERT_WORLD_STOPPED();
     while (PyDict_Next(v, &i, NULL, &pv))
         Py_VISIT(pv);
 #endif
