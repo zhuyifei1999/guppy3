@@ -118,7 +118,7 @@ static PyType_Slot ngiter_slots[] = {
 };
 
 PyType_Spec NyNodeGraphIter_Spec = {
-    .name      = "nodegraph-iterator",
+    .name      = "guppy.heapy.heapyc.nodegraph-iterator",
     .basicsize = sizeof(NyNodeGraphIterObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
                  Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_DISALLOW_INSTANTIATION,

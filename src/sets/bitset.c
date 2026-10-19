@@ -4392,7 +4392,7 @@ static PyType_Slot bsiter_slots[] = {
 };
 
 PyType_Spec NyImmBitSetIter_Spec = {
-    .name      = "immbitset-iterator",
+    .name      = "guppy.sets.setsc.immbitset-iterator",
     .basicsize = sizeof(NyImmBitSetIterObject),
     .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
                  Py_TPFLAGS_DISALLOW_INSTANTIATION,
