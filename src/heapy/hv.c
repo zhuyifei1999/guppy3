@@ -1359,7 +1359,7 @@ hv_get_member_offset(PyTypeObject *type, char *member_name)
        very cold, so I'm just opting for a stop the world instead.
        This is only needed in 3.14. In 3.15 updating MRO causes a
        stop-the-world. so this code can't simultaneously run */
-#if NY_MASKED_VERSION_HEX <= Py_PACK_VERSION(3, 15)
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 15)
     NY_STOP_WORLD();
 #endif
     mro = type->tp_mro;
@@ -1383,7 +1383,7 @@ hv_get_member_offset(PyTypeObject *type, char *member_name)
     }
 
 out:
-#if NY_MASKED_VERSION_HEX <= Py_PACK_VERSION(3, 15)
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 15)
     NY_START_WORLD();
 #endif
     return r;
