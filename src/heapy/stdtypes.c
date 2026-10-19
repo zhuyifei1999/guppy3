@@ -82,6 +82,26 @@ dict_relate(NyHeapRelate *r)
     return dict_relate_kv(r, r->src, NYHR_INDEXKEY, NYHR_INDEXVAL);
 }
 
+
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+/* Python 3.13 no longer traverses object .__dict__ values. */
+static int
+dict_traverse_unlocked(NyHeapTraverse *ta)
+{
+    PyObject *v = (void *)ta->obj;
+    visitproc visit = ta->visit;
+    void *arg = ta->arg;
+    Py_ssize_t i = 0;
+    PyObject *pv;
+
+    /* Cannot wrap CRITICAL_SECTION here because Py_VISIT early returns */
+    while (PyDict_Next(v, &i, NULL, &pv))
+        Py_VISIT(pv);
+
+    return 0;
+}
+#endif
+
 static int
 dict_traverse(NyHeapTraverse *ta)
 {
@@ -97,16 +117,11 @@ dict_traverse(NyHeapTraverse *ta)
         return 0;
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-    // Python 3.13 no longer traverses object .__dict__ values.
-    visitproc visit = ta->visit;
-    void *arg = ta->arg;
-    Py_ssize_t i = 0;
-    PyObject *pv;
-
     Ny_BEGIN_CRITICAL_SECTION(v);
-    while (PyDict_Next(v, &i, NULL, &pv))
-        Py_VISIT(pv);
+    r = dict_traverse_unlocked(ta);
     Ny_END_CRITICAL_SECTION();
+    if (r == -1)
+        return -1;
 #endif
 
     return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
