@@ -41,6 +41,9 @@
 #define _Py_atomic_load_ptr_relaxed(ptr) (*(ptr))
 #define _Py_atomic_store_ptr_relaxed(ptr, val) (*(ptr) = (val))
 
+#define _Py_atomic_load_ssize_relaxed(ptr) (*(ptr))
+#define _Py_atomic_store_ssize_relaxed(ptr, val) (*(ptr) = (val))
+
 #define _Py_atomic_fence_acquire() ((void)0)
 #define _Py_atomic_fence_release() ((void)0)
 #endif

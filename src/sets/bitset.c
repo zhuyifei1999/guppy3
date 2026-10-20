@@ -3046,7 +3046,7 @@ immbitset_length(PyObject *_v)
 {
     /* NOT LOCKED: Immutable */
     NyImmBitSetObject *v=(void*)_v;
-    Py_ssize_t n = v->ob_length;
+    Py_ssize_t n = _Py_atomic_load_ssize_relaxed(&v->ob_length);
 
     if (n == -1) {
         Py_ssize_t i;
@@ -3057,7 +3057,7 @@ immbitset_length(PyObject *_v)
                 return -1;
             }
         }
-        v->ob_length = n;
+        _Py_atomic_store_ssize_relaxed(&v->ob_length, n);
     }
     return n;
 }
