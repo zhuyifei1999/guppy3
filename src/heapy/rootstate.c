@@ -978,14 +978,6 @@ PyType_Spec NyRootState_Spec = {
     .slots     = rootstate_slots,
 };
 
-static bool rootstate_init_done;
-#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
-static PyMutex rootstate_init_mutex = {0};
-#else
-# define PyMutex_Lock(m) do {} while (0)
-# define PyMutex_Unlock(m) do {} while (0)
-#endif
-
 static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 {
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
@@ -1009,15 +1001,8 @@ static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 # define MAX(a,b) (((a)>(b))?(a):(b))
 #endif
 
-void rootstate_init(void)
+static void rootstate_init_once(void)
 {
-    if (rootstate_init_done)
-        return;
-
-    PyMutex_Lock(&rootstate_init_mutex);
-    if (rootstate_init_done)
-        goto out;
-
 #if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 14)
     /* Between Python 3.14.3 and 3.14.4, PyInterpreterState.qsbr increased by
        size of a pointer, causing entries to be shifted. */
@@ -1032,8 +1017,10 @@ void rootstate_init(void)
 #endif
 
     NyDbgOffMemberDef_Init(is_members);
-    rootstate_init_done = true;
+}
 
-out:
-    PyMutex_Unlock(&rootstate_init_mutex);
+void rootstate_init(void)
+{
+    static struct NyOnce once;
+    NyOnce_CallOnce(&once, rootstate_init_once);
 }

@@ -36,7 +36,11 @@
 /* For non-freethreading builds, a datarace requires per-interpreter GIL, which
    I'm not too concerned about */
 #define _Py_atomic_load_int(ptr) (*(ptr))
+#define _Py_atomic_load_int_relaxed(ptr) (*(ptr))
+#define _Py_atomic_load_int_acquire(ptr) (*(ptr))
 #define _Py_atomic_store_int(ptr, val) (*(ptr) = (val))
+#define _Py_atomic_store_int_relaxed(ptr, val) (*(ptr) = (val))
+#define _Py_atomic_store_int_release(ptr, val) (*(ptr) = (val))
 
 #define _Py_atomic_load_ptr_relaxed(ptr) (*(ptr))
 #define _Py_atomic_store_ptr_relaxed(ptr, val) (*(ptr) = (val))
@@ -130,6 +134,45 @@ NyType_AssertModuleState2(PyTypeObject *type1, PyTypeObject *type2,
 
     return NyType_AssertModuleState(type2, def);
 }
+
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+struct NyOnce {
+   int done; /* atomic bool */
+   PyMutex mutex;
+};
+
+static inline void
+NyOnce_CallOnce(struct NyOnce *once, void (*fn)(void))
+{
+    if (_Py_atomic_load_int_acquire(&once->done))
+        return;
+
+    PyMutex_Lock(&once->mutex);
+    if (once->done)
+        goto out;
+
+    fn();
+
+    _Py_atomic_store_int_release(&once->done, 1);
+out:
+    PyMutex_Unlock(&once->mutex);
+}
+#else
+struct NyOnce {
+   bool done;
+};
+
+static inline void
+NyOnce_CallOnce(struct NyOnce *once, void (*fn)(void))
+{
+    if (once->done)
+        return;
+
+    fn();
+
+    once->done = true;
+}
+#endif
 
 #if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
 # define NYPTR_ADJUSTED(is, attr, adj) ((void *)&(is)->attr)
