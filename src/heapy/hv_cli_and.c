@@ -50,19 +50,12 @@ static PyObject *
 hv_cli_and_fast_memoized_kind(struct HeapycState *ms, CliAndObject *self, PyObject *kind)
 {
     PyObject *result;
-    int r;
 
     NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
-    r = PyDict_GetItemRef(self->memo, kind, &result);
-    if (r == -1)
-        return NULL;
-    if (result)
-        return result;
-
-    if (PyDict_SetItem(self->memo, kind, kind) == -1)
+    if (PyDict_SetDefaultRef(self->memo, kind, kind, &result) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    return Py_NewRef(kind);
+    return result;
 }
 
 
