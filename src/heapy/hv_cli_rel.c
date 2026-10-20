@@ -322,6 +322,7 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     PyObject *result = NULL;
     ExtraType *xt;
     NyNodeSetObject relset;
+    NyNodeSetObject *relset_imm = NULL;
     hv_cli_inrel_visit_arg crva;
     crva.hr.flags = 0;
     crva.hr.hv = (PyObject *)self->hv;
@@ -353,14 +354,15 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
         }
     }
 
-    if (NyNodeSet_be_immutable(&crva.relset) == -1)
+    relset_imm = NyImmNodeSet_NewCopy(&relset);
+    if (!relset_imm)
         goto err_start;
-    result = inrel_fast_memoized_kind(ms, self, (PyObject *)crva.relset);
+    result = inrel_fast_memoized_kind(ms, self, (PyObject *)relset_imm);
 
 err_start:
+    Py_CLEAR(relset_imm);
     NySTWMutNodeSet_Destroy(&relset);
     NY_START_WORLD();
-    Py_CLEAR(crva.relset);
     assert(Py_IsNone(self->rel->relator));
     return result;
 
