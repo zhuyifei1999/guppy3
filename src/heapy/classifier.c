@@ -123,11 +123,15 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
        __hash__, in which case the kind will have a tp_hash that calls into
        Python code. */
     NY_ASSERT_WORLD_RUNNING();
-    def = PyList_New(0);
-    if (!def)
+    if (PyDict_GetItemRef(ta->map, kind, &sp) == -1)
         goto Err;
-    if (PyDict_SetDefaultRef(ta->map, kind, def, &sp) == -1)
-        goto Err;
+    if (!sp) {
+        def = PyList_New(0);
+        if (!def)
+            goto Err;
+        if (PyDict_SetDefaultRef(ta->map, kind, def, &sp) == -1)
+            goto Err;
+    }
     if (PyList_Append(sp, obj) == -1)
         goto Err;
     Py_CLEAR(def);

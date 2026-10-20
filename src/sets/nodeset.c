@@ -1099,7 +1099,7 @@ static PyMemberDef mutnodeset_members[] = {
 PyObject *
 nodeset_get_is_immutable(NyNodeSetObject *self, void *unused)
 {
-    return bool_from_int(PyObject_TypeCheck(self, self->ms->NodeSet_Type));
+    return bool_from_int(PyObject_TypeCheck(self, self->ms->ImmNodeSet_Type));
 }
 
 static  PyGetSetDef nodeset_getset[] = {

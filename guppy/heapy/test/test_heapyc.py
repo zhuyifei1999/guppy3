@@ -460,7 +460,7 @@ class TestLeak(support.TestCase):
         self.assertEqualRefcountUnlessDeferred(nrcprobe, rcprobe, probe)
 
     def test_nytuplelike(self):
-        # Test that nytuplelike behaves as all expected tntries are in the
+        # Test that nytuplelike behaves as all expected entries are in the
         # tuple, and entries are decrefed when the nytuplelike is freed
 
         import gc
@@ -470,7 +470,7 @@ class TestLeak(support.TestCase):
 
         hv = self.hv
         rg = self.nodegraph()
-        li = rg, {}, {}
+        li = rg, {}, {}, {}
 
         rchv = grc(hv)
         rcli = [grc(x) for x in li]
@@ -676,7 +676,7 @@ class TestClassifiers(TestCase):
         x = []
         y = [x]
         rg.add_edge(x, y)
-        cli = hv.cli_inrel(rg, {}, {})
+        cli = hv.cli_inrel(rg, {}, {}, {})
         c = cli.classify(x)
         self.assertEqual(str_inrel(c), '(2, 0)')
 

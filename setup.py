@@ -1,6 +1,7 @@
 import os.path
 import re
 import sys
+import sysconfig
 from setuptools import setup, Extension
 from distutils.command.install import INSTALL_SCHEMES
 
@@ -51,6 +52,10 @@ http://guppy-pe.sourceforge.net/''', file=sys.stderr)
         print('''\
 setup.py: Warning: This guppy package only supports CPython.
 Compilation failure expected, but continuting anyways...''', file=sys.stderr)
+    if sys.version_info < (3, 14) and sysconfig.get_config_var('Py_GIL_DISABLED'):
+        print('''\
+setup.py: Warning: This guppy package only supports freethreading in Python 3.14+.
+Continuting anyways...''', file=sys.stderr)
 
     with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
         long_description = f.read()
@@ -78,7 +83,7 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
               "guppy.sets",
           ],
           ext_modules=[setsc, heapyc],
-          python_requires='>=3.10',
+          python_requires='>=3.11',
           classifiers=[
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",

@@ -70,7 +70,9 @@ horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
 static int
 horizon_install(void)
 {
-    /* This is racy, but we don't have a lock */
+    assert(PyMutex_IsLocked(&rm_mutex));
+
+    /* This is racy against other tracers, but we don't have a lock */
     if (PyRefTracer_GetTracer(NULL)) {
         PyErr_SetString(PyExc_RuntimeError, "PyRefTracer busy");
         return -1;
@@ -85,7 +87,9 @@ horizon_install(void)
 static void
 horizon_uninstall(void)
 {
-    /* This is racy, but we don't have a lock */
+    assert(PyMutex_IsLocked(&rm_mutex));
+
+    /* This is racy other tracers, but we don't have a lock */
     if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
         return;
 

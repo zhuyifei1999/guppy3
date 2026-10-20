@@ -134,7 +134,6 @@ NY_ASSERT_IMMUTABLE_BUILTIN(struct HeapycState *ms, PyObject *obj)
         Py_IS_TYPE(obj, &PyUnicode_Type) ||
         /* NodeTuple's hash does not depend on hash of its contents */
         Py_IS_TYPE(obj, ms->NodeTuple_Type) ||
-        Py_IS_TYPE(obj, ms->Relation_Type) ||
         Py_IS_TYPE(obj, ms->nodeset_exports->immnodeset_type)
         /* ImmBitSet will not be seen */
     )
