@@ -219,7 +219,7 @@ inrel_should_memoize_in_stw(struct HeapycState *ms, NyRelationObject *rel)
 static int
 inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
 {
-    PyObject *mrel;
+    PyObject *mrel, *memorel;
     int r = -1;
 
     if (!PyObject_TypeCheck(obj, arg->ms->Relation_Type)) {
@@ -234,11 +234,10 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
        A relation's hash depends on the hash of its relator, which can be
        arbitrary python objects for dict keys  */
     NY_ASSERT_WORLD_RUNNING();
-    if (PyDict_SetDefaultRef(arg->memorel, obj, obj, &mrel) == -1)
+    memorel = inrel_should_memoize_in_stw(arg->ms, (NyRelationObject *)obj) ?
+        arg->memorel_stw : arg->memorel;
+    if (PyDict_SetDefaultRef(memorel, obj, obj, &mrel) == -1)
         return -1;
-    if (inrel_should_memoize_in_stw(arg->ms, (NyRelationObject *)mrel))
-        if (PyDict_SetDefaultRef(arg->memorel_stw, mrel, mrel, NULL) == -1)
-            return -1;
     if (NyNodeSet_setobj(arg->ns, mrel) == -1)
         goto out;
 
@@ -352,7 +351,6 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     NyNodeGraphEdge *lo, *hi, *cur;
     PyObject *result = NULL;
     ExtraType *xt;
-    NyNodeSetObject *relset_imm = NULL;
     hv_cli_inrel_visit_arg crva;
     crva.hr.flags = 0;
     crva.hr.hv = (PyObject *)self->hv;
@@ -404,7 +402,6 @@ err_start:
     NY_START_WORLD();
 out:
     Py_CLEAR(crva.relset);
-    Py_CLEAR(relset_imm);
     assert(Py_IsNone(self->rel->relator));
     return result;
 

@@ -70,7 +70,9 @@ horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
 static int
 horizon_install(void)
 {
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
     assert(PyMutex_IsLocked(&rm_mutex));
+# endif
 
     /* This is racy against other tracers, but we don't have a lock */
     if (PyRefTracer_GetTracer(NULL)) {
@@ -87,7 +89,9 @@ horizon_install(void)
 static void
 horizon_uninstall(void)
 {
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
     assert(PyMutex_IsLocked(&rm_mutex));
+# endif
 
     /* This is racy other tracers, but we don't have a lock */
     if (PyRefTracer_GetTracer(NULL) != &horizon_tracer)
