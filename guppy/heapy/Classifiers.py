@@ -947,7 +947,8 @@ class ByInRel(Classifier):
     def get_cli(self):
         memokind = {}
         memorel = {}
-        return self.mod.hv.cli_inrel(self.rg, memokind, memorel)
+        memorel_stw = {}
+        return self.mod.hv.cli_inrel(self.rg, memokind, memorel, memorel_stw)
 
     def get_kind(self, k):
         return self.family(k)

@@ -188,15 +188,33 @@ typedef struct {
     NyHeapViewObject *hv;
     NyNodeGraphObject *rg;
     NyRelationObject *rel;
-    PyObject *memokind, *memorel;
+    PyObject *memokind, *memorel, *memorel_stw;
 } InRelObject;
 NYTUPLELIKE_ASSERT(InRelObject, hv);
 
 typedef struct {
     struct HeapycState *ms;
-    PyObject *memorel;
+    PyObject *memorel, *memorel_stw;
     NyNodeSetObject *ns;
 } MemoRelArg;
+
+static bool
+inrel_should_memoize_in_stw(struct HeapycState *ms, NyRelationObject *rel)
+{
+    /* Only memoize the most common types of relators for STW. */
+    PyObject *relator = rel->relator;
+
+    if (Py_IsNone(relator) || Py_IsTrue(relator) || Py_IsFalse(relator))
+        return true;
+
+    if (Py_IS_TYPE(relator, &PyBool_Type) ||
+        Py_IS_TYPE(relator, &PyLong_Type) ||
+        Py_IS_TYPE(relator, &PyUnicode_Type)
+    )
+        return true;
+
+    return false;
+}
 
 static int
 inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
@@ -211,9 +229,16 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
         return -1;
     }
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(arg->ms, obj);
+    /* This does not qualify for NY_ASSERT_IMMUTABLE_BUILTIN
+
+       A relation's hash depends on the hash of its relator, which can be
+       arbitrary python objects for dict keys  */
+    NY_ASSERT_WORLD_RUNNING();
     if (PyDict_SetDefaultRef(arg->memorel, obj, obj, &mrel) == -1)
         return -1;
+    if (inrel_should_memoize_in_stw(arg->ms, (NyRelationObject *)mrel))
+        if (PyDict_SetDefaultRef(arg->memorel_stw, mrel, mrel, NULL) == -1)
+            return -1;
     if (NyNodeSet_setobj(arg->ns, mrel) == -1)
         goto out;
 
@@ -229,7 +254,7 @@ inrel_fast_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *ki
 {
     PyObject *result;
 
-    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
+    NY_ASSERT_WORLD_RUNNING();
     if (PyDict_SetDefaultRef(self->memokind, kind, kind, &result) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
@@ -244,6 +269,7 @@ hv_cli_inrel_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *
     PyObject *result = NULL;
     arg.ms = ms;
     arg.memorel = self->memorel;
+    arg.memorel_stw = self->memorel_stw;
     Ny_BEGIN_CRITICAL_SECTION(self->hv);
     arg.ns = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
@@ -265,7 +291,8 @@ typedef struct {
     struct HeapycState *ms;
     NyNodeSetObject *relset;
     NyRelationObject *rel;
-    PyObject *memorel;
+    PyObject *memorel_stw;
+    bool has_unsafe;
 } hv_cli_inrel_visit_arg;
 
 static int
@@ -288,17 +315,21 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     arg->rel->kind = kind;
     arg->rel->relator = relator;
 
-    /* World is stopped so arg->memorel does not need locking */
-    NY_ASSERT_IMMUTABLE_BUILTIN(arg->ms, (PyObject *)arg->rel);
-    r = PyDict_GetItemRef(arg->memorel, (PyObject *)arg->rel, &rel);
-    if (r == -1)
-        goto ret;
-    if (!rel) {
+    if (inrel_should_memoize_in_stw(arg->ms, arg->rel)) {
+        r = PyDict_GetItemRef(arg->memorel_stw, (PyObject *)arg->rel, &rel);
+        if (r == -1)
+            goto ret;
+        if (!rel) {
+            rel = (PyObject *)NyRelation_New(arg->ms, kind, relator);
+            if (!rel)
+                goto ret;
+            if (PyDict_SetItem(arg->memorel_stw, rel, rel) == -1)
+                goto ret;
+        }
+    } else {
+        arg->has_unsafe = true;
         rel = (PyObject *)NyRelation_New(arg->ms, kind, relator);
         if (!rel)
-            goto ret;
-        NY_ASSERT_IMMUTABLE_BUILTIN(arg->ms, rel);
-        if (PyDict_SetItem(arg->memorel, rel, rel) == -1)
             goto ret;
     }
     if (NyNodeSet_setobj(arg->relset, rel) != -1)
@@ -321,7 +352,6 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     NyNodeGraphEdge *lo, *hi, *cur;
     PyObject *result = NULL;
     ExtraType *xt;
-    NyNodeSetObject relset;
     NyNodeSetObject *relset_imm = NULL;
     hv_cli_inrel_visit_arg crva;
     crva.hr.flags = 0;
@@ -330,13 +360,18 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     crva.hr.visit = hv_cli_inrel_visit;
     crva.err = 0;
     crva.ms = ms;
-    crva.memorel = self->memorel;
+    crva.memorel_stw = self->memorel_stw;
     assert(Py_IsNone(self->rel->relator)); /* This will be restored, w/o incref, at return. */
     crva.rel = self->rel;
-    crva.relset = &relset;
+    crva.relset = NULL;
+    crva.has_unsafe = false;
 
     NY_STOP_WORLD();
-    if (NySTWMutNodeSet_InitOnStack(ms->nodeset_exports->ms, &relset) == -1)
+
+    /* relset cannot be a NySTWMutNodeSet because it must hold temporary
+       relation objects when !inrel_should_memoize_in_stw */
+    crva.relset = hv_mutnodeset_new(self->hv);
+    if (!crva.relset)
         goto err_start;
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
         goto err_start;
@@ -354,15 +389,22 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
         }
     }
 
-    relset_imm = NyImmNodeSet_NewCopy(&relset);
-    if (!relset_imm)
-        goto err_start;
-    result = inrel_fast_memoized_kind(ms, self, (PyObject *)relset_imm);
+    NY_START_WORLD();
+
+    if (NyNodeSet_be_immutable(&crva.relset) == -1)
+        goto out;
+    if (crva.has_unsafe)
+        result = hv_cli_inrel_memoized_kind(ms, self, (PyObject *)crva.relset);
+    else
+        result = inrel_fast_memoized_kind(ms, self, (PyObject *)crva.relset);
+
+    goto out;
 
 err_start:
-    Py_CLEAR(relset_imm);
-    NySTWMutNodeSet_Destroy(&relset);
     NY_START_WORLD();
+out:
+    Py_CLEAR(crva.relset);
+    Py_CLEAR(relset_imm);
     assert(Py_IsNone(self->rel->relator));
     return result;
 
@@ -392,10 +434,11 @@ hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     InRelObject *s, tmp;
-    if (!PyArg_ParseTuple(args, "O!O!O!:cli_inrel",
+    if (!PyArg_ParseTuple(args, "O!O!O!O!:cli_inrel",
                           hv->ms->NodeGraph_Type, &tmp.rg,
                           &PyDict_Type, &tmp.memokind,
-                          &PyDict_Type, &tmp.memorel
+                          &PyDict_Type, &tmp.memorel,
+                          &PyDict_Type, &tmp.memorel_stw
                           )) {
         return NULL;
     }
@@ -406,13 +449,15 @@ hv_cli_inrel(NyHeapViewObject *hv, PyObject *args)
     s->rg = Ny_NEWREF(tmp.rg);
     s->memokind = Py_NewRef(tmp.memokind);
     s->memorel = Py_NewRef(tmp.memorel);
+    s->memorel_stw = Py_NewRef(tmp.memorel_stw);
     /* Init a relation object used for lookup, to save an allocation per relation. */
     s->rel = NyRelation_New(hv->ms, 1, Py_None); /* kind & relator will be changed  */
-    if (!s->rel) {
-        Py_CLEAR(s);
-        return NULL;
-    }
+    if (!s->rel)
+        goto err;
     r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_inrel_def);
     Py_CLEAR(s);
     return r;
+err:
+    Py_CLEAR(s);
+    return NULL;
 }
