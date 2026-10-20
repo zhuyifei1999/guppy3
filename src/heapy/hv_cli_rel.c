@@ -202,6 +202,8 @@ static int
 inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
 {
     PyObject *mrel;
+    int r = -1;
+
     if (!PyObject_TypeCheck(obj, arg->ms->Relation_Type)) {
         PyErr_Format(PyExc_TypeError,
                "inrel_visit_memoize_relation: can only memoize relation (not \"%.200s\")",
@@ -210,17 +212,15 @@ inrel_visit_memoize_relation(PyObject *obj, MemoRelArg *arg)
     }
 
     NY_ASSERT_IMMUTABLE_BUILTIN(arg->ms, obj);
-    mrel = PyDict_GetItemWithError(arg->memorel, obj);
-    if (!mrel) {
-        if (PyErr_Occurred())
-            return -1;
-        if (PyDict_SetItem(arg->memorel, obj, obj) == -1)
-            return -1;
-        mrel = obj;
-    }
-    if (NyNodeSet_setobj(arg->ns, mrel) == -1)
+    if (PyDict_SetDefaultRef(arg->memorel, obj, obj, &mrel) == -1)
         return -1;
-    return 0;
+    if (NyNodeSet_setobj(arg->ns, mrel) == -1)
+        goto out;
+
+    r = 0;
+out:
+    Py_CLEAR(mrel);
+    return r;
 }
 
 static PyObject *
@@ -228,19 +228,12 @@ inrel_fast_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *ki
      /* When the elements are already memoized */
 {
     PyObject *result;
-    int r;
 
     NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
-    r = PyDict_GetItemRef(self->memokind, kind, &result);
-    if (r == -1)
-        return NULL;
-    if (result)
-        return result;
-
-    if (PyDict_SetItem(self->memokind, kind, kind) == -1)
+    if (PyDict_SetDefaultRef(self->memokind, kind, kind, &result) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    return Py_NewRef(kind);
+    return result;
 }
 
 
@@ -282,6 +275,8 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     PyObject *rel = NULL;
     int r;
 
+    NY_ASSERT_WORLD_STOPPED();
+
     arg->err = -1;
 
     if (!relator) {
@@ -293,6 +288,7 @@ hv_cli_inrel_visit(unsigned int kind, PyObject *relator, NyHeapRelate *arg_)
     arg->rel->kind = kind;
     arg->rel->relator = relator;
 
+    /* World is stopped so arg->memorel does not need locking */
     NY_ASSERT_IMMUTABLE_BUILTIN(arg->ms, (PyObject *)arg->rel);
     r = PyDict_GetItemRef(arg->memorel, (PyObject *)arg->rel, &rel);
     if (r == -1)

@@ -723,8 +723,8 @@ NyHeapDef NyStdTypes_HeapDef[] = {
     {0}
 };
 
-void
-NyStdTypes_init(void)
+static void
+NyStdTypes_init_once(void)
 {
     /* Patch up the table for some types that were not directly accessible */
     int x = 0;
@@ -743,4 +743,11 @@ NyStdTypes_init(void)
     NyStdTypes_HeapDef[x++].type = &PyCode_Type;
     NyStdTypes_HeapDef[x++].type = &PyType_Type;
     NyStdTypes_HeapDef[x++].type = &PyDictProxy_Type;
+}
+
+void
+NyStdTypes_init(void)
+{
+    static struct NyOnce once;
+    NyOnce_CallOnce(&once, NyStdTypes_init_once);
 }

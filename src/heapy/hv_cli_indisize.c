@@ -23,19 +23,12 @@ static PyObject *
 hv_cli_indisize_memoized_kind(struct HeapycState *ms, IndisizeObject *self, PyObject *size)
 {
     PyObject *memoedsize;
-    int r;
 
     NY_ASSERT_IMMUTABLE_BUILTIN(ms, size);
-    r = PyDict_GetItemRef(self->memo, size, &memoedsize);
-    if (r == -1)
-        return NULL;
-    if (memoedsize)
-        return memoedsize;
-
-    if (PyDict_SetItem(self->memo, size, size) == -1)
+    if (PyDict_SetDefaultRef(self->memo, size, size, &memoedsize) == -1)
         return NULL;
     /* Caller assumes it owns both size and the return value */
-    return Py_NewRef(size);
+    return memoedsize;
 }
 
 static PyObject *

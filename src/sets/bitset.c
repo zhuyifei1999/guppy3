@@ -3049,7 +3049,7 @@ immbitset_length(PyObject *_v)
 {
     /* NOT LOCKED: Immutable */
     NyImmBitSetObject *v=(void*)_v;
-    Py_ssize_t n = v->ob_length;
+    Py_ssize_t n = _Py_atomic_load_ssize_relaxed(&v->ob_length);
 
     if (n == -1) {
         Py_ssize_t i;
@@ -3060,7 +3060,7 @@ immbitset_length(PyObject *_v)
                 return -1;
             }
         }
-        v->ob_length = n;
+        _Py_atomic_store_ssize_relaxed(&v->ob_length, n);
     }
     return n;
 }
@@ -4681,6 +4681,26 @@ static PyMethodDef nybitset_methods[] =
     {0}
 };
 
+static void nybitset_len_helper_init_once(void)
+{
+    int i;
+    for (i = 0; i < LEN_TAB_SIZE; i++) {
+        unsigned b = i;
+        int n = 0;
+        while (b) {
+            if (b & 1)
+            n++;
+            b >>= 1;
+        }
+        len_tab[i] = n;
+    }
+}
+
+static void nybitset_len_helper_init(void)
+{
+    static struct NyOnce once;
+    NyOnce_CallOnce(&once, nybitset_len_helper_init_once);
+}
 
 int fsb_dx_nybitset_init(PyObject *m)
 {
@@ -4743,20 +4763,7 @@ int fsb_dx_nybitset_init(PyObject *m)
     ) == -1)
         return -1;
 
-    {
-        int i;
-        /* initialize len() helper */
-        for (i = 0; i < LEN_TAB_SIZE; i++) {
-            unsigned b = i;
-            int n = 0;
-            while (b) {
-                if (b & 1)
-                n++;
-                b >>= 1;
-            }
-            len_tab[i] = n;
-        }
-    }
+    nybitset_len_helper_init();
 
     return 0;
 }

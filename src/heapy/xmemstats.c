@@ -188,8 +188,8 @@ freehook(void *p)
 }
 #endif
 
-void
-xmemstats_init(void)
+static void
+xmemstats_init_once(void)
 {
 #ifdef HEAPY_BREAK_THREAD_SAFETY
     dlptr___malloc_hook              = addr_of_symbol("__malloc_hook");
@@ -209,6 +209,13 @@ xmemstats_init(void)
         HOOK_SET;
     }
 #endif
+}
+
+void
+xmemstats_init(void)
+{
+    static struct NyOnce once;
+    NyOnce_CallOnce(&once, xmemstats_init_once);
 }
 
 PyObject *

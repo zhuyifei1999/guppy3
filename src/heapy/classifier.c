@@ -111,9 +111,8 @@ PyDoc_STRVAR(cli_partition_doc,
 static int
 cli_partition_iter(PyObject *obj, PATravArg *ta)
 {
-    PyObject *sp = NULL;
+    PyObject *sp = NULL, *def = NULL;
     PyObject *kind = ta->self->def->classify(ta->ms, ta->self->self, obj);
-    int r;
 
     if (!kind)
         return -1;
@@ -124,22 +123,19 @@ cli_partition_iter(PyObject *obj, PATravArg *ta)
        __hash__, in which case the kind will have a tp_hash that calls into
        Python code. */
     NY_ASSERT_WORLD_RUNNING();
-    r = PyDict_GetItemRef(ta->map, kind, &sp);
-    if (r == -1)
+    def = PyList_New(0);
+    if (!def)
         goto Err;
-    if (!sp) {
-        sp = PyList_New(0);
-        if (!sp)
-            goto Err;
-        if (PyObject_SetItem(ta->map, kind, sp) == -1)
-            goto Err;
-    }
+    if (PyDict_SetDefaultRef(ta->map, kind, def, &sp) == -1)
+        goto Err;
     if (PyList_Append(sp, obj) == -1)
         goto Err;
+    Py_CLEAR(def);
     Py_CLEAR(sp);
     Py_CLEAR(kind);
     return 0;
 Err:
+    Py_CLEAR(def);
     Py_CLEAR(sp);
     Py_CLEAR(kind);
     return -1;
