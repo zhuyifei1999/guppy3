@@ -139,12 +139,12 @@ NyNodeGraph_Clear(NyNodeGraphObject *ng)
     N = ng->used_size;
     ng->edges = NULL;
     ng->used_size = ng->allo_size = 0;
+    Ny_END_CRITICAL_SECTION();
     for (i = 0; i < N; i++) {
         Py_CLEAR(edges[i].src);
         Py_CLEAR(edges[i].tgt);
     }
     PyMem_Free(edges);
-    Ny_END_CRITICAL_SECTION();
 }
 
 static int
@@ -769,7 +769,7 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
     Ny_BEGIN_CRITICAL_SECTION(ng);
     ta.hs = NyMutNodeSet_NewHiding(ng->ms->nodeset_exports->ms, ng->_hiding_tag_);
     if (!ta.hs)
-        return NULL;
+        goto out;
     ng_maybesortetc(ng);
     if (iterable_iterate(ng->ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;

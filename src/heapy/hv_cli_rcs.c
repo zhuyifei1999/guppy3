@@ -143,7 +143,7 @@ hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj
     referrers = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
     if (!ta.Ri || !referrers)
-        return NULL;
+        goto out;
 
     Ny_BEGIN_CRITICAL_SECTION(self->rg);
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
