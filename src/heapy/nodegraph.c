@@ -1025,6 +1025,7 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
 {
     NyNodeGraphEdge *lo, *hi;
     Py_ssize_t i, regsize, tupsize;
+    PyObject **garbage = NULL;
     int r = -1;
 
     if (!w) {
@@ -1038,6 +1039,12 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
     if (NyNodeGraph_Region(ng, v, &lo, &hi) == -1)
         goto out;
     regsize = hi - lo;
+    garbage = (PyObject **)PyMem_Calloc(regsize, sizeof(PyObject *));
+    if (!garbage) {
+        PyErr_NoMemory();
+        goto out;
+    }
+
     if (ng->is_mapping) {
         if (regsize != 1) {
             PyErr_SetString(PyExc_ValueError,
@@ -1045,9 +1052,8 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
 "consider using .add_edge() etc. instead.");
             goto out;
         } else {
-            PyObject *old = lo->tgt;
+            garbage[0] = lo->tgt;
             lo->tgt = Py_NewRef(w);
-            Py_CLEAR(old);
         }
     } else {
         if (!PyTuple_Check(w)) {
@@ -1062,15 +1068,21 @@ ng_ass_sub(NyNodeGraphObject *ng, PyObject *v, PyObject *w)
             goto out;
         }
         for (i = 0; i < regsize; i++) {
-            PyObject *old = lo[i].tgt;
+            garbage[i] = lo[i].tgt;
             lo[i].tgt = Py_NewRef(PyTuple_GET_ITEM(w, i));
-            Py_CLEAR(old);
         }
     }
     r = 0;
 
 out:
     Ny_END_CRITICAL_SECTION();
+
+    if (garbage) {
+        for (i = 0; i < regsize; i++) {
+            Py_CLEAR(garbage[i]);
+        }
+        PyMem_Free(garbage);
+    }
     return r;
 }
 
