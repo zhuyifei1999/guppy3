@@ -1134,7 +1134,7 @@ hv_indisize_sum(NyHeapViewObject *self, PyObject *arg)
     ta.hv = self;
 
     Ny_BEGIN_CRITICAL_SECTION(self);
-    if (iterable_iterate(self->ms, arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
+    if (iterable_iterate_conservative(self->ms, arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
         goto out;
     r = PyLong_FromSsize_t(ta.sum);
 out:
@@ -1569,7 +1569,7 @@ hv_relimg(NyHeapViewObject *hv, PyObject *S)
     ta.hs = hv_mutnodeset_new(hv);
     if (!ta.hs)
         goto err_start;
-    if (iterable_iterate(hv->ms, S, (visitproc)hv_relimg_trav, &ta) == -1)
+    if (iterable_iterate_conservative(hv->ms, S, (visitproc)hv_relimg_trav, &ta) == -1)
         goto err_start;
     if (hv_cleanup_mutset(ta.hv, ta.hs) == -1)
         goto err_start;

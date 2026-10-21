@@ -34,17 +34,6 @@ extern bool NY_IS_WORLD_STOPPED(void);
 /* This is technically per-interp and not per-thread, but on !Py_GIL_DISABLED
    it makes no difference */
 
-/* From pyport.h */
-# ifdef thread_local
-#   define Ny_thread_local thread_local
-# elif __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
-#   define Ny_thread_local _Thread_local
-# elif defined(_MSC_VER)  /* AKA NT_THREADS */
-#   define Ny_thread_local __declspec(thread)
-# elif defined(__GNUC__)  /* includes clang */
-#   define Ny_thread_local __thread
-# endif
-
 extern Ny_thread_local int _world_stopped;
 
 #define NY_IS_WORLD_STOPPED() _world_stopped

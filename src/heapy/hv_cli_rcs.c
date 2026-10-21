@@ -95,7 +95,7 @@ hv_cli_rcs_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject
         Ny_END_CRITICAL_SECTION();
         if (!arg.ns)
             return NULL;
-        if (iterable_iterate(ms, kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
+        if (iterable_iterate_conservative(ms, kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
             goto err;
         if (NyNodeSet_be_immutable(&arg.ns) == -1)
             goto err;
@@ -106,20 +106,43 @@ err:
     }
 }
 
+typedef struct {
+    RetclasetObject *self;
+    struct HeapycState *ms;
+    NyNodeSetObject *Ri;
+} RCSTravArg;
 
-
+static int
+hv_cli_rcs_rec(PyObject *obj, RCSTravArg *ta)
+{
+    PyObject *kind = ta->self->cli->def->classify(ta->ms, ta->self->cli->self, obj);
+    if (!kind)
+        return -1;
+    if (NyNodeSet_setobj(ta->Ri, kind) == -1) {
+        Py_CLEAR(kind);
+        return -1;
+    }
+    Py_CLEAR(kind);
+    return 0;
+}
 
 static PyObject *
 hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
+    NyNodeSetObject *referrers;
+    bool ng_success = false;
     PyObject *kind = NULL;
-    NyNodeSetObject *Ri;
+    RCSTravArg ta;
+
+    ta.self = self;
+    ta.ms = ms;
 
     Ny_BEGIN_CRITICAL_SECTION(self->hv);
-    Ri = hv_mutnodeset_new(self->hv);
+    ta.Ri = hv_mutnodeset_new(self->hv);
+    referrers = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
-    if (!Ri)
+    if (!ta.Ri || !referrers)
         return NULL;
 
     Ny_BEGIN_CRITICAL_SECTION(self->rg);
@@ -128,23 +151,30 @@ hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj
     for (cur = lo; cur < hi; cur++) {
         if (Py_IsNone(cur->tgt))
             continue;
-        kind = self->cli->def->classify(ms, self->cli->self, cur->tgt);
-        if (!kind)
-            goto err;
-        if (NyNodeSet_setobj(Ri, kind) == -1)
-            goto err;
-        Py_CLEAR(kind);
+        if (NyNodeSet_setobj(referrers, cur->tgt) == -1)
+            goto err_endcs;
     }
-    if (NyNodeSet_be_immutable(&Ri) == -1)
+
+    ng_success = true;
+
+err_endcs:
+    Ny_END_CRITICAL_SECTION();
+    if (!ng_success)
         goto err;
-    kind = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)Ri);
+
+    if (NyNodeSet_iterate(referrers, (visitproc)hv_cli_rcs_rec, &ta) == -1)
+        goto err;
+
+    if (NyNodeSet_be_immutable(&ta.Ri) == -1)
+        goto err;
+    kind = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)ta.Ri);
     goto out;
 
 err:
     Py_CLEAR(kind);
 out:
-    Ny_END_CRITICAL_SECTION();
-    Py_CLEAR(Ri);
+    Py_CLEAR(ta.Ri);
+    Py_CLEAR(referrers);
     return kind;
 }
 

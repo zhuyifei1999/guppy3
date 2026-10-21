@@ -68,7 +68,7 @@ Ny_thread_local int _world_stopped = 0;
 
 int
 iterable_iterate(struct HeapycState *ms, PyObject *v,
-                int (*visit)(PyObject *, void *), void *arg)
+                 int (*visit)(PyObject *, void *), void *arg)
 {
     if (PyObject_TypeCheck(v, ms->nodeset_exports->nodeset_type)) {
         return NyNodeSet_iterate((NyNodeSetObject *)v, visit, arg);
@@ -80,6 +80,8 @@ iterable_iterate(struct HeapycState *ms, PyObject *v,
         PyObject *item;
         for (i = 0; i < PyList_GET_SIZE(v); i++) {
             item = PyList_GetItemRef(v, i);
+            if (!item)
+                return -1;
             r = visit(item, arg);
             Py_CLEAR(item);
             if (r == -1)
@@ -114,6 +116,37 @@ Err:
         Py_CLEAR(it);
         return -1;
     }
+}
+
+int
+iterable_iterate_conservative(struct HeapycState *ms, PyObject *v,
+                              int (*visit)(PyObject *, void *), void *arg)
+{
+    /* Some callers of iterable_iterate is sensitive. */
+    PyObject *repl;
+    int r;
+
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->mutnodeset_type)) {
+        /* Iterating a mutnodeset relies on the set being inside a critical
+           section to prrootect against UAF, but callers may release it. */
+        repl = (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
+        goto do_repl;
+    } else if (PyObject_TypeCheck(v, ms->HeapView_Type)) {
+        /* Iterating a heapview enters a stop-the-worls, but callers may rely
+           on the world running. */
+        repl = hv_heap((NyHeapViewObject *)v, NULL);
+        goto do_repl;
+    }
+
+    return iterable_iterate(ms, v, visit, arg);
+
+do_repl:
+    if (!repl)
+        return -1;
+
+    r = iterable_iterate(ms, repl, visit, arg);
+    Py_CLEAR(repl);
+    return r;
 }
 
 PyObject *

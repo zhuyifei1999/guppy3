@@ -274,7 +274,7 @@ hv_cli_inrel_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *
     Ny_END_CRITICAL_SECTION();
     if (!arg.ns)
         return NULL;
-    if (iterable_iterate(ms, kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
+    if (iterable_iterate_conservative(ms, kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
         goto err;
     if (NyNodeSet_be_immutable(&arg.ns) == -1)
         goto err;

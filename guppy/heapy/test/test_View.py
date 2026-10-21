@@ -77,6 +77,26 @@ class FirstCase(TestCase):
             hn = h.news()
             self.assertEqual(hn, iso())
 
+    def test_horizon_threads(self):
+        try:
+            import threading
+        except ImportError:
+            print('threading not enabled - skipping test')
+            return
+
+        with self.tracemalloc_state(False):
+            iso = self.iso
+
+            objs = [object()]
+            h = self.View.horizon()
+
+            t = threading.Thread(target=objs.clear)
+            t.start()
+            t.join()
+
+            x = []
+            self.assertEqual(h.news() & iso(x), iso(x))
+
     def test_imdom(self):
         iso = self.iso
         x = []

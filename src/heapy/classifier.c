@@ -159,7 +159,7 @@ cli_partition(NyObjectClassifierObject *self, PyObject *args)
     ta.map = PyDict_New();
     if (!ta.map)
         goto Err;
-    if (iterable_iterate(ms, iterable, (visitproc)cli_partition_iter, &ta) == -1)
+    if (iterable_iterate_conservative(ms, iterable, (visitproc)cli_partition_iter, &ta) == -1)
         goto Err;
     return ta.map;
 
@@ -193,7 +193,7 @@ cli_epartition(NyObjectClassifierObject *self, PyObject *iterable)
     ta.emap = NyNodeGraph_New(ms);
     if (!ta.emap)
         goto Err;
-    if (iterable_iterate(ms, iterable, (visitproc)cli_epartition_iter, &ta) == -1)
+    if (iterable_iterate_conservative(ms, iterable, (visitproc)cli_epartition_iter, &ta) == -1)
         goto Err;
     return (PyObject *)ta.emap;
 
@@ -324,7 +324,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
         goto err;
     ta.cli = self;
     ta.ms = ms;
-    r = iterable_iterate(ms, X, (visitproc)cli_select_kind, &ta);
+    r = iterable_iterate_conservative(ms, X, (visitproc)cli_select_kind, &ta);
     if (r == -1)
         Py_CLEAR(ta.ret);
 err:

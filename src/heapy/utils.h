@@ -6,6 +6,9 @@ struct HeapycState;
 extern int
 iterable_iterate(struct HeapycState *ms, PyObject *v,
                  int (*visit)(PyObject *, void *), void *arg);
+extern int
+iterable_iterate_conservative(struct HeapycState *ms, PyObject *v,
+                              int (*visit)(PyObject *, void *), void *arg);
 
 extern PyObject *gc_get_objects(struct HeapycState *ms);
 
