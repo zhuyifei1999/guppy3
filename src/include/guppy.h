@@ -1,4 +1,5 @@
 #ifndef GUPPY_H_INCLUDED
+#define GUPPY_H_INCLUDED
 
 #include <stdbool.h>
 
@@ -15,6 +16,17 @@
 # define Py_PACK_VERSION(major, minor) \
    Py_PACK_FULL_VERSION(major, minor, 0, 0, 0)
 #endif
+
+/* From pyport.h */
+# ifdef thread_local
+#   define Ny_thread_local thread_local
+# elif __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
+#   define Ny_thread_local _Thread_local
+# elif defined(_MSC_VER)  /* AKA NT_THREADS */
+#   define Ny_thread_local __declspec(thread)
+# elif defined(__GNUC__)  /* includes clang */
+#   define Ny_thread_local __thread
+# endif
 
 #ifdef Py_GIL_DISABLED
 # define Ny_BEGIN_CRITICAL_SECTION(op) Py_BEGIN_CRITICAL_SECTION(op)

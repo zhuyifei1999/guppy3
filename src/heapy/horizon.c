@@ -184,19 +184,50 @@ horizon_patch_dealloc(PyTypeObject *t)
 }
 #endif
 
+#ifdef Py_GIL_DISABLED
+static Ny_thread_local int horizon_on_dealloc_reentrant;
+#endif
+
 static void
 horizon_on_dealloc(PyObject *v)
 {
     NyHorizonObject *r;
 
+#ifdef Py_GIL_DISABLED
+    if (horizon_on_dealloc_reentrant) {
+        /* Freethreading invokes copy-on-write behavior on the bitset because
+           PyUnstable_Object_IsUniquelyReferenced returns false negatives
+           across threads. This causes this function to recurse. However,
+           the inner immbitsets and unions of a nodeset is private and
+           non-traversed, so it can never belong to any horizon's nodeset,
+           so we can return immediately here. */
+# ifndef NDEBUG
+        for (r = rm.horizons; r; r = r->next)
+            assert(!NyNodeSet_hasobj(r->hs, v));
+# endif
+        return;
+    }
+#endif
+
     PyMutex_Lock(&rm_mutex);
+#ifdef Py_GIL_DISABLED
+    horizon_on_dealloc_reentrant = true;
+#endif
     /* The list must be loaded after the Python finds this tracer
        from the global state */
     _Py_atomic_fence_acquire();
     for (r = rm.horizons; r; r = r->next) {
-        if (NyNodeSet_clrobj(r->hs, v) == -1)
-            Py_FatalError("could not clear object in nodeset");
+        /* Look-before-you-leap: Avoid unnecessary COW behavior in freethreading. */
+#ifdef Py_GIL_DISABLED
+        if (NyNodeSet_hasobj(r->hs, v))
+#endif
+            if (NyNodeSet_clrobj(r->hs, v) == -1)
+                Py_FatalError("could not clear object in nodeset");
     }
+
+#ifdef Py_GIL_DISABLED
+    horizon_on_dealloc_reentrant = false;
+#endif
     PyMutex_Unlock(&rm_mutex);
 }
 
