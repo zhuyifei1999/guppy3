@@ -331,7 +331,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     }
     mat = iterable_materialize(ms, X);
     if (!mat)
-        goto err;
+        goto err_kind;
     ta.ret = PyList_New(0);
     if (!ta.ret)
         goto err;
@@ -341,13 +341,14 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     if (r == -1)
         goto err;
 
-    Py_CLEAR(ta.kind);
     Py_CLEAR(mat);
+    Py_CLEAR(ta.kind);
     return ta.ret;
 err:
     Py_CLEAR(ta.ret);
-    Py_CLEAR(ta.kind);
     Py_CLEAR(mat);
+err_kind:
+    Py_CLEAR(ta.kind);
     return NULL;
 }
 

@@ -643,10 +643,10 @@ NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
 
         Ny_BEGIN_CRITICAL_SECTION(v);
         r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
-        if (r)
+        if (r > 0)
             Py_SET_SIZE(v, Py_SIZE(v) - 1);
         Ny_END_CRITICAL_SECTION();
-        if (r && v->flags & NS_HOLDOBJECTS)
+        if (r > 0 && v->flags & NS_HOLDOBJECTS)
             Py_CLEAR(obj);
     } else {
         PyErr_Format(PyExc_ValueError,
@@ -1024,7 +1024,7 @@ nodeset_iand_visit(PyObject *obj, IANDTravArg *ta)
 static PyObject *
 nodeset_iand(NyNodeSetObject *v, PyObject *w)
 {
-    NyNodeSetObject *snap;
+    NyNodeSetObject *snap = NULL;
     PyObject *r = NULL;
     IANDTravArg ta;
     if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type))) {
@@ -1042,7 +1042,7 @@ nodeset_iand(NyNodeSetObject *v, PyObject *w)
     /* We are mutating v while iterating it */
     snap = NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
     if (!snap)
-        return NULL;
+        goto err;
 
     if (NyNodeSet_iterate(snap, (NyIterableVisitor)nodeset_iand_visit, &ta) == -1)
         goto err;
