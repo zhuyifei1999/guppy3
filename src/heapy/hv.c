@@ -702,13 +702,14 @@ hv_is_dict_hidden(NyHeapViewObject *hv, PyObject *obj)
 
     /* We re often in STW contexts where PyDict_GetItem* is unsafe, since it
        calls richcompare on potentially arbirary objects */
-    Py_BEGIN_CRITICAL_SECTION(obj);
+    NY_ASSERT_WORLD_STOPPED();
+
     while (PyDict_Next(obj, &pos, &key, &value)) {
         if (!PyUnicode_CheckExact(key) || !PyUnicode_EqualToUTF8(key, "_hiding_tag_"))
             continue;
         r = value == hv->_hiding_tag_;
+        break;
     }
-    Py_END_CRITICAL_SECTION();
     return r;
 }
 
