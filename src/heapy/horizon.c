@@ -8,6 +8,7 @@
 #include "impsets.h"
 #include "heapy.h"
 #include "hv.h"
+#include "stoptheworld.h"
 #include "utils.h"
 
 PyDoc_STRVAR(horizon_doc,
@@ -194,13 +195,18 @@ horizon_on_dealloc(PyObject *v)
     NyHorizonObject *r;
 
 #ifdef Py_GIL_DISABLED
-    if (horizon_on_dealloc_reentrant) {
+    if (horizon_on_dealloc_reentrant || NY_IS_WORLD_STOPPED()) {
         /* Freethreading invokes copy-on-write behavior on the bitset because
            PyUnstable_Object_IsUniquelyReferenced returns false negatives
            across threads. This causes this function to recurse. However,
            the inner immbitsets and unions of a nodeset is private and
            non-traversed, so it can never belong to any horizon's nodeset,
-           so we can return immediately here. */
+           so we can return immediately here.
+
+           Likewise, if the world is stopped, anything that is de-allocated
+           should be known-temporary objects created during STW, since it is
+           unsafe to release the last reference of arbitrary objects during
+           STW, as a cascade of dealloc may reach into arbitrary Python code */
 # ifndef NDEBUG
         for (r = rm.horizons; r; r = r->next)
             assert(!NyNodeSet_hasobj(r->hs, v));
