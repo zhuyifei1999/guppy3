@@ -166,6 +166,33 @@ err:
     return result;
 }
 
+static int
+hv_cli_dictof_rebuild(struct HeapycState *ms, DictofObject *self)
+{
+    NyNodeGraphObject *new_owners = NyNodeGraph_New(ms);
+    int r = -1;
+
+    if (!new_owners)
+        return -1;
+    /* hv_cli_dictof_update suspends CS */
+    if (hv_cli_dictof_update(self->hv, new_owners) == -1)
+        goto err;
+
+    Ny_BEGIN_CRITICAL_SECTION(self->owners);
+    NyNodeGraph_Clear(self->owners);
+
+    /* TODO: Consider an O(1) helper to swap in-place? */
+    if (NyNodeGraph_Update(self->owners, (PyObject *)new_owners) == -1)
+        goto err_endcs;
+
+    r = 0;
+
+err_endcs:
+    Ny_END_CRITICAL_SECTION();
+err:
+    Py_CLEAR(new_owners);
+    return r;
+}
 
 static PyObject *
 hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj)
@@ -173,31 +200,48 @@ hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj
     if (!DictofDict_Check(obj)) {
         return Py_NewRef(self->notdictkind);
     } else {
-        PyObject *r = NULL;
+        PyObject *r = NULL, *tgt = NULL;
+        bool missing, retried = false;
         NyNodeGraphEdge *lo, *hi;
+
+retry:
+        missing = false;
 
         Ny_BEGIN_CRITICAL_SECTION(self->owners);
         if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
             goto out;
-        if (!(lo < hi)) {
-            NyNodeGraph_Clear(self->owners);
-            if (hv_cli_dictof_update(self->hv, self->owners) == -1)
-                goto out;
-            if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
-                goto out;
-        }
-        if (lo < hi && !Py_IsNone(lo->tgt)) {
-            r = self->ownerclassifier->def->classify(
-                    ms, self->ownerclassifier->self, lo->tgt);
+        if (lo < hi) {
+            if (!Py_IsNone(lo->tgt)) {
+                tgt = Py_NewRef(lo->tgt);  /* classify may suspend CS */
+                r = self->ownerclassifier->def->classify(
+                        ms, self->ownerclassifier->self, tgt);
+            } else {
+                r = Py_NewRef(self->notownedkind);
+            }
+            goto out;
         } else {
-            r = Py_NewRef(self->notownedkind);
+            missing = true;
         }
 
 out:
         Ny_END_CRITICAL_SECTION();
-        return r;
-    }
+        Py_CLEAR(tgt);
+        if (!missing)
+            return r;
 
+        assert(!r);
+        /* Repopulate owners graph once if the entry is missing
+           on the first iteration */
+        if (retried)
+            return Py_NewRef(self->notownedkind);
+        retried = true;
+
+        /* hv_cli_dictof_update suspends CS */
+        if (hv_cli_dictof_rebuild(ms, self) == -1)
+            return NULL;
+
+        goto retry;
+    }
 }
 
 static PyObject *

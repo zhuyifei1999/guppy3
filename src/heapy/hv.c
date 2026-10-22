@@ -1130,15 +1130,20 @@ hv_indisize_sum(NyHeapViewObject *self, PyObject *arg)
 {
     PyObject *r = NULL;
     SalArg ta;
+    PyObject *mat;
+    mat = iterable_materialize(self->ms, arg);
+    if (!mat)
+        return NULL;
     ta.sum = 0;
     ta.hv = self;
 
     Ny_BEGIN_CRITICAL_SECTION(self);
-    if (iterable_iterate_conservative(self->ms, arg, (visitproc)hv_indisize_sum_rec, &ta) == -1)
+    if (iterable_iterate(self->ms, mat, (visitproc)hv_indisize_sum_rec, &ta) == -1)
         goto out;
     r = PyLong_FromSsize_t(ta.sum);
 out:
     Ny_END_CRITICAL_SECTION();
+    Py_CLEAR(mat);
     return r;
 }
 
@@ -1563,23 +1568,29 @@ static NyNodeSetObject *
 hv_relimg(NyHeapViewObject *hv, PyObject *S)
 {
     HVRITravArg ta;
+    PyObject *mat;
+    mat = iterable_materialize(hv->ms, S);
+    if (!mat)
+        return NULL;
     ta.hv = hv;
 
     NY_STOP_WORLD();
     ta.hs = hv_mutnodeset_new(hv);
     if (!ta.hs)
         goto err_start;
-    if (iterable_iterate_conservative(hv->ms, S, (visitproc)hv_relimg_trav, &ta) == -1)
+    if (iterable_iterate(hv->ms, mat, (visitproc)hv_relimg_trav, &ta) == -1)
         goto err_start;
     if (hv_cleanup_mutset(ta.hv, ta.hs) == -1)
         goto err_start;
 
     NY_START_WORLD();
+    Py_CLEAR(mat);
     return ta.hs;
 
 err_start:
     NY_START_WORLD();
     Py_CLEAR(ta.hs);
+    Py_CLEAR(mat);
     return NULL;
 }
 

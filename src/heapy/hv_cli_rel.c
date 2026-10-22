@@ -265,7 +265,10 @@ static PyObject *
 hv_cli_inrel_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *kind)
 {
     MemoRelArg arg;
-    PyObject *result = NULL;
+    PyObject *result = NULL, *mat;
+    mat = iterable_materialize(ms, kind);
+    if (!mat)
+        return NULL;
     arg.ms = ms;
     arg.memorel = self->memorel;
     arg.memorel_stw = self->memorel_stw;
@@ -273,14 +276,15 @@ hv_cli_inrel_memoized_kind(struct HeapycState *ms, InRelObject *self, PyObject *
     arg.ns = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
     if (!arg.ns)
-        return NULL;
-    if (iterable_iterate_conservative(ms, kind, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
+        goto err;
+    if (iterable_iterate(ms, mat, (visitproc)inrel_visit_memoize_relation, &arg) == -1)
         goto err;
     if (NyNodeSet_be_immutable(&arg.ns) == -1)
         goto err;
     result = inrel_fast_memoized_kind(ms, self, (PyObject *)arg.ns);
 err:
     Py_CLEAR(arg.ns);
+    Py_CLEAR(mat);
     return result;
 }
 

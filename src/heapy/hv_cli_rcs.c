@@ -87,21 +87,25 @@ hv_cli_rcs_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject
         return hv_cli_rcs_fast_memoized_kind(ms, self, kind);
     } else {
         MemoRcsArg arg;
-        PyObject *result = NULL;
+        PyObject *result = NULL, *mat;
+        mat = iterable_materialize(ms, kind);
+        if (!mat)
+            return NULL;
         arg.ms = ms;
         arg.cli = self->cli;
         Ny_BEGIN_CRITICAL_SECTION(self->hv);
         arg.ns = hv_mutnodeset_new(self->hv);
         Ny_END_CRITICAL_SECTION();
         if (!arg.ns)
-            return NULL;
-        if (iterable_iterate_conservative(ms, kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
+            goto err;
+        if (iterable_iterate(ms, mat, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
             goto err;
         if (NyNodeSet_be_immutable(&arg.ns) == -1)
             goto err;
         result = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)arg.ns);
 err:
         Py_CLEAR(arg.ns);
+        Py_CLEAR(mat);
         return result;
     }
 }
@@ -143,7 +147,7 @@ hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj
     referrers = hv_mutnodeset_new(self->hv);
     Ny_END_CRITICAL_SECTION();
     if (!ta.Ri || !referrers)
-        return NULL;
+        goto out;
 
     Ny_BEGIN_CRITICAL_SECTION(self->rg);
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)

@@ -359,6 +359,7 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
 {
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     NewsTravArg ta;
+    PyObject *mat;
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
     if (_Py_atomic_load_int(&rm.replaced)) {
@@ -370,15 +371,20 @@ horizon_news(NyHorizonObject *self, PyObject *arg)
     }
 #endif
 
+    mat = iterable_materialize(ms, arg);
+    if (!mat)
+        return NULL;
     ta.rg = self;
     ta.result = NyMutNodeSet_New(ms->nodeset_exports->ms);
     if (!(ta.result))
         goto err;
-    if (iterable_iterate(ms, arg, (visitproc)horizon_news_trav, &ta) == -1)
+    if (iterable_iterate(ms, mat, (visitproc)horizon_news_trav, &ta) == -1)
         goto err;
+    Py_CLEAR(mat);
     return (PyObject *)ta.result;
 err:
     Py_CLEAR(ta.result);
+    Py_CLEAR(mat);
     return NULL;
 }
 

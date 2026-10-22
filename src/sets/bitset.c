@@ -1834,12 +1834,13 @@ mutbitset_iop_cplbitset(NyMutBitSetObject *v, int op, NyCplBitSetObject *w)
 static int
 mutbitset_iop_mutset(NyMutBitSetObject *v, int op, NyMutBitSetObject *w)
 {
-    int cpl = w->cpl;
+    int cpl;
     NySetField *s, *end_s;
     NyBitField *f, *end_f, *wf;
     int r = -1;
 
     Ny_BEGIN_CRITICAL_SECTION2(v, w);
+    cpl = w->cpl;
     end_s = NULL; /* avoid warning */
     op = cpl_conv_right(op, &cpl);
     op = mutbitset_iop_convert(v, op);

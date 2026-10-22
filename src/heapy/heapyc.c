@@ -118,36 +118,53 @@ Err:
     }
 }
 
-int
-iterable_iterate_conservative(struct HeapycState *ms, PyObject *v,
-                              int (*visit)(PyObject *, void *), void *arg)
+#ifdef Py_GIL_DISABLED
+static int
+iterable_materialize_rec(PyObject *obj, NyNodeSetObject *arg)
 {
-    /* Some callers of iterable_iterate is sensitive. */
-    PyObject *repl;
-    int r;
-
-    if (PyObject_TypeCheck(v, ms->nodeset_exports->mutnodeset_type)) {
-        /* Iterating a mutnodeset relies on the set being inside a critical
-           section to prrootect against UAF, but callers may release it. */
-        repl = (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
-        goto do_repl;
-    } else if (PyObject_TypeCheck(v, ms->HeapView_Type)) {
-        /* Iterating a heapview enters a stop-the-worls, but callers may rely
-           on the world running. */
-        repl = hv_heap((NyHeapViewObject *)v, NULL);
-        goto do_repl;
-    }
-
-    return iterable_iterate(ms, v, visit, arg);
-
-do_repl:
-    if (!repl)
-        return -1;
-
-    r = iterable_iterate(ms, repl, visit, arg);
-    Py_CLEAR(repl);
-    return r;
+    return NyNodeSet_setobj(arg, obj) == -1 ? -1 : 0;
 }
+
+PyObject *
+iterable_materialize(struct HeapycState *ms, PyObject *v)
+{
+    NyNodeSetObject *repl = NULL;
+
+    /* May call iterator which may be arbirary Python code, or invoke STW.
+       When STW ends, only the innermost critical section is immediately
+       resumed, and this may break some assumptions when nesting callbacks.
+
+       Hence, only immnodesets can be returned here no matter what. */
+    NY_ASSERT_WORLD_RUNNING();
+
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->immnodeset_type))
+        return Py_NewRef(v);
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->mutnodeset_type))
+        return (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
+
+    repl = NyMutNodeSet_New(ms->nodeset_exports->ms);
+    if (!repl)
+        return NULL;
+
+    if (iterable_iterate(ms, v, (visitproc)iterable_materialize_rec, repl) == -1)
+        goto err;
+    if (NyNodeSet_be_immutable(&repl) == -1)
+        goto err;
+
+    return (PyObject *)repl;
+
+err:
+    Py_CLEAR(repl);
+    return NULL;
+}
+#else
+PyObject *
+iterable_materialize(struct HeapycState *ms, PyObject *v)
+{
+    /* No need to pay the cost of materialization when !freethreading */
+    return Py_NewRef(v);
+}
+#endif
 
 PyObject *
 gc_get_objects(struct HeapycState *ms)

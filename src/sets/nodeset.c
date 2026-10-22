@@ -198,17 +198,24 @@ NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag
     return v;
 }
 
+static int
+nodeset_new_iterable_visit(PyObject *obj, NyNodeSetObject *arg)
+{
+    return NyNodeSet_setobj(arg, obj) == -1 ? -1 : 0;
+}
+
+
 NyNodeSetObject *
 NyMutNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject *hiding_tag)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     NyNodeSetObject *ns = NyMutNodeSet_SubtypeNewFlags(type, NS_HOLDOBJECTS, hiding_tag);
     if (!ns)
         return NULL;
     if (iterable) {
-        PyObject *r = nodeset_ior(ns, iterable);
-        if (!r)
+        if (iterable_iterate(ms, iterable,
+                             (NyIterableVisitor)nodeset_new_iterable_visit, ns) == -1)
             Py_CLEAR(ns);
-        Py_CLEAR(r);
     }
     return ns;
 }
@@ -833,15 +840,9 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
             return NULL;
         }
         if (!PyObject_TypeCheck(ww, ms->NodeSet_Type)) {
-            PyObject *p;
-            w = NyMutNodeSet_New(ms);
+            w = NyMutNodeSet_SubtypeNewIterable(ms->MutNodeSet_Type, ww, NULL);
             if (!w)
                 goto err;
-            p = nodeset_ior(w, ww);
-            if (!p)
-                goto err;
-            else
-                Py_CLEAR(p);
         } else {
             bool hiding_tag_diff;
             w = (void *)Py_NewRef(ww);
@@ -956,6 +957,7 @@ nodeset_iop_iterable_visit(PyObject *obj, IOPTravArg *ta)
 static PyObject *
 nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
                          int (*visit)(NyNodeSetObject *, PyObject *)) {
+    PyObject *ww;
     IOPTravArg ta;
     ta.ns = v;
     ta.visit = visit;
@@ -963,9 +965,27 @@ nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
         PyErr_SetString(PyExc_TypeError, "iop: left argument must be mutable");
         return NULL;
     }
-    if (iterable_iterate(v->ms, (PyObject *)w,
+    ww = w;
+#ifdef Py_GIL_DISABLED
+    if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
+            !PyUnstable_Object_IsUniquelyReferenced(w)) {
+        /* see nodeset_iand */
+        ww = (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)w);
+        if (!ww)
+            return NULL;
+    }
+#endif
+    if (iterable_iterate(v->ms, (PyObject *)ww,
                          (NyIterableVisitor) nodeset_iop_iterable_visit, &ta) == -1)
-        return NULL;
+        goto err;
+
+    if (ww != w)
+        Py_CLEAR(ww);
+    return Py_NewRef(v);
+
+err:
+    if (ww != w)
+        Py_CLEAR(ww);
     return Py_NewRef(v);
 }
 
@@ -998,16 +1018,27 @@ nodeset_iand(NyNodeSetObject *v, PyObject *w)
     }
     ta.v = v;
     ta.w = (NyNodeSetObject *)w;
-    if (!PyObject_TypeCheck(w, v->ms->NodeSet_Type)) {
-        PyObject *p;
-        ta.w = NyMutNodeSet_New(v->ms);
+
+#ifdef Py_GIL_DISABLED
+    if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
+            !PyUnstable_Object_IsUniquelyReferenced(w)) {
+        /* Under freethreading, we will iterate w, needing w and w bitset's
+           critical section, but we also need to mutate v with v and v bitset's
+           critical section. The latter can suspend the former if it is shared,
+           breaking the iterator */
+        ta.w = NyImmNodeSet_NewCopy((NyNodeSetObject *)w);
         if (!ta.w)
             return NULL;
-        p = nodeset_ior(ta.w, w);
-        if (!p)
-            goto err;
-        Py_CLEAR(p);
+    } else
+#endif
+    if (!PyObject_TypeCheck(w, v->ms->NodeSet_Type)) {
+        /* However, in this case the new w is not shared so suspensions are
+           not a concern */
+        ta.w = NyMutNodeSet_SubtypeNewIterable(v->ms->MutNodeSet_Type, w, NULL);
+        if (!ta.w)
+            return NULL;
     }
+
     Ny_BEGIN_CRITICAL_SECTION(v);
     if (NyNodeSet_iterate(v, (NyIterableVisitor)nodeset_iand_visit, &ta) == -1)
         goto err_endcrit;
@@ -1016,7 +1047,6 @@ nodeset_iand(NyNodeSetObject *v, PyObject *w)
 
 err_endcrit:
     Ny_END_CRITICAL_SECTION();
-err:
     if (ta.w != (void *)w)
         Py_CLEAR(ta.w);
     return r;

@@ -150,21 +150,26 @@ cli_partition(NyObjectClassifierObject *self, PyObject *args)
 {
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     PATravArg ta;
-    PyObject *iterable;
+    PyObject *iterable, *mat;
     if (!PyArg_ParseTuple(args, "O:partition",
                           &iterable))
+        return NULL;
+    mat = iterable_materialize(ms, iterable);
+    if (!mat)
         return NULL;
     ta.self = self;
     ta.ms = ms;
     ta.map = PyDict_New();
     if (!ta.map)
         goto Err;
-    if (iterable_iterate_conservative(ms, iterable, (visitproc)cli_partition_iter, &ta) == -1)
+    if (iterable_iterate(ms, mat, (visitproc)cli_partition_iter, &ta) == -1)
         goto Err;
+    Py_CLEAR(mat);
     return ta.map;
 
 Err:
     Py_CLEAR(ta.map);
+    Py_CLEAR(mat);
     return NULL;
 }
 
@@ -188,17 +193,23 @@ cli_epartition(NyObjectClassifierObject *self, PyObject *iterable)
 {
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     PATravArg ta;
+    PyObject *mat;
+    mat = iterable_materialize(ms, iterable);
+    if (!mat)
+        return NULL;
     ta.self = self;
     ta.ms = ms;
     ta.emap = NyNodeGraph_New(ms);
     if (!ta.emap)
         goto Err;
-    if (iterable_iterate_conservative(ms, iterable, (visitproc)cli_epartition_iter, &ta) == -1)
+    if (iterable_iterate(ms, mat, (visitproc)cli_epartition_iter, &ta) == -1)
         goto Err;
+    Py_CLEAR(mat);
     return (PyObject *)ta.emap;
 
 Err:
     Py_CLEAR(ta.emap);
+    Py_CLEAR(mat);
     return NULL;
 }
 
@@ -295,7 +306,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
 {
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     SELTravArg ta;
-    PyObject *X, *cmp;
+    PyObject *X, *cmp, *mat;
 
     int r;
     if (!PyArg_ParseTuple(args, "OOO:select",
@@ -319,16 +330,20 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     } else {
         Py_INCREF(ta.kind);
     }
+    mat = iterable_materialize(ms, X);
+    if (!mat)
+        return NULL;
     ta.ret = PyList_New(0);
     if (!ta.ret)
         goto err;
     ta.cli = self;
     ta.ms = ms;
-    r = iterable_iterate_conservative(ms, X, (visitproc)cli_select_kind, &ta);
+    r = iterable_iterate(ms, mat, (visitproc)cli_select_kind, &ta);
     if (r == -1)
         Py_CLEAR(ta.ret);
 err:
     Py_CLEAR(ta.kind);
+    Py_CLEAR(mat);
     return ta.ret;
 }
 
