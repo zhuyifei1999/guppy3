@@ -363,12 +363,13 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
     crva.err = 0;
     crva.ms = ms;
     crva.memorel_stw = self->memorel_stw;
-    assert(Py_IsNone(self->rel->relator)); /* This will be restored, w/o incref, at return. */
     crva.rel = self->rel;
     crva.relset = NULL;
     crva.has_unsafe = false;
 
     NY_STOP_WORLD();
+
+    assert(Py_IsNone(self->rel->relator)); /* This will be restored, w/o incref, at return. */
 
     /* relset cannot be a NySTWMutNodeSet because it must hold temporary
        relation objects when !inrel_should_memoize_in_stw */
