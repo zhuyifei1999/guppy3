@@ -118,7 +118,6 @@ Err:
     }
 }
 
-#ifdef Py_GIL_DISABLED
 static int
 iterable_materialize_rec(PyObject *obj, NyNodeSetObject *arg)
 {
@@ -134,7 +133,10 @@ iterable_materialize(struct HeapycState *ms, PyObject *v)
        When STW ends, only the innermost critical section is immediately
        resumed, and this may break some assumptions when nesting callbacks.
 
-       Hence, only immnodesets can be returned here no matter what. */
+       Hence, only immnodesets can be returned here no matter what.
+
+       Even with GIL, iterating can cause arbitrary Python code to be
+       invoked, and the tread can swap out... */
     NY_ASSERT_WORLD_RUNNING();
 
     if (PyObject_TypeCheck(v, ms->nodeset_exports->immnodeset_type))
@@ -157,14 +159,6 @@ err:
     Py_CLEAR(repl);
     return NULL;
 }
-#else
-PyObject *
-iterable_materialize(struct HeapycState *ms, PyObject *v)
-{
-    /* No need to pay the cost of materialization when !freethreading */
-    return Py_NewRef(v);
-}
-#endif
 
 PyObject *
 gc_get_objects(struct HeapycState *ms)

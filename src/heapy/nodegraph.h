@@ -22,6 +22,7 @@ extern PyType_Spec NyNodeGraphIter_Spec;
 
 
 extern NyNodeGraphObject *NyNodeGraph_New(struct HeapycState *ms);
+extern NyNodeGraphObject *NyNodeGraph_SiblingNew(NyNodeGraphObject *ng);
 extern int NyNodeGraph_Region(NyNodeGraphObject *rg, PyObject *key,
                               NyNodeGraphEdge **lop, NyNodeGraphEdge **hip);
 extern int NyNodeGraph_AddEdge(NyNodeGraphObject *rg, PyObject *src, PyObject *tgt);
@@ -29,6 +30,7 @@ extern void NyNodeGraph_Clear(NyNodeGraphObject *rg);
 extern NyNodeGraphObject *NyNodeGraph_Copy(NyNodeGraphObject *rg);
 extern int NyNodeGraph_Invert(NyNodeGraphObject *rg);
 extern NyNodeGraphObject *NyNodeGraph_Inverted(NyNodeGraphObject *rg);
+extern int NyNodeGraph_Swap(NyNodeGraphObject *a, NyNodeGraphObject *b);
 extern int NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *b);
 
 typedef struct NyHeapTraverse NyHeapTraverse;

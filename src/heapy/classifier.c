@@ -306,7 +306,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
 {
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     SELTravArg ta;
-    PyObject *X, *cmp, *mat;
+    PyObject *X, *cmp, *mat = NULL;
 
     int r;
     if (!PyArg_ParseTuple(args, "OOO:select",
@@ -332,7 +332,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     }
     mat = iterable_materialize(ms, X);
     if (!mat)
-        return NULL;
+        goto err;
     ta.ret = PyList_New(0);
     if (!ta.ret)
         goto err;

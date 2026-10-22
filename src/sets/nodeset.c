@@ -986,7 +986,7 @@ nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
 err:
     if (ww != w)
         Py_CLEAR(ww);
-    return Py_NewRef(v);
+    return NULL;
 }
 
 

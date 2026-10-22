@@ -169,26 +169,22 @@ err:
 static int
 hv_cli_dictof_rebuild(struct HeapycState *ms, DictofObject *self)
 {
-    NyNodeGraphObject *new_owners = NyNodeGraph_New(ms);
+    NyNodeGraphObject *new_owners;
     int r = -1;
 
+    Ny_BEGIN_CRITICAL_SECTION(self->owners);
+    new_owners = NyNodeGraph_SiblingNew(self->owners);
+    Ny_END_CRITICAL_SECTION();
     if (!new_owners)
         return -1;
+
     /* hv_cli_dictof_update suspends CS */
     if (hv_cli_dictof_update(self->hv, new_owners) == -1)
         goto err;
-
-    Ny_BEGIN_CRITICAL_SECTION(self->owners);
-    NyNodeGraph_Clear(self->owners);
-
-    /* TODO: Consider an O(1) helper to swap in-place? */
-    if (NyNodeGraph_Update(self->owners, (PyObject *)new_owners) == -1)
-        goto err_endcs;
-
+    if (NyNodeGraph_Swap(self->owners, new_owners) == -1)
+        goto err;
     r = 0;
 
-err_endcs:
-    Ny_END_CRITICAL_SECTION();
 err:
     Py_CLEAR(new_owners);
     return r;
