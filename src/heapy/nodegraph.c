@@ -459,7 +459,7 @@ NyNodeGraph_SubtypeNew(PyTypeObject *type)
     return ng;
 }
 
-static NyNodeGraphObject *
+NyNodeGraphObject *
 NyNodeGraph_SiblingNew(NyNodeGraphObject *ng)
 {
     NyNodeGraphObject *cp = NyNodeGraph_SubtypeNew(Py_TYPE(ng));
@@ -472,6 +472,7 @@ NyNodeGraph_SiblingNew(NyNodeGraphObject *ng)
     cp->_hiding_tag_ = Py_XNewRef(ng->_hiding_tag_);
     Py_CLEAR(he);
     cp->is_mapping = ng->is_mapping;
+    cp->is_preserving_duplicates = ng->is_preserving_duplicates;
     Ny_END_CRITICAL_SECTION();
 
     return cp;
@@ -812,6 +813,48 @@ out:
     Ny_END_CRITICAL_SECTION();
     Py_CLEAR(mat);
     return ta.hs;
+}
+
+int
+NyNodeGraph_Swap(NyNodeGraphObject *a, NyNodeGraphObject *b)
+{
+    PyObject *tmp__hiding_tag_;
+    NyNodeGraphEdge *tmp_edges;
+    Py_ssize_t tmp_used_size;
+    Py_ssize_t tmp_allo_size;
+    char tmp_is_sorted;
+    int r = -1;
+
+    Ny_BEGIN_CRITICAL_SECTION2(a, b);
+    if (a->is_mapping != b->is_mapping ||
+            a->is_preserving_duplicates != b->is_preserving_duplicates) {
+        PyErr_SetString(PyExc_ValueError, "swap: nodegraphs have different behavior");
+        goto err;
+    }
+
+    tmp__hiding_tag_ = a->_hiding_tag_;
+    tmp_edges = a->edges;
+    tmp_used_size = a->used_size;
+    tmp_allo_size = a->allo_size;
+    tmp_is_sorted = a->is_sorted;
+
+    a->_hiding_tag_ = b->_hiding_tag_;
+    a->edges = b->edges;
+    a->used_size = b->used_size;
+    a->allo_size = b->allo_size;
+    a->is_sorted = b->is_sorted;
+
+    b->_hiding_tag_ = tmp__hiding_tag_;
+    b->edges = tmp_edges;
+    b->used_size = tmp_used_size;
+    b->allo_size = tmp_allo_size;
+    b->is_sorted = tmp_is_sorted;
+
+    r = 0;
+
+err:
+    Ny_END_CRITICAL_SECTION2();
+    return r;
 }
 
 static int
