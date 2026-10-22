@@ -975,15 +975,19 @@ nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
         return NULL;
     }
     ww = w;
-#ifdef Py_GIL_DISABLED
     if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
             !PyUnstable_Object_IsUniquelyReferenced(w)) {
-        /* see nodeset_iand */
+        /* Under freethreading, we will iterate w, needing w and w bitset's
+           critical section, but we also need to mutate v with v and v bitset's
+           critical section. The latter can suspend the former if it is shared,
+           breaking the iterator.
+
+           Additionally, when non-freethreading, clearing objects can cause
+           arbitrary Python code to run, which can mutate w. */
         ww = (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)w);
         if (!ww)
             return NULL;
     }
-#endif
     if (iterable_iterate(v->ms, (PyObject *)ww,
                          (NyIterableVisitor) nodeset_iop_iterable_visit, &ta) == -1)
         goto err;
@@ -1020,6 +1024,7 @@ nodeset_iand_visit(PyObject *obj, IANDTravArg *ta)
 static PyObject *
 nodeset_iand(NyNodeSetObject *v, PyObject *w)
 {
+    NyNodeSetObject *snap;
     PyObject *r = NULL;
     IANDTravArg ta;
     if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type))) {
@@ -1028,36 +1033,26 @@ nodeset_iand(NyNodeSetObject *v, PyObject *w)
     ta.v = v;
     ta.w = (NyNodeSetObject *)w;
 
-#ifdef Py_GIL_DISABLED
-    if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
-            !PyUnstable_Object_IsUniquelyReferenced(w)) {
-        /* Under freethreading, we will iterate w, needing w and w bitset's
-           critical section, but we also need to mutate v with v and v bitset's
-           critical section. The latter can suspend the former if it is shared,
-           breaking the iterator */
-        ta.w = NyImmNodeSet_NewCopy((NyNodeSetObject *)w);
-        if (!ta.w)
-            return NULL;
-    } else
-#endif
     if (!PyObject_TypeCheck(w, v->ms->NodeSet_Type)) {
-        /* However, in this case the new w is not shared so suspensions are
-           not a concern */
         ta.w = NyMutNodeSet_SubtypeNewIterable(v->ms->MutNodeSet_Type, w, NULL);
         if (!ta.w)
             return NULL;
     }
 
-    Ny_BEGIN_CRITICAL_SECTION(v);
-    if (NyNodeSet_iterate(v, (NyIterableVisitor)nodeset_iand_visit, &ta) == -1)
-        goto err_endcrit;
+    /* We are mutating v while iterating it */
+    snap = NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
+    if (!snap)
+        return NULL;
+
+    if (NyNodeSet_iterate(snap, (NyIterableVisitor)nodeset_iand_visit, &ta) == -1)
+        goto err;
 
     r = Py_NewRef(v);
 
-err_endcrit:
-    Ny_END_CRITICAL_SECTION();
+err:
     if (ta.w != (void *)w)
         Py_CLEAR(ta.w);
+    Py_CLEAR(snap);
     return r;
 }
 
