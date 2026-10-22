@@ -40,17 +40,9 @@
 static PyObject *
 ng_iterable_materialize_ordered(PyObject *v)
 {
-#ifdef Py_GIL_DISABLED
-    /* We only care about !IsUniquelyReferenced into tuples */
     if (PyTuple_Check(v))
         return Py_NewRef(v);
-    if (PyUnstable_Object_IsUniquelyReferenced(v))
-        return Py_NewRef(v);
-
     return PySequence_Tuple(v);
-#else
-    return Py_NewRef(v);
-#endif
 }
 
 /* NodeGraphIter objects */
