@@ -2394,13 +2394,8 @@ mutbitset_repr(NyMutBitSetObject *a)
 
     Ny_BEGIN_CRITICAL_SECTION(a);
     if (a->cpl) {
-        fmt = "MutBitSet(~ImmBitSet(%R))";
-        /* Subtle:
-           Get around that mutbitset doesnt allow iteration when complemented -
-           this getaround assumes iter copies it to an immutable bitset. */
-        a->cpl = 0;
-        iter = PySequence_List((PyObject *)a);
-        a->cpl = 1;
+        fmt = "MutBitSet%R";
+        iter = NyMutBitSet_AsImmBitSet(a);
     }
     else {
         fmt = "MutBitSet(%R)";
