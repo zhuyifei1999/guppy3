@@ -128,9 +128,13 @@ iterable_materialize_rec(PyObject *obj, NyNodeSetObject *arg)
 PyObject *
 iterable_materialize(struct HeapycState *ms, PyObject *v)
 {
-    PyObject *repl = NULL;
+    NyNodeSetObject *repl = NULL;
 
-    /* May call iterator which may be arbirary Python code, or invoke STW */
+    /* May call iterator which may be arbirary Python code, or invoke STW.
+       When STW ends, only the innermost critical section is immediately
+       resumed, and this may break some assumptions when nesting callbacks.
+
+       Hence, only immnodesets can be returned here no matter what. */
     NY_ASSERT_WORLD_RUNNING();
 
     if (PyObject_TypeCheck(v, ms->nodeset_exports->immnodeset_type))
@@ -138,14 +142,16 @@ iterable_materialize(struct HeapycState *ms, PyObject *v)
     if (PyObject_TypeCheck(v, ms->nodeset_exports->mutnodeset_type))
         return (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
 
-    repl = (PyObject *)NyMutNodeSet_New(ms->nodeset_exports->ms);
+    repl = NyMutNodeSet_New(ms->nodeset_exports->ms);
     if (!repl)
         return NULL;
 
     if (iterable_iterate(ms, v, (visitproc)iterable_materialize_rec, repl) == -1)
         goto err;
+    if (NyNodeSet_be_immutable(&repl) == -1)
+        goto err;
 
-    return repl;
+    return (PyObject *)repl;
 
 err:
     Py_CLEAR(repl);

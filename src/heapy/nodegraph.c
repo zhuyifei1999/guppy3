@@ -37,6 +37,22 @@
 
 #define PTR_CMP(a,b)    (PTR_LT(a, b) ? -1 : (PTR_EQ(a, b) ? 0: 1))
 
+static PyObject *
+ng_iterable_materialize_ordered(PyObject *v)
+{
+#ifdef Py_GIL_DISABLED
+    /* We only care about !IsUniquelyReferenced into tuples */
+    if (PyTuple_Check(v))
+        return Py_NewRef(v);
+    if (PyUnstable_Object_IsUniquelyReferenced(v))
+        return Py_NewRef(v);
+
+    return PySequence_Tuple(v);
+#else
+    return Py_NewRef(v);
+#endif
+}
+
 /* NodeGraphIter objects */
 
 typedef struct {
@@ -375,13 +391,21 @@ static PyObject *
 ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
 {
     AETravArg ta;
-    PyObject *it;
+    PyObject *it, *mat;
     ta.ng = ng;
     if (!PyArg_ParseTuple(args, "OO:",  &it, &ta.tgt))
         return NULL;
-    if (iterable_iterate(ng->ms, it, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
+    mat = ng_iterable_materialize_ordered(it);
+    if (!mat)
         return NULL;
+    if (iterable_iterate(ng->ms, mat, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
+        goto err;
+    Py_CLEAR(mat);
     Py_RETURN_NONE;
+
+err:
+    Py_CLEAR(mat);
+    return NULL;
 }
 
 
@@ -515,17 +539,21 @@ static PyObject *
 ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
 {
     DCTravArg ta;
-    PyObject *result = NULL;
+    PyObject *result = NULL, *mat;
+    mat = ng_iterable_materialize_ordered(X);
+    if (!mat)
+        return NULL;
     ta.ng = ng;
     ta.ret = 1;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(ng->ms, X, (visitproc)ng_dc_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, mat, (visitproc)ng_dc_trav, &ta) == -1)
         goto out;
 
     result = Py_NewRef(ta.ret ? Py_True : Py_False);
 out:
     Ny_END_CRITICAL_SECTION();
+    Py_CLEAR(mat);
     return result;
 }
 
@@ -560,15 +588,22 @@ static PyObject *
 ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
 {
     DRTravArg ta;
+    PyObject *mat;
+    mat = ng_iterable_materialize_ordered(X);
+    if (!mat)
+        return NULL;
     ta.ng = ng;
     ta.ret = NyNodeGraph_SiblingNew(ng);
     if (!ta.ret)
-        return NULL;
+        goto err;
 
     Ny_BEGIN_CRITICAL_SECTION(ng);
-    if (iterable_iterate(ng->ms, X, (visitproc)ng_dr_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, mat, (visitproc)ng_dr_trav, &ta) == -1)
         Py_CLEAR(ta.ret);
     Ny_END_CRITICAL_SECTION();
+
+err:
+    Py_CLEAR(mat);
     return (PyObject *)ta.ret;
 }
 
@@ -763,6 +798,10 @@ static NyNodeSetObject *
 ng_relimg(NyNodeGraphObject *ng, PyObject *S)
 {
     RITravArg ta;
+    PyObject *mat;
+    mat = ng_iterable_materialize_ordered(S);
+    if (!mat)
+        return NULL;
     ta.ng = ng;
     ta.hs = NULL;
 
@@ -771,7 +810,7 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
     if (!ta.hs)
         goto out;
     ng_maybesortetc(ng);
-    if (iterable_iterate(ng->ms, S, (visitproc)ng_relimg_trav, &ta) == -1)
+    if (iterable_iterate(ng->ms, mat, (visitproc)ng_relimg_trav, &ta) == -1)
         goto err;
     goto out;
 
@@ -779,6 +818,7 @@ err:
     Py_CLEAR(ta.hs);
 out:
     Ny_END_CRITICAL_SECTION();
+    Py_CLEAR(mat);
     return ta.hs;
 }
 
@@ -800,7 +840,15 @@ ng_update_visit(PyObject *obj, NyNodeGraphObject *ng)
 int
 NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *u)
 {
-    return iterable_iterate(a->ms, u, (visitproc)ng_update_visit, a);
+    PyObject *mat;
+    int r;
+
+    mat = ng_iterable_materialize_ordered(u);
+    if (!mat)
+        return -1;
+    r = iterable_iterate(a->ms, mat, (visitproc)ng_update_visit, a);
+    Py_CLEAR(mat);
+    return r;
 }
 
 
