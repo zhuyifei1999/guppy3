@@ -172,9 +172,7 @@ hv_cli_dictof_rebuild(struct HeapycState *ms, DictofObject *self)
     NyNodeGraphObject *new_owners;
     int r = -1;
 
-    Ny_BEGIN_CRITICAL_SECTION(self->owners);
     new_owners = NyNodeGraph_SiblingNew(self->owners);
-    Ny_END_CRITICAL_SECTION();
     if (!new_owners)
         return -1;
 

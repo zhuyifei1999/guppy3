@@ -1954,8 +1954,6 @@ typedef struct {
     int num;
 } URCOTravArg;
 
-int dummy;
-
 static int
 urco_traverse(PyObject *obj, URCOTravArg *ta)
 {
