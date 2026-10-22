@@ -604,8 +604,6 @@ xt_relate(ExtraType *xt, NyHeapRelate *hr)
 {
     NY_ASSERT_WORLD_STOPPED();
     PyTypeObject *type = Py_TYPE(hr->src);
-    if (PyType_Ready(type) == -1)
-        return -1;
     if ((PyObject *)type == hr->tgt) {
         if (hr->visit(NYHR_INTERATTR, PyUnicode_FromString("ob_type"), hr))
             return 0;
