@@ -6,6 +6,7 @@
 
 #include "heapdef.h"
 #include "heapy.h"
+#include "hv.h"
 #include "stdtypes.h"
 #include "stdtypes_internal.h"
 #include "stoptheworld.h"
@@ -89,17 +90,15 @@ static int
 dict_traverse(NyHeapTraverse *ta)
 {
     PyObject *v = (void *)ta->obj;
-    PyObject *hiding_tag;
     int r;
 
     /* Avoid critical section around PyDict_Next */
     NY_ASSERT_WORLD_STOPPED();
 
-    r = PyDict_GetItemRef(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name, &hiding_tag);
+    r = hv_is_dict_hidden((NyHeapViewObject *)ta->hv, v);
     if (r == -1)
         return -1;
-    Py_XDECREF(hiding_tag);  /* Reference is also held by ta->_hiding_tag_ */
-    if (hiding_tag && hiding_tag == ta->_hiding_tag_)
+    if (r)
         return 0;
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)

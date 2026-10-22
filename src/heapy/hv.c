@@ -160,7 +160,6 @@ hv_gc_traverse(NyHeapViewObject *hv, visitproc visit, void *arg)
     Py_VISIT(hv->root);
     Py_VISIT(hv->limitframe);
     Py_VISIT(hv->_hiding_tag_);
-    Py_VISIT(hv->_hiding_tag__name);
     Py_VISIT(hv->static_types);
     Py_VISIT(hv->weak_type_callback);
 
@@ -204,7 +203,6 @@ hv_gc_clear(NyHeapViewObject *hv)
     Py_CLEAR(hv->root);
     Py_CLEAR(hv->limitframe);
     Py_CLEAR(hv->_hiding_tag_);
-    Py_CLEAR(hv->_hiding_tag__name);
     Py_CLEAR(hv->static_types);
     Py_CLEAR(hv->weak_type_callback);
 
@@ -645,14 +643,10 @@ xt_traverse(ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
             // into the values of the dict, ignoring the _hiding_tag_ handling
             // in stdtypes.c
             if (dict) {
-                PyObject *hiding_tag;
-                int r;
-
-                r = PyDict_GetItemRef((PyObject *)dict, xt->xt_hv->_hiding_tag__name, &hiding_tag);
+                int r = hv_is_dict_hidden(xt->xt_hv, (PyObject *)dict);
                 if (r == -1)
                     return -1;
-                Py_XDECREF(hiding_tag);  /* Reference is also held by xt->xt_hv->_hiding_tag_ */
-                if (hiding_tag && hiding_tag == xt->xt_hv->_hiding_tag_)
+                if (r)
                     return 0;
             }
         }
@@ -699,6 +693,25 @@ typedef struct {
     NySTWWorkList *rm;
 } CMSTravArg;
 
+int
+hv_is_dict_hidden(NyHeapViewObject *hv, PyObject *obj)
+{
+    PyObject *key, *value;
+    Py_ssize_t pos = 0;
+    int r = 0;
+
+    /* We re often in STW contexts where PyDict_GetItem* is unsafe, since it
+       calls richcompare on potentially arbirary objects */
+    Py_BEGIN_CRITICAL_SECTION(obj);
+    while (PyDict_Next(obj, &pos, &key, &value)) {
+        if (!PyUnicode_CheckExact(key) || !PyUnicode_EqualToUTF8(key, "_hiding_tag_"))
+            continue;
+        r = value == hv->_hiding_tag_;
+    }
+    Py_END_CRITICAL_SECTION();
+    return r;
+}
+
 static int
 hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 {
@@ -717,17 +730,8 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
         return 1;
     } else {
         PyObject **dp = _PyObject_GetDictPtr(obj);
-        if (dp && *dp) {
-            PyObject *hiding_tag;
-            int r;
-
-            r = PyDict_GetItemRef(*dp, hv->_hiding_tag__name, &hiding_tag);
-            if (r == -1)
-                return -1;
-            Py_XDECREF(hiding_tag);  /* Reference is also held by hv->_hiding_tag_ */
-            if (hiding_tag && hiding_tag == hv->_hiding_tag_)
-                return 1;
-        }
+        if (dp && *dp)
+            return hv_is_dict_hidden(hv, *dp);
     }
     return 0;
 }
@@ -838,10 +842,6 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
     hv->xt_mask = XT_MASK;
     hv->weak_type_callback = NULL;
     hv->xt_table = NULL;
-
-    hv->_hiding_tag__name = PyUnicode_FromString("_hiding_tag_");
-    if (!hv->_hiding_tag__name)
-        goto err;
 
     /* The HeapView object hv is now initialized to some well-defined state --
        but we have waited to try allocation till now when all
@@ -2098,10 +2098,6 @@ The 'static types' that have been found.\n\
 The static types are the type objects that are not heap allocated, but\n\
 are defined directly in C code. HeapView searches for these among all\n\
 reachable objects (at a suitable time or as needed)."},
-    {"_hiding_tag__name",     _Py_T_OBJECT , OFF(_hiding_tag__name), Py_READONLY,
-"HV._hiding_tag__name : string, read only\n\
-\n\
-Cached string \"_hiding_tag_\" for dict lookups."},
 
 
     {0} /* Sentinel */
