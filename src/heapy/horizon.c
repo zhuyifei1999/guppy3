@@ -289,19 +289,20 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     NyHorizonObject *hz = NULL;
     static char *kwlist[] = {"X", NULL};
     bool should_install;
+    PyObject *mat;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:Horizon.__new__",
                                  kwlist,
                                  &X))
         return NULL;
+    mat = iterable_materialize(ms, X);
+    if (!mat)
+        return NULL;
     hz = (NyHorizonObject *)type->tp_alloc(type, 1);
     if (!hz)
-        return NULL;
+        goto err;
     hz->hs = NyMutNodeSet_NewFlags(ms->nodeset_exports->ms, 0); /* I.E. not NS_HOLDOBJECTS */
     if (!hz->hs)
-        goto err;
-    if (iterable_iterate(ms, (PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
-        horizon_update_trav((PyObject *)hz, hz) == -1)
         goto err;
 
     PyMutex_Lock(&rm_mutex);
@@ -318,12 +319,19 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             goto err_unlock;
     }
     PyMutex_Unlock(&rm_mutex);
+
+    if (iterable_iterate(ms, mat, (visitproc)horizon_update_trav, hz) == -1 ||
+        horizon_update_trav((PyObject *)hz, hz) == -1)
+        goto err;
+
+    Py_CLEAR(mat);
     return (PyObject *)hz;
 
 err_unlock:
     PyMutex_Unlock(&rm_mutex);
 err:
     Py_CLEAR(hz);
+    Py_CLEAR(mat);
     return NULL;
 
 }
