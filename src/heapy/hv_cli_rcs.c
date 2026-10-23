@@ -38,7 +38,6 @@ typedef struct {
     NyHeapViewObject *hv;
     NyObjectClassifierObject *cli;
     NyNodeGraphObject *rg;
-    NyNodeSetObject *norefer;
     PyObject *memo;
 } RetclasetObject;
 NYTUPLELIKE_ASSERT(RetclasetObject, hv);
