@@ -13,15 +13,13 @@
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
 # define Py_BUILD_CORE
-#  undef _PyGC_FINALIZED
+# undef _PyGC_FINALIZED
 /* static_builtin_state */
-#  include <internal/pycore_typeobject.h>
+# include <internal/pycore_typeobject.h>
 /* PyInterpreterState */
-#  include <internal/pycore_interp.h>
+# include <internal/pycore_interp.h>
 /* _PyRuntime */
-#  include <internal/pycore_runtime.h>
-/* _PySet_NextEntry */
-#  include <internal/pycore_setobject.h>
+# include <internal/pycore_runtime.h>
 # undef Py_BUILD_CORE
 #endif
 
@@ -35,12 +33,20 @@
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
 # define Py_BUILD_CORE
 /* _PyInterpreterFrame */
-#  include <internal/pycore_interpframe_structs.h>
+# include <internal/pycore_interpframe_structs.h>
 /* PyStackRef_AsPyObjectBorrow */
-#  include <internal/pycore_stackref.h>
+# include <internal/pycore_stackref.h>
 # undef Py_BUILD_CORE
 #else
 # define PyStackRef_AsPyObjectBorrow(x) (x)
+#endif
+
+
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
+# define Py_BUILD_CORE
+/* _PySet_NextEntry */
+# include <internal/pycore_setobject.h>
+# undef Py_BUILD_CORE
 #endif
 
 #define GATTR(obj, name, rel) do {                           \
