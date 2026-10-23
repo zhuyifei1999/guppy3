@@ -3674,7 +3674,7 @@ immbitset_sub(NyImmBitSetObject *v, PyObject *w, int wt)
     case CPLSET:
         return (PyObject *)immbitset_op(v, NyBits_AND, cplbitset_cpl((NyCplBitSetObject *)w));
     default:
-        return Py_NotImplemented;
+        return Py_NewRef(Py_NotImplemented);
     }
 }
 
@@ -3689,7 +3689,7 @@ immbitset_xor(NyImmBitSetObject *v, PyObject *w, int wt)
     case CPLSET:
         return cpl_immbitset_op(v, NyBits_XOR, cplbitset_cpl((NyCplBitSetObject *)w));
     default:
-        return Py_NotImplemented;
+        return Py_NewRef(Py_NotImplemented);
     }
 }
 
