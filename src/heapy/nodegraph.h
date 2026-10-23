@@ -5,8 +5,9 @@ typedef struct {
     PyObject *src, *tgt;
 } NyNodeGraphEdge;
 
-typedef struct {
+typedef struct NyNodeGraphObject {
     PyObject_HEAD
+    struct HeapycState *ms;
     PyObject *_hiding_tag_;
     NyNodeGraphEdge *edges;
     Py_ssize_t used_size;
@@ -16,19 +17,27 @@ typedef struct {
     char is_preserving_duplicates;
 } NyNodeGraphObject;
 
-extern PyTypeObject NyNodeGraph_Type;
+extern PyType_Spec NyNodeGraph_Spec;
+extern PyType_Spec NyNodeGraphIter_Spec;
 
-#define NyNodeGraph_Check(op) PyObject_TypeCheck(op, &NyNodeGraph_Type)
 
+extern NyNodeGraphObject *NyNodeGraph_New(struct HeapycState *ms);
+extern NyNodeGraphObject *NyNodeGraph_SiblingNew(NyNodeGraphObject *ng);
+extern int NyNodeGraph_Region(NyNodeGraphObject *rg, PyObject *key,
+                              NyNodeGraphEdge **lop, NyNodeGraphEdge **hip);
+extern int NyNodeGraph_AddEdge(NyNodeGraphObject *rg, PyObject *src, PyObject *tgt);
+extern void NyNodeGraph_Clear(NyNodeGraphObject *rg);
+extern NyNodeGraphObject *NyNodeGraph_Copy(NyNodeGraphObject *rg);
+extern int NyNodeGraph_Invert(NyNodeGraphObject *rg);
+extern NyNodeGraphObject *NyNodeGraph_Inverted(NyNodeGraphObject *rg);
+extern int NyNodeGraph_Swap(NyNodeGraphObject *a, NyNodeGraphObject *b);
+extern int NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *b);
 
-NyNodeGraphObject *NyNodeGraph_New(void);
-int NyNodeGraph_Region(NyNodeGraphObject *rg, PyObject *key,
-		       NyNodeGraphEdge **lop, NyNodeGraphEdge **hip);
-int NyNodeGraph_AddEdge(NyNodeGraphObject *rg, PyObject *src, PyObject *tgt);
-void NyNodeGraph_Clear(NyNodeGraphObject *rg);
-NyNodeGraphObject *NyNodeGraph_Copy(NyNodeGraphObject *rg);
-int NyNodeGraph_Invert(NyNodeGraphObject *rg);
-NyNodeGraphObject *NyNodeGraph_Inverted(NyNodeGraphObject *rg);
-int NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *b);
+typedef struct NyHeapTraverse NyHeapTraverse;
+typedef struct NyHeapRelate NyHeapRelate;
+
+extern size_t nodegraph_size(PyObject *obj);
+extern int nodegraph_traverse(NyHeapTraverse *t);
+extern int nodegraph_relate(NyHeapRelate *r);
 
 #endif /* NY_NODEGRAPH_H */

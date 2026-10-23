@@ -3,7 +3,21 @@
    And has an argument that classifies the owners.
  */
 
-PyDoc_STRVAR(hv_cli_dictof_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "stoptheworld.h"
+#include "utils.h"
+
+const char hv_cli_dictof_doc[] = PyDoc_STR(
 "HV.cli_dictof(owners, ownerclassifier, notdictkind, notownedkind) -> ObjectClassifier\n"
 "\n"
 "Return a classifier, that classifies by \"Dict Owner\".\n"
@@ -48,11 +62,16 @@ NYTUPLELIKE_ASSERT(DictofObject, hv);
 
 static PyObject *
 hv_cli_dictof_get_static_types_list(NyHeapViewObject *hv) {
-    if (PyObject_Length(hv->static_types) == 0) {
-        PyObject *h = hv_heap(hv, Py_None, Py_None); /* It updates static_types */
+    Py_ssize_t len;
+
+    len = PyObject_Length(hv->static_types);
+    if (len == -1)
+        return NULL;
+    if (len == 0) {
+        PyObject *h = hv_heap(hv, Py_None); /* It updates static_types */
         if (!h)
-            return 0;
-        Py_DECREF(h);
+            return NULL;
+        Py_CLEAR(h);
     }
     return PySequence_List(hv->static_types);
 }
@@ -76,9 +95,10 @@ hv_cli_dictof_update_rec(PyObject *obj, DictofTravArg *ta) {
     return 0;
 }
 
-static int
+int
 hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
 {
+    NY_ASSERT_WORLD_RUNNING(); /* PyObject_CallFunctionObjArgs */
     DictofTravArg ta;
     ta.hv = hv;
     ta.rg = rg;
@@ -87,24 +107,26 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
     Py_ssize_t i, len;
     int k;
     int result = -1;
-    PyObject *lists[2] = {0, 0};
+    PyObject *lists[2] = {NULL, NULL};
 
-    if (!(ta.dictsowned = NyMutNodeSet_New())) goto err;
+    if (!(ta.dictsowned = NyMutNodeSet_New(hv->ms->nodeset_exports->ms))) goto err;
     if (!(lists[0] = hv_cli_dictof_get_static_types_list(hv))) goto err;
-    if (!(lists[1] = gc_get_objects())) goto err;
+    if (!(lists[1] = gc_get_objects(hv->ms))) goto err;
+
+    NY_STOP_WORLD();
     for (k = 0; k < 2; k++) {
         PyObject *objects = lists[k];
         len = PyList_Size(objects);
         if (len == -1) /* catches eg type error */
-            goto err;
+            goto err_start;
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
             dp = _PyObject_GetDictPtr(obj);
             if (dp && *dp) {
                 if (NyNodeGraph_AddEdge(ta.rg, *dp, obj) == -1)
-                    goto err;
+                    goto err_start;
                 if (NyNodeSet_setobj(ta.dictsowned, *dp) == -1)
-                    goto err;
+                    goto err_start;
             }
         }
     }
@@ -113,71 +135,117 @@ hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg)
         len = PyList_Size(objects);
         for (i = 0; i < len; i++) {
             PyObject *obj = PyList_GET_ITEM(objects, i);
+            if (obj == (PyObject *)ta.dictsowned)
+                continue;
+
             if (DictofDict_Check(obj)) {
                 int setobj = NyNodeSet_setobj(ta.dictsowned, obj);
                 if (setobj == -1)
-                    goto err;
+                    goto err_start;
                 else if (setobj == 0)
                     if (NyNodeGraph_AddEdge(ta.rg, obj, Py_None) == -1)
-                        goto err;
+                        goto err_start;
             }
 
             if (PyObject_IS_GC(obj)) {
+                NY_ASSERT_WORLD_STOPPED();
                 if (Py_TYPE(obj)->tp_traverse(
                         obj, (visitproc)hv_cli_dictof_update_rec, &ta) == -1)
-                    goto err;
+                    goto err_start;
             }
         }
     }
+
     result = 0;
+err_start:
+    NY_START_WORLD();
 err:
-    Py_XDECREF(ta.dictsowned);
-    Py_XDECREF(lists[0]);
-    Py_XDECREF(lists[1]);
+    Py_CLEAR(ta.dictsowned);
+    Py_CLEAR(lists[0]);
+    Py_CLEAR(lists[1]);
     return result;
 }
 
-
-static PyObject *
-hv_cli_dictof_classify(DictofObject *self, PyObject *obj)
+static int
+hv_cli_dictof_rebuild(struct HeapycState *ms, DictofObject *self)
 {
-    if (!DictofDict_Check(obj)) {
-        Py_INCREF(self->notdictkind);
-        return self->notdictkind;
-    } else {
-        NyNodeGraphEdge *lo, *hi;
-        if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1) {
-            return 0;
-        }
-        if (!(lo < hi)) {
-            NyNodeGraph_Clear(self->owners);
-            if (hv_cli_dictof_update(self->hv, self->owners) == -1)
-                return 0;
-            if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1) {
-                return 0;
-            }
-        }
-        if (lo < hi && lo->tgt != Py_None) {
-            PyObject *ownerkind = self->ownerclassifier->def->classify
-                (self->ownerclassifier->self, lo->tgt);
-            return ownerkind;
-        } else {
-            Py_INCREF(self->notownedkind);
-            return self->notownedkind;
-        }
-    }
+    NyNodeGraphObject *new_owners;
+    int r = -1;
 
+    new_owners = NyNodeGraph_SiblingNew(self->owners);
+    if (!new_owners)
+        return -1;
+
+    /* hv_cli_dictof_update suspends CS */
+    if (hv_cli_dictof_update(self->hv, new_owners) == -1)
+        goto err;
+    if (NyNodeGraph_Swap(self->owners, new_owners) == -1)
+        goto err;
+    r = 0;
+
+err:
+    Py_CLEAR(new_owners);
+    return r;
 }
 
 static PyObject *
-hv_cli_dictof_memoized_kind(DictofObject *self, PyObject *obj)
+hv_cli_dictof_classify(struct HeapycState *ms, DictofObject *self, PyObject *obj)
+{
+    if (!DictofDict_Check(obj)) {
+        return Py_NewRef(self->notdictkind);
+    } else {
+        PyObject *r = NULL, *tgt = NULL;
+        bool missing, retried = false;
+        NyNodeGraphEdge *lo, *hi;
+
+retry:
+        missing = false;
+
+        Ny_BEGIN_CRITICAL_SECTION(self->owners);
+        if (NyNodeGraph_Region(self->owners, obj, &lo, &hi) == -1)
+            goto out;
+        if (lo < hi) {
+            if (!Py_IsNone(lo->tgt)) {
+                tgt = Py_NewRef(lo->tgt);  /* classify may suspend CS */
+                r = self->ownerclassifier->def->classify(
+                        ms, self->ownerclassifier->self, tgt);
+            } else {
+                r = Py_NewRef(self->notownedkind);
+            }
+            goto out;
+        } else {
+            missing = true;
+        }
+
+out:
+        Ny_END_CRITICAL_SECTION();
+        Py_CLEAR(tgt);
+        if (!missing)
+            return r;
+
+        assert(!r);
+        /* Repopulate owners graph once if the entry is missing
+           on the first iteration */
+        if (retried)
+            return Py_NewRef(self->notownedkind);
+        retried = true;
+
+        /* hv_cli_dictof_update suspends CS */
+        if (hv_cli_dictof_rebuild(ms, self) == -1)
+            return NULL;
+
+        goto retry;
+    }
+}
+
+static PyObject *
+hv_cli_dictof_memoized_kind(struct HeapycState *ms, DictofObject *self, PyObject *obj)
 {
     if (self->ownerclassifier->def->memoized_kind)
-        return self->ownerclassifier->def->memoized_kind(self->ownerclassifier->self, obj);
-    else {
-        Py_INCREF(obj);
-        return obj;
-    }
+        return self->ownerclassifier->def->memoized_kind(
+            ms, self->ownerclassifier->self, obj);
+    else
+        return Py_NewRef(obj);
 }
 
 static NyObjectClassifierDef hv_cli_dictof_def = {
@@ -185,42 +253,33 @@ static NyObjectClassifierDef hv_cli_dictof_def = {
     sizeof(NyObjectClassifierDef),
     "cli_dictof",
     "classifier returning ...",
-    (binaryfunc)hv_cli_dictof_classify,
-    (binaryfunc)hv_cli_dictof_memoized_kind,
+    (modstatebinaryfunc)hv_cli_dictof_classify,
+    (modstatebinaryfunc)hv_cli_dictof_memoized_kind,
 };
 
-static PyObject *
+PyObject *
 hv_cli_dictof(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r;
     DictofObject *s, tmp;
     if (!PyArg_ParseTuple(args, "O!O!OO:cli_dictof",
-                          &NyNodeGraph_Type, &tmp.owners,
-                          &NyObjectClassifier_Type,&tmp.ownerclassifier,
+                          self->ms->NodeGraph_Type, &tmp.owners,
+                          self->ms->ObjectClassifier_Type, &tmp.ownerclassifier,
                           &tmp.notdictkind,
                           &tmp.notownedkind
                           ))
-        return 0;
+        return NULL;
 
     s = NYTUPLELIKE_NEW(DictofObject);
     if (!s)
-        return 0;
-    s->hv = self;
-    Py_INCREF(s->hv);
+        return NULL;
+    s->hv = Ny_NEWREF(self);
+    s->owners = Ny_NEWREF(tmp.owners);
+    s->ownerclassifier = Ny_NEWREF(tmp.ownerclassifier);
+    s->notdictkind = Py_NewRef(tmp.notdictkind);
+    s->notownedkind = Py_NewRef(tmp.notownedkind);
 
-    s->owners = tmp.owners;
-    Py_INCREF(s->owners);
-
-    s->ownerclassifier = tmp.ownerclassifier;
-    Py_INCREF(s->ownerclassifier);
-
-    s->notdictkind = tmp.notdictkind;
-    Py_INCREF(s->notdictkind);
-
-    s->notownedkind = tmp.notownedkind;
-    Py_INCREF(s->notownedkind);
-
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_dictof_def);
-    Py_DECREF(s);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_dictof_def);
+    Py_CLEAR(s);
     return r;
 }

@@ -1,6 +1,16 @@
 /* Implementation of the 'prod' classifier */
 
-PyDoc_STRVAR(hv_cli_prod_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+
+const char hv_cli_prod_doc[] = PyDoc_STR(
 "HV.cli_prod(memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that classifes by \"producer\".\n"
@@ -12,26 +22,35 @@ PyDoc_STRVAR(hv_cli_prod_doc,
 "                memoize the classification sets.\n"
 );
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
-# define Py_BUILD_CORE
-#  undef _PyObject_LookupSpecial
-/* _PyType_PreHeaderSize */
-#  include <internal/pycore_object.h>
-# undef Py_BUILD_CORE
-#endif
+#define Py_BUILD_CORE
+/* PyGC_Head */
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#  include <internal/pycore_interp_structs.h>
+# else
+#  undef _PyGC_FINALIZED
+#  include <internal/pycore_gc.h>
+# endif
+#undef Py_BUILD_CORE
 
+#define Py_BUILD_CORE
+# undef _PyObject_LookupSpecial
+/* _PyType_PreHeaderSize */
+# include <internal/pycore_object.h>
+#undef Py_BUILD_CORE
+
+#ifndef Py_GIL_DISABLED
 // The sizeof of PyGC_Head is not to be trusted upon even across Python minor
 // releases. Eg: python/cpython@8766cb7
 static Py_ssize_t sizeof_PyGC_Head;
 
-#define INTERNAL_MODULE "_testinternalcapi"
+# define INTERNAL_MODULE "_testinternalcapi"
 
 static int lazy_init_hv_cli_prod(void)
 {
     if (sizeof_PyGC_Head)
         return 0;
 
-    if (PyLong_AsLong(PySys_GetObject("hexversion")) == PY_VERSION_HEX) {
+    if (Py_Version == PY_VERSION_HEX) {
         sizeof_PyGC_Head = sizeof(PyGC_Head);
         return 0;
     }
@@ -51,13 +70,13 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head < 0)
         goto Err;
 
-    Py_DECREF(_testcapimodule);
-    Py_DECREF(_testcapi_SIZEOF_PYGC_HEAD);
+    Py_CLEAR(_testcapimodule);
+    Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
     return 0;
 
 Err:
-    Py_XDECREF(_testcapimodule);
-    Py_XDECREF(_testcapi_SIZEOF_PYGC_HEAD);
+    Py_CLEAR(_testcapimodule);
+    Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
 
     if (!PyErr_ExceptionMatches(PyExc_Exception))
         return -1;
@@ -76,6 +95,7 @@ Err:
 
     return 0;
 }
+#endif
 
 typedef struct {
     NYTUPLELIKE_HEAD
@@ -85,31 +105,27 @@ typedef struct {
 NYTUPLELIKE_ASSERT(ProdObject, hv);
 
 static PyObject *
-hv_cli_prod_memoized_kind(ProdObject * self, PyObject *kind)
+hv_cli_prod_memoized_kind(struct HeapycState *ms, ProdObject *self, PyObject *kind)
 {
     PyObject *result;
-    int r;
 
-    r = PyDict_GetItemRef(self->memo, kind, &result);
-    if (r == -1)
-        return NULL;
-    if (result)
-        return result;
-
-    if (PyDict_SetItem(self->memo, kind, kind) == -1)
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
+    if (PyDict_SetDefaultRef(self->memo, kind, kind, &result) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    Py_INCREF(kind);
-    return kind;
+    return result;
 }
 
 static PyObject *
-hv_cli_prod_classify(ProdObject *self, PyObject *obj)
+hv_cli_prod_classify(struct HeapycState *ms, ProdObject *self, PyObject *obj)
 {
-    PyObject *result;
+    PyObject *result = NULL;
     PyObject *kind = NULL, *tb = NULL;
     Py_uintptr_t ptr;
 
+#ifdef Py_GIL_DISABLED
+    ptr = (Py_uintptr_t)((char *)obj - _PyType_PreHeaderSize(Py_TYPE(obj)));
+#else
     // Refer to _tracemalloc.c:_tracemalloc__get_object_traceback
     if (PyType_IS_GC(Py_TYPE(obj))) {
         ptr = (Py_uintptr_t)((char *)obj - sizeof_PyGC_Head);
@@ -117,7 +133,6 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
         ptr = (Py_uintptr_t)obj;
     }
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     // https://github.com/python/cpython/issues/101430
     ptr -= _PyType_PreHeaderSize(Py_TYPE(obj));
     // _PyType_PreHeaderSize would add an extra compile-time sizeof(PyGC_Head),
@@ -129,34 +144,28 @@ hv_cli_prod_classify(ProdObject *self, PyObject *obj)
     tb = _PyTraceMalloc_GetTraceback(0, (Py_uintptr_t)ptr);
 
     if (!tb)
-        goto Err;
+        goto err;
 
-    if (PySequence_Check(tb) && PySequence_Length(tb) > 0) {
+    if (PySequence_Check(tb) && PySequence_Length(tb) > 0)
         kind = PySequence_GetItem(tb, 0);
-    } else if (!PyErr_Occurred()) {
-        kind = Py_None;
-        Py_INCREF(Py_None);
-    }
+    else if (!PyErr_Occurred())
+        kind = Py_NewRef(Py_None);
 
     if (!kind)
-        goto Err;
+        goto err;
 
-    result = hv_cli_prod_memoized_kind(self, kind);
-    Py_DECREF(tb);
-    Py_DECREF(kind);
+    result = hv_cli_prod_memoized_kind(ms, self, kind);
+err:
+    Py_CLEAR(tb);
+    Py_CLEAR(kind);
     return result;
-
-Err:
-    Py_XDECREF(tb);
-    Py_XDECREF(kind);
-    return 0;
 }
 
 static int
-hv_cli_prod_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_prod_le(PyObject *self, PyObject *a, PyObject *b)
 {
-    if (a == Py_None || b == Py_None)
-        return a == Py_None && b == Py_None;
+    if (Py_IsNone(a) || Py_IsNone(b))
+        return Py_IsNone(a) && Py_IsNone(b);
 
     if (!PyTuple_Check(a) || !PyTuple_Check(b))
         return 0;
@@ -169,7 +178,7 @@ hv_cli_prod_le(PyObject * self, PyObject *a, PyObject *b)
         if (!a_elem || !b_elem)
             return -1;
 
-        if (a_elem == Py_None || b_elem == Py_None)
+        if (Py_IsNone(a_elem) || Py_IsNone(b_elem))
             continue;
 
         int k = PyObject_RichCompareBool(a_elem, b_elem, Py_EQ);
@@ -191,7 +200,7 @@ hv_cli_prod_le(PyObject * self, PyObject *a, PyObject *b)
             if (!substr)
                 return -1;
             k = PyObject_RichCompareBool(substr, b_elem, Py_EQ);
-            Py_DECREF(substr);
+            Py_CLEAR(substr);
             break;
         case 1:
             // lineno
@@ -211,12 +220,12 @@ static NyObjectClassifierDef hv_cli_prod_def = {
     sizeof(NyObjectClassifierDef),
     "hv_cli_prod",
     "classifier returning object producer",
-    (binaryfunc)hv_cli_prod_classify,
-    (binaryfunc)hv_cli_prod_memoized_kind,
+    (modstatebinaryfunc)hv_cli_prod_classify,
+    (modstatebinaryfunc)hv_cli_prod_memoized_kind,
     hv_cli_prod_le
 };
 
-static PyObject *
+PyObject *
 hv_cli_prod(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r, *memo;
@@ -225,17 +234,17 @@ hv_cli_prod(NyHeapViewObject *self, PyObject *args)
                           &PyDict_Type, &memo))
         return NULL;
 
+#ifndef Py_GIL_DISABLED
     if (lazy_init_hv_cli_prod() < 0)
         return NULL;
+#endif
 
     s = NYTUPLELIKE_NEW(ProdObject);
     if (!s)
-        return 0;
-    s->hv = self;
-    Py_INCREF(s->hv);
-    s->memo = memo;
-    Py_INCREF(memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_prod_def);
-    Py_DECREF(s);
+        return NULL;
+    s->hv = Ny_NEWREF(self);
+    s->memo = Py_NewRef(memo);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_prod_def);
+    Py_CLEAR(s);
     return r;
 }

@@ -5,7 +5,7 @@
    Defined to avoid complicated function defs
 */
 
-typedef struct {
+typedef struct NyHeapTraverse {
     int flags;
     PyObject *hv; /* A HeapView object providing context to the traversal
                      function, if necessary. It is defined as a PyObject
@@ -67,7 +67,7 @@ typedef size_t (*NyHeapDef_SizeGetter) (PyObject *obj);
 typedef int (*NyHeapDef_Traverser) (NyHeapTraverse *arg);
 typedef int (*NyHeapDef_RelationGetter) (NyHeapRelate *r);
 
-typedef struct {
+typedef struct NyHeapDef {
     int flags;                        /* As yet, only 0 */
     PyTypeObject *type;                /* The type it regards */
     NyHeapDef_SizeGetter size;

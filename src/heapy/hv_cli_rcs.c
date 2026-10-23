@@ -1,6 +1,19 @@
 /* Implementation of the 'rcs' classifier */
 
-PyDoc_STRVAR(hv_cli_rcs_doc,
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "utils.h"
+
+const char hv_cli_rcs_doc[] = PyDoc_STR(
 "HV.cli_rcs(referrers, classifier, memo) -> ObjectClassifier\n\
 \n\
 Return a classifier that classifies by \"Referrer Classification Set\".\n\
@@ -31,25 +44,19 @@ typedef struct {
 NYTUPLELIKE_ASSERT(RetclasetObject, hv);
 
 static PyObject *
-hv_cli_rcs_fast_memoized_kind(RetclasetObject * self, PyObject *kind)
+hv_cli_rcs_fast_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject *kind)
 {
     PyObject *result;
-    int r;
 
-    r = PyDict_GetItemRef(self->memo, kind, &result);
-    if (r == -1)
-        return NULL;
-    if (result)
-        return result;
-
-    if (PyDict_SetItem(self->memo, kind, kind) == -1)
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, kind);
+    if (PyDict_SetDefaultRef(self->memo, kind, kind, &result) == -1)
         return NULL;
     /* Caller assumes it owns both kind and the return value */
-    Py_INCREF(kind);
-    return kind;
+    return result;
 }
 
 typedef struct {
+    struct HeapycState *ms;
     NyObjectClassifierObject *cli;
     NyNodeSetObject *ns;
 } MemoRcsArg;
@@ -57,86 +64,126 @@ typedef struct {
 static int
 rcs_visit_memoize_sub(PyObject *obj, MemoRcsArg *arg)
 {
-    obj = arg->cli->def->memoized_kind(arg->cli->self, obj);
+    obj = arg->cli->def->memoized_kind(arg->ms, arg->cli->self, obj);
     if (!obj)
        return -1;
     if (NyNodeSet_setobj(arg->ns, obj) == -1) {
-       Py_DECREF(obj);
+       Py_CLEAR(obj);
        return -1;
     }
-    Py_DECREF(obj);
+    Py_CLEAR(obj);
     return 0;
 }
 
 static PyObject *
-hv_cli_rcs_memoized_kind(RetclasetObject * self, PyObject *kind)
+hv_cli_rcs_memoized_kind(struct HeapycState *ms, RetclasetObject *self, PyObject *kind)
 {
-    if (!NyNodeSet_Check(kind)) {
+    if (!PyObject_TypeCheck(kind, ms->nodeset_exports->nodeset_type)) {
         PyErr_SetString(PyExc_TypeError,
                         "hv_cli_rcs_memoized_kind: nodeset object (immutable) expected.");
-        return 0;
+        return NULL;
     }
     if (!self->cli->def->memoized_kind) {
-        return hv_cli_rcs_fast_memoized_kind(self, kind);
+        return hv_cli_rcs_fast_memoized_kind(ms, self, kind);
     } else {
         MemoRcsArg arg;
-        PyObject *result;
+        PyObject *result = NULL, *mat;
+        mat = iterable_materialize(ms, kind);
+        if (!mat)
+            return NULL;
+        arg.ms = ms;
         arg.cli = self->cli;
+        Ny_BEGIN_CRITICAL_SECTION(self->hv);
         arg.ns = hv_mutnodeset_new(self->hv);
+        Ny_END_CRITICAL_SECTION();
         if (!arg.ns)
-            return 0;
-        if (iterable_iterate(kind, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
-            goto Err;
+            goto err;
+        if (iterable_iterate(ms, mat, (visitproc)rcs_visit_memoize_sub, &arg) == -1)
+            goto err;
         if (NyNodeSet_be_immutable(&arg.ns) == -1)
-            goto Err;
-        result = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)arg.ns);
-Ret:
-        Py_DECREF(arg.ns);
+            goto err;
+        result = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)arg.ns);
+err:
+        Py_CLEAR(arg.ns);
+        Py_CLEAR(mat);
         return result;
-Err:
-        result = 0;
-        goto Ret;
     }
 }
 
+typedef struct {
+    RetclasetObject *self;
+    struct HeapycState *ms;
+    NyNodeSetObject *Ri;
+} RCSTravArg;
 
-
+static int
+hv_cli_rcs_rec(PyObject *obj, RCSTravArg *ta)
+{
+    PyObject *kind = ta->self->cli->def->classify(ta->ms, ta->self->cli->self, obj);
+    if (!kind)
+        return -1;
+    if (NyNodeSet_setobj(ta->Ri, kind) == -1) {
+        Py_CLEAR(kind);
+        return -1;
+    }
+    Py_CLEAR(kind);
+    return 0;
+}
 
 static PyObject *
-hv_cli_rcs_classify(RetclasetObject * self, PyObject *obj)
+hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj)
 {
     NyNodeGraphEdge *lo, *hi, *cur;
-    PyObject *kind = 0;
-    NyNodeSetObject *Ri = hv_mutnodeset_new(self->hv);
-    if (!Ri)
-      goto Err;
-    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1) {
-       goto Err;
-    }
-    for (cur = lo; cur < hi; cur++) {
-        if (cur->tgt == Py_None)
-            continue;
-        kind = self->cli->def->classify(self->cli->self, cur->tgt);
-        if (!kind)
-            goto Err;
-        if (NyNodeSet_setobj(Ri, kind) == -1)
-            goto Err;
-        Py_DECREF(kind);
-    }
-    if (NyNodeSet_be_immutable(&Ri) == -1)
-      goto Err;
-    kind = hv_cli_rcs_fast_memoized_kind(self, (PyObject *)Ri);
-    Py_DECREF(Ri);
-    return kind;
+    NyNodeSetObject *referrers;
+    bool ng_success = false;
+    PyObject *kind = NULL;
+    RCSTravArg ta;
 
-Err:
-    Py_XDECREF(kind);
-    Py_XDECREF(Ri);
-    return 0;
+    ta.self = self;
+    ta.ms = ms;
+
+    Ny_BEGIN_CRITICAL_SECTION(self->hv);
+    ta.Ri = hv_mutnodeset_new(self->hv);
+    referrers = hv_mutnodeset_new(self->hv);
+    Ny_END_CRITICAL_SECTION();
+    if (!ta.Ri || !referrers)
+        goto out;
+
+    Ny_BEGIN_CRITICAL_SECTION(self->rg);
+    if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
+        goto err;
+    for (cur = lo; cur < hi; cur++) {
+        if (Py_IsNone(cur->tgt))
+            continue;
+        if (NyNodeSet_setobj(referrers, cur->tgt) == -1)
+            goto err_endcs;
+    }
+
+    ng_success = true;
+
+err_endcs:
+    Ny_END_CRITICAL_SECTION();
+    if (!ng_success)
+        goto err;
+
+    if (NyNodeSet_iterate(referrers, (visitproc)hv_cli_rcs_rec, &ta) == -1)
+        goto err;
+
+    if (NyNodeSet_be_immutable(&ta.Ri) == -1)
+        goto err;
+    kind = hv_cli_rcs_fast_memoized_kind(ms, self, (PyObject *)ta.Ri);
+    goto out;
+
+err:
+    Py_CLEAR(kind);
+out:
+    Py_CLEAR(ta.Ri);
+    Py_CLEAR(referrers);
+    return kind;
 }
 
 static int
-hv_cli_rcs_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_rcs_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -146,36 +193,32 @@ static NyObjectClassifierDef hv_cli_rcs_def = {
     sizeof(NyObjectClassifierDef),
     "hv_cli_rcs",
     "classifier returning ...",
-    (binaryfunc)hv_cli_rcs_classify,
-    (binaryfunc)hv_cli_rcs_memoized_kind,
+    (modstatebinaryfunc)hv_cli_rcs_classify,
+    (modstatebinaryfunc)hv_cli_rcs_memoized_kind,
     hv_cli_rcs_le
 };
 
 
-static PyObject *
+PyObject *
 hv_cli_rcs(NyHeapViewObject *hv, PyObject *args)
 {
     PyObject *r;
     RetclasetObject *s, tmp;
     if (!PyArg_ParseTuple(args, "O!O!O!:cli_rcs",
-                          &NyNodeGraph_Type, &tmp.rg,
-                          &NyObjectClassifier_Type, &tmp.cli,
+                          hv->ms->NodeGraph_Type, &tmp.rg,
+                          hv->ms->ObjectClassifier_Type, &tmp.cli,
                           &PyDict_Type, &tmp.memo)) {
-        return 0;
+        return NULL;
     }
     s = NYTUPLELIKE_NEW(RetclasetObject);
     if (!s)
-        return 0;
+        return NULL;
 
-    s->hv = hv;
-    Py_INCREF(hv);
-    s->rg = tmp.rg;
-    Py_INCREF(tmp.rg);
-    s->cli = tmp.cli;
-    Py_INCREF(tmp.cli);
-    s->memo = tmp.memo;
-    Py_INCREF(tmp.memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_rcs_def);
-    Py_DECREF(s);
+    s->hv = Ny_NEWREF(hv);
+    s->rg = Ny_NEWREF(tmp.rg);
+    s->cli = Ny_NEWREF(tmp.cli);
+    s->memo = Py_NewRef(tmp.memo);
+    r = NyObjectClassifier_New(hv->ms, (PyObject *)s, &hv_cli_rcs_def);
+    Py_CLEAR(s);
     return r;
 }

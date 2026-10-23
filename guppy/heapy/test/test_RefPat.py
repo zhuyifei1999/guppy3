@@ -61,38 +61,38 @@ class RefPatCase(TestCase):
         rp = self.rp(dst, src, depth=10)
         for i, x in enumerate(rp):
             if i < len(lists):
-                self.asis(lists[i], x.theone)
+                self.assertIs(lists[i], x.theone)
 
         # Test indexing
 
         # First case, when already iterated over
 
-        self.asis(rp[0].theone, lists[0])
-        self.asis(rp[-2].theone, lists[-1])
+        self.assertIs(rp[0].theone, lists[0])
+        self.assertIs(rp[-2].theone, lists[-1])
 
         # Second case, when not iterated over before
 
         rp = self.rp(dst, src, depth=10)
 
-        self.asis(rp[0].theone, lists[0])
-        self.asis(rp[-2].theone, lists[-1])
+        self.assertIs(rp[0].theone, lists[0])
+        self.assertIs(rp[-2].theone, lists[-1])
 
         # Test length
 
-        self.aseq(len(rp), len(lists) + 1)
+        self.assertEqual(len(rp), len(lists) + 1)
         rp = self.rp(dst, src, depth=10)
-        self.aseq(len(rp), len(lists) + 1)
+        self.assertEqual(len(rp), len(lists) + 1)
 
         # Test attribute access
 
-        self.asis(rp._.theone, lists[0])
-        self.asis(rp.a.theone, lists[1])
+        self.assertIs(rp._.theone, lists[0])
+        self.assertIs(rp.a.theone, lists[1])
 
         # Test attribute access, when not iterated over before
 
         rp = self.rp(dst, src, depth=10)
-        self.asis(rp.a2.theone, lists[2])
-        self.asis(rp.a.theone, lists[1])
+        self.assertIs(rp.a2.theone, lists[2])
+        self.assertIs(rp.a.theone, lists[1])
 
         # Make sure attribute access is cached:
         # so it doesn't change when struct is changed
@@ -100,7 +100,7 @@ class RefPatCase(TestCase):
         lists[2].append(lists[0])
         rp.View.clear_retainers()
         rp.View.update_referrers(self.iso(lists[0]))
-        self.asis(rp.a.theone, lists[1])
+        self.assertIs(rp.a.theone, lists[1])
 
         # Test with recursive structure
 
@@ -108,10 +108,10 @@ class RefPatCase(TestCase):
         dst.append(dst)
         src = [dst]
         rp = self.rp(dst, src)
-        self.asis(rp._.theone, dst)
-        self.aseq(rp.a, self.iso(dst, src))
-        self.aseq(rp.a, rp.a2)
-        self.aseq(rp.a, rp[1])
+        self.assertIs(rp._.theone, dst)
+        self.assertEqual(rp.a, self.iso(dst, src))
+        self.assertEqual(rp.a, rp.a2)
+        self.assertEqual(rp.a, rp[1])
 
     def test_presentation(self):
         src = []
@@ -131,7 +131,7 @@ class RefPatCase(TestCase):
         src.append(dst)
 
         test_pp(dst, src)
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -145,7 +145,7 @@ Reference Pattern by <[dict of] class>.
             dst = []
             x.append(dst)
         test_pp(dst, src)
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -160,7 +160,7 @@ Reference Pattern by <[dict of] class>.
         output = io.StringIO()
         src, dst = self.makegraph(5, 7)
         test_pp(dst, src, depth=10)
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
@@ -182,7 +182,7 @@ Reference Pattern by <[dict of] class>.
 
         write(repr(rp.more))
 
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 5 list: <address>*5, <address>*5, <address>*5, <address>*5...
@@ -230,7 +230,7 @@ Reference Pattern by <[dict of] class>.
 
         write(m1.prev)
 
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -317,7 +317,7 @@ Reference Pattern by <[dict of] class>.
         write(rp.more)
         write(rp.more.more)
 
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -342,7 +342,7 @@ Reference Pattern by <[dict of] class>.
         rp = test_pp(dst, src, depth=21)
         write(rp.more)
 
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 Reference Pattern by <[dict of] class>.
  0: _ --- [-] 1 list: <address>*0
  1: a      [-] 1 list: <address>*1
@@ -375,7 +375,7 @@ Reference Pattern by <[dict of] class>.
 
         write(rp.more)
 
-        self.aseq(output.getvalue(), """\
+        self.assertEqual(output.getvalue(), """\
 10: a10 ----------- [-] 1 list: <address>*1
 11: a11              [-] 1 list: <address>*1
 12: a12 ------------- [-] 1 list: <address>*1
@@ -410,10 +410,10 @@ Reference Pattern by <[dict of] class>.
         src = [aa, ba]
         rp = self.rp(dst, src)
 
-        self.asis(rp._.theone, dst)
+        self.assertIs(rp._.theone, dst)
         gc.collect()
-        self.asis(rp.aa.theone, aa)
-        self.asis(rp.View.rg[b][0], ba)
+        self.assertIs(rp.aa.theone, aa)
+        self.assertIs(rp.View.rg[b][0], ba)
 
     def test_some_more_advanced_usages(self):
         import gc
@@ -424,8 +424,8 @@ Reference Pattern by <[dict of] class>.
         src = [dst]
         src.append([dst])
         rp = self.rp(dst, src, depth=10, imdom=1)
-        self.asis(rp._.theone, dst)
-        self.asis(rp.a.theone, src)
+        self.assertIs(rp._.theone, dst)
+        self.assertIs(rp.a.theone, src)
 
         # Test with mixed types
 
@@ -446,11 +446,11 @@ Reference Pattern by <[dict of] class>.
         rp.mod.View._is_clear_drg_enabled = 0  # Note Apr 19 2005
 
         if sys.getsizeof(b) > sys.getsizeof(a.__dict__):
-            self.asis(rp.a.theone, b)
-            self.asis(rp.b.theone, a.__dict__)
+            self.assertIs(rp.a.theone, b)
+            self.assertIs(rp.b.theone, a.__dict__)
         else:
-            self.asis(rp.a.theone, a.__dict__)
-            self.asis(rp.b.theone, b)
+            self.assertIs(rp.a.theone, a.__dict__)
+            self.assertIs(rp.b.theone, b)
 
         # Test that the dict is eventually automatically removed from dictowners -
         # First test that dictowners is nonzero
@@ -481,11 +481,11 @@ class NewCase(TestCase):
         b = [dst]
         src = [a, b]
         rp = self.rp(dst, src)
-        self.aseq(rp.a, self.iso(a, b))
+        self.assertEqual(rp.a, self.iso(a, b))
 
         b.pop()
         rp.reset()
-        self.aseq(rp.a, self.iso(a))
+        self.assertEqual(rp.a, self.iso(a))
 
     def test_paths(self):
         # Test the .paths() method
@@ -505,17 +505,17 @@ Paths from source 'a3' to target '_'.
  4: aa [0]  @ [1]
  5: a  [1]   @ [0] -> #3"""
 
-        self.aseq(str(rp.paths('a3')), expected)
+        self.assertEqual(str(rp.paths('a3')), expected)
 
         expected = expected[:expected.index('\n 4:')]
 
         # Test the andsets argument, given as a dict
 
-        self.aseq(str(rp.paths('a3', andsets={'a': self.iso(a)})), expected)
+        self.assertEqual(str(rp.paths('a3', andsets={'a': self.iso(a)})), expected)
 
         # Test the andsets argument, given as a list
 
-        self.aseq(
+        self.assertEqual(
             str(rp.paths('a3', andsets=[None, None, self.iso(a)])), expected)
 
 

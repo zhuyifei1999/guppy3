@@ -14,7 +14,7 @@ class IdentityCase(support.TestCase):
         x = self.iso(*vs).byid
 
         sz = sys.getsizeof(0.0)
-        self.aseq(str(x)+'\n'+str(x.more)+'\n', """\
+        self.assertEqual(str(x)+'\n'+str(x.more)+'\n', """\
 Set of 100 <float> objects. Total size = {sztotal} bytes.
  Index     Size   %   Cumulative  %   Value
      0      {sz:>3}   1.0      {szacc[0]:>4}   1.0 0.0
@@ -43,7 +43,7 @@ Set of 100 <float> objects. Total size = {sztotal} bytes.
 """.format(sz=sz, sztotal=sz*100,
            szacc=list(itertools.accumulate([sz] * 20))))
 
-        self.aseq(str(x.all)+'\n', """\
+        self.assertEqual(str(x.all)+'\n', """\
 Set of 100 <float> objects. Total size = {sztotal} bytes.
  Index     Size   %   Cumulative  %   Value
      0      {sz:>3}   1.0      {szacc[0]:>4}   1.0 0.0
@@ -167,7 +167,7 @@ Set of 100 <float> objects. Total size = {sztotal} bytes.
             return s
 
         def aeq(x, y):
-            self.aseq(ae(x), ae(y))
+            self.assertEqual(ae(x), ae(y))
 
         for i in range(0, 300, 60):
             b = x[i:]
@@ -175,7 +175,7 @@ Set of 100 <float> objects. Total size = {sztotal} bytes.
 
         # (B) in  Notes Aug 26 2005
 
-        self.aseq(x.bysize[2].kind, x.bysize[2].bysize.kind)
+        self.assertEqual(x.bysize[2].kind, x.bysize[2].bysize.kind)
 
     def test_3(self):
         # Some indexing cases.
@@ -191,16 +191,16 @@ Set of 100 <float> objects. Total size = {sztotal} bytes.
               x.parts[-10], x.parts[12]]
         k = x[-10].byid.kind
         for i in range(len(eq)):
-            self.aseq(eq[i], eq[(i + 1) % len(eq)])
-            self.aseq(eq[i].kind, eq[(i + 1) % len(eq)].kind)
-            self.aseq(eq[i].kind, k)
+            self.assertEqual(eq[i], eq[(i + 1) % len(eq)])
+            self.assertEqual(eq[i].kind, eq[(i + 1) % len(eq)].kind)
+            self.assertEqual(eq[i].kind, k)
 
 
 class MixedCase(support.TestCase):
     def test_1(self):
         x = self.iso(1, 2, 1.0, 2.0, '1', '2')
         if not PORTABLE_TEST:
-            self.aseq(str(x), """\
+            self.assertEqual(str(x), """\
 Partition of a set of 6 objects. Total size = 204 bytes.
  Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
      0      2  33      100  49       100  49 str
@@ -226,20 +226,20 @@ class StatCase(support.TestCase):
         y = hp.iso(c1)
 
         d = x.diff(y)
-        self.aseq(d.count, 1)
-        self.aseq(d[0].count, 1)
+        self.assertEqual(d.count, 1)
+        self.assertEqual(d[0].count, 1)
 
         d = y.diff(x)
-        self.aseq(d.count, -1)
-        self.aseq(d[0].count, -1)
+        self.assertEqual(d.count, -1)
+        self.assertEqual(d[0].count, -1)
 
         d = x.diff(hp.iso())
-        self.aseq(d.count, 2)
-        self.aseq(d[0].count, 2)
+        self.assertEqual(d.count, 2)
+        self.assertEqual(d[0].count, 2)
 
         d = hp.iso().diff(x)
-        self.aseq(d.count, -2)
-        self.aseq(d[0].count, -2)
+        self.assertEqual(d.count, -2)
+        self.assertEqual(d[0].count, -2)
 
 
 def test_main(debug=0):

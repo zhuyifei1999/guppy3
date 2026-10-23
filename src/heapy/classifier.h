@@ -1,13 +1,15 @@
 #ifndef NY_CLASSIFIER_H
 #define NY_CLASSIFIER_H
 
+struct HeapycState;
+
 typedef struct {
     int flags;
     int size;
     char *name;
     char *doc;
-    PyObject * (*classify)(PyObject *self, PyObject *arg);
-    PyObject * (*memoized_kind)(PyObject *self, PyObject *kind);
+    PyObject *(*classify)(struct HeapycState *ms, PyObject *self, PyObject *arg);
+    PyObject *(*memoized_kind)(struct HeapycState *ms, PyObject *self, PyObject *kind);
     int (*cmp_le)(PyObject *self, PyObject *a, PyObject *b);
 } NyObjectClassifierDef;
 
@@ -17,9 +19,12 @@ typedef struct{
     PyObject *self;
 } NyObjectClassifierObject;
 
-#define NyObjectClassifier_Check(op) PyObject_TypeCheck(op, &NyObjectClassifier_Type)
+typedef PyObject *(*modstatebinaryfunc)(struct HeapycState *ms, PyObject *self, PyObject *arg);
 
-int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp);
+extern PyType_Spec NyObjectClassifier_Spec;
+
+extern PyObject *NyObjectClassifier_New(struct HeapycState *ms, PyObject *self, NyObjectClassifierDef *def);
+extern int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObject *b, int cmp);
 
 /* cmp argument (to select etc)
    The first 6 happen to correspond to Py_LT , Py_LE etc
@@ -34,5 +39,6 @@ int NyObjectClassifier_Compare(NyObjectClassifierObject *cli, PyObject *a, PyObj
 #define CLI_GE	5
 #define CLI_MAX	5	/* Current end of definitions */
 
-#endif /* NY_CLASSIFIER_H */
+extern int cli_cmp_as_int(PyObject *cmp);
 
+#endif /* NY_CLASSIFIER_H */

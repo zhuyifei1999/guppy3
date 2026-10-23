@@ -23,21 +23,21 @@ class FirstCase(support.TestCase):
                     get_num_lines=get_num_lines,
                     get_more_msg=get_more_msg)
 
-        self.aseq(str(T(self, 4)), '0\n1\n2\n3')
+        self.assertEqual(str(T(self, 4)), '0\n1\n2\n3')
 
         t = T(self, 6, lambda: 6)
 
-        self.aseq(
+        self.assertEqual(
             str(t), "0\n1\n2\n3\n<Lines 0..3 of 6. Type e.g. '_.more' for more.>")
         x = t.more
-        self.aseq(str(x), '4\n5')
-        self.aseq(
+        self.assertEqual(str(x), '4\n5')
+        self.assertEqual(
             str(x.top), "0\n1\n2\n3\n<Lines 0..3 of 6. Type e.g. '_.more' for more.>")
 
-        self.aseq(str(x.all), "0\n1\n2\n3\n4\n5")
+        self.assertEqual(str(x.all), "0\n1\n2\n3\n4\n5")
 
         t = T(self, 6, get_more_msg=lambda f, t: '<%d more rows>' % (6-t))
-        self.aseq(str(t), '0\n1\n2\n3\n<3 more rows>')
+        self.assertEqual(str(t), '0\n1\n2\n3\n<3 more rows>')
 
 
 def test_main(debug=0):

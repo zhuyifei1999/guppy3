@@ -38,7 +38,7 @@ class FirstCase(TestCase):
 
         # How to construct RCS / refby
 
-        # self.aseq(hp.Type.refby(int, list) , hp.Type.refby(list, int)
+        # self.assertEqual(hp.Type.refby(int, list) , hp.Type.refby(list, int)
 
         class C:
             pass
@@ -49,8 +49,8 @@ class FirstCase(TestCase):
         # for i in (0, 1):
         #     rk = repr(db[i].kind)
         #     ek = eval(rk, {'hp': hp}, {})
-        #     self.aseq(ek, db[i].kind)
-        #     self.aseq(db & ek, db[i])
+        #     self.assertEqual(ek, db[i].kind)
+        #     self.assertEqual(db & ek, db[i])
 
     def test_2(self):
         ' Systematically test all kind constructors: '
@@ -99,7 +99,7 @@ class FirstCase(TestCase):
         ):
             x = eval(s, {'hp': hp, 'C': C, 'T': T, 'c': c}, {})
             rx = repr(x)
-            self.aseq(eval(rx, {'hp': hp}, {}), x)
+            self.assertEqual(eval(rx, {'hp': hp}, {}), x)
 
         for i, s in enumerate((
             # Test Via construction.
@@ -118,9 +118,9 @@ class FirstCase(TestCase):
             code = i + 1
             x = eval(s, {'hp': hp}, {})
             rel = list(x.arg)[0]
-            self.aseq(rel.kind, code)
+            self.assertEqual(rel.kind, code)
             rx = repr(x)
-            self.aseq(eval(rx, {'hp': hp}, {}), x)
+            self.assertEqual(eval(rx, {'hp': hp}, {}), x)
 
     def test_3(self):
         ' Test of dictof '
@@ -151,13 +151,13 @@ class FirstCase(TestCase):
                 hp.iso(x).bysize.kind.dictof,
                 hp.iso(x.__dict__).kind,
             ):
-                self.aseq(isod & k,  hp.iso(x.__dict__))
+                self.assertEqual(isod & k,  hp.iso(x.__dict__))
 
         # Test no-owner selection
         for k in (
             hp.Nothing.dictof,
         ):
-            self.aseq(isod & k, hp.iso(dn))
+            self.assertEqual(isod & k, hp.iso(dn))
 
     def test_4(self):
         ' Test of via '
@@ -172,7 +172,7 @@ class FirstCase(TestCase):
         isod = hp.iso(c.__dict__)
 
         x = isod.by('Via').kind
-        self.aseq(repr(x), "hpy().Via('.__dict__')")
+        self.assertEqual(repr(x), "hpy().Via('.__dict__')")
 
     def test_5(self):
         ' Non-systematic tests that came up around Sep 14 2005 '
@@ -191,7 +191,7 @@ class FirstCase(TestCase):
         # I thought these should be the same
         a = hp.iso(C, c, c.__dict__, d)
         b = hp.iso(C, c, c.__dict__, d)
-        self.aseq(a, b)
+        self.assertEqual(a, b)
 
         # This is a kind of nested refdby that has been a concern lately
         # -- how to represent it
@@ -203,9 +203,9 @@ class FirstCase(TestCase):
             a = s[i].kind
             ra = repr(a)
             era = eval(ra, {'hp': hp}, {})
-            self.aseq(a, era)
+            self.assertEqual(a, era)
 
-            self.aseq(s & era,
+            self.assertEqual(s & era,
                       s[i])
 
         import sys
@@ -215,7 +215,7 @@ class FirstCase(TestCase):
 
         s = hp.iso(p)
         x = s.by(hp.Module.dictof.refdby)
-        self.aseq(s & eval(repr(x.kind), {'hp': hp}, {}), s)
+        self.assertEqual(s & eval(repr(x.kind), {'hp': hp}, {}), s)
 
     def test_6(self):
         ' Test of .refdby on all others '
@@ -257,7 +257,7 @@ class FirstCase(TestCase):
         hp = self.heapy.Use
 
         rer = repr(er)
-        self.aseq(eval(rer, {'hp': hp}, {}), er)
+        self.assertEqual(eval(rer, {'hp': hp}, {}), er)
 
         for s in (set,):
             sby = s.by(er)
@@ -265,9 +265,9 @@ class FirstCase(TestCase):
             rsk = repr(sk)
             ske = eval(rsk, {'hp': hp}, {})
 
-            self.aseq(ske, sk, -1)
-            self.aseq(s & sk, s, -1)
-            self.aseq(s & ske, s, -1)
+            self.assertEqual(ske, sk, -1)
+            self.assertEqual(s & sk, s, -1)
+            self.assertEqual(s & ske, s, -1)
 
         # That it can do .refdby
 
@@ -364,7 +364,7 @@ class FirstCase(TestCase):
             (hp.iso(c, li), 1),
         ):
             p = s.by(k.biper)
-            self.aseq(p[i].kind.fam.classifier.kinds[0], k)
+            self.assertEqual(p[i].kind.fam.classifier.kinds[0], k)
 
     def test_9(self):
         ' Test the subrelation relation '
@@ -391,7 +391,7 @@ class FirstCase(TestCase):
             for b in ers:
                 print(str((a[1] < b[1]))[:1].ljust(7), end=' ', file=f)
             print(file=f)
-        self.aseq(f.getvalue(), """\
+        self.assertEqual(f.getvalue(), """\
            Clodo   Id      Idset   Module  Prod    Rcs     Size    Type    Unity   Size&Type \n\
 Clodo      F       F       F       F       F       F       F       T       T       F       \n\
 Id         F       F       F       F       F       F       F       F       T       F       \n\
@@ -428,19 +428,19 @@ Size&Type  F       F       F       F       F       F       T       T       T    
 
             isod = hp.iso(None, str_aloc, test_aloc, subf_aloc)
 
-            self.aseq(isod & hp.Prod(), hp.iso(None))
-            self.aseq(isod & hp.Prod('<string>', 1), hp.iso(str_aloc))
-            self.aseq(isod & hp.Prod(file, test_aloc_line), hp.iso(test_aloc))
-            self.aseq(isod & hp.Prod(file, subf_aloc_line), hp.iso(subf_aloc))
+            self.assertEqual(isod & hp.Prod(), hp.iso(None))
+            self.assertEqual(isod & hp.Prod('<string>', 1), hp.iso(str_aloc))
+            self.assertEqual(isod & hp.Prod(file, test_aloc_line), hp.iso(test_aloc))
+            self.assertEqual(isod & hp.Prod(file, subf_aloc_line), hp.iso(subf_aloc))
 
-            self.aseq(isod & hp.Prod(file), hp.iso(test_aloc, subf_aloc))
-            self.aseq(isod & hp.Prod(os.path.dirname(file)),
+            self.assertEqual(isod & hp.Prod(file), hp.iso(test_aloc, subf_aloc))
+            self.assertEqual(isod & hp.Prod(os.path.dirname(file)),
                       hp.iso(test_aloc, subf_aloc))
 
-            self.aseq(isod & hp.Prod(self.test_10), hp.iso(test_aloc, subf_aloc))
-            self.aseq(isod & hp.Prod(subf), hp.iso(subf_aloc))
+            self.assertEqual(isod & hp.Prod(self.test_10), hp.iso(test_aloc, subf_aloc))
+            self.assertEqual(isod & hp.Prod(subf), hp.iso(subf_aloc))
 
-            self.aseq(isod & hp.Prod(None, test_aloc_line).alt('>=') &
+            self.assertEqual(isod & hp.Prod(None, test_aloc_line).alt('>=') &
                       hp.Prod(None, test_aloc_line).alt('<='),
                       hp.iso(test_aloc))
 

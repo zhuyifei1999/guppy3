@@ -1,7 +1,24 @@
 /* module heapyc */
 
-char heapyc_doc[] =
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "impsets.h"
+#include "heapdef.h"
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+#include "nodegraph.h"
+#include "rootstate.h"
+#include "stdtypes_internal.h"
+#include "stoptheworld.h"
+#include "utils.h"
+#include "xmemstats.h"
+
+PyDoc_STRVAR(heapyc_doc,
 "This module contains low level functionality for the heapy system.\n"
 "It is intended to be wrapped in higher level library classes.\n"
 "\n"
@@ -9,84 +26,64 @@ char heapyc_doc[] =
 "\n"
 "Classes\n"
 "    HeapView        Gives a parameterized view of the heap.\n"
-"    Horizon        Limits the view back to some moment in time.\n"
+"    Horizon         Limits the view back to some moment in time.\n"
 "    NodeGraph           Graph of nodes (address-treated objects).\n"
 "    ObjectClassifier    Classifies objects on various criteria.\n"
 "    RootStateType       Root of heap traversal using Python internals.\n"
 "\n"
 "Functions\n"
+"    has_deferred_refcount   Returns whether objects uses deferred\n"
+"                            refcount (freethreading-only).\n"
 "    interpreter         Start a new interpreter.\n"
 "    set_async_exc       Raise an exception in another thread.\n"
 "    xmemstats           Print system-dependent memory statistics.\n"
 "\n"
 "Object\n"
 "    RootState           The single instance of RootStateType.\n"
-;
+);
 
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-
-#include "structmember.h"
-#include "compile.h"
-#include "frameobject.h"
-#include "../include/guppy.h"
-#include "../include/pythoncapi_compat.h"
-#include "../sets/nodeset.h"
-#include "heapdef.h"
-#include "heapy.h"
-#include "classifier.h"
-#include "nodegraph.h"
-#include "relation.h"
+#define Py_BUILD_CORE
+# undef _PyGC_FINALIZED
+/* PyInterpreterState */
+# include <internal/pycore_interp.h>
+#undef Py_BUILD_CORE
 
 /* Extern decls - maybe put in .h file but not in heapy.h */
 
-extern NyHeapDef NyStdTypes_HeapDef[];
-extern NyHeapDef NyStdTypes_HeapDef[];
-extern NyHeapDef NyObjectWithHeapType_HeapDef;
-extern void NyStdTypes_init(void);
-extern int dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v);
 
 /* Forward decls */
 
-PyTypeObject NyObjectClassifier_Type;
-PyTypeObject NyNodeSet_Type;
-PyTypeObject NyHeapView_Type;
-PyTypeObject NyHorizon_Type;
-PyTypeObject NyNodeGraph_Type;
-PyTypeObject NyRootState_Type;
-PyTypeObject NyRelation_Type;
-PyTypeObject NyNodeTuple_Type;
+/* Stop-the-world support data */
 
-NyHeapDef NyHvTypes_HeapDef[];
-
-PyObject * NyObjectClassifier_New(PyObject *self, NyObjectClassifierDef *def);
-int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
-                       void *arg);
-
-static Py_ssize_t roundupsize(Py_ssize_t n);
+#ifdef Py_GIL_DISABLED
+bool NY_IS_WORLD_STOPPED(void)
+{
+    return PyInterpreterState_Get()->stoptheworld.world_stopped;
+}
+#elif !defined(NDEBUG)
+Ny_thread_local int _world_stopped = 0;
+#endif
 
 /* general utilities */
 
-#include "impsets.c"
-
-static int
-iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
-                void *arg)
+int
+iterable_iterate(struct HeapycState *ms, PyObject *v,
+                 int (*visit)(PyObject *, void *), void *arg)
 {
-    if (NyNodeSet_Check(v)) {
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->nodeset_type)) {
         return NyNodeSet_iterate((NyNodeSetObject *)v, visit, arg);
-    } else if (NyHeapView_Check(v)) {
+    } else if (PyObject_TypeCheck(v, ms->HeapView_Type)) {
         return NyHeapView_iterate((NyHeapViewObject *)v, visit, arg);
     } else if (PyList_Check(v)) { /* A bit faster than general iterator?? */
         Py_ssize_t i;
         int r;
         PyObject *item;
         for (i = 0; i < PyList_GET_SIZE(v); i++) {
-            item = PyList_GET_ITEM(v, i);
-            Py_INCREF(item);
+            item = PyList_GetItemRef(v, i);
+            if (!item)
+                return -1;
             r = visit(item, arg);
-            Py_DECREF(item);
+            Py_CLEAR(item);
             if (r == -1)
                 return -1;
             if (r == 1)
@@ -107,47 +104,110 @@ iterable_iterate(PyObject *v, int (*visit)(PyObject *, void *),
                 break;
             }
             r = visit(item, arg);
-            Py_DECREF(item);
+            Py_CLEAR(item);
             if (r == -1)
                 goto Err;
             if (r == 1)
                 break;
         }
-        Py_DECREF(it);
+        Py_CLEAR(it);
         return 0;
 Err:
-        Py_XDECREF(it);
+        Py_CLEAR(it);
         return -1;
     }
 }
 
-PyObject *
-gc_get_objects(void)
+static int
+iterable_materialize_rec(PyObject *obj, NyNodeSetObject *arg)
 {
-    PyObject *gc=0, *objects=0;
-    gc = PyImport_ImportModule("gc");
-    if (!gc)
-        goto err;
-    objects = PyObject_CallMethod(gc, "get_objects", "");
-err:
-    Py_XDECREF(gc);
-    return objects;
+    return NyNodeSet_setobj(arg, obj) == -1 ? -1 : 0;
 }
 
-#include "roundupsize.c"
+PyObject *
+iterable_materialize(struct HeapycState *ms, PyObject *v)
+{
+    NyNodeSetObject *repl = NULL;
+
+    /* May call iterator which may be arbirary Python code, or invoke STW.
+       When STW ends, only the innermost critical section is immediately
+       resumed, and this may break some assumptions when nesting callbacks.
+
+       Hence, only immnodesets can be returned here no matter what.
+
+       Even with GIL, iterating can cause arbitrary Python code to be
+       invoked, and the tread can swap out... */
+    NY_ASSERT_WORLD_RUNNING();
+
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->immnodeset_type))
+        return Py_NewRef(v);
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->mutnodeset_type))
+        return (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
+
+    repl = NyMutNodeSet_New(ms->nodeset_exports->ms);
+    if (!repl)
+        return NULL;
+
+    if (iterable_iterate(ms, v, (visitproc)iterable_materialize_rec, repl) == -1)
+        goto err;
+    if (NyNodeSet_be_immutable(&repl) == -1)
+        goto err;
+
+    return (PyObject *)repl;
+
+err:
+    Py_CLEAR(repl);
+    return NULL;
+}
+
+PyObject *
+iterable_materialize_ordered(struct HeapycState *ms, PyObject *v)
+{
+    NY_ASSERT_WORLD_RUNNING();
+
+    if (PyTuple_Check(v))
+        return Py_NewRef(v);
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->nodeset_type))
+        return iterable_materialize(ms, v);
+    return PySequence_Tuple(v);
+}
+
+PyObject *
+gc_get_objects(struct HeapycState *ms)
+{
+    NY_ASSERT_WORLD_RUNNING();
+    return PyObject_CallMethod(ms->gc_mod, "get_objects", "");
+}
 
 /* objects */
 
-#include "hv.c"
-#include "classifier.c"
-#include "horizon.c"
-#include "nodegraph.c"
-#include "rootstate.c"
+#ifdef Py_GIL_DISABLED
+# define Py_BUILD_CORE
+/* PyObject_HasDeferredRefcount */
+# if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+#  include <internal/pycore_object_deferred.h>
+# else
+#  include <internal/pycore_object.h>
+# endif
+# undef Py_BUILD_CORE
+#endif
 
 /* Other functions */
+PyDoc_STRVAR(hp_has_deferred_refcount_doc,
+"has_deferred_refcount(target:object)\n"
+"\n"
+"Returns whether the given object uses deferred refcount (freethreading-only).\n"
+);
 
-/* #include "interpreter.c" */
-#include "xmemstats.c"
+static PyObject *
+hp_has_deferred_refcount(PyObject *self, PyObject *op)
+{
+#ifdef Py_GIL_DISABLED
+    return PyBool_FromLong(_PyObject_HasDeferredRefcount(op));
+#else
+    return Py_NewRef(Py_False);
+#endif
+}
 
 static PyMethodDef module_methods[] =
 {
@@ -155,98 +215,131 @@ static PyMethodDef module_methods[] =
     {"interpreter", (PyCFunction)hp_interpreter, METH_VARARGS, hp_interpreter_doc},
     {"set_async_exc", (PyCFunction)hp_set_async_exc, METH_VARARGS, hp_set_async_exc_doc},
     */
+    {"has_deferred_refcount", (PyCFunction)hp_has_deferred_refcount, METH_O, hp_has_deferred_refcount_doc},
     {"xmemstats", (PyCFunction)hp_xmemstats, METH_NOARGS, hp_xmemstats_doc},
     {0}
 };
 
 
-NyHeapDef NyHvTypes_HeapDef[] = {
-    {
-        0,                  /* flags */
-        &NyNodeGraph_Type,  /* type */
-        nodegraph_size,     /* size */
-        nodegraph_traverse, /* traverse */
-        nodegraph_relate    /* relate */
-    },
-    {
-        0,                  /* flags */
-        &NyRootState_Type,  /* type */
-        0,                  /* size */
-        rootstate_traverse, /* traverse */
-        rootstate_relate    /* relate */
-    },
-    {
-        0,                  /* flags */
-        &NyHorizon_Type,    /* type */
-        0,                  /* size */
-        0,                  /* traverse */
-        0                   /* relate */
-    },
-    /* End mark */
-    {0}
-};
-
-static int module_exec(PyObject *m);
-
-static PyModuleDef_Slot module_slots[] = {
-    {Py_mod_exec, module_exec},
-#ifdef Py_mod_multiple_interpreters
-    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
-#endif
-#ifdef Py_mod_gil
-    {Py_mod_gil, Py_MOD_GIL_USED},
-#endif
-    {0, NULL}  /* Sentinel */
-};
-
-static struct PyModuleDef moduledef = {
-    .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "heapyc",
-    .m_doc = PyDoc_STR(heapyc_doc),
-    .m_size = 0,
-    .m_methods = module_methods,
-    .m_slots = module_slots,
-};
-
-static int module_exec(PyObject *m)
+static int
+module_gc_traverse(PyObject *m, visitproc visit, void *arg)
 {
-    Py_SET_TYPE(&_Ny_RootStateStruct, &NyRootState_Type);
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    PyUnstable_SetImmortal(&_Ny_RootStateStruct);
-#endif
+    struct HeapycState *ms = NyModule_AssertState(m);
 
-    // This has to be here because of 'initializer is not a constant'
-    // build error on Windows.
-    NyNodeTuple_Type.tp_base = &PyTuple_Type;
+    Py_VISIT(ms->HeapView_Type);
+    Py_VISIT(ms->Horizon_Type);
+    Py_VISIT(ms->NodeGraph_Type);
+    Py_VISIT(ms->NodeGraphIter_Type);
+    Py_VISIT(ms->NodeTuple_Type);
+    Py_VISIT(ms->ObjectClassifier_Type);
+    Py_VISIT(ms->Relation_Type);
+    Py_VISIT(ms->RootState_Type);
+    Py_VISIT(ms->RootState);
+    Py_VISIT(ms->HandleSignalException);
+    Py_VISIT(ms->gc_mod);
 
-    NYFILL(NyNodeTuple_Type);
-    NYFILL(NyRelation_Type);
-    NYFILL(NyHeapView_Type);
-    NYFILL(NyObjectClassifier_Type);
-    NYFILL(NyHorizon_Type);
-    NYFILL(NyNodeGraph_Type);
-    NYFILL(NyNodeGraphIter_Type);
-    NYFILL(NyRootState_Type);
+    return 0;
+}
 
-    if (import_sets() == -1)
+static int
+module_gc_clear(PyObject *m)
+{
+    struct HeapycState *ms = NyModule_AssertState(m);
+
+    Py_CLEAR(ms->HeapView_Type);
+    Py_CLEAR(ms->Horizon_Type);
+    Py_CLEAR(ms->NodeGraph_Type);
+    Py_CLEAR(ms->NodeGraphIter_Type);
+    Py_CLEAR(ms->NodeTuple_Type);
+    Py_CLEAR(ms->ObjectClassifier_Type);
+    Py_CLEAR(ms->Relation_Type);
+    Py_CLEAR(ms->RootState_Type);
+    Py_CLEAR(ms->RootState);
+    Py_CLEAR(ms->HandleSignalException);
+    Py_CLEAR(ms->gc_mod);
+
+    return 0;
+}
+
+static void
+module_free(void *mod)
+{
+    module_gc_clear(mod);
+}
+
+static int
+module_exec(PyObject *m)
+{
+    struct HeapycState *ms = NyModule_AssertState(m);
+    PyObject *RootState, *HandleSignalException;
+
+    if (import_sets(ms) == -1)
         return -1;
 
     rootstate_init();
 
-    if (PyModule_AddType(m, &NyHeapView_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyHeapView_Spec, NULL, true,
+                                 &ms->HeapView_Type) == -1)
         return -1;
-    if (PyModule_AddType(m, &NyHorizon_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyHorizon_Spec, NULL, true,
+                                 &ms->Horizon_Type) == -1)
         return -1;
-    if (PyModule_AddType(m, &NyObjectClassifier_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyNodeGraph_Spec, NULL, true,
+                                 &ms->NodeGraph_Type) == -1)
         return -1;
-    if (PyModule_AddType(m, &NyNodeGraph_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyNodeGraphIter_Spec, NULL, false,
+                                 &ms->NodeGraphIter_Type) == -1)
         return -1;
-    if (PyModule_AddType(m, &NyRelation_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyNodeTuple_Spec, (PyObject *)&PyTuple_Type, false,
+                                 &ms->NodeTuple_Type) == -1)
         return -1;
-    if (PyModule_AddObjectRef(m, "RootState", Ny_RootState) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyObjectClassifier_Spec, NULL, true,
+                                 &ms->ObjectClassifier_Type) == -1)
         return -1;
-    if (PyModule_AddType(m, &NyRootState_Type) == -1)
+    if (NyModule_AddTypeWithSpec(m, &NyRelation_Spec, NULL, true,
+                                 &ms->Relation_Type) == -1)
         return -1;
+    if (NyModule_AddTypeWithSpec(m, &NyRootState_Spec, NULL, true,
+                                 &ms->RootState_Type) == -1)
+        return -1;
+
+    RootState = ms->RootState_Type->tp_alloc(ms->RootState_Type, 0);
+    if (PyModule_AddObjectRef(m, "RootState", RootState) == -1)
+        return -1;
+    ms->RootState = RootState;
+
+    HandleSignalException = PyErr_NewException("guppy.heapy.heapyc.HandleSignalException", NULL, NULL);
+    if (PyModule_AddObjectRef(m, "HandleSignalException", HandleSignalException) == -1)
+        return -1;
+    ms->HandleSignalException = HandleSignalException;
+
+    ms->gc_mod = PyImport_ImportModule("gc");
+    if (!ms->gc_mod)
+        return -1;
+
+    ms->HvTypes_HeapDef[0] = (NyHeapDef){
+        0,                   /* flags */
+        ms->NodeGraph_Type,  /* type */
+        nodegraph_size,      /* size */
+        nodegraph_traverse,  /* traverse */
+        nodegraph_relate     /* relate */
+    };
+    ms->HvTypes_HeapDef[1] = (NyHeapDef){
+        0,                   /* flags */
+        ms->RootState_Type,  /* type */
+        NULL,                /* size */
+        rootstate_traverse,  /* traverse */
+        rootstate_relate     /* relate */
+    };
+    ms->HvTypes_HeapDef[2] = (NyHeapDef){
+        0,                   /* flags */
+        ms->Horizon_Type,    /* type */
+        NULL,                /* size */
+        NULL,                /* traverse */
+        NULL                 /* relate */
+    };
+    /* End mark */
+    ms->HvTypes_HeapDef[3] = (NyHeapDef){0};
 
     NyStdTypes_init();
     xmemstats_init();
@@ -254,8 +347,34 @@ static int module_exec(PyObject *m)
     return 0;
 }
 
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_exec, module_exec},
+#ifdef Py_mod_multiple_interpreters
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
+#endif
+#ifdef Py_mod_gil
+    {Py_mod_gil, Py_MOD_GIL_NOT_USED},
+#endif
+    {0, NULL}  /* Sentinel */
+};
+
+struct PyModuleDef heapyc_def = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "heapyc",
+    .m_doc = PyDoc_STR(heapyc_doc),
+    .m_size = sizeof(struct HeapycState),
+    .m_methods = module_methods,
+    .m_slots = module_slots,
+    .m_traverse = module_gc_traverse,
+    .m_clear = module_gc_clear,
+    .m_free = module_free,
+};
+
+/* -Wmissing-prototypes */
+extern PyMODINIT_FUNC PyInit_heapyc(void);
+
 PyMODINIT_FUNC
-PyInit_heapyc (void)
+PyInit_heapyc(void)
 {
-    return PyModuleDef_Init(&moduledef);
+    return PyModuleDef_Init(&heapyc_def);
 }

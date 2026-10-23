@@ -1,7 +1,17 @@
 /* RootState implmentation */
 
-char rootstate_doc[] =
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapdef.h"
+#include "heapy.h"
+#include "rootstate.h"
+#include "stoptheworld.h"
+
+PyDoc_STRVAR(rootstate_doc,
 "The type of an object with special functionality that gives access to\n"
 "internals of the Python interpreter and thread structures.  It is used\n"
 "as a top level root when traversing the heap to to make sure to find\n"
@@ -101,17 +111,23 @@ char rootstate_doc[] =
 "but counting in the reversed order of the frame list. Thus the first\n"
 "started frame is 0, and in general the most recent frame has a number\n"
 "that is the number of frames it has before it in call order.\n"
-;
+);
 
 
 #define Py_BUILD_CORE
 /* PyInterpreterState */
+# undef _PyGC_FINALIZED
 # include <internal/pycore_interp.h>
 /* _PyRuntime */
 # include <internal/pycore_runtime.h>
 #undef Py_BUILD_CORE
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
+# define Py_BUILD_CORE
+/* HEAD_LOCK */
+#  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+#elif NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
 /* Py3.13 has HEAD_LOCK using _PyMutex_LockTimed, but it's not exported...
    What can you do? Gotta spin I guess */
 # ifdef MS_WINDOWS
@@ -120,12 +136,17 @@ char rootstate_doc[] =
 #  include <sched.h>
 # endif
 
+# define Py_BUILD_CORE
+/* HEAD_UNLOCK */
+#  include <internal/pycore_pystate.h>
+# undef Py_BUILD_CORE
+
 # undef HEAD_LOCK
 # define HEAD_LOCK(runtime) do {                                        \
         while (!PyMutex_LockFast(&(runtime)->interpreters.mutex._bits)) \
             sched_yield();                                              \
     } while (0)
-#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 12
+#else
 # define HEAD_LOCK(runtime) \
     PyThread_acquire_lock((runtime)->interpreters.mutex, WAIT_LOCK)
 # define HEAD_UNLOCK(runtime) \
@@ -143,43 +164,45 @@ rootstate_repr(PyObject *op)
 static void
 rootstate_dealloc(void *arg)
 {
-    /* This should never get called, but we also don't want to SEGV if
-     * we accidently decref RootState out of existance.
-     */
-    abort();
+    PyTypeObject *tp = Py_TYPE(arg);
+    Py_TRASHCAN_BEGIN(arg, rootstate_dealloc)
+    tp->tp_free(arg);
+    Py_CLEAR(tp);
+    Py_TRASHCAN_END
 }
 
 ptrdiff_t heapy_py314_interp_qsbr_adj;
 
 struct NyDbgOffMemberDef {
     struct PyMemberDef member;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     ptrdiff_t attroff;
     ptrdiff_t dbgoff;
 #endif
     ptrdiff_t *extraoff;
 };
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 13
+
+#if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
 # define MEMBER(name, refattr, dbgoff, extraoff)                \
-    {{#name, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
+    {{#name, _Py_T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
 # define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) \
-    {{#newname, T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
+    {{#newname, _Py_T_OBJECT, offsetof(PyInterpreterState, name)}, extraoff}
 #else
 # define MEMBER(name, refattr, dbgoff, extraoff) {                \
-    {#name, T_OBJECT, offsetof(PyInterpreterState, name)},        \
+    {#name, _Py_T_OBJECT, offsetof(PyInterpreterState, name)},        \
     offsetof(PyInterpreterState, refattr),                        \
     offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
     extraoff}
 # define RENAMEMEMBER(name, newname, refattr, dbgoff, extraoff) { \
-    {#newname, T_OBJECT, offsetof(PyInterpreterState, name)},     \
+    {#newname, _Py_T_OBJECT, offsetof(PyInterpreterState, name)},     \
     offsetof(PyInterpreterState, refattr),                        \
     offsetof(_Py_DebugOffsets, interpreter_state.dbgoff),         \
     extraoff}
 #endif
 
 static struct NyDbgOffMemberDef is_members[] = {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     RENAMEMEMBER(imports.modules, modules, imports.modules, imports_modules, NULL),
     RENAMEMEMBER(imports.modules_by_index, modules_by_index, imports.modules, imports_modules, NULL),
     RENAMEMEMBER(imports.importlib, importlib, imports.modules, imports_modules, NULL),
@@ -194,7 +217,7 @@ static struct NyDbgOffMemberDef is_members[] = {
     MEMBER(sysdict, sysdict, sysdict, NULL),
     MEMBER(builtins, builtins, builtins, NULL),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     RENAMEMEMBER(codecs.search_path, codec_search_path, _gil, gil_runtime_state, NULL),
     RENAMEMEMBER(codecs.search_cache, codec_search_cache, _gil, gil_runtime_state, NULL),
     RENAMEMEMBER(codecs.error_registry, codec_error_registry, _gil, gil_runtime_state, NULL),
@@ -206,7 +229,7 @@ static struct NyDbgOffMemberDef is_members[] = {
 
     MEMBER(dict, _gil, gil_runtime_state, NULL),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     MEMBER(sysdict_copy, _gil, gil_runtime_state, NULL),
 #endif
     MEMBER(builtins_copy, _gil, gil_runtime_state, NULL),
@@ -219,11 +242,8 @@ static struct NyDbgOffMemberDef is_members[] = {
 
     MEMBER(audit_hooks, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj),
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
     MEMBER(optimizer, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj),
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-    MEMBER(executor_list_head, _gil, gil_runtime_state, &heapy_py314_interp_qsbr_adj), // TODO: Iterate this list
 #endif
 
     {{0}} /* Sentinel */
@@ -232,18 +252,14 @@ static struct NyDbgOffMemberDef is_members[] = {
 #undef MEMBER
 #undef RENAMEMEMBER
 
-#define MEMBER(name) {#name, T_OBJECT, offsetof(PyThreadState, name)}
-#define RENAMEMEMBER(name, newname) {#newname, T_OBJECT, offsetof(PyThreadState, name)}
+#define MEMBER(name) {#name, _Py_T_OBJECT, offsetof(PyThreadState, name)}
+#define RENAMEMEMBER(name, newname) {#newname, _Py_T_OBJECT, offsetof(PyThreadState, name)}
 
 static struct PyMemberDef ts_members[] = {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION < 11
-    MEMBER(frame),
-#endif
-
     MEMBER(c_profileobj),
     MEMBER(c_traceobj),
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     MEMBER(current_exception),
 #else
     MEMBER(curexc_type),
@@ -251,13 +267,7 @@ static struct PyMemberDef ts_members[] = {
     MEMBER(curexc_traceback),
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
     RENAMEMEMBER(exc_state.exc_value, exc_value),
-#else
-    RENAMEMEMBER(exc_state.exc_type, exc_type),
-    RENAMEMEMBER(exc_state.exc_value, exc_value),
-    RENAMEMEMBER(exc_state.exc_traceback, exc_traceback),
-#endif
 
     MEMBER(dict),
     MEMBER(async_exc),
@@ -268,13 +278,13 @@ static struct PyMemberDef ts_members[] = {
 
     MEMBER(context),
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
     MEMBER(previous_executor),
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
     MEMBER(current_executor),
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     MEMBER(threading_local_key),
     // threading_local_sentinel not included
 #endif
@@ -316,10 +326,10 @@ static struct PyMemberDef ts_members[] = {
     attr = PyUnicode_FromFormat("i%d_%s", isno, #name); \
     if (attr) {                                         \
         if (PyList_Append(list, attr)) {                \
-            Py_DECREF(attr);                            \
+            Py_CLEAR(attr);                             \
             goto Err;                                   \
         }                                               \
-        Py_DECREF(attr);                                \
+        Py_CLEAR(attr);                                 \
     }                                                   \
 } while (0)
 
@@ -327,10 +337,10 @@ static struct PyMemberDef ts_members[] = {
     attr = PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #name); \
     if (attr) {                                                             \
         if (PyList_Append(list, attr)) {                                    \
-            Py_DECREF(attr);                                                \
+            Py_CLEAR(attr);                                                 \
             goto Err;                                                       \
         }                                                                   \
-        Py_DECREF(attr);                                                    \
+        Py_CLEAR(attr);                                                     \
     }                                                                       \
 } while (0)
 
@@ -350,7 +360,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
          is = PyInterpreterState_Next(is), isno--) {
         if (is != PyInterpreterState_Get())
             continue;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
         RENAMEISATTR(imports.modules, modules, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
         RENAMEISATTR(imports.modules_by_index, modules_by_index, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
         RENAMEISATTR(imports.importlib, importlib, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules));
@@ -365,7 +375,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
         ISATTR(sysdict, NYPTR_ADJ_INTEPSTATE(sysdict, sysdict));
         ISATTR(builtins, NYPTR_ADJ_INTEPSTATE(builtins, builtins));
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
         RENAMEISATTR(codecs.search_path, codec_search_path, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
         RENAMEISATTR(codecs.search_cache, codec_search_cache, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
         RENAMEISATTR(codecs.error_registry, codec_error_registry, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
@@ -377,7 +387,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
 
         ISATTR(dict, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
         ISATTR(sysdict_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
 #endif
         ISATTR(builtins_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state));
@@ -390,11 +400,8 @@ rootstate_relate_unlocked(NyHeapRelate *r)
 
         ISATTR(audit_hooks, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         ISATTR(optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        ISATTR(executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj);
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -405,23 +412,14 @@ rootstate_relate_unlocked(NyHeapRelate *r)
                 int frameno = -1;
                 int numframes = 0;
                 PyFrameObject *frame;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
                 for (frame = PyThreadState_GetFrame(ts); frame;) {
                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                     numframes++;
                     if ((PyObject *)frame == r->tgt)
                         frameno = numframes;
-
-                    Py_DECREF(frame);
+                    Py_CLEAR(frame);
                     frame = next_frame;
                 }
-#else
-                for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-                    numframes++;
-                    if ((PyObject *)frame == r->tgt)
-                        frameno = numframes;
-                }
-#endif
                 if (frameno != -1) {
                     frameno = numframes - frameno;
                     if (r->visit(NYHR_ATTRIBUTE, PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno), r))
@@ -431,7 +429,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
             TSATTR(c_profileobj);
             TSATTR(c_traceobj);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
             TSATTR(current_exception);
 #else
             TSATTR(curexc_type);
@@ -439,13 +437,7 @@ rootstate_relate_unlocked(NyHeapRelate *r)
             TSATTR(curexc_traceback);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             RENAMETSATTR(exc_state.exc_value, exc_value);
-#else
-            RENAMETSATTR(exc_state.exc_type, exc_type);
-            RENAMETSATTR(exc_state.exc_value, exc_value);
-            RENAMETSATTR(exc_state.exc_traceback, exc_traceback);
-#endif
 
             TSATTR(dict);
             TSATTR(async_exc);
@@ -455,13 +447,13 @@ rootstate_relate_unlocked(NyHeapRelate *r)
 
             TSATTR(context);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
             TSATTR(previous_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
             TSATTR(current_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
             TSATTR(threading_local_key);
 #endif
         }
@@ -469,10 +461,11 @@ rootstate_relate_unlocked(NyHeapRelate *r)
     return 0;
 }
 
-static int
+int
 rootstate_relate(NyHeapRelate *r)
 {
     int ret;
+    NY_ASSERT_WORLD_STOPPED();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_relate_unlocked(r);
     HEAD_UNLOCK(&_PyRuntime);
@@ -489,11 +482,11 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
     PyInterpreterState *is;
 
     for (is = PyInterpreterState_Head(); is; is = PyInterpreterState_Next(is)) {
-        if (hv->is_hiding_calling_interpreter && is == bts->interp)
+        if (hv->is_hiding_calling_interpreter && is == PyThreadState_GetInterpreter(bts))
             continue;
         if (is != PyInterpreterState_Get())
             continue;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, imports.modules, NYPTR_ADJ_INTEPSTATE(imports.modules, imports_modules)));
         // Not traversing through this because it is of the same level as
         // modules, making pathfinding generate an extra path.
@@ -510,7 +503,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, sysdict, NYPTR_ADJ_INTEPSTATE(sysdict, sysdict)));
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, builtins, NYPTR_ADJ_INTEPSTATE(builtins, builtins)));
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.search_path, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.search_cache, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, codecs.error_registry, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
@@ -522,7 +515,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
 
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, dict, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, sysdict_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
 #endif
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, builtins_copy, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state)));
@@ -535,11 +528,8 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
 
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, audit_hooks, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         Py_VISIT(NYPTR_ADJUSTED_DEREF(is, optimizer, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        Py_VISIT(NYPTR_ADJUSTED_DEREF(is, executor_list_head, NYPTR_ADJ_INTEPSTATE(_gil, gil_runtime_state) + heapy_py314_interp_qsbr_adj));
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -548,18 +538,14 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
             if (ts == bts && hv->limitframe) {
                 Py_VISIT(hv->limitframe);
             } else if (!hv->limitframe) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
                 PyFrameObject *frame = PyThreadState_GetFrame(ts);
                 Py_VISIT(frame);
-                Py_XDECREF(frame);
-#else
-                Py_VISIT(ts->frame);
-#endif
+                Py_CLEAR(frame);
             }
             Py_VISIT(ts->c_profileobj);
             Py_VISIT(ts->c_traceobj);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
             Py_VISIT(ts->current_exception);
 #else
             Py_VISIT(ts->curexc_type);
@@ -567,13 +553,7 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
             Py_VISIT(ts->curexc_traceback);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             Py_VISIT(ts->exc_state.exc_value);
-#else
-            Py_VISIT(ts->exc_state.exc_type);
-            Py_VISIT(ts->exc_state.exc_value);
-            Py_VISIT(ts->exc_state.exc_traceback);
-#endif
 
             Py_VISIT(ts->dict);
             Py_VISIT(ts->async_exc);
@@ -583,13 +563,13 @@ rootstate_traverse_unlocked(NyHeapTraverse *ta)
 
             Py_VISIT(ts->context);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
             Py_VISIT(ts->previous_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
             Py_VISIT(ts->current_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
             Py_VISIT(ts->threading_local_key);
 #endif
         }
@@ -601,6 +581,7 @@ int
 rootstate_traverse(NyHeapTraverse *ta)
 {
     int ret;
+    NY_ASSERT_WORLD_STOPPED();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_traverse_unlocked(ta);
     HEAD_UNLOCK(&_PyRuntime);
@@ -646,7 +627,7 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
     int ino;
     unsigned long tno;
     if (!s)
-        return 0;
+        return NULL;
     if (sscanf(s, "i%d_%n", &ino, &n) == 1) {
         s += n;
         int countis;
@@ -672,41 +653,28 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                             if (sscanf(s, "f%d%n", &frameno, &n) == 1 && s[n] == '\0') {
                                 int numframes = 0;
                                 PyFrameObject *frame;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
                                 PyFrameObject *current_frame = PyThreadState_GetFrame(ts);
                                 for (frame = (PyFrameObject *)Py_XNewRef(current_frame); frame;) {
                                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                                     numframes++;
-                                    Py_DECREF(frame);
+                                    Py_CLEAR(frame);
                                     frame = next_frame;
                                 }
                                 for (frame = (PyFrameObject *)Py_XNewRef(current_frame); frame;) {
                                     PyFrameObject *next_frame = PyFrame_GetBack(frame);
                                     numframes--;
                                     if (numframes == frameno) {
-                                        Py_DECREF(current_frame);
+                                        Py_CLEAR(current_frame);
                                         return (PyObject *)frame;
                                     }
-                                    Py_DECREF(frame);
+                                    Py_CLEAR(frame);
                                     frame = next_frame;
                                 }
-                                Py_DECREF(current_frame);
-#else
-                                for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes++;
-                                }
-                                for (frame = ts->frame; frame; frame = frame->f_back) {
-                                    numframes--;
-                                    if (numframes == frameno) {
-                                        Py_INCREF(frame);
-                                        return (PyObject *)frame;
-                                    }
-                                }
-#endif
+                                Py_CLEAR(current_frame);
                                 PyErr_Format(PyExc_AttributeError,
                                              "thread state has no frame numbered %d from bottom",
                                              frameno);
-                                return 0;
+                                return NULL;
                             } else {
                                 PyObject *ret = NyMember_Get((char *)ts, ts_members, s);
                                 if (!ret)
@@ -718,7 +686,7 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
                         }
                     }
                     PyErr_SetString(PyExc_AttributeError, "no such thread state number");
-                    return 0;
+                    return NULL;
                 } else {
                     PyObject *ret = NyDbgOffMember_Get((char *)is, is_members, s);
                     if (!ret)
@@ -730,66 +698,29 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
             }
         }
         PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
-        return 0;
-    }
-    if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
-        s += n;
-        int countis;
-        int numis;
-        for (is = PyInterpreterState_Head(), numis = 0;
-             is;
-             is = PyInterpreterState_Next(is), numis++);
-        for (is = PyInterpreterState_Head(), countis = 0;
-             is;
-             is = PyInterpreterState_Next(is), countis++) {
-            if (is != PyInterpreterState_Get())
-                continue;
-            int isno = numis - countis - 1;
-
-            for (ts = PyInterpreterState_ThreadHead(is);
-                 ts;
-                 ts = PyThreadState_Next(ts)) {
-                if (THREAD_ID(ts) == tno) {
-                    PyObject *fullname = PyUnicode_FromFormat("i%d_%U", isno, name);
-                    if (!fullname) {
-                        return 0;
-                    }
-                    PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
-                        "Getting thread state without an interpreter number "
-                        "is deprecated. Use %R instead", fullname);
-                    PyObject *res = rootstate_getattr_unlocked(obj, fullname);
-                    Py_DECREF(fullname);
-                    return res;
-                }
-            }
-        }
+        return NULL;
     }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute %R", name);
-    return 0;
+    return NULL;
 }
 
 static PyObject *
 rootstate_getattr(PyObject *obj, PyObject *name)
 {
     PyObject *ret;
+    NY_STOP_WORLD();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_getattr_unlocked(obj, name);
     HEAD_UNLOCK(&_PyRuntime);
+    NY_START_WORLD();
     return ret;
-}
-
-/* Dummy traverse function to make hv_std_traverse optimization not bypass this */
-static int
-rootstate_gc_traverse(PyObject *self, visitproc visit, void *arg)
-{
-    return 0;
 }
 
 static PyObject *
 rootstate_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
-    Py_INCREF(Ny_RootState);
-    return (PyObject *)Ny_RootState;
+    struct HeapycState *ms = NyType_AssertModuleState(subtype, &heapyc_def);
+    return Py_NewRef(ms->RootState);
 }
 
 static PyObject *
@@ -797,7 +728,7 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 {
     PyObject *list = PyList_New(0);
     if (!list)
-        return 0;
+        return NULL;
 
     PyObject *attr;
     PyThreadState *ts;
@@ -826,7 +757,7 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 
         ISATTR_DIR(dict);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
         ISATTR_DIR(sysdict_copy);
 #endif
         ISATTR_DIR(builtins_copy);
@@ -839,11 +770,8 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 
         ISATTR_DIR(audit_hooks);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
         ISATTR_DIR(optimizer);
-#endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-        ISATTR_DIR(executor_list_head);
 #endif
 
         for (ts = PyInterpreterState_ThreadHead(is);
@@ -851,18 +779,12 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
              ts = PyThreadState_Next(ts)) {
             int numframes = 0;
             PyFrameObject *frame;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 11
             for (frame = PyThreadState_GetFrame(ts); frame;) {
                 PyFrameObject *next_frame = PyFrame_GetBack(frame);
                 numframes++;
-                Py_DECREF(frame);
+                Py_CLEAR(frame);
                 frame = next_frame;
             }
-#else
-            for (frame = (PyFrameObject *)ts->frame; frame; frame = frame->f_back) {
-                numframes++;
-            }
-#endif
             int frameno;
             for (frameno = 0; frameno < numframes; frameno++) {
                 attr = PyUnicode_FromFormat("i%d_t%lu_f%d", isno, THREAD_ID(ts), frameno);
@@ -870,15 +792,15 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
                     goto Err;
 
                 if (PyList_Append(list, attr)) {
-                    Py_DECREF(attr);
+                    Py_CLEAR(attr);
                     goto Err;
                 }
-                Py_DECREF(attr);
+                Py_CLEAR(attr);
             }
             TSATTR_DIR(c_profileobj);
             TSATTR_DIR(c_traceobj);
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
             TSATTR_DIR(current_exception);
 #else
             TSATTR_DIR(curexc_type);
@@ -886,7 +808,7 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
             TSATTR_DIR(curexc_traceback);
 #endif
 
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 12
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
             TSATTR_DIR(exc_value);
 #else
             TSATTR_DIR(exc_type);
@@ -902,13 +824,13 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
 
             TSATTR_DIR(context);
 
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 13
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 13)
             TSATTR_DIR(previous_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 14
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
             TSATTR_DIR(current_executor);
 #endif
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
             TSATTR_DIR(threading_local_key);
 #endif
         }
@@ -917,17 +839,19 @@ rootstate_dir_unlocked(PyObject *self, PyObject *args)
     return list;
 
 Err:
-    Py_DECREF(list);
-    return 0;
+    Py_CLEAR(list);
+    return NULL;
 }
 
 static PyObject *
 rootstate_dir(PyObject *self, PyObject *args)
 {
     PyObject *ret;
+    NY_STOP_WORLD();
     HEAD_LOCK(&_PyRuntime);
     ret = rootstate_dir_unlocked(self, args);
     HEAD_UNLOCK(&_PyRuntime);
+    NY_START_WORLD();
     return ret;
 }
 
@@ -941,40 +865,28 @@ static PyMethodDef rootstate_methods[] =
     {0}
 };
 
-
-PyTypeObject NyRootState_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "guppy.heapy.heapyc.RootStateType",
-    .tp_basicsize = sizeof(PyObject),
-    .tp_dealloc   = (destructor)rootstate_dealloc,
-    .tp_repr      = rootstate_repr,
-    .tp_getattro  = rootstate_getattr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT,
-    .tp_doc       = rootstate_doc,
-    .tp_traverse  = (traverseproc)rootstate_gc_traverse, /* DUMMY */
-    .tp_methods   = rootstate_methods,
-    .tp_alloc     = PyType_GenericAlloc,
-    .tp_new       = rootstate_new,
-    .tp_free      = PyObject_Del,
+static PyType_Slot rootstate_slots[] = {
+    {Py_tp_dealloc,  rootstate_dealloc},
+    {Py_tp_repr,     rootstate_repr},
+    {Py_tp_getattro, rootstate_getattr},
+    {Py_tp_doc,      (void *)rootstate_doc},
+    {Py_tp_methods,  rootstate_methods},
+    {Py_tp_alloc,    PyType_GenericAlloc},
+    {Py_tp_new,      rootstate_new},
+    {Py_tp_free,     PyObject_Free},
+    {0, NULL}
 };
 
-PyObject _Ny_RootStateStruct = {
-    _PyObject_EXTRA_INIT
-    .ob_refcnt = 1,
-    .ob_type = &NyRootState_Type,
+PyType_Spec NyRootState_Spec = {
+    .name      = "guppy.heapy.heapyc.RootStateType",
+    .basicsize = sizeof(PyObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots     = rootstate_slots,
 };
-
-static bool rootstate_init_done;
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
-static PyMutex rootstate_init_mutex = {0};
-#else
-# define PyMutex_Lock(m) do {} while (0)
-# define PyMutex_Unlock(m) do {} while (0)
-#endif
 
 static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
     uintptr_t offs = (uintptr_t)&_PyRuntime.debug_offsets;
 #endif
     struct NyDbgOffMemberDef *l;
@@ -982,7 +894,7 @@ static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
     /* I'm sorry for the pointer manipulation here */
     // FIXME: extraoff for pre 3.13
     for (l = mlist; l->member.name != NULL; l++) {
-#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 13
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
         l->member.offset += (ptrdiff_t)*(uint64_t *)(offs + l->dbgoff)
                 - l->attroff;
 #endif
@@ -995,16 +907,9 @@ static void NyDbgOffMemberDef_Init(struct NyDbgOffMemberDef *mlist)
 # define MAX(a,b) (((a)>(b))?(a):(b))
 #endif
 
-void rootstate_init(void)
+static void rootstate_init_once(void)
 {
-    if (rootstate_init_done)
-        return;
-
-    PyMutex_Lock(&rootstate_init_mutex);
-    if (rootstate_init_done)
-        goto out;
-
-#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 14
+#if NY_MASKED_VERSION_HEX == Py_PACK_VERSION(3, 14)
     /* Between Python 3.14.3 and 3.14.4, PyInterpreterState.qsbr increased by
        size of a pointer, causing entries to be shifted. */
     /* See https://github.com/zhuyifei1999/guppy3/issues/53#issuecomment-4410652591 */
@@ -1018,8 +923,10 @@ void rootstate_init(void)
 #endif
 
     NyDbgOffMemberDef_Init(is_members);
-    rootstate_init_done = true;
+}
 
-out:
-    PyMutex_Unlock(&rootstate_init_mutex);
+void rootstate_init(void)
+{
+    static struct NyOnce once;
+    NyOnce_CallOnce(&once, rootstate_init_once);
 }

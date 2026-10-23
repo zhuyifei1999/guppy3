@@ -5,19 +5,18 @@
 
 /* BitSet */
 
-extern PyTypeObject NyImmBitSet_Type;
-extern PyTypeObject NyImmBitSetIter_Type;
-extern PyTypeObject NyCplBitSet_Type;
-extern PyTypeObject NyMutBitSet_Type;
-extern PyTypeObject NyUnion_Type;
+extern int fsb_dx_nybitset_init(PyObject *m);
 
-#define NyImmBitSet_Check(op) PyObject_TypeCheck(op, &NyImmBitSet_Type)
-#define NyCplBitSet_Check(op) PyObject_TypeCheck(op, &NyCplBitSet_Type)
-#define NyMutBitSet_Check(op) PyObject_TypeCheck(op, &NyMutBitSet_Type)
+extern PyType_Spec BitSet_Spec;
+extern PyType_Spec NyImmBitSet_Spec;
+extern PyType_Spec NyImmBitSetIter_Spec;
+extern PyType_Spec NyCplBitSet_Spec;
+extern PyType_Spec NyMutBitSet_Spec;
+extern PyType_Spec NyUnion_Spec;
 
-NyImmBitSetObject *NyImmBitSet_New(NyBit size);
+NyImmBitSetObject *NyImmBitSet_New(struct SetscState *ms, NyBit size);
 NyCplBitSetObject *NyCplBitSet_New(NyImmBitSetObject *v);
-NyMutBitSetObject *NyMutBitSet_New(void);
+NyMutBitSetObject *NyMutBitSet_New(struct SetscState *ms);
 
 typedef int (*NySetVisitor)(NyBit, void *) ;
 
@@ -30,16 +29,6 @@ extern int NyAnyBitSet_iterate(PyObject *v,
 
 
 extern Py_ssize_t NyAnyBitSet_length(PyObject *v);
-
-/* The predefined empty set */
-
-extern NyImmBitSetObject _NyImmBitSet_EmptyStruct;
-#define NyImmBitSet_Empty (&_NyImmBitSet_EmptyStruct)
-
-/* The predefined set of all bits */
-
-extern NyCplBitSetObject _NyImmBitSet_OmegaStruct;
-#define NyImmBitSet_Omega (&_NyImmBitSet_OmegaStruct)
 
 
 extern PyObject *NyMutBitSet_AsImmBitSet(NyMutBitSetObject *v);
@@ -58,16 +47,66 @@ size_t generic_indisize(PyObject *v);
 
 /* NodeSet */
 
+extern int fsb_dx_nynodeset_init(PyObject *m);
+
 size_t nodeset_indisize(PyObject *v);
 int nodeset_traverse(NyHeapTraverse *ta);
 int nodeset_relate(NyHeapRelate *r);
 
-extern PyTypeObject NyNodeSet_Type;
-extern PyTypeObject NyMutNodeSet_Type;
-extern PyTypeObject NyImmNodeSet_Type;
+extern PyType_Spec NyNodeSet_Spec;
+extern PyType_Spec NyMutNodeSet_Spec;
+extern PyType_Spec NyImmNodeSet_Spec;
+extern PyType_Spec NyImmNodeSetIter_Spec;
 
-#define NyNodeSet_Check(op) PyObject_TypeCheck(op, &NyNodeSet_Type)
-#define NyMutNodeSet_Check(op) PyObject_TypeCheck(op, &NyMutNodeSet_Type)
-#define NyImmNodeSet_Check(op) PyObject_TypeCheck(op, &NyImmNodeSet_Type)
+PyObject *nodeset_richcompare(NyNodeSetObject *v, NyNodeSetObject *w, int op);
+PyObject *nodeset_ior(NyNodeSetObject *v, PyObject *w);
+
+PyObject *nodeset_get_is_immutable(NyNodeSetObject *self, void *unused);
+
+NyNodeSetObject *
+NyMutNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject *hiding_tag);
+NyNodeSetObject *NyImmNodeSet_New(struct SetscState *ms, NyBit size, PyObject *hiding_tag);
+
+NyNodeSetObject *
+immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op);
+
+struct SetscState {
+    PyTypeObject *BitSet_Type;
+    PyTypeObject *ImmBitSet_Type;
+    PyTypeObject *ImmBitSetIter_Type;
+    PyTypeObject *CplBitSet_Type;
+    PyTypeObject *MutBitSet_Type;
+    PyTypeObject *Union_Type;
+    PyTypeObject *NodeSet_Type;
+    PyTypeObject *MutNodeSet_Type;
+    PyTypeObject *ImmNodeSet_Type;
+    PyTypeObject *ImmNodeSetIter_Type;
+
+    NyImmBitSetObject *ImmBitSet_Empty; /* The predefined empty set */
+    NyCplBitSetObject *ImmBitSet_Omega; /* The predefined set of all bits */
+
+    PyObject *BitSet_FormMethod;
+
+    NyBitSet_Exports bitset_exports;
+    NyNodeSet_Exports nodeset_exports;
+    NyHeapDef Sets_HeapDef[4];
+};
+
+extern struct PyModuleDef setsc_def;
+
+#ifdef Py_GIL_DISABLED
+#define _NY_IS_IMM(ms, op) (PyObject_TypeCheck(op, ms->ImmBitSet_Type) || \
+                            PyObject_TypeCheck(op, ms->CplBitSet_Type))
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED(ms, op)                \
+    assert(_NY_IS_IMM(ms, (PyObject *)(op)) ||             \
+        PyMutex_IsLocked(&((PyObject *)(op))->ob_mutex))
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED_OR_SINGLEREF(ms, op)   \
+    assert(_NY_IS_IMM(ms, (PyObject *)(op)) ||             \
+        PyMutex_IsLocked(&((PyObject *)(op))->ob_mutex) || \
+        PyUnstable_Object_IsUniquelyReferenced((PyObject *)(op)))
+#else
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED(ms, op) do {} while (0)
+#define NY_ASSERT_OBJ_IMM_OR_LOCKED_OR_SINGLEREF(ns, op) do {} while (0)
+#endif
 
 #endif /* SETS_INTERNAL_H */

@@ -21,7 +21,7 @@ class TestCase(support.TestCase):
                 sr = sr[1:-1].split(',')
                 self.assertTrue(relstr in sr)
             else:
-                self.aseq(sr, relstr)
+                self.assertEqual(sr, relstr)
 
     def chkrelattr(self, src, *attrs):
         for attr in attrs:
@@ -35,7 +35,7 @@ class TestCase(support.TestCase):
             li = rel.aslist()
             if len(li) == 1:
                 li = li[0]
-            self.aseq(str(li), str(expect), -1)
+            self.assertEqual(str(li), str(expect), -1)
 
     def relation(self, src, dst):
         return self.Path.relation(src, dst)
@@ -73,11 +73,8 @@ class RelationTestCase(TestCase):
             self.chkpath(co, 1000, '%s.co_consts[0]')
         # commented in notes Sep 27 2004
         relAttr = ('co_code', 'co_consts', 'co_names',
-                   'co_filename', 'co_name', 'co_linetable')
-        if self.version_info < (3, 11):
-            relAttr += ('co_varnames', 'co_freevars', 'co_cellvars')
-        else:
-            relAttr += ('co_exceptiontable', 'co_qualname')
+                   'co_filename', 'co_name', 'co_linetable',
+                   'co_exceptiontable', 'co_qualname')
         self.chkrelattr(co, *relAttr)
 
     def test_dict_relation(self):
@@ -95,7 +92,7 @@ class RelationTestCase(TestCase):
               str(self.relation(x, k2)),
               str(self.relation(x, k3))]
         ks.sort()
-        self.aseq(ks, ['%s.keys()[0]', '%s.keys()[1]', '%s.keys()[2]'])
+        self.assertEqual(ks, ['%s.keys()[0]', '%s.keys()[1]', '%s.keys()[2]'])
 
     def test_dictproxy_relation(self):
         v1 = 'v1'
@@ -322,8 +319,8 @@ class RelationTestCase(TestCase):
         src = grc(s)
         vrc = grc(v)
         self.chkrel(s, v, 'list(%s)[0]')
-        self.aseq(grc(s), src)
-        self.aseq(grc(v), vrc)
+        self.assertEqualRefcountUnlessDeferred(grc(s), src, s)
+        self.assertEqualRefcountUnlessDeferred(grc(v), vrc, v)
 
 
 class RootTestCase(TestCase):
@@ -335,21 +332,21 @@ class RootTestCase(TestCase):
         # Interpreter attributes
 
         rel = str(self.relation(root, sys.modules))
-        self.aseq(rel, '%s.i0_modules')
+        self.assertEqual(rel, '%s.i0_modules')
         self.assertTrue(eval(rel % 'root') is sys.modules)
 
         rel = str(self.relation(root, sys.__dict__))
-        self.aseq(rel, '%s.i0_sysdict')
+        self.assertEqual(rel, '%s.i0_sysdict')
         self.assertTrue(eval(rel % 'root') is sys.__dict__)
 
         rel = str(self.relation(root, builtins.__dict__))
-        self.aseq(rel, '%s.i0_builtins')
+        self.assertEqual(rel, '%s.i0_builtins')
         self.assertTrue(eval(rel % 'root') is builtins.__dict__)
 
         for name in "codec_search_path", "codec_search_cache", "codec_error_registry":
             attr = "i0_%s" % name
             rel = str(self.relation(root, getattr(root, attr)))
-            self.aseq(rel, '%%s.%s' % attr)
+            self.assertEqual(rel, '%%s.%s' % attr)
 
         # This is fragilely referred to by gc's dict via PyModule_AddObjectRef.
         # but also stored by the interpreter state via _is.gc.callbacks
@@ -363,13 +360,8 @@ class RootTestCase(TestCase):
             1/0
         except ZeroDivisionError:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            if sys.version_info >= (3, 11):
-                rel = str(self.relation(root, exc_value))
-                self.asis(eval(rel % 'root'), exc_value)
-            else:
-                for name in 'exc_type', 'exc_value', 'exc_traceback':
-                    rel = str(self.relation(root, eval(name)))
-                    self.asis(eval(rel % 'root'), eval(name))
+            rel = str(self.relation(root, exc_value))
+            self.assertIs(eval(rel % 'root'), exc_value)
 
             # There are more, untested, attributes, but the code is farily regular...
             # More complication is to do with frames which I concentrate on for now.
@@ -384,15 +376,14 @@ class RootTestCase(TestCase):
             rel = str(self.relation(root, frame))
             self.assertTrue(rel.endswith('_f0'))
             rel = str(self.relation(root, exc_traceback.tb_frame))
-            self.asis(eval(rel % 'root'), exc_traceback.tb_frame)
+            self.assertIs(eval(rel % 'root'), exc_traceback.tb_frame)
             self.assertTrue(rel.endswith('_f%d' % level))
 
     def test_thread(self):
         try:
             import _thread
         except ImportError:
-            print('threading not enabled - skipping test')
-            return
+            self.skipTest('threading not enabled')
 
         root = self.View.root
 
@@ -414,7 +405,7 @@ class RootTestCase(TestCase):
             pass
         exc_value = self.exc_value
         rel = str(self.relation(root, exc_value))
-        self.asis(eval(rel % 'root'), exc_value)
+        self.assertIs(eval(rel % 'root'), exc_value)
         self.sync = 0
         while not self.sync:
             pass
@@ -480,7 +471,7 @@ class PathTestCase(TestCase):
         for (width, length) in [(2, 1), (7, 3), (3, 7), (10, 20)]:
             src, dst = self.makegraph(width, length)
             p = self.shpaths(dst, src)
-            self.aseq(p.numpaths, width**length)
+            self.assertEqual(p.numpaths, width**length)
 
     def test_iter(self):
         src, dst = self.makegraph(2, 2)
@@ -490,7 +481,7 @@ class PathTestCase(TestCase):
         for i in it:
             ss.append(str(i))
         ss.sort()
-        self.aseq(ss, ['%s[0][0]', '%s[0][1]', '%s[1][0]', '%s[1][1]'])
+        self.assertEqual(ss, ['%s[0][0]', '%s[0][1]', '%s[1][0]', '%s[1][1]'])
 
         # Check that we can get some of the first values from the iterator
         # of a graph with an astronomical number of paths.
@@ -505,7 +496,7 @@ class PathTestCase(TestCase):
             path = next(it)
             sp = str(path)
             div, mod = divmod(i, width)
-            self.aseq(sp, '%s'+'[0]'*(length-2)+'[%d][%d]' % (div, mod))
+            self.assertEqual(sp, '%s'+'[0]'*(length-2)+'[%d][%d]' % (div, mod))
 
         # Check that the iterator works even if the graph initially
         # would yield astronomical numbers of dead ends.
@@ -521,7 +512,7 @@ class PathTestCase(TestCase):
             path = next(it)
             sp = str(path)
             div, mod = divmod(i, width)
-            self.aseq(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]' % (div, mod))
+            self.assertEqual(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]' % (div, mod))
 
         # Test iterating with a negative start and a large positive start
 
@@ -529,7 +520,7 @@ class PathTestCase(TestCase):
         for it in [p.iter(-numfromend), p.iter(p.numpaths-numfromend)]:
             for i, path in enumerate(it):
                 sp = str(path)
-                self.aseq(sp, '%s'+('[%d]' % (width-1)) *
+                self.assertEqual(sp, '%s'+('[%d]' % (width-1)) *
                           (length-1)+'[%d]' % (width-numfromend+i))
 
         # Test iterating with start and stop
@@ -540,10 +531,10 @@ class PathTestCase(TestCase):
         for path in p.iter(start, stop):
             sp = str(path)
             div, mod = divmod(i, width)
-            self.aseq(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]' % (div, mod))
-            self.aseq(path.index, i)
+            self.assertEqual(sp, '%s[1]'+'[0]'*(length-3)+'[%d][%d]' % (div, mod))
+            self.assertEqual(path.index, i)
             i += 1
-        self.aseq(i, stop)
+        self.assertEqual(i, stop)
 
     def test_str(self):
         # Make sure large number of paths will yield reasonable representations
@@ -552,9 +543,9 @@ class PathTestCase(TestCase):
         src, dst = self.makegraph(width, length)
         p = self.shpaths(dst, src)
         p.maxpaths = 1
-        self.aseq(str(p), " 0: Src[0][0][0][0]\n<... 14640 more paths ...>")
+        self.assertEqual(str(p), " 0: Src[0][0][0][0]\n<... 14640 more paths ...>")
         p.maxpaths = 2
-        self.aseq(
+        self.assertEqual(
             str(p), " 0: Src[0][0][0][0]\n 1: Src[0][0][0][1]\n<... 14639 more paths ...>")
 
     def test_printing(self):
@@ -567,11 +558,11 @@ class PathTestCase(TestCase):
         src, dst = self.makegraph(width, length)
         p = self.shpaths(dst, src)
         p.maxpaths = 2
-        self.aseq(str(p), """\
+        self.assertEqual(str(p), """\
  0: Src[0][0][0][0]
  1: Src[0][0][0][1]
 <... 14639 more paths ...>""")
-        self.aseq(str(p.more), """\
+        self.assertEqual(str(p.more), """\
  2: Src[0][0][0][2]
  3: Src[0][0][0][3]
 <... 14637 more paths ...>""")
@@ -583,15 +574,15 @@ class PathTestCase(TestCase):
         src, dst = self.makegraph(width, length)
         p = self.shpaths(dst, src)
         np = width**length
-        self.aseq(np, p.numpaths)
+        self.assertEqual(np, p.numpaths)
         # p[0].pp(p.output)
-        self.aseq(str(p[0]), '%s'+'[0]'*length)
-        self.aseq(str(p[-np]), '%s'+'[0]'*length)
-        self.aseq(str(p[width-1]), '%s'+'[0]'*(length-1) + '[%d]' % (width-1))
-        self.aseq(str(p[width]), '%s'+'[0]'*(length-2) + '[1][0]')
-        self.aseq(str(p[width+1]), '%s'+'[0]'*(length-2) + '[1][1]')
-        self.aseq(str(p[np-1]), '%s'+('[%d]' % (width-1))*length)
-        self.aseq(str(p[-1]), '%s'+('[%d]' % (width-1))*length)
+        self.assertEqual(str(p[0]), '%s'+'[0]'*length)
+        self.assertEqual(str(p[-np]), '%s'+'[0]'*length)
+        self.assertEqual(str(p[width-1]), '%s'+'[0]'*(length-1) + '[%d]' % (width-1))
+        self.assertEqual(str(p[width]), '%s'+'[0]'*(length-2) + '[1][0]')
+        self.assertEqual(str(p[width+1]), '%s'+'[0]'*(length-2) + '[1][1]')
+        self.assertEqual(str(p[np-1]), '%s'+('[%d]' % (width-1))*length)
+        self.assertEqual(str(p[-1]), '%s'+('[%d]' % (width-1))*length)
         self.assertRaises(IndexError, lambda: p[np])
         self.assertRaises(IndexError, lambda: p[-np-1])
 
@@ -604,7 +595,7 @@ class MultiTestCase(TestCase):
         src = iso(dst[:]*2)
         dst = [iso(x) for x in dst]
         p = self.Path.shpgraph(dst, src)
-        self.aseq(str(p), """\
+        self.assertEqual(str(p), """\
 --- Dst[0] ---
  0: Src[0]
  1: Src[2]
@@ -612,7 +603,7 @@ class MultiTestCase(TestCase):
  0: Src[1]
  1: Src[3]""")
         p = self.Path.shpgraph(dst, src, srcname='A', dstname='B')
-        self.aseq(str(p), """\
+        self.assertEqual(str(p), """\
 --- B[0] ---
  0: A[0]
  1: A[2]
@@ -654,18 +645,18 @@ class AvoidTestCase(TestCase):
             result = result % ' 0: Src'
             # Find new path by avoiding edges from the original path
             q = self.shpaths(dst, src, avoid_edges=p.edges_at(*avoid))
-            self.aseq(str(q), result)
+            self.assertEqual(str(q), result)
             # Find the same path but via a direct method
             q = p.copy_but_avoid_edges_at_levels(*avoid)
-            self.aseq(str(q), result)
+            self.assertEqual(str(q), result)
             # The same, but via a shorter method name
             q = p.avoided(*avoid)
-            self.aseq(str(q), result)
+            self.assertEqual(str(q), result)
 
         # Test that the avoided set is carried on to copies
 
         q = p.avoided(0).avoided(2)
-        self.aseq(str(q), ' 0: Src[2][1][2][1][1]')
+        self.assertEqual(str(q), ' 0: Src[2][1][2][1][1]')
 
 
 class NewTestCase(TestCase):
@@ -740,7 +731,7 @@ class NewTestCase(TestCase):
         print(repr(shp), file=o)
         for p in shp:
             S = S ^ p.src
-        self.aseq(S, iso(y))
+        self.assertEqual(S, iso(y))
 
         shp = iso(x).get_shpaths(iso(ob, y, z))
         print(str(shp), file=o)
@@ -748,8 +739,8 @@ class NewTestCase(TestCase):
         S = iso()
         for i, p in enumerate(shp):
             S = S ^ p.src
-            self.aseq(p.src, shp[i].src)
-        self.aseq(S, iso(ob, y))
+            self.assertEqual(p.src, shp[i].src)
+        self.assertEqual(S, iso(ob, y))
 
         # Test that the iter can be restarted
         # even after multiple sources handling was added
@@ -758,13 +749,13 @@ class NewTestCase(TestCase):
         a = list(it)
         it.isatend = 0
         b = list(it)
-        self.aseq(str(a), str(b))
+        self.assertEqual(str(a), str(b))
 
         # The sort order is based on the source set's byid partition (see
         # Path.PathsIter.reset), which sorts based on the size, then render
         # (see Part.IdentityPartition.__init__)
         if sys.getsizeof(y) > sys.getsizeof(ob):
-            self.aseq(o.getvalue(), """\
+            self.assertEqual(o.getvalue(), """\
  0: hpy().Root.i0_sysdict
  0: Src.i0_modules['sys'].__dict__
  0: hpy().Root.i0_sysdict
@@ -781,7 +772,7 @@ class NewTestCase(TestCase):
  1: <1 __main__.O: <address>>.x
 """.replace('__main__', self.__module__))
         else:
-            self.aseq(o.getvalue(), """\
+            self.assertEqual(o.getvalue(), """\
  0: hpy().Root.i0_sysdict
  0: Src.i0_modules['sys'].__dict__
  0: hpy().Root.i0_sysdict
@@ -813,7 +804,7 @@ class NewTestCase(TestCase):
         p = iso(dst).get_shpaths(iso(src))
         print(repr(p.more), file=o)
 
-        self.aseq(o.getvalue(), """\
+        self.assertEqual(o.getvalue(), """\
  0: Src[0]
  1: Src[1]
  2: Src[2]
@@ -881,7 +872,7 @@ class NewTestCase(TestCase):
         src = [dst]
         dst = iso(dst)
         src = iso(src)
-        self.aseq(dst.get_shpaths(src).sets, (src, dst))
+        self.assertEqual(dst.get_shpaths(src).sets, (src, dst))
 
         # Test that srs doesn't disturb the path calculation
 
@@ -896,7 +887,7 @@ class NewTestCase(TestCase):
 
         del c
         q = cd.shpaths
-        self.aseq(repr(q).strip(), "")
+        self.assertEqual(repr(q).strip(), "")
 
         del p, q
 
@@ -911,18 +902,18 @@ class NewTestCase(TestCase):
         s = iso(src)
 
         p = d.get_shpaths(s)
-        self.aseq(str(p), " 0: Src[0][0][0][0]")
+        self.assertEqual(str(p), " 0: Src[0][0][0][0]")
         src.append(p)
         p._XX_ = dst    # A shorter path, but it should be hidden
-        self.aseq(str(d.get_shpaths(s)), " 0: Src[0][0][0][0]")
+        self.assertEqual(str(d.get_shpaths(s)), " 0: Src[0][0][0][0]")
 
         # Test what .more prints finally
 
-        self.aseq(str(p.more), '<No more paths>')
+        self.assertEqual(str(p.more), '<No more paths>')
 
         # Test that .top is idempotent
 
-        self.asis(p.more.top.top, p)
+        self.assertIs(p.more.top.top, p)
 
     def test_4(self):
         # Test that if one extra path will be printed if there are
@@ -936,7 +927,7 @@ class NewTestCase(TestCase):
 
         shp = iso(dst).get_shpaths(iso(src))
         print(str(shp), file=o)
-        self.aseq(o.getvalue(), """\
+        self.assertEqual(o.getvalue(), """\
  0: Src[0]
  1: Src[1]
  2: Src[2]

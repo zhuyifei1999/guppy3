@@ -3,10 +3,9 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "structmember.h"
-
 #include "../include/guppy.h"
 #include "../include/pythoncapi_compat.h"
+
 #include "../heapy/heapdef.h"
 #include "sets_internal.h"
 
@@ -130,28 +129,18 @@ PyDoc_STRVAR(mutnodeset_doc,
 
 /* Forward decls */
 
-static PyObject * nodeset_bitno_to_obj(NyBit bitno);
-PyTypeObject NyImmNodeSet_Type;
-PyTypeObject NyMutNodeSet_Type;
-
-NyNodeSetObject *
-NyImmNodeSet_SubtypeOfNodeSetDecRef(PyTypeObject *type, NyNodeSetObject *v);
-NyNodeSetObject *
-NyImmNodeSet_New(NyBit size, PyObject *hiding_tag);
-
-static NyNodeSetObject *
-immnodeset_op(NyNodeSetObject *v, NyNodeSetObject *w, int op);
-
+static PyObject *nodeset_bitno_to_obj(NyBit bitno);
+static int nodeset_dealloc_iter(PyObject *obj, void *v);
 
 /* */
 
 /* general utilities */
 
 static int
-iterable_iterate(PyObject *v, NyIterableVisitor visit,
+iterable_iterate(struct SetscState *ms, PyObject *v, NyIterableVisitor visit,
                  void *arg)
 {
-    if (NyNodeSet_Check(v)) {
+    if (PyObject_TypeCheck(v, ms->NodeSet_Type)) {
         return NyNodeSet_iterate((NyNodeSetObject *)v, visit, arg);
     } else {
         PyObject *it = PyObject_GetIter(v);
@@ -167,14 +156,14 @@ iterable_iterate(PyObject *v, NyIterableVisitor visit,
                 break;
             }
             r = visit(item, arg);
-            Py_DECREF(item);
+            Py_CLEAR(item);
             if (r == -1)
                 goto Err;
         }
-        Py_DECREF(it);
+        Py_CLEAR(it);
         return 0;
 Err:
-        Py_XDECREF(it);
+        Py_CLEAR(it);
         return -1;
     }
 }
@@ -182,150 +171,137 @@ Err:
 static PyObject *
 bool_from_int(int res)
 {
-    PyObject *ret;
     if (res == -1)
-        ret = 0;
-    else {
-        ret = res ? Py_True:Py_False;
-        Py_INCREF(ret);
-    }
-    return ret;
+        return NULL;
+    return Py_NewRef(res ? Py_True : Py_False);
 }
-
-
-
-/* NyMutNodeSetIter methods */
-
-static PyObject *nodeset_ior(NyNodeSetObject *v, PyObject *w);
-
-typedef struct {
-    PyObject_HEAD
-    PyObject *bitset_iter;
-    NyNodeSetObject *nodeset; /* Need to hold on to this 'cause it shouldn't decref
-                                 objects in set*/
-} NyMutNodeSetIterObject;
-
-
-static void
-mutnsiter_dealloc(NyMutNodeSetIterObject *v)
-{
-    Py_DECREF(v->bitset_iter);
-    Py_DECREF(v->nodeset);
-    PyObject_DEL(v);
-}
-
-static PyObject *
-mutnsiter_getiter(PyObject *it)
-{
-    Py_INCREF(it);
-    return it;
-}
-
-static PyObject *
-mutnsiter_iternext(NyMutNodeSetIterObject *hi)
-{
-    PyObject *bitobj = Py_TYPE(hi->bitset_iter)->tp_iternext(hi->bitset_iter);
-    PyObject *ret;
-    NyBit bitno;
-    if (!bitobj)
-        return 0;
-    bitno = PyLong_AsSsize_t(bitobj);
-    Py_DECREF(bitobj);
-    if (bitno == -1 && PyErr_Occurred())
-        return 0;
-    ret = nodeset_bitno_to_obj(bitno);
-    if (hi->nodeset->flags & NS_HOLDOBJECTS) {
-        Py_INCREF(ret);
-    } else {
-        ret = PyLong_FromSsize_t((Py_intptr_t)ret);
-    }
-    return ret;
-}
-
-PyTypeObject NyMutNodeSetIter_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name      = "nodeset-iterator",
-    .tp_basicsize = sizeof(NyMutNodeSetIterObject),
-    .tp_dealloc   = (destructor)mutnsiter_dealloc,
-    .tp_getattro  = PyObject_GenericGetAttr,
-    .tp_flags     = Py_TPFLAGS_DEFAULT,
-    .tp_iter      = (getiterfunc)mutnsiter_getiter,
-    .tp_iternext  = (iternextfunc)mutnsiter_iternext,
-};
-
 
 
 /* NodeSet methods */
 
-NyNodeSetObject *
+static NyNodeSetObject *
 NyMutNodeSet_SubtypeNewFlags(PyTypeObject *type, int flags, PyObject *hiding_tag)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     NyNodeSetObject *v = (void *)type->tp_alloc(type, 0);
     if (!v)
         return NULL;
-    /*assert (flags & NS_HOLDOBJECTS); */
-    v->flags = flags;
-    Py_SET_SIZE(v, 0);
-    v->u.bitset = (PyObject *)NyMutBitSet_New();
+    v->u.bitset = (PyObject *)NyMutBitSet_New(ms);
     if (!v->u.bitset) {
-        Py_DECREF(v);
-        return 0;
+        Py_CLEAR(v);
+        return NULL;
     }
-    v->_hiding_tag_ = hiding_tag;
-    Py_XINCREF(hiding_tag);
+    Py_SET_SIZE(v, 0);
+    v->flags = flags & ~_NS_STW;
+    v->ms = ms;
+    v->_hiding_tag_ = Py_XNewRef(hiding_tag);
     return v;
 }
+
+static int
+nodeset_new_iterable_visit(PyObject *obj, NyNodeSetObject *arg)
+{
+    return NyNodeSet_setobj(arg, obj) == -1 ? -1 : 0;
+}
+
 
 NyNodeSetObject *
 NyMutNodeSet_SubtypeNewIterable(PyTypeObject *type, PyObject *iterable, PyObject *hiding_tag)
 {
+    struct SetscState *ms = NyType_AssertModuleState(type, &setsc_def);
     NyNodeSetObject *ns = NyMutNodeSet_SubtypeNewFlags(type, NS_HOLDOBJECTS, hiding_tag);
     if (!ns)
-        return 0;
+        return NULL;
     if (iterable) {
-        PyObject *r = nodeset_ior(ns, iterable);
-        if (!r) {
-            Py_DECREF(ns);
-            return 0;
-        }
-        Py_DECREF(r);
+        if (iterable_iterate(ms, iterable,
+                             (NyIterableVisitor)nodeset_new_iterable_visit, ns) == -1)
+            Py_CLEAR(ns);
     }
     return ns;
 }
 
 NyNodeSetObject *
-NyMutNodeSet_NewFlags(int flags)
+NyMutNodeSet_NewFlags(struct SetscState *ms, int flags)
 {
-    return NyMutNodeSet_SubtypeNewFlags(&NyMutNodeSet_Type, flags, 0);
+    if (flags & ~NS_HOLDOBJECTS) {
+        PyErr_SetString(PyExc_TypeError,
+                        "Unknown flags to NyMutNodeSet_NewFlags");
+        return NULL;
+    }
+    return NyMutNodeSet_SubtypeNewFlags(ms->MutNodeSet_Type, flags, NULL);
 }
 
 NyNodeSetObject *
-NyMutNodeSet_New(void)
+NyMutNodeSet_New(struct SetscState *ms)
 {
-    return NyMutNodeSet_NewFlags(NS_HOLDOBJECTS);
+    return NyMutNodeSet_NewFlags(ms, NS_HOLDOBJECTS);
 }
 
 NyNodeSetObject *
-NyMutNodeSet_NewHiding(PyObject *hiding_tag) {
-    return NyMutNodeSet_SubtypeNewFlags(&NyMutNodeSet_Type, NS_HOLDOBJECTS, hiding_tag);
+NyMutNodeSet_NewHiding(struct SetscState *ms, PyObject *hiding_tag)
+{
+    return NyMutNodeSet_SubtypeNewFlags(ms->MutNodeSet_Type, NS_HOLDOBJECTS, hiding_tag);
 }
 
+int
+NySTWMutNodeSet_InitOnStack(struct SetscState *ms, NyNodeSetObject *v)
+{
+    memset(v, 0, sizeof(*v));
+    v->u.bitset = (PyObject *)NyMutBitSet_New(ms);
+    if (!v->u.bitset)
+        return -1;
+    Py_SET_TYPE(v, ms->MutNodeSet_Type);
+    Py_SET_SIZE(v, 0);
+#ifdef Py_GIL_DISABLED
+    v->flags = _NS_STW;
+#else
+    /* Non-freethread builds don't have truly atomic contexts
+       (signal handers) are free to be invoked */
+    v->flags = _NS_STW | NS_HOLDOBJECTS;
+#endif
+    v->ms = ms;
+    v->_hiding_tag_ = NULL;
+    return 0;
+}
 
+void
+NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
+{
+    /* Ordered so that this is safe to call even if
+       NySTWMutNodeSet_InitOnStack fails */
+    if (!v->u.bitset)
+        return;
+
+    assert(Py_IS_TYPE(v, v->ms->MutNodeSet_Type));
+#ifdef Py_GIL_DISABLED
+    assert(v->flags == _NS_STW);
+#else
+    assert(v->flags == (_NS_STW | NS_HOLDOBJECTS));
+
+    NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
+#endif
+
+    Py_SET_REFCNT(v->u.bitset, 0);
+    Py_TYPE(v->u.bitset)->tp_dealloc(v->u.bitset);
+}
 
 static PyObject *
 mutnodeset_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-
     PyObject *iterable = NULL;
-    static char *kwlist[] = {"iterable", 0};
+    static char *kwlist[] = {"iterable", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:MutNodeSet.__new__",kwlist, &iterable))
-        return 0;
-    return (PyObject *)NyMutNodeSet_SubtypeNewIterable(type, iterable, 0);
+        return NULL;
+    return (PyObject *)NyMutNodeSet_SubtypeNewIterable(type, iterable, NULL);
 }
 
 static NyBit
 nodeset_obj_to_bitno(PyObject *obj)
 {
+    if ((NyBit)obj & (ALIGN - 1)) {
+        PyErr_Format(PyExc_SystemError, "Object at address %p is not aligned", obj);
+        return 0;
+    }
     return (NyBit) obj / ALIGN;
 }
 
@@ -337,19 +313,25 @@ nodeset_bitno_to_obj(NyBit bitno)
 
 static PyObject *
 nodeset_bitset(NyNodeSetObject *v) {
-    if (NyMutNodeSet_Check(v)) {
-        Py_INCREF(v->u.bitset);
-        return v->u.bitset;
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
+        return Py_NewRef(v->u.bitset);
     } else {
         NyBit i;
-        NyMutBitSetObject *bitset = NyMutBitSet_New();
+        NyMutBitSetObject *bitset = NyMutBitSet_New(v->ms);
         if (!bitset)
-            return 0;
+            return NULL;
+
+        /* NOT LOCKED: v is immutable */
         for (i = 0; i < Py_SIZE(v); i++) {
-            int r = NyMutBitSet_setbit(bitset, nodeset_obj_to_bitno(v->u.nodes[i]));
+            NyBit bitno = nodeset_obj_to_bitno(v->u.nodes[i]);
+            if (!bitno) {
+                Py_CLEAR(bitset);
+                return NULL;
+            }
+            int r = NyMutBitSet_setbit(bitset, bitno);
             if (r == -1) {
-                Py_DECREF(bitset);
-                return 0;
+                Py_CLEAR(bitset);
+                return NULL;
             }
         }
         return (PyObject *)bitset;
@@ -363,36 +345,36 @@ nodeset_bitset(NyNodeSetObject *v) {
 static int
 nodeset_dealloc_iter(PyObject *obj, void *v)
 {
-    Py_DECREF(obj);
+    Py_CLEAR(obj);
     return 0;
 }
 
 static int
 mutnodeset_gc_clear(NyNodeSetObject *v)
 {
+    /* NOT LOCKED: Object is dying */
+    assert(!(v->flags & _NS_STW));
+
     if (v->u.bitset) {
-        PyObject *x = v->u.bitset;
-        if (v->flags & NS_HOLDOBJECTS) {
+        if (v->flags & NS_HOLDOBJECTS)
             NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
-        }
-        v->u.bitset = 0;
-        Py_DECREF(x);
+        Py_CLEAR(v->u.bitset);
     }
-    if (v->_hiding_tag_) {
-        PyObject *x = v->_hiding_tag_;
-        v->_hiding_tag_ = 0;
-        Py_DECREF(x);
-    }
+    Py_CLEAR(v->_hiding_tag_);
     return 0;
 }
 
 static void
 mutnodeset_dealloc(NyNodeSetObject *v)
 {
+    if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
+        return;  /* resurrected */
+    PyTypeObject *tp = Py_TYPE(v);
     PyObject_GC_UnTrack(v);
     Py_TRASHCAN_BEGIN(v, mutnodeset_dealloc)
     mutnodeset_gc_clear(v);
-    Py_TYPE(v)->tp_free((PyObject *)v);
+    tp->tp_free((PyObject *)v);
+    Py_CLEAR(tp);
     Py_TRASHCAN_END
 }
 
@@ -401,7 +383,7 @@ nodeset_indisize(PyObject *v)
 {
     NyNodeSetObject *ns = (void *)v;
     NyBit r = generic_indisize(v);
-    if (NyMutNodeSet_Check(v))
+    if (PyObject_TypeCheck(v, ns->ms->MutNodeSet_Type))
         r += anybitset_indisize(ns->u.bitset);
     return r;
 }
@@ -410,12 +392,11 @@ nodeset_indisize(PyObject *v)
 int
 nodeset_traverse(NyHeapTraverse *ta)
 {
+    /* NOT LOCKED: Stop the world from Heapy */
     NyNodeSetObject *v = (void *)ta->obj;
-    int err = 0;
-    if (ta->_hiding_tag_ != v->_hiding_tag_) {
-        err = Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
-    }
-    return err;
+    if (ta->_hiding_tag_ != v->_hiding_tag_)
+        return Py_TYPE(v)->tp_traverse(ta->obj, ta->visit, ta->arg);
+    return 0;
 }
 
 typedef struct {
@@ -449,15 +430,17 @@ nodeset_relate(NyHeapRelate *r)
 static int
 mutnodeset_gc_traverse(NyNodeSetObject *v, visitproc visit, void *arg)
 {
+    /* NOT LOCKED: Stop the world from GC */
+    assert(!(v->flags & _NS_STW));
+
     int err = 0;
+    Py_VISIT(Py_TYPE(v));
     if (v->flags & NS_HOLDOBJECTS) {
         err = NyNodeSet_iterate(v, visit, arg);
         if (err)
             return err;
     }
-    if (v->_hiding_tag_) {
-        err = visit(v->_hiding_tag_, arg);
-    }
+    Py_VISIT(v->_hiding_tag_);
     return err;
 }
 
@@ -472,13 +455,13 @@ static int
 mutnodeset_iterate_visit(NyBit bitno, nodeset_iterate_visit_arg *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
-    if (arg->ns->flags & NS_HOLDOBJECTS)
+    if (arg->ns->flags & NS_HOLDOBJECTS || arg->ns->flags & _NS_STW)
         return arg->visit(obj, arg->arg);
     else {
         PyObject *addr = PyLong_FromSsize_t((Py_intptr_t)obj);
         if (addr) {
             int r = arg->visit(addr, arg->arg);
-            Py_DECREF(addr);
+            Py_CLEAR(addr);
             return r;
         } else
             return -1;
@@ -491,7 +474,7 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
                   void *arg)
 {
     nodeset_iterate_visit_arg hia;
-    if (!(ns->flags & NS_HOLDOBJECTS)) {
+    if (!(ns->flags & NS_HOLDOBJECTS || ns->flags & _NS_STW)) {
         PyErr_SetString(PyExc_ValueError,
             "NyNodeSet_iterate: can not iterate because not owning element nodes");
         return -1;
@@ -499,11 +482,12 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
     hia.ns = ns;
     hia.arg = arg;
     hia.visit = visit;
-    if (NyMutNodeSet_Check(ns)) {
+    if (PyObject_TypeCheck(ns, ns->ms->MutNodeSet_Type)) {
         return NyAnyBitSet_iterate(ns->u.bitset,
                                    (NySetVisitor)mutnodeset_iterate_visit,
                                    &hia);
     } else {
+        /* NOT LOCKED: Immutable */
         int i;
         for (i = 0; i < Py_SIZE(ns); i++) {
             if (visit(ns->u.nodes[i], arg) == -1)
@@ -513,60 +497,50 @@ NyNodeSet_iterate(NyNodeSetObject *ns, int (*visit)(PyObject *, void *),
     }
 }
 
-PyObject *
+static PyObject *
 mutnodeset_iter(NyNodeSetObject *v)
 {
-    PyObject *bitset_iter;
-    NyMutNodeSetIterObject *iter;
-    bitset_iter = Py_TYPE(v->u.bitset)->tp_iter(v->u.bitset);
-    if (!bitset_iter)
-        return 0;
-    iter = PyObject_New(NyMutNodeSetIterObject, &NyMutNodeSetIter_Type);
-    if (!iter) {
-        Py_DECREF(bitset_iter);
-        return 0;
-    }
-    iter->bitset_iter = bitset_iter;
-    iter->nodeset = v;
-    Py_INCREF(v);
-    return (PyObject *)iter;
+    NyNodeSetObject *imm = NyImmNodeSet_NewCopy(v);
+    PyObject *ret;
+
+    if (!imm)
+        return NULL;
+    ret = Py_TYPE(imm)->tp_iter((PyObject *)imm);
+    Py_CLEAR(imm);
+    return ret;
 }
 
 
 
-static PyObject *
+PyObject *
 nodeset_richcompare(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 {
-    if (!NyNodeSet_Check(v) || !NyNodeSet_Check(w)) {
-        if (op == Py_EQ) {
-            Py_INCREF(Py_False);
-            return Py_False;
-        } else if (op == Py_NE) {
-            Py_INCREF(Py_True);
-            return Py_True;
-        }
+    if (!PyObject_TypeCheck(w, v->ms->NodeSet_Type)) {
+        if (op == Py_EQ)
+            return Py_NewRef(Py_False);
+        else if (op == Py_NE)
+            return Py_NewRef(Py_True);
 
-        PyErr_SetString(PyExc_TypeError, "nodeset_richcompare: some nodeset expected");
-        return 0;
+        PyErr_SetString(PyExc_TypeError, "nodeset_richcompare: nodeset expected");
+        return NULL;
 /*      We might consider NotImplemented but ... we might want
         to implement it and then we would get a compatibility problem!
         See also Notes May 19 2005.
 
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
+        return Py_NewRef(Py_NotImplemented);
 */
     } else {
         PyObject *bsv = nodeset_bitset(v);
         PyObject *bsw = nodeset_bitset(w);
         PyObject *ret;
         if (!(bsv && bsw)) {
-            Py_XDECREF(bsv);
-            Py_XDECREF(bsw);
-            return 0;
+            Py_CLEAR(bsv);
+            Py_CLEAR(bsw);
+            return NULL;
         }
         ret = PyObject_RichCompare(bsv, bsw, op);
-        Py_DECREF(bsv);
-        Py_DECREF(bsw);
+        Py_CLEAR(bsv);
+        Py_CLEAR(bsw);
         return ret;
     }
 }
@@ -575,8 +549,9 @@ nodeset_richcompare(NyNodeSetObject *v, NyNodeSetObject *w, int op)
 int
 NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
 {
-    if (NyImmNodeSet_Check(v)) {
+    if (PyObject_TypeCheck(v, v->ms->ImmNodeSet_Type)) {
         NyBit lo, hi;
+        /* NOT LOCKED: Immutable */
         lo = 0;
         hi = Py_SIZE(v);
         while (hi > lo) {
@@ -592,6 +567,8 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
         return 0;
     } else {
         NyBit bitno = nodeset_obj_to_bitno(obj);
+        if (!bitno)
+            return -1;
         return NyMutBitSet_hasbit((NyMutBitSetObject *)v->u.bitset, bitno);
     }
 }
@@ -600,99 +577,122 @@ NyNodeSet_hasobj(NyNodeSetObject *v, PyObject *obj)
 int
 NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
 {
-    if (NyMutNodeSet_Check(v)) {
+    int r = -1;
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
         NyBit bitno = nodeset_obj_to_bitno(obj);
-        int r = NyMutBitSet_setbit((NyMutBitSetObject *)v->u.bitset, bitno);
-        if (r == -1)
+        if (!bitno)
             return -1;
+
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
+        r = NyMutBitSet_setbit((NyMutBitSetObject *)v->u.bitset, bitno);
         if (!r) {
             Py_SET_SIZE(v, Py_SIZE(v) + 1);
-            if (v->flags & NS_HOLDOBJECTS) {
+            if (v->flags & NS_HOLDOBJECTS)
                 Py_INCREF(obj);
-            }
         }
+        Ny_END_CRITICAL_SECTION2();
+    } else {
+        PyErr_Format(PyExc_ValueError,
+                     "mutable nodeset required");
+    }
+    return r;
+}
+
+static int
+NyNodeSet_clear(NyNodeSetObject *v)
+{
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type) && v->u.bitset) {
+        NyNodeSetObject *holder = NULL;
+        int r = -1;
+
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
+        if (v->flags & NS_HOLDOBJECTS) {
+            holder = NyImmNodeSet_NewCopy(v);
+            if (!holder)
+                goto out;
+            if (NyMutBitSet_clear((NyMutBitSetObject *)v->u.bitset) == -1)
+                goto out;
+            Py_SET_SIZE(v, 0);
+            NyNodeSet_iterate(holder, nodeset_dealloc_iter, v);
+        } else {
+            if (NyMutBitSet_clear((NyMutBitSetObject *)v->u.bitset) == -1)
+                goto out;
+            Py_SET_SIZE(v, 0);
+        }
+        r = 0;
+out:
+        Ny_END_CRITICAL_SECTION2();
+        Py_CLEAR(holder);
         return r;
     } else {
         PyErr_Format(PyExc_ValueError,
                      "mutable nodeset required");
         return -1;
     }
-}
-
-int
-NyNodeSet_clear(NyNodeSetObject *v)
-{
-    if (NyMutNodeSet_Check(v) && v->u.bitset) {
-        if (v->flags & NS_HOLDOBJECTS) {
-            NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
-        }
-        if (NyMutBitSet_clear((NyMutBitSetObject *)v->u.bitset) == -1)
-            return -1;
-        Py_SET_SIZE(v, 0);
-    } else {
-        PyErr_Format(PyExc_ValueError,
-                     "mutable nodeset required");
-        return -1;
-    }
-    return 0;
 }
 
 
 int
 NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
 {
-    if (NyMutNodeSet_Check(v)) {
+    int r = -1;
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
         NyBit bitno = nodeset_obj_to_bitno(obj);
-        int r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
-        if (r == -1)
+        if (!bitno)
             return -1;
-        if (r) {
+
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
+        r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
+        if (r > 0)
             Py_SET_SIZE(v, Py_SIZE(v) - 1);
-            if (v->flags & NS_HOLDOBJECTS) {
-                Py_DECREF(obj);
-            }
-        }
-        return r;
+        Ny_END_CRITICAL_SECTION2();
+        if (r > 0 && v->flags & NS_HOLDOBJECTS)
+            Py_CLEAR(obj);
     } else {
         PyErr_Format(PyExc_ValueError,
                      "immutable nodeset");
-        return -1;
     }
+    return r;
 }
 
-int
+static int
 NyNodeSet_invobj(NyNodeSetObject *v, PyObject *obj)
 {
-    if (NyMutNodeSet_Check(v)) {
+    int r = -1;
+
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         if (NyNodeSet_hasobj(v, obj))
-            return NyNodeSet_clrobj(v, obj);
+            r = NyNodeSet_clrobj(v, obj);
         else
-            return NyNodeSet_setobj(v, obj);
+            r = NyNodeSet_setobj(v, obj);
+        Ny_END_CRITICAL_SECTION2();
     } else {
         PyErr_Format(PyExc_ValueError,
                      "immutable nodeset");
-        return -1;
     }
+    return r;
 }
 
-static char add_doc[] =
+PyDoc_STRVAR(add_doc,
 "S.add(e)\n"
 "\n"
-"Add e to S; no effect if e was already in S.";
+"Add e to S; no effect if e was already in S."
+);
 
 static PyObject *
 nodeset_add(NyNodeSetObject *v, PyObject *obj)
 {
     if (NyNodeSet_setobj(v, obj) == -1)
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-static char append_doc[] =
+PyDoc_STRVAR(append_doc,
 "S.append(e)\n"
 "\n"
-"Add e to S, or raise ValueError if e was already in S.";
+"Add e to S, or raise ValueError if e was already in S."
+);
 
 static PyObject *
 nodeset_append(NyNodeSetObject *v, PyObject *obj)
@@ -704,63 +704,70 @@ nodeset_append(NyNodeSetObject *v, PyObject *obj)
         PyErr_SetString(PyExc_ValueError, "S.append(e): e is already in S");
         return NULL;
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-static char clear_doc[] =
+PyDoc_STRVAR(clear_doc,
 "S.clear()\n"
 "\n"
-"Remove all elements from S, and compact its storage.";
+"Remove all elements from S, and compact its storage."
+);
 
 static PyObject *
 nodeset_clear(NyNodeSetObject *v, PyObject *notused)
 {
     if (NyNodeSet_clear(v) == -1)
-        return 0;
-    Py_INCREF(Py_None);
-    return Py_None;
-
+        return NULL;
+    Py_RETURN_NONE;
 }
 
-static char discard_doc[] =
+PyDoc_STRVAR(discard_doc,
 "S.discard(e)\n"
 "\n"
-"Remove e from S; no effect if e was not in S.";
+"Remove e from S; no effect if e was not in S."
+);
 
 static PyObject *
 nodeset_discard(NyNodeSetObject *v, PyObject *obj)
 {
     if (NyNodeSet_clrobj(v, obj) == -1)
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-static char pop_doc[] =
+PyDoc_STRVAR(pop_doc,
 "S.pop() -> object\n"
 "\n"
-"Remove and return some object from S, or raise ValueError if S was empty.";
+"Remove and return some object from S, or raise ValueError if S was empty."
+);
 
 static PyObject *
 nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
 {
-    if (!(NyMutNodeSet_Check(v))) {
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type))) {
         PyErr_SetString(PyExc_TypeError, "pop: argument must be mutable");
-        return 0;
+        return NULL;
     } else {
-        NyBit bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
+        PyObject *r = NULL;
+        NyBit bitno;
+
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
+        bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
         if (bitno == -1 && PyErr_Occurred())
-            return 0;
+            goto out;
         Py_SET_SIZE(v, Py_SIZE(v) - 1);
-        return nodeset_bitno_to_obj(bitno);
+        r = nodeset_bitno_to_obj(bitno);
+out:
+        Ny_END_CRITICAL_SECTION2();
+        return r;
     }
 }
 
-static char remove_doc[] =
+PyDoc_STRVAR(remove_doc,
 "S.remove(e)\n"
 "\n"
-"Remove e from S, or raise ValueError if e was not in S.";
+"Remove e from S, or raise ValueError if e was not in S."
+);
 
 static PyObject *
 nodeset_remove(NyNodeSetObject *v, PyObject *obj)
@@ -772,16 +779,16 @@ nodeset_remove(NyNodeSetObject *v, PyObject *obj)
         PyErr_SetString(PyExc_ValueError, "S.remove(e): e not in S");
         return NULL;
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-static char tas_doc[] =
+PyDoc_STRVAR(tas_doc,
 "S.tas(e) -> bool\n"
 "\n"
 "Test and Set.\n"
 "If e is in S return True,\n"
-"else add e to S and return False.";
+"else add e to S and return False."
+);
 
 
 static PyObject *
@@ -791,12 +798,13 @@ nodeset_tas(NyNodeSetObject *v, PyObject *obj)
 }
 
 
-static char tac_doc[] =
+PyDoc_STRVAR(tac_doc,
 "S.tac(e) -> bool\n"
 "\n"
 "Test and Clear.\n"
 "If e is in S, remove e from S and return True,\n"
-"else return False.";
+"else return False."
+);
 
 
 static PyObject *
@@ -814,8 +822,7 @@ static int
 nodeset_op_set(NyBit bitno, NSOPARG *arg)
 {
     PyObject *obj = nodeset_bitno_to_obj(bitno);
-    arg->ns->u.nodes[arg->i] = obj;
-    Py_INCREF(obj);
+    arg->ns->u.nodes[arg->i] = Py_NewRef(obj);
     arg->i += 1;
     return 0;
 }
@@ -825,33 +832,37 @@ nodeset_op_set(NyBit bitno, NSOPARG *arg)
 static PyObject *
 nodeset_op(PyObject *vv, PyObject *ww, int op)
 {
-    if (NyImmNodeSet_Check(vv) && NyImmNodeSet_Check(ww)) {
+    struct SetscState *ms = NyType_AssertModuleState2(Py_TYPE(vv), Py_TYPE(ww), &setsc_def);
+    if (PyObject_TypeCheck(vv, ms->ImmNodeSet_Type) &&
+        PyObject_TypeCheck(ww, ms->ImmNodeSet_Type)
+    ) {
         return (PyObject *)immnodeset_op((NyNodeSetObject *)vv, (NyNodeSetObject *)ww, op);
     } else {
         NyNodeSetObject *v = (void *)vv;
-        NyNodeSetObject *w = 0;
-        NyNodeSetObject *ret=0;
-        PyObject *bs = 0, *bsv = 0, *bsw = 0;
+        NyNodeSetObject *w = NULL;
+        NyNodeSetObject *ret = NULL;
+        PyObject *bs = NULL, *bsv = NULL, *bsw = NULL, *v_hiding_tag;
         NyBit length;
         NSOPARG nsa;
-        if (!NyNodeSet_Check(v)) {
+        if (!PyObject_TypeCheck(v, ms->NodeSet_Type)) {
             PyErr_SetString(PyExc_TypeError, "left argument must be a NodeSet");
-            return 0;
+            return NULL;
         }
-        if (!NyNodeSet_Check(ww)) {
-            PyObject *p;
-            w = NyMutNodeSet_New();
+        if (!PyObject_TypeCheck(ww, ms->NodeSet_Type)) {
+            w = NyMutNodeSet_SubtypeNewIterable(ms->MutNodeSet_Type, ww, NULL);
             if (!w)
                 goto err;
-            p = nodeset_ior(w, ww);
-            if (!p)
-                goto err;
-            else
-                Py_DECREF(p);
         } else {
-            w = (void *)ww;
-            Py_INCREF(w);
-            if (w->_hiding_tag_ != v->_hiding_tag_) {
+            bool hiding_tag_diff;
+            w = (void *)Py_NewRef(ww);
+
+            /* Ideally we want to use atomics to test this, but we also have to
+               deal with refcounting on that route. Luckily PyMember_SetOne will
+               lock the objects for us */
+            Ny_BEGIN_CRITICAL_SECTION2(w, v);
+            hiding_tag_diff = w->_hiding_tag_ != v->_hiding_tag_;
+            Ny_END_CRITICAL_SECTION2();
+            if (hiding_tag_diff) {
                 PyErr_SetString(PyExc_ValueError, "nodeset_op: mismatching '_hiding_tag_' attributes");
                 goto err;
             }
@@ -877,7 +888,7 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
             break;
         default:
             PyErr_SetString(PyExc_ValueError, "Invalid internal operation");
-            bs = 0;
+            bs = NULL;
         }
         if (!bs)
             goto err;
@@ -885,25 +896,31 @@ nodeset_op(PyObject *vv, PyObject *ww, int op)
         length = NyAnyBitSet_length(bs);
         if (length == -1)
             goto err;
-        ret = NyImmNodeSet_New(length, v->_hiding_tag_);
+
+        Ny_BEGIN_CRITICAL_SECTION(v);
+        v_hiding_tag = Py_XNewRef(v->_hiding_tag_);
+        Ny_END_CRITICAL_SECTION();
+
+        ret = NyImmNodeSet_New(ms, length, v_hiding_tag);
+        Py_CLEAR(v_hiding_tag);
         if (!ret)
             goto err;
         nsa.ns = ret;
         nsa.i = 0;
         if (NyAnyBitSet_iterate(bs, (NySetVisitor)nodeset_op_set, &nsa) == -1)
             goto err;
-        Py_DECREF(w);
-        Py_DECREF(bs);
-        Py_DECREF(bsv);
-        Py_DECREF(bsw);
+        Py_CLEAR(w);
+        Py_CLEAR(bs);
+        Py_CLEAR(bsv);
+        Py_CLEAR(bsw);
         return (void *)ret;
 err:
-        Py_XDECREF(w);
-        Py_XDECREF(bs);
-        Py_XDECREF(bsv);
-        Py_XDECREF(bsw);
-        Py_XDECREF(ret);
-        return 0;
+        Py_CLEAR(w);
+        Py_CLEAR(bs);
+        Py_CLEAR(bsv);
+        Py_CLEAR(bsw);
+        Py_CLEAR(ret);
+        return NULL;
     }
 }
 
@@ -949,18 +966,40 @@ nodeset_iop_iterable_visit(PyObject *obj, IOPTravArg *ta)
 static PyObject *
 nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
                          int (*visit)(NyNodeSetObject *, PyObject *)) {
+    PyObject *ww;
     IOPTravArg ta;
     ta.ns = v;
     ta.visit = visit;
-    if (!(NyMutNodeSet_Check(v))) {
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type))) {
         PyErr_SetString(PyExc_TypeError, "iop: left argument must be mutable");
-        return 0;
+        return NULL;
     }
-    if (iterable_iterate((PyObject *)w,
+    ww = w;
+    if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
+            !PyUnstable_Object_IsUniquelyReferenced(w)) {
+        /* Under freethreading, we will iterate w, needing w and w bitset's
+           critical section, but we also need to mutate v with v and v bitset's
+           critical section. The latter can suspend the former if it is shared,
+           breaking the iterator.
+
+           Additionally, when non-freethreading, clearing objects can cause
+           arbitrary Python code to run, which can mutate w. */
+        ww = (PyObject *)NyImmNodeSet_NewCopy((NyNodeSetObject *)w);
+        if (!ww)
+            return NULL;
+    }
+    if (iterable_iterate(v->ms, (PyObject *)ww,
                          (NyIterableVisitor) nodeset_iop_iterable_visit, &ta) == -1)
-        return 0;
-    Py_INCREF(v);
-    return (PyObject *)v;
+        goto err;
+
+    if (ww != w)
+        Py_CLEAR(ww);
+    return Py_NewRef(v);
+
+err:
+    if (ww != w)
+        Py_CLEAR(ww);
+    return NULL;
 }
 
 
@@ -984,42 +1023,43 @@ nodeset_iand_visit(PyObject *obj, IANDTravArg *ta)
 
 static PyObject *
 nodeset_iand(NyNodeSetObject *v, PyObject *w)
-
 {
+    NyNodeSetObject *snap = NULL;
+    PyObject *r = NULL;
     IANDTravArg ta;
-    if (!(NyMutNodeSet_Check(v))) {
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type))) {
         return nodeset_and((PyObject *)v, w);
     }
     ta.v = v;
     ta.w = (NyNodeSetObject *)w;
-    if (!NyNodeSet_Check(w)) {
-        PyObject *p;
-        ta.w = NyMutNodeSet_New();
-        if (!ta.w)
-            return 0;
-        p = nodeset_ior(ta.w, w);
-        if (!p)
-            goto err;
-        Py_DECREF(p);
-    }
-    if (NyNodeSet_iterate(v, (NyIterableVisitor) nodeset_iand_visit, &ta) == -1)
-        goto err;
-    Py_INCREF(v);
-ret:
-    if (ta.w != (void *)w) {
-        Py_XDECREF(ta.w);
-    }
-    return (PyObject *)v;
-err:
-    v = 0;
-    goto ret;
 
+    if (!PyObject_TypeCheck(w, v->ms->NodeSet_Type)) {
+        ta.w = NyMutNodeSet_SubtypeNewIterable(v->ms->MutNodeSet_Type, w, NULL);
+        if (!ta.w)
+            return NULL;
+    }
+
+    /* We are mutating v while iterating it */
+    snap = NyImmNodeSet_NewCopy((NyNodeSetObject *)v);
+    if (!snap)
+        goto err;
+
+    if (NyNodeSet_iterate(snap, (NyIterableVisitor)nodeset_iand_visit, &ta) == -1)
+        goto err;
+
+    r = Py_NewRef(v);
+
+err:
+    if (ta.w != (void *)w)
+        Py_CLEAR(ta.w);
+    Py_CLEAR(snap);
+    return r;
 }
 
 static PyObject *
 nodeset_isub(NyNodeSetObject *v, PyObject *w)
 {
-    if (!(NyMutNodeSet_Check(v)))
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)))
         return nodeset_sub((PyObject *)v, w);
     else
         return nodeset_iop_chk_iterable(v, w, NyNodeSet_clrobj);
@@ -1028,16 +1068,16 @@ nodeset_isub(NyNodeSetObject *v, PyObject *w)
 static PyObject *
 nodeset_ixor(NyNodeSetObject *v, PyObject *w)
 {
-    if (!(NyMutNodeSet_Check(v)))
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)))
         return nodeset_xor((PyObject *)v, w);
     else
         return nodeset_iop_chk_iterable(v, w, NyNodeSet_invobj);
 }
 
-static PyObject *
+PyObject *
 nodeset_ior(NyNodeSetObject *v, PyObject *w)
 {
-    if (!(NyMutNodeSet_Check(v)))
+    if (!(PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)))
         return nodeset_or((PyObject *)v, w);
     else
         return nodeset_iop_chk_iterable(v, w, NyNodeSet_setobj);
@@ -1049,36 +1089,25 @@ static Py_ssize_t
 nodeset_length(PyObject *_v)
 {
     NyNodeSetObject *v=(void*)_v;
-    return Py_SIZE(v);
+    Py_ssize_t r;
+
+    Ny_BEGIN_CRITICAL_SECTION(v);
+    r = Py_SIZE(v);
+    Ny_END_CRITICAL_SECTION();
+    return r;
 }
 
 static int
 nodeset_nonzero(NyNodeSetObject *v)
 {
-    return Py_SIZE(v) != 0;
+    int r;
+
+    Ny_BEGIN_CRITICAL_SECTION(v);
+    r = Py_SIZE(v) != 0;
+    Ny_END_CRITICAL_SECTION();
+    return r;
 }
 
-static PyNumberMethods nodeset_as_number = {
-    .nb_subtract         = (binaryfunc) nodeset_sub,
-    .nb_bool             = (inquiry) nodeset_nonzero,
-    .nb_and              = (binaryfunc) nodeset_and,
-    .nb_xor              = (binaryfunc) nodeset_xor,
-    .nb_or               = (binaryfunc) nodeset_or,
-    .nb_inplace_subtract = (binaryfunc)nodeset_isub,
-    .nb_inplace_and      = (binaryfunc)nodeset_iand,
-    .nb_inplace_xor      = (binaryfunc)nodeset_ixor,
-    .nb_inplace_or       = (binaryfunc)nodeset_ior,
-};
-
-static PyMappingMethods nodeset_as_mapping = {
-    .mp_length        = nodeset_length,
-};
-
-/* Implement "obj in nodeset" */
-
-static PySequenceMethods nodeset_as_sequence = {
-    .sq_contains = (objobjproc)NyNodeSet_hasobj,
-};
 
 static PyMethodDef mutnodeset_methods[] = {
     {"add",            (PyCFunction)nodeset_add, METH_O, add_doc},
@@ -1095,7 +1124,7 @@ static PyMethodDef mutnodeset_methods[] = {
 #define OFF(x) offsetof(NyNodeSetObject, x)
 
 static PyMemberDef mutnodeset_members[] = {
-    {"_hiding_tag_",       T_OBJECT_EX, OFF(_hiding_tag_)},
+    {"_hiding_tag_",       Py_T_OBJECT_EX, OFF(_hiding_tag_)},
     {0} /* Sentinel */
 };
 
@@ -1104,7 +1133,7 @@ static PyMemberDef mutnodeset_members[] = {
 PyObject *
 nodeset_get_is_immutable(NyNodeSetObject *self, void *unused)
 {
-    return bool_from_int((NyImmNodeSet_Check(self)));
+    return bool_from_int(PyObject_TypeCheck(self, self->ms->ImmNodeSet_Type));
 }
 
 static  PyGetSetDef nodeset_getset[] = {
@@ -1125,85 +1154,112 @@ static  PyGetSetDef mutnodeset_getset[] = {
 
 };
 
-PyTypeObject NyNodeSet_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name        = "guppy.sets.setsc.NodeSet",
-    .tp_basicsize   = sizeof(NyNodeSetObject),
-    .tp_as_number   = &nodeset_as_number,
-    .tp_as_sequence = &nodeset_as_sequence,
-    .tp_as_mapping  = &nodeset_as_mapping,
-    .tp_getattro    = PyObject_GenericGetAttr,
-    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc         = nodeset_doc,
-    .tp_traverse    = (traverseproc)mutnodeset_gc_traverse,
-    .tp_clear       = (inquiry)mutnodeset_gc_clear,
-    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
-    .tp_getset      = nodeset_getset,
-    .tp_alloc       = PyType_GenericAlloc,
-    .tp_free        = PyObject_GC_Del,
+
+static PyType_Slot nodeset_slots[] = {
+    {Py_nb_subtract,         nodeset_sub},
+    {Py_nb_bool,             nodeset_nonzero},
+    {Py_nb_and,              nodeset_and},
+    {Py_nb_xor,              nodeset_xor},
+    {Py_nb_or,               nodeset_or},
+    {Py_nb_inplace_subtract, nodeset_isub},
+    {Py_nb_inplace_and,      nodeset_iand},
+    {Py_nb_inplace_xor,      nodeset_ixor},
+    {Py_nb_inplace_or,       nodeset_ior},
+    {Py_sq_contains,         NyNodeSet_hasobj},
+    {Py_mp_length,           nodeset_length},
+    {Py_tp_getattro,         PyObject_GenericGetAttr},
+    {Py_tp_doc,              (void *)nodeset_doc},
+    {Py_tp_richcompare,      nodeset_richcompare},
+    {Py_tp_getset,           nodeset_getset},
+    {Py_tp_alloc,            PyType_GenericAlloc},
+    {Py_tp_free,             PyObject_GC_Del},
+    {0, NULL}
+};
+
+PyType_Spec NyNodeSet_Spec = {
+    .name      = "guppy.sets.setsc.NodeSet",
+    .basicsize = offsetof(NyNodeSetObject, u.nodes),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_BASETYPE,
+    .slots     = nodeset_slots,
 };
 
 
-#include "immnodeset.c"
-
-PyTypeObject NyMutNodeSet_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name        = "guppy.sets.setsc.MutNodeSet",
-    .tp_basicsize   = sizeof(NyNodeSetObject),
-    .tp_dealloc     = (destructor)mutnodeset_dealloc,
-    .tp_getattro    = PyObject_GenericGetAttr,
-    .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
-    .tp_doc         = mutnodeset_doc,
-    .tp_traverse    = (traverseproc)mutnodeset_gc_traverse,
-    .tp_clear       = (inquiry)mutnodeset_gc_clear,
-    .tp_richcompare = (richcmpfunc)nodeset_richcompare,
-    .tp_iter        = (getiterfunc)mutnodeset_iter,
-    .tp_methods     = mutnodeset_methods,
-    .tp_members     = mutnodeset_members,
-    .tp_getset      = mutnodeset_getset,
-    .tp_base        = &NyNodeSet_Type,
-    .tp_alloc       = PyType_GenericAlloc,
-    .tp_new         = mutnodeset_new,
-    .tp_free        = PyObject_GC_Del,
+static PyType_Slot mutnodeset_slots[] = {
+    {Py_tp_dealloc,     mutnodeset_dealloc},
+    {Py_tp_getattro,    PyObject_GenericGetAttr},
+    {Py_tp_doc,         (void *)mutnodeset_doc},
+    {Py_tp_traverse,    mutnodeset_gc_traverse},
+    {Py_tp_clear,       mutnodeset_gc_clear},
+    {Py_tp_richcompare, nodeset_richcompare},
+    {Py_tp_iter,        mutnodeset_iter},
+    {Py_tp_methods,     mutnodeset_methods},
+    {Py_tp_members,     mutnodeset_members},
+    {Py_tp_getset,      mutnodeset_getset},
+    {Py_tp_alloc,       PyType_GenericAlloc},
+    {Py_tp_new,         mutnodeset_new},
+    {Py_tp_free,        PyObject_GC_Del},
+    {0, NULL}
 };
 
-
-static NyNodeSet_Exports nynodeset_exports = {
-    0,
-    sizeof(NyNodeSet_Exports),
-    "NyNodeSet_Exports v1.0",
-    &NyNodeSet_Type,
-    NyMutNodeSet_New,
-    NyMutNodeSet_NewHiding,
-    NyMutNodeSet_NewFlags,
-    NyImmNodeSet_NewCopy,
-    NyImmNodeSet_NewSingleton,
-    NyNodeSet_be_immutable,
-    NyNodeSet_setobj,
-    NyNodeSet_clrobj,
-    NyNodeSet_hasobj,
-    NyNodeSet_iterate,
+PyType_Spec NyMutNodeSet_Spec = {
+    .name      = "guppy.sets.setsc.MutNodeSet",
+    .basicsize = sizeof(NyNodeSetObject),
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
+                 Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .slots     = mutnodeset_slots,
 };
+
 
 int fsb_dx_nynodeset_init(PyObject *m)
 {
-    NYFILL(NyMutNodeSetIter_Type);
-    NYFILL(NyNodeSet_Type);
-    NYFILL(NyImmNodeSetIter_Type);
-    NYFILL(NyImmNodeSet_Type);
-    NYFILL(NyMutNodeSet_Type);
+    struct SetscState *ms = NyModule_AssertState(m);
+
+    if (NyModule_AddTypeWithSpec(m, &NyNodeSet_Spec, NULL, true,
+                                 &ms->NodeSet_Type) == -1)
+        return -1;
+    if (NyModule_AddTypeWithSpec(m, &NyMutNodeSet_Spec, (PyObject *)ms->NodeSet_Type, true,
+                                 &ms->MutNodeSet_Type) == -1)
+        return -1;
+    if (NyModule_AddTypeWithSpec(m, &NyImmNodeSet_Spec, (PyObject *)ms->NodeSet_Type, true,
+                                 &ms->ImmNodeSet_Type) == -1)
+        return -1;
+    if (NyModule_AddTypeWithSpec(m, &NyImmNodeSetIter_Spec, NULL, false,
+                                 &ms->ImmNodeSetIter_Type) == -1)
+        return -1;
+
+    /* Extension of BitSet is C-only. On Py 3.10, extending externally breaks
+       NyType_AssertModuleState, not to mention the base type lacks a
+       constructor to set the needed fields */
+    ms->NodeSet_Type->tp_flags &= ~Py_TPFLAGS_BASETYPE;
+
+    ms->nodeset_exports = (NyNodeSet_Exports){
+        0,
+        sizeof(NyNodeSet_Exports),
+        "NyNodeSet_Exports v1.1",
+        ms,
+        ms->NodeSet_Type,
+        ms->MutNodeSet_Type,
+        ms->ImmNodeSet_Type,
+        NyMutNodeSet_New,
+        NyMutNodeSet_NewHiding,
+        NyMutNodeSet_NewFlags,
+        NyImmNodeSet_NewCopy,
+        NyImmNodeSet_NewSingleton,
+        NyNodeSet_be_immutable,
+        NyNodeSet_setobj,
+        NyNodeSet_clrobj,
+        NyNodeSet_hasobj,
+        NyNodeSet_iterate,
+        NySTWMutNodeSet_InitOnStack,
+        NySTWMutNodeSet_Destroy,
+    };
 
     if (PyModule_Add(m, "NyNodeSet_Exports",
-            PyCapsule_New(&nynodeset_exports, "guppy.sets.setsc.NyNodeSet_Exports", 0)
+            PyCapsule_New(&ms->nodeset_exports, "guppy.sets.setsc.NyNodeSet_Exports", NULL)
     ) == -1)
         return -1;
 
-    if (PyModule_AddType(m, &NyNodeSet_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyMutNodeSet_Type) == -1)
-        return -1;
-    if (PyModule_AddType(m, &NyImmNodeSet_Type) == -1)
-        return -1;
-
     return 0;
+
 }

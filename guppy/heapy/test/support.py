@@ -4,9 +4,8 @@ Addapted from Python standard module test_support.
 
 import contextlib
 import unittest
-import pdb
 import sys
-import tracemalloc
+import sysconfig
 
 
 class Error(Exception):
@@ -15,17 +14,6 @@ class Error(Exception):
 
 class TestFailed(Error):
     """Test failed."""
-
-
-class TestSkipped(Error):
-    """Test skipped.
-
-    This can be raised to indicate that a test was deliberatly
-    skipped, but not because a feature wasn't available.  For
-    example, if some resource can't be used, such as the network
-    appears to be unavailable, this should be raised instead of
-    TestFailed.
-    """
 
 
 verbose = 1              # Flag set to 0 by regrtest.py
@@ -95,31 +83,25 @@ class TestCase(unittest.TestCase):
         self.idset = self.Use.idset
         self.version_info = sys.version_info
 
-    def aseq(self, a, b, cont=0):
-        if a != b:
-            print("aseq: Expected: b = ", b)
-            print("Got actually  : a = ", a)
-            if cont <= 0:
-                if cont < 0:
-                    pdb.set_trace()
-                else:
-                    self.assertTrue(0)
-
-    def asis(self, a, b, cont=0):
-        if a is not b:
-            print("asis: Expected: b = ", b)
-            print("Got actually  : a = ", a)
-            if cont <= 0:
-                if cont < 0:
-                    pdb.set_trace()
-                else:
-                    self.assertTrue(0)
-
     def tearDown(self):
         pass
 
+    def assertEqualRefcountUnlessDeferred(self, a, b, obj):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") != 1:
+            return self.assertEqual(a, b)
+
+        try:
+            return self.assertEqual(a, b)
+        except AssertionError:
+            if not self.heapy.heapyc.has_deferred_refcount(obj):
+                raise
+
     @contextlib.contextmanager
     def tracemalloc_state(self, enabled=True):
+        try:
+            import tracemalloc
+        except ImportError:
+            self.skipTest('tracemalloc not available')
         orig_enabled = tracemalloc.is_tracing()
 
         def set_enabled(new_enabled):

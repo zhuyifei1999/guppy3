@@ -1,6 +1,7 @@
 import os.path
 import re
 import sys
+import sysconfig
 from setuptools import setup, Extension
 from distutils.command.install import INSTALL_SCHEMES
 
@@ -8,16 +9,36 @@ for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
 
-setsc = Extension("guppy.sets.setsc", [
-                      "src/sets/sets.c",
-                      "src/sets/bitset.c",
-                      "src/sets/nodeset.c"
-                  ])
+setsc = Extension('guppy.sets.setsc', [
+    'src/sets/sets.c',
+    'src/sets/bitset.c',
+    'src/sets/nodeset.c',
+    'src/sets/immnodeset.c'
+])
 
-heapyc = Extension("guppy.heapy.heapyc", [
-                       'src/heapy/heapyc.c',
-                       'src/heapy/stdtypes.c'
-                   ])
+heapyc = Extension('guppy.heapy.heapyc', [
+    'src/heapy/heapyc.c',
+    'src/heapy/classifier.c',
+    'src/heapy/horizon.c',
+    'src/heapy/hv.c',
+    'src/heapy/hv_cli.c',
+    'src/heapy/hv_cli_and.c',
+    'src/heapy/hv_cli_dictof.c',
+    'src/heapy/hv_cli_findex.c',
+    'src/heapy/hv_cli_id.c',
+    'src/heapy/hv_cli_idset.c',
+    'src/heapy/hv_cli_indisize.c',
+    'src/heapy/hv_cli_prod.c',
+    'src/heapy/hv_cli_rcs.c',
+    'src/heapy/hv_cli_rel.c',
+    'src/heapy/hv_cli_user.c',
+    'src/heapy/impsets.c',
+    'src/heapy/nodegraph.c',
+    'src/heapy/rootstate.c',
+    'src/heapy/stdtypes.c',
+    'src/heapy/worklist.c',
+    'src/heapy/xmemstats.c',
+])
 
 
 def doit():
@@ -31,6 +52,10 @@ http://guppy-pe.sourceforge.net/''', file=sys.stderr)
         print('''\
 setup.py: Warning: This guppy package only supports CPython.
 Compilation failure expected, but continuting anyways...''', file=sys.stderr)
+    if sys.version_info < (3, 14) and sysconfig.get_config_var('Py_GIL_DISABLED'):
+        print('''\
+setup.py: Warning: This guppy package only supports freethreading in Python 3.14+.
+Continuting anyways...''', file=sys.stderr)
 
     with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
         long_description = f.read()
@@ -58,10 +83,11 @@ Compilation failure expected, but continuting anyways...''', file=sys.stderr)
               "guppy.sets",
           ],
           ext_modules=[setsc, heapyc],
-          python_requires='>=3.10',
+          python_requires='>=3.11',
           classifiers=[
               "Programming Language :: Python :: 3",
               "Programming Language :: Python :: Implementation :: CPython",
+              "Programming Language :: Python :: Free Threading :: 2 - Beta",
               "Programming Language :: C",
               "Operating System :: OS Independent",
               "Development Status :: 4 - Beta",

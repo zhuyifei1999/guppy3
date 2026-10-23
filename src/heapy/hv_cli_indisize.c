@@ -1,5 +1,15 @@
 /* Implementation of the 'indisize' classifier */
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include "../include/guppy.h"
+#include "../include/pythoncapi_compat.h"
+
+#include "heapy.h"
+#include "classifier.h"
+#include "hv.h"
+
 typedef struct {
     NYTUPLELIKE_HEAD
     NyHeapViewObject *hv;
@@ -10,38 +20,34 @@ NYTUPLELIKE_ASSERT(IndisizeObject, hv);
 
 
 static PyObject *
-hv_cli_indisize_memoized_kind(IndisizeObject *self, PyObject *size)
+hv_cli_indisize_memoized_kind(struct HeapycState *ms, IndisizeObject *self, PyObject *size)
 {
     PyObject *memoedsize;
-    int r;
 
-    r = PyDict_GetItemRef(self->memo, size, &memoedsize);
-    if (r == -1)
-        return NULL;
-    if (memoedsize)
-        return memoedsize;
-
-    if (PyDict_SetItem(self->memo, size, size) == -1)
+    NY_ASSERT_IMMUTABLE_BUILTIN(ms, size);
+    if (PyDict_SetDefaultRef(self->memo, size, size, &memoedsize) == -1)
         return NULL;
     /* Caller assumes it owns both size and the return value */
-    Py_INCREF(size);
-    return size;
+    return memoedsize;
 }
 
 static PyObject *
-hv_cli_indisize_classify(IndisizeObject *self, PyObject *obj)
+hv_cli_indisize_classify(struct HeapycState *ms, IndisizeObject *self, PyObject *obj)
 {
-    PyObject *size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
-    PyObject *memoedsize;
+    PyObject *size, *memoedsize;
+
+    Ny_BEGIN_CRITICAL_SECTION(self->hv);
+    size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
+    Ny_END_CRITICAL_SECTION();
     if (!size)
-        return size;
-    memoedsize = hv_cli_indisize_memoized_kind(self, size);
-    Py_DECREF(size);
+        return NULL;
+    memoedsize = hv_cli_indisize_memoized_kind(ms, self, size);
+    Py_CLEAR(size);
     return memoedsize;
 }
 
 static int
-hv_cli_indisize_le(PyObject * self, PyObject *a, PyObject *b)
+hv_cli_indisize_le(PyObject *self, PyObject *a, PyObject *b)
 {
     return PyObject_RichCompareBool(a, b, Py_LE);
 }
@@ -52,12 +58,12 @@ static NyObjectClassifierDef hv_cli_indisize_def = {
     sizeof(NyObjectClassifierDef),
     "cli_type",
     "classifier returning object size",
-    (binaryfunc)hv_cli_indisize_classify,
-    (binaryfunc)hv_cli_indisize_memoized_kind,
+    (modstatebinaryfunc)hv_cli_indisize_classify,
+    (modstatebinaryfunc)hv_cli_indisize_memoized_kind,
     hv_cli_indisize_le,
 };
 
-static char hv_cli_indisize_doc[] =
+const char hv_cli_indisize_doc[] = PyDoc_STR(
 "HV.cli_indisize(memo) -> ObjectClassifier\n"
 "\n"
 "Return a classifier that classifies by \"individual size\".\n"
@@ -65,9 +71,10 @@ static char hv_cli_indisize_doc[] =
 "The classification of each object is an int, containing the\n"
 "object's individual memory size. The argument is:\n"
 "\n"
-"    memo        A dict used to memoize the classification objects.";
+"    memo        A dict used to memoize the classification objects."
+);
 
-static PyObject *
+PyObject *
 hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
 {
     PyObject *r, *memo;
@@ -77,12 +84,10 @@ hv_cli_indisize(NyHeapViewObject *self, PyObject *args)
         return NULL;
     s = NYTUPLELIKE_NEW(IndisizeObject);
     if (!s)
-        return 0;
-    s->hv = self;
-    Py_INCREF(s->hv);
-    s->memo = memo;
-    Py_INCREF(memo);
-    r = NyObjectClassifier_New((PyObject *)s, &hv_cli_indisize_def);
-    Py_DECREF(s);
+        return NULL;
+    s->hv = Ny_NEWREF(self);
+    s->memo = Py_NewRef(memo);
+    r = NyObjectClassifier_New(self->ms, (PyObject *)s, &hv_cli_indisize_def);
+    Py_CLEAR(s);
     return r;
 }

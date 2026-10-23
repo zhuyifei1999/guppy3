@@ -1,4 +1,5 @@
 from guppy.heapy.test import support
+import inspect
 
 
 class TestCase(support.TestCase):
@@ -22,19 +23,55 @@ class TestHeapView(TestCase):
         ns = self.mutnodeset([a])
         ng = self.nodegraph([(a, a)])
 
-        self.aseq(self.hv.relimg([ns]), self.nodeset([a]))
-        self.aseq(self.hv.relimg([ng]), self.nodeset([a]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([self.mutnodeset, a]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a]))
 
         ns._hiding_tag_ = hiding_tag
-        self.aseq(self.hv.relimg([ns]), self.nodeset([]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([]))
 
         ng._hiding_tag_ = hiding_tag
-        self.aseq(self.hv.relimg([ng]), self.nodeset([]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([]))
 
         self.hv._hiding_tag_ = []
 
-        self.aseq(self.hv.relimg([ns]), self.nodeset([a, None]))
-        self.aseq(self.hv.relimg([ng]), self.nodeset([a, None]))
+        self.assertEqual(self.hv.relimg([ns]), self.nodeset([self.mutnodeset, a, None]))
+        self.assertEqual(self.hv.relimg([ng]), self.nodeset([self.nodegraph, a, None]))
+
+    def test_hiding_tag_frame(self):
+        # Construct a frame with a bad unicode name for a local and
+        # heapy should not crash or recognize the local as hiding tag
+
+        # Control group
+        def inner():
+            f = inspect.currentframe()
+            a = []
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+            _hiding_tag_ = self.hv._hiding_tag_
+
+            self.assertEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertNotIn(a, self.hv.relimg([f]))
+
+        inner()
+
+        # Treatment group
+        def inner():
+            f = inspect.currentframe()
+            a = []
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+            _hiding_tag_ = self.hv._hiding_tag_
+
+            self.assertNotEqual(self.hv.relimg([f]), self.nodeset([]))
+            self.assertIn(a, self.hv.relimg([f]))
+
+        co_varnames = inner.__code__.co_varnames
+        co_varnames = tuple('\ud800' if name == '_hiding_tag_' else name
+                            for name in co_varnames)
+        inner.__code__ = inner.__code__.replace(co_varnames=co_varnames)
+        inner()
 
     def test_inheritance_from_heapview(self):
         # I am not using inheritance from HeapView,
@@ -65,7 +102,6 @@ class TestHeapView(TestCase):
         mutnodeset = self.sets.mutnodeset
 
         for base in (list, mutnodeset):
-
             class T(base):
                 __slots__ = 't',
 
@@ -94,9 +130,12 @@ class TestHeapView(TestCase):
 
             # Test traverse
 
-            self.aseq(hv.relimg([a]), immnodeset(data))
-            self.aseq(hv.relimg([t]), immnodeset(data+[T, t.t]))
-            self.aseq(hv.relimg([u]), immnodeset(data+[U, u.t, u.u]))
+            if base is list:  # list is not a heap type, but mutnodeset is
+                self.assertEqual(hv.relimg([a]), immnodeset(data))
+            else:
+                self.assertEqual(hv.relimg([a]), immnodeset(data+[base]))
+            self.assertEqual(hv.relimg([t]), immnodeset(data+[T, t.t]))
+            self.assertEqual(hv.relimg([u]), immnodeset(data+[U, u.t, u.u]))
 
             # Test relate
 
@@ -105,9 +144,9 @@ class TestHeapView(TestCase):
                 self.assertTrue(r != ((),)*len(r))
                 return r
 
-            self.aseq(rel(t, data[1]), rel(a, data[1]))
-            self.aseq(rel(u, data[1]), rel(a, data[1]))
-            self.aseq(rel(u, u.t), rel(t, t.t))
+            self.assertEqual(rel(t, data[1]), rel(a, data[1]))
+            self.assertEqual(rel(u, data[1]), rel(a, data[1]))
+            self.assertEqual(rel(u, u.t), rel(t, t.t))
             rel(u, u.u)
 
     def test_nodeset_circularity(self):
@@ -360,14 +399,16 @@ class TestLeak(support.TestCase):
         gc.collect()
 
         nrcli = [grc(x) for x in li]
-        self.aseq(rcli, nrcli)
+        for nrc, rc, ob in zip(nrcli, rcli, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
+        del ob
         root[:] = []
         ns.clear()
 
         nrcli0 = [grc(x) for x in li]
-
-        self.aseq(rcli0, nrcli0)
+        for nrc, rc, ob in zip(nrcli0, rcli0, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
     def test_weaky(self):
         # Test that the extra-type information in heapview
@@ -416,10 +457,10 @@ class TestLeak(support.TestCase):
 
         nrcprobe = grc(probe)
 
-        self.aseq(nrcprobe, rcprobe)
+        self.assertEqualRefcountUnlessDeferred(nrcprobe, rcprobe, probe)
 
     def test_nytuplelike(self):
-        # Test that nytuplelike behaves as all expected tntries are in the
+        # Test that nytuplelike behaves as all expected entries are in the
         # tuple, and entries are decrefed when the nytuplelike is freed
 
         import gc
@@ -429,7 +470,7 @@ class TestLeak(support.TestCase):
 
         hv = self.hv
         rg = self.nodegraph()
-        li = rg, {}, {}
+        li = rg, {}, {}, {}
 
         rchv = grc(hv)
         rcli = [grc(x) for x in li]
@@ -437,15 +478,16 @@ class TestLeak(support.TestCase):
         cli = hv.cli_inrel(*li)
 
         nytuplelike = cli.self
-        self.aseq(nytuplelike[:2] + nytuplelike[3:], (hv, *li))
+        self.assertEqual(nytuplelike[:2] + nytuplelike[3:], (hv, *li))
 
         del cli, nytuplelike
         gc.collect()
 
         nrchv = grc(hv)
         nrcli = [grc(x) for x in li]
-        self.aseq(rchv, nrchv)
-        self.aseq(rcli, nrcli)
+        self.assertEqualRefcountUnlessDeferred(rchv, nrchv, hv)
+        for nrc, rc, ob in zip(rcli, nrcli, li):
+            self.assertEqualRefcountUnlessDeferred(nrc, rc, ob)
 
 
 class TestNodeGraph(TestCase):
@@ -634,14 +676,14 @@ class TestClassifiers(TestCase):
         x = []
         y = [x]
         rg.add_edge(x, y)
-        cli = hv.cli_inrel(rg, {}, {})
+        cli = hv.cli_inrel(rg, {}, {}, {})
         c = cli.classify(x)
-        self.aseq(str_inrel(c), '(2, 0)')
+        self.assertEqual(str_inrel(c), '(2, 0)')
 
         for i in range(5):
             y.append(x)
         c = cli.classify(x)
-        self.aseq(str_inrel(c), '(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)')
+        self.assertEqual(str_inrel(c), '(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)')
 
         for i in range(5):
             r = {str(i): x}
@@ -653,7 +695,14 @@ class TestClassifiers(TestCase):
         cli = hv.cli_type()
 
         part = cli.partition([1, 2, 'a', 3, 'b', 'c', 4])
-        self.aseq(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
+        self.assertEqual(part, {int: [1, 2, 3, 4], str: ['a', 'b', 'c']})
+
+    def test_select_unicodeerror(self):
+        hv = self.hv
+        cli = hv.cli_type()
+
+        with self.assertRaises(UnicodeEncodeError):
+            cli.select([1, 2, 3], int, '\ud800')
 
     def test_nodetuple_richcompare(self):
         hv = self.hv

@@ -1660,6 +1660,12 @@ MutBitSet([])
             finally:
                 _testcapi.remove_mem_hooks()
 
+    def test37(self):
+        assert not mutbitset().is_immutable
+        assert immbitset().is_immutable
+        assert not mutnodeset().is_immutable
+        assert immnodeset().is_immutable
+
 
 class MemStat:
     def __init__(self):
@@ -1732,7 +1738,7 @@ def test_leak():
 
 
 def test_main():
-    test_nums(list(range(37)))
+    test_nums(list(range(38)))
 
 
 t = Test()
