@@ -1114,7 +1114,10 @@ typedef struct {
 static int
 hv_indisize_sum_rec(PyObject *obj, SalArg *ta)
 {
-    ta->sum += hv_std_size(ta->hv, obj);
+    size_t raw_size = hv_std_size(ta->hv, obj);
+    if (raw_size == (size_t)-1)
+        return -1;
+    ta->sum += raw_size;
     return 0;
 }
 

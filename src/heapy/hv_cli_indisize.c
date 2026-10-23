@@ -35,10 +35,14 @@ static PyObject *
 hv_cli_indisize_classify(struct HeapycState *ms, IndisizeObject *self, PyObject *obj)
 {
     PyObject *size, *memoedsize;
+    size_t raw_size;
 
     Ny_BEGIN_CRITICAL_SECTION(self->hv);
-    size = PyLong_FromSsize_t(hv_std_size(self->hv, obj));
+    raw_size = hv_std_size(self->hv, obj);
     Ny_END_CRITICAL_SECTION();
+    if (raw_size == (size_t)-1)
+        return NULL;
+    size = PyLong_FromSsize_t(raw_size);
     if (!size)
         return NULL;
     memoedsize = hv_cli_indisize_memoized_kind(ms, self, size);
