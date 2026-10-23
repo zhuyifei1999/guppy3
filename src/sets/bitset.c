@@ -3970,7 +3970,7 @@ anybitset_op(PyObject *v, PyObject *w, immbitset_op_t immbitset_op, cplbitset_op
     else if (wt == CPLSET)
         c = cplbitset_op((NyCplBitSetObject *)w, v, vt);
     else
-        return Py_NewRef(Py_NotImplemented);
+        c = Py_NewRef(Py_NotImplemented);
     Py_CLEAR(v);
     Py_CLEAR(w);
     return c;
@@ -4018,7 +4018,7 @@ anybitset_lshift(PyObject *v, PyObject *w)
     else if (vt == CPLSET)
         c = cplbitset_lshift((NyCplBitSetObject *)v, shiftby);
     else
-        return Py_NewRef(Py_NotImplemented);
+        c = Py_NewRef(Py_NotImplemented);
     Py_CLEAR(v);
     return c;
 }
