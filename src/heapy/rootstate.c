@@ -324,24 +324,24 @@ static struct PyMemberDef ts_members[] = {
 
 #define ISATTR_DIR(name) do {                           \
     attr = PyUnicode_FromFormat("i%d_%s", isno, #name); \
-    if (attr) {                                         \
-        if (PyList_Append(list, attr)) {                \
-            Py_CLEAR(attr);                             \
-            goto Err;                                   \
-        }                                               \
+    if (!attr)                                          \
+        goto Err;                                       \
+    if (PyList_Append(list, attr)) {                    \
         Py_CLEAR(attr);                                 \
+        goto Err;                                       \
     }                                                   \
+    Py_CLEAR(attr);                                     \
 } while (0)
 
 #define TSATTR_DIR(name) do {                                               \
     attr = PyUnicode_FromFormat("i%d_t%lu_%s", isno, THREAD_ID(ts), #name); \
-    if (attr) {                                                             \
-        if (PyList_Append(list, attr)) {                                    \
-            Py_CLEAR(attr);                                                 \
-            goto Err;                                                       \
-        }                                                                   \
+    if (!attr)                                                              \
+        goto Err;                                                           \
+    if (PyList_Append(list, attr)) {                                        \
         Py_CLEAR(attr);                                                     \
+        goto Err;                                                           \
     }                                                                       \
+    Py_CLEAR(attr);                                                         \
 } while (0)
 
 static int
