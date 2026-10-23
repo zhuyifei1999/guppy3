@@ -281,8 +281,7 @@ NySTWMutNodeSet_Destroy(NyNodeSetObject *v)
     NyNodeSet_iterate(v, nodeset_dealloc_iter, v);
 #endif
 
-    Py_SET_REFCNT(v->u.bitset, 0);
-    Py_TYPE(v->u.bitset)->tp_dealloc(v->u.bitset);
+    Py_CLEAR(v->u.bitset);
 }
 
 static PyObject *
