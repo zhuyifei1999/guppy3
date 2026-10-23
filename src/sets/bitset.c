@@ -817,7 +817,8 @@ NyMutBitSet_SubtypeNew(PyTypeObject *type, NyImmBitSetObject *set, NyUnionObject
     v->cpl = 0;
     v->splitting_size = 500/*1000*/;
 
-    PyObject_InitVar((PyVarObject *)&v->fst_root, ms->Union_Type, 0);
+    Py_SET_TYPE(&v->fst_root, NULL);
+    Py_SET_SIZE(&v->fst_root, 0);
 
     v->fst_root.cur_size = 0;
     if (!root) {
@@ -1213,7 +1214,7 @@ mutbitset_findpos_mut(NyMutBitSetObject *v, NyBit pos)
             /* Not found so we are not going to update. */
             f = NULL;
         else {
-            if (!PyUnstable_Object_IsUniquelyReferenced((PyObject *)root) ||
+            if ((root != &v->fst_root && !PyUnstable_Object_IsUniquelyReferenced((PyObject *)root)) ||
                     !PyUnstable_Object_IsUniquelyReferenced((PyObject *)sf->set)) {
                 /* It was found but some struct needs to be copied.
                    Just research in ins mode. */
@@ -1285,7 +1286,7 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi)
 
     NY_ASSERT_OBJ_IMM_OR_LOCKED(v->ms, v);
 
-    if (!PyUnstable_Object_IsUniquelyReferenced((PyObject *)root)) {
+    if (root != &v->fst_root && !PyUnstable_Object_IsUniquelyReferenced((PyObject *)root)) {
         NyUnionObject *nroot = PyObject_NewVar(NyUnionObject, v->ms->Union_Type, Py_SIZE(root));
         NyBit i;
         if (!nroot)
@@ -1301,16 +1302,7 @@ mutbitset_getrange_mut(NyMutBitSetObject *v, NySetField **slo, NySetField **shi)
         v->cur_field = NULL; /* see notes per 5/6-03,  when it was thought
                          that it should be 0 already but just in case */
 
-        /* !PyUnstable_Object_IsUniquelyReferenced can false positive, say,
-           when root was created in a different thread. In the case, when
-           root == &v->fst_root, such a false positive will be very dangerous,
-           since Py_DECREF can free the fake object.
-           I think it's probably best to eat the loss and never release this
-           initial reference.
-           Also I'm pretty sure if root == &v->fst_root, the root cannot
-           be shared... */
-        if (root != &v->fst_root)
-            Py_CLEAR(root);
+        Py_CLEAR(root);
         root = nroot;
     }
     *slo = union_getrange(root, shi);
