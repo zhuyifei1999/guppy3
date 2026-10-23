@@ -50,6 +50,7 @@ extern int NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, voi
 extern NyNodeSetObject *hv_mutnodeset_new(NyHeapViewObject *hv);
 extern int hv_cli_dictof_update(NyHeapViewObject *hv, NyNodeGraphObject *rg);
 extern PyObject *hv_heap(NyHeapViewObject *self, PyObject *args);
+extern int hv_is_dict_hidden(NyHeapViewObject *hv, PyObject *obj);
 
 #ifdef NDEBUG
 #define NY_ASSERT_IMMUTABLE_BUILTIN(ms, obj) ((void)0)

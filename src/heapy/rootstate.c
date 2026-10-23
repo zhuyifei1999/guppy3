@@ -700,37 +700,6 @@ rootstate_getattr_unlocked(PyObject *obj, PyObject *name)
         PyErr_SetString(PyExc_AttributeError, "no such interpreter state number");
         return NULL;
     }
-    if (sscanf(s, "t%lu_%n", &tno, &n) == 1) {
-        s += n;
-        int countis;
-        int numis;
-        for (is = PyInterpreterState_Head(), numis = 0;
-             is;
-             is = PyInterpreterState_Next(is), numis++);
-        for (is = PyInterpreterState_Head(), countis = 0;
-             is;
-             is = PyInterpreterState_Next(is), countis++) {
-            if (is != PyInterpreterState_Get())
-                continue;
-            int isno = numis - countis - 1;
-
-            for (ts = PyInterpreterState_ThreadHead(is);
-                 ts;
-                 ts = PyThreadState_Next(ts)) {
-                if (THREAD_ID(ts) == tno) {
-                    PyObject *fullname = PyUnicode_FromFormat("i%d_%U", isno, name);
-                    if (!fullname)
-                        return NULL;
-                    PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
-                        "Getting thread state without an interpreter number "
-                        "is deprecated. Use %R instead", fullname);
-                    PyObject *res = rootstate_getattr_unlocked(obj, fullname);
-                    Py_CLEAR(fullname);
-                    return res;
-                }
-            }
-        }
-    }
     PyErr_Format(PyExc_AttributeError, "root state has no attribute %R", name);
     return NULL;
 }

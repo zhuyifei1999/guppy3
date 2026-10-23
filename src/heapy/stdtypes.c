@@ -6,6 +6,7 @@
 
 #include "heapdef.h"
 #include "heapy.h"
+#include "hv.h"
 #include "stdtypes.h"
 #include "stdtypes_internal.h"
 #include "stoptheworld.h"
@@ -18,7 +19,9 @@
 /* PyInterpreterState */
 #  include <internal/pycore_interp.h>
 /* _PyRuntime */
-# include <internal/pycore_runtime.h>
+#  include <internal/pycore_runtime.h>
+/* _PySet_NextEntry */
+#  include <internal/pycore_setobject.h>
 # undef Py_BUILD_CORE
 #endif
 
@@ -59,9 +62,6 @@ dict_relate_kv(NyHeapRelate *r, PyObject *dict, int k, int v)
     Py_ssize_t i = 0;
     Py_ssize_t ix = 0;
 
-    /* Avoid critical section around PyDict_Next */
-    NY_ASSERT_WORLD_STOPPED();
-
     if (!dict)
         return 0;
     while (PyDict_Next(dict, &i, &pk, &pv)) {
@@ -87,17 +87,15 @@ static int
 dict_traverse(NyHeapTraverse *ta)
 {
     PyObject *v = (void *)ta->obj;
-    PyObject *hiding_tag;
     int r;
 
     /* Avoid critical section around PyDict_Next */
     NY_ASSERT_WORLD_STOPPED();
 
-    r = PyDict_GetItemRef(v, ((NyHeapViewObject *)ta->hv)->_hiding_tag__name, &hiding_tag);
+    r = hv_is_dict_hidden((NyHeapViewObject *)ta->hv, v);
     if (r == -1)
         return -1;
-    Py_XDECREF(hiding_tag);  /* Reference is also held by ta->_hiding_tag_ */
-    if (hiding_tag && hiding_tag == ta->_hiding_tag_)
+    if (r)
         return 0;
 
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
@@ -170,28 +168,18 @@ tuple_relate(NyHeapRelate *r)
 static int
 set_relate(NyHeapRelate *r)
 {
-    PyObject *it = PyObject_GetIter(r->src);
-    PyObject *obj;
-
-    if (it == NULL) {
-        return -1;
-    }
-
+    PyObject *key;
+    Py_ssize_t pos = 0;
+    Py_hash_t hash;
     Py_ssize_t i = 0;
-    while ((obj = PyIter_Next(it))) {
-        if (r->tgt == obj) {
-            r->visit(NYHR_INSET, PyLong_FromSsize_t(i++), r);
-            Py_CLEAR(obj);
-            goto out;
+
+    while (_PySet_NextEntry(r->src, &pos, &key, &hash)) {
+        if (r->tgt == key) {
+            r->visit(NYHR_INSET, PyLong_FromSsize_t(i), r);
+            return 0;
         }
-        Py_CLEAR(obj);
+        i++;
     }
-
-out:
-    Py_CLEAR(it);
-
-    if (PyErr_Occurred())
-        return -1;
     return 0;
 }
 

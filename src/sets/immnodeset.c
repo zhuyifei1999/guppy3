@@ -149,23 +149,31 @@ as_immutable_visit(PyObject *obj, NSISetArg *v)
 static NyNodeSetObject *
 NyImmNodeSet_SubtypeNewCopy(PyTypeObject *type, NyNodeSetObject *v)
 {
-    PyObject *v_hiding_tag;
     NSISetArg sa;
     NyNodeSetObject *r = NULL;
 
-    Ny_BEGIN_CRITICAL_SECTION(v);
-    v_hiding_tag = Py_XNewRef(v->_hiding_tag_);
-
     sa.i = 0;
-    sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v_hiding_tag);
-    Py_CLEAR(v_hiding_tag);
-    if (!sa.ns)
-        goto out;
-    NyNodeSet_iterate(v, (visitproc)as_immutable_visit, &sa);
-    r = sa.ns;
-
+    /* Only difference between the two cases is that for mutnodset, the inner
+       bitset is locked too */
+    if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
+        sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v->_hiding_tag_);
+        if (!sa.ns)
+            goto out2;
+        NyNodeSet_iterate(v, (visitproc)as_immutable_visit, &sa);
+        r = sa.ns;
+out2:
+        Ny_END_CRITICAL_SECTION2();
+    } else {
+        Ny_BEGIN_CRITICAL_SECTION(v);
+        sa.ns = NyImmNodeSet_SubtypeNew(type, Py_SIZE(v), v->_hiding_tag_);
+        if (!sa.ns)
+            goto out;
+        NyNodeSet_iterate(v, (visitproc)as_immutable_visit, &sa);
+        r = sa.ns;
 out:
-    Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION();
+    }
     return r;
 }
 

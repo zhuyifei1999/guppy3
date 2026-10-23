@@ -8,6 +8,7 @@
 #include "impsets.h"
 #include "heapy.h"
 #include "hv.h"
+#include "stoptheworld.h"
 #include "utils.h"
 
 PyDoc_STRVAR(horizon_doc,
@@ -194,13 +195,18 @@ horizon_on_dealloc(PyObject *v)
     NyHorizonObject *r;
 
 #ifdef Py_GIL_DISABLED
-    if (horizon_on_dealloc_reentrant) {
+    if (horizon_on_dealloc_reentrant || NY_IS_WORLD_STOPPED()) {
         /* Freethreading invokes copy-on-write behavior on the bitset because
            PyUnstable_Object_IsUniquelyReferenced returns false negatives
            across threads. This causes this function to recurse. However,
            the inner immbitsets and unions of a nodeset is private and
            non-traversed, so it can never belong to any horizon's nodeset,
-           so we can return immediately here. */
+           so we can return immediately here.
+
+           Likewise, if the world is stopped, anything that is de-allocated
+           should be known-temporary objects created during STW, since it is
+           unsafe to release the last reference of arbitrary objects during
+           STW, as a cascade of dealloc may reach into arbitrary Python code */
 # ifndef NDEBUG
         for (r = rm.horizons; r; r = r->next)
             assert(!NyNodeSet_hasobj(r->hs, v));
@@ -289,19 +295,20 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     NyHorizonObject *hz = NULL;
     static char *kwlist[] = {"X", NULL};
     bool should_install;
+    PyObject *mat;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:Horizon.__new__",
                                  kwlist,
                                  &X))
         return NULL;
+    mat = iterable_materialize(ms, X);
+    if (!mat)
+        return NULL;
     hz = (NyHorizonObject *)type->tp_alloc(type, 1);
     if (!hz)
-        return NULL;
+        goto err;
     hz->hs = NyMutNodeSet_NewFlags(ms->nodeset_exports->ms, 0); /* I.E. not NS_HOLDOBJECTS */
     if (!hz->hs)
-        goto err;
-    if (iterable_iterate(ms, (PyObject *)X, (visitproc)horizon_update_trav, hz) == -1 ||
-        horizon_update_trav((PyObject *)hz, hz) == -1)
         goto err;
 
     PyMutex_Lock(&rm_mutex);
@@ -318,12 +325,19 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             goto err_unlock;
     }
     PyMutex_Unlock(&rm_mutex);
+
+    if (iterable_iterate(ms, mat, (visitproc)horizon_update_trav, hz) == -1 ||
+        horizon_update_trav((PyObject *)hz, hz) == -1)
+        goto err;
+
+    Py_CLEAR(mat);
     return (PyObject *)hz;
 
 err_unlock:
     PyMutex_Unlock(&rm_mutex);
 err:
     Py_CLEAR(hz);
+    Py_CLEAR(mat);
     return NULL;
 
 }

@@ -583,14 +583,14 @@ NyNodeSet_setobj(NyNodeSetObject *v, PyObject *obj)
         if (!bitno)
             return -1;
 
-        Ny_BEGIN_CRITICAL_SECTION(v);
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         r = NyMutBitSet_setbit((NyMutBitSetObject *)v->u.bitset, bitno);
         if (!r) {
             Py_SET_SIZE(v, Py_SIZE(v) + 1);
             if (v->flags & NS_HOLDOBJECTS)
                 Py_INCREF(obj);
         }
-        Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION2();
     } else {
         PyErr_Format(PyExc_ValueError,
                      "mutable nodeset required");
@@ -605,7 +605,7 @@ NyNodeSet_clear(NyNodeSetObject *v)
         NyNodeSetObject *holder = NULL;
         int r = -1;
 
-        Ny_BEGIN_CRITICAL_SECTION(v);
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         if (v->flags & NS_HOLDOBJECTS) {
             holder = NyImmNodeSet_NewCopy(v);
             if (!holder)
@@ -621,7 +621,7 @@ NyNodeSet_clear(NyNodeSetObject *v)
         }
         r = 0;
 out:
-        Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION2();
         Py_CLEAR(holder);
         return r;
     } else {
@@ -641,11 +641,11 @@ NyNodeSet_clrobj(NyNodeSetObject *v, PyObject *obj)
         if (!bitno)
             return -1;
 
-        Ny_BEGIN_CRITICAL_SECTION(v);
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         r = NyMutBitSet_clrbit((NyMutBitSetObject *)v->u.bitset, bitno);
         if (r > 0)
             Py_SET_SIZE(v, Py_SIZE(v) - 1);
-        Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION2();
         if (r > 0 && v->flags & NS_HOLDOBJECTS)
             Py_CLEAR(obj);
     } else {
@@ -661,12 +661,12 @@ NyNodeSet_invobj(NyNodeSetObject *v, PyObject *obj)
     int r = -1;
 
     if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
-        Ny_BEGIN_CRITICAL_SECTION(v);
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         if (NyNodeSet_hasobj(v, obj))
             r = NyNodeSet_clrobj(v, obj);
         else
             r = NyNodeSet_setobj(v, obj);
-        Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION2();
     } else {
         PyErr_Format(PyExc_ValueError,
                      "immutable nodeset");
@@ -751,14 +751,14 @@ nodeset_pop(NyNodeSetObject *v, PyObject *argnotused)
         PyObject *r = NULL;
         NyBit bitno;
 
-        Ny_BEGIN_CRITICAL_SECTION(v);
+        Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
         bitno = NyMutBitSet_pop((NyMutBitSetObject *)v->u.bitset, 0);
         if (bitno == -1 && PyErr_Occurred())
             goto out;
         Py_SET_SIZE(v, Py_SIZE(v) - 1);
         r = nodeset_bitno_to_obj(bitno);
 out:
-        Ny_END_CRITICAL_SECTION();
+        Ny_END_CRITICAL_SECTION2();
         return r;
     }
 }
