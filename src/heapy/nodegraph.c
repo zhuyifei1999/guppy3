@@ -37,14 +37,6 @@
 
 #define PTR_CMP(a,b)    (PTR_LT(a, b) ? -1 : (PTR_EQ(a, b) ? 0: 1))
 
-static PyObject *
-ng_iterable_materialize_ordered(PyObject *v)
-{
-    if (PyTuple_Check(v))
-        return Py_NewRef(v);
-    return PySequence_Tuple(v);
-}
-
 /* NodeGraphIter objects */
 
 typedef struct {
@@ -384,7 +376,7 @@ ng_add_edges_n1(NyNodeGraphObject *ng, PyObject *args)
     ta.ng = ng;
     if (!PyArg_ParseTuple(args, "OO:",  &it, &ta.tgt))
         return NULL;
-    mat = ng_iterable_materialize_ordered(it);
+    mat = iterable_materialize_ordered(ng->ms, it);
     if (!mat)
         return NULL;
     if (iterable_iterate(ng->ms, mat, (visitproc)ng_add_edges_n1_trav, &ta) == -1)
@@ -530,7 +522,7 @@ ng_domain_covers(NyNodeGraphObject *ng, PyObject *X)
 {
     DCTravArg ta;
     PyObject *result = NULL, *mat;
-    mat = ng_iterable_materialize_ordered(X);
+    mat = iterable_materialize_ordered(ng->ms, X);
     if (!mat)
         return NULL;
     ta.ng = ng;
@@ -579,7 +571,7 @@ ng_domain_restricted(NyNodeGraphObject *ng, PyObject *X)
 {
     DRTravArg ta;
     PyObject *mat;
-    mat = ng_iterable_materialize_ordered(X);
+    mat = iterable_materialize_ordered(ng->ms, X);
     if (!mat)
         return NULL;
     ta.ng = ng;
@@ -789,7 +781,7 @@ ng_relimg(NyNodeGraphObject *ng, PyObject *S)
 {
     RITravArg ta;
     PyObject *mat;
-    mat = ng_iterable_materialize_ordered(S);
+    mat = iterable_materialize_ordered(ng->ms, S);
     if (!mat)
         return NULL;
     ta.ng = ng;
@@ -875,7 +867,7 @@ NyNodeGraph_Update(NyNodeGraphObject *a, PyObject *u)
     PyObject *mat;
     int r;
 
-    mat = ng_iterable_materialize_ordered(u);
+    mat = iterable_materialize_ordered(a->ms, u);
     if (!mat)
         return -1;
     r = iterable_iterate(a->ms, mat, (visitproc)ng_update_visit, a);

@@ -8,6 +8,8 @@ iterable_iterate(struct HeapycState *ms, PyObject *v,
                  int (*visit)(PyObject *, void *), void *arg);
 extern PyObject *
 iterable_materialize(struct HeapycState *ms, PyObject *v);
+extern PyObject *
+iterable_materialize_ordered(struct HeapycState *ms, PyObject *v);
 
 extern PyObject *gc_get_objects(struct HeapycState *ms);
 

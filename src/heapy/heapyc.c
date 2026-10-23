@@ -161,6 +161,18 @@ err:
 }
 
 PyObject *
+iterable_materialize_ordered(struct HeapycState *ms, PyObject *v)
+{
+    NY_ASSERT_WORLD_RUNNING();
+
+    if (PyTuple_Check(v))
+        return Py_NewRef(v);
+    if (PyObject_TypeCheck(v, ms->nodeset_exports->nodeset_type))
+        return iterable_materialize(ms, v);
+    return PySequence_Tuple(v);
+}
+
+PyObject *
 gc_get_objects(struct HeapycState *ms)
 {
     NY_ASSERT_WORLD_RUNNING();

@@ -154,7 +154,7 @@ cli_partition(NyObjectClassifierObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O:partition",
                           &iterable))
         return NULL;
-    mat = iterable_materialize(ms, iterable);
+    mat = iterable_materialize_ordered(ms, iterable);
     if (!mat)
         return NULL;
     ta.self = self;
@@ -194,7 +194,7 @@ cli_epartition(NyObjectClassifierObject *self, PyObject *iterable)
     struct HeapycState *ms = NyType_AssertModuleState(Py_TYPE(self), &heapyc_def);
     PATravArg ta;
     PyObject *mat;
-    mat = iterable_materialize(ms, iterable);
+    mat = iterable_materialize_ordered(ms, iterable);
     if (!mat)
         return NULL;
     ta.self = self;
@@ -329,7 +329,7 @@ cli_select(NyObjectClassifierObject *self, PyObject *args)
     } else {
         Py_INCREF(ta.kind);
     }
-    mat = iterable_materialize(ms, X);
+    mat = iterable_materialize_ordered(ms, X);
     if (!mat)
         goto err_kind;
     ta.ret = PyList_New(0);
