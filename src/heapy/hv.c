@@ -852,8 +852,10 @@ NyHeapView_SubTypeNew(PyTypeObject *type, PyObject *root, PyTupleObject *heapdef
         goto err;
 
     hv->xt_table = PyMem_New(ExtraType *, hv->xt_size);
-    if (!hv->xt_table)
+    if (!hv->xt_table) {
+        PyErr_NoMemory();
         goto err;
+    }
     for (i = 0; i < hv->xt_size; i++)
         hv->xt_table[i] = NULL;
 
