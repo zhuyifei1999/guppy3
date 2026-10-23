@@ -16,17 +16,24 @@ Guppy 3 is a fork of Guppy-PE, created by Sverker Nilsson for Python 2.
 
 ## Requirements
 
-You should have Python 3.10, 3.11, 3.12, 3.13, or 3.14. This package is CPython
+You should have Python 3.11, 3.12, 3.13, 3.14, or 3.15. This package is CPython
 only; PyPy and other Python implementations are not supported. Python 2 support
 can be obtained from [guppy-pe](http://guppy-pe.sourceforge.net/) by
 Sverker Nilsson, from which this package is forked.
 
 To use the graphical browser, Tkinter is needed.
 
-Free-threaded CPython is not supported, due to the excessive complexity and
-overhead to lock and unlock every object in the interpreter, including objects
-that are CPython implementation details. (Maybe `_PyEval_EnableGILTransient`
-could be a solution to this problem, but it is currently not exposed.)
+### Freethreading
+
+Free-threaded CPython for 3.14 and 3.15 are supported to the extent that it
+is possible to profile a free-threaded Python build without the GIL being
+enabled. This does not mean that heapy objects can be safely invoked
+from multiple threads concurrently.
+
+Heapy extensively uses stop-the-world mechanism to obtain a consistent state
+of the interpreter while traversing the heap. SIGINT delivery during a
+stop-the-world will abort the traversal, and restarted if the SIGINT handler
+does not raise exceptions.
 
 ## Installation
 
