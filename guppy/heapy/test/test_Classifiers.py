@@ -917,6 +917,19 @@ class ClassificationCase(TestCase):
     def test_selection(self):
         # Test classifications operations via selection invariant
 
+        # FIXME: under coverage, threading.gettrace() is a
+        # <bound method Collector._installation_trace of <Collector at ...: CTracer>>
+        # Its __self__.data contains a dict of sets that mutates mid-test.
+        # Access it via coverage.Coverage instead of through threading.gettrace
+        try:
+            import coverage
+        except ImportError:
+            pass
+        else:
+            cov = coverage.Coverage.current()
+            if cov:
+                cov._collector._hiding_tag_ = self.View._hiding_tag_
+
         Use = self.Use
 
         class A:
@@ -944,6 +957,9 @@ class ClassificationCase(TestCase):
             self.assertEqual(ak & li, av)
             for bk, bv in list(ps.items()):
                 # Test set operations by selection definition
+                if (ak & bk) & li != av & bv:
+                    import pdb
+                    pdb.set_trace()
                 self.assertEqual((ak & bk) & li, av & bv)
                 self.assertEqual((ak | bk) & li, av | bv)
                 self.assertEqual((ak - bk) & li, av - bv)
