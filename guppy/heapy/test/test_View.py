@@ -64,6 +64,11 @@ class FirstCase(TestCase):
         self.assertEqual(p, iso(y).indisize)
 
     def test_horizon(self):
+        # With tracemalloc, we are racing reftracer installs, if there are
+        # uncollected horizon on the heap
+        import gc
+        gc.collect()
+
         with self.tracemalloc_state(False):
             iso = self.iso
             h = self.View.horizon()
@@ -83,6 +88,9 @@ class FirstCase(TestCase):
         except ImportError:
             print('threading not enabled - skipping test')
             return
+
+        import gc
+        gc.collect()
 
         with self.tracemalloc_state(False):
             iso = self.iso
