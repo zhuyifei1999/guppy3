@@ -957,9 +957,6 @@ class ClassificationCase(TestCase):
             self.assertEqual(ak & li, av)
             for bk, bv in list(ps.items()):
                 # Test set operations by selection definition
-                if (ak & bk) & li != av & bv:
-                    import pdb
-                    pdb.set_trace()
                 self.assertEqual((ak & bk) & li, av & bv)
                 self.assertEqual((ak | bk) & li, av | bv)
                 self.assertEqual((ak - bk) & li, av - bv)

@@ -214,6 +214,10 @@ retry:
             }
             goto out;
         } else {
+            if (retried) {
+                if (NyNodeGraph_AddEdge(self->owners, obj, Py_None) == -1)
+                    goto out;
+            }
             missing = true;
         }
 
