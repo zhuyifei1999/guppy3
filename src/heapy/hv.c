@@ -1236,7 +1236,10 @@ static int
 hv_ra_rec(PyObject *obj, RATravArg *ta)
 {
     int r;
-    if (NyNodeSet_hasobj(ta->avoid, obj))
+    r = NyNodeSet_hasobj(ta->avoid, obj);
+    if (r == -1)
+        return -1;
+    if (r)
         return 0;
     r = NyNodeSet_setobj(ta->visited, obj);
     if (r)
@@ -1303,7 +1306,10 @@ hv_ra_rec_e(PyObject *obj, RATravArg *ta)
     if (r)
         return r < 0 ? r : 0;
     else {
-        if (NyNodeSet_hasobj(ta->avoid, obj))
+        r = NyNodeSet_hasobj(ta->avoid, obj);
+        if (r == -1)
+            return -1;
+        if (r)
             return 0;
         return NySTWWorkList_Push(ta->to_visit, obj);
     }
@@ -1884,7 +1890,7 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
                     goto err_start;
         } else {
             // Recurse in
-            int is_target = -1;
+            int is_target = -1, hasobj;
             ExtraType *xt = hv_extra_type(ta.hv, Py_TYPE(obj));
 
             if (xt == &xt_error) {
@@ -1898,14 +1904,17 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
                     goto err_start;
             }
 
-            if (NyNodeSet_hasobj(ta.markset, obj))
+            hasobj = NyNodeSet_hasobj(ta.markset, obj);
+            if (hasobj == -1)
+                goto err_start;
+            if (hasobj)
                 continue;
 
             int in_trace = NyNodeSet_setobj(ta.trace_set, obj);
             if (in_trace == -1)
                 goto err_start;
 
-            int no_recurse = in_trace || NyNodeSet_hasobj(ta.outset, obj);
+            int no_recurse = in_trace ? in_trace : NyNodeSet_hasobj(ta.outset, obj);
             if (no_recurse == -1)
                 goto err_start;
 

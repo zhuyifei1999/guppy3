@@ -661,9 +661,10 @@ NyNodeSet_invobj(NyNodeSetObject *v, PyObject *obj)
 
     if (PyObject_TypeCheck(v, v->ms->MutNodeSet_Type)) {
         Ny_BEGIN_CRITICAL_SECTION2(v, v->u.bitset);
-        if (NyNodeSet_hasobj(v, obj))
+        r = NyNodeSet_hasobj(v, obj);
+        if (r == 1)
             r = NyNodeSet_clrobj(v, obj);
-        else
+        else if (r == 0)
             r = NyNodeSet_setobj(v, obj);
         Ny_END_CRITICAL_SECTION2();
     } else {
@@ -1013,7 +1014,10 @@ typedef struct {
 static int
 nodeset_iand_visit(PyObject *obj, IANDTravArg *ta)
 {
-    if (!NyNodeSet_hasobj(ta->w, obj)) {
+    int hasobj = NyNodeSet_hasobj(ta->w, obj);
+    if (hasobj == -1)
+        return -1;
+    if (!hasobj) {
         if (NyNodeSet_clrobj(ta->v, obj) == -1)
             return -1;
     }

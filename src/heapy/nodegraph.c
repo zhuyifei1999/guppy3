@@ -1174,8 +1174,14 @@ ng_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     ng = NyNodeGraph_SubtypeNew(type);
     if (!ng)
         return NULL;
-    if (is_mapping && PyObject_IsTrue(is_mapping)) {
-        ng->is_mapping = 1;
+    if (is_mapping) {
+        int is_true = PyObject_IsTrue(is_mapping);
+        if (is_true == -1) {
+            Py_CLEAR(ng);
+            return NULL;
+        }
+        if (is_true)
+            ng->is_mapping = 1;
     }
     if (iterable && !Py_IsNone(iterable) && NyNodeGraph_Update(ng, iterable) == -1)
         Py_CLEAR(ng);
