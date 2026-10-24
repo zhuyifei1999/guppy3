@@ -1573,14 +1573,40 @@ MutBitSet([])
 
         for i in range(numseg-1):
             mss.append(ms.mutcopy())
+            assert (i*2+1)*100000+50000 not in ms
             ms |= bitsingle((i*2+1)*100000+50000)
             assert ms._num_seg == i+2
+            assert (i*2+1)*100000+50000 in ms
 
         # Test that the copies were separate copies (Testing copy-on-write)
 
         for i in range(numseg-1):
             assert mss[i] == bs
             bs |= bitsingle((i*2+1)*100000+50000)
+
+        # Test the complement too
+
+        bs = bitset()
+
+        for i in range(numseg):
+            bs |= bitrange(i*2*100000+20, (i*2+1)*100000)
+
+        cs = ~bs
+        ms = cs.mutcopy()
+        mss = []
+
+        assert ms._num_seg == 1
+
+        for i in range(numseg-1):
+            mss.append(ms.mutcopy())
+            assert (i*2+1)*100000+50000 in ms
+            ms -= bitsingle((i*2+1)*100000+50000)
+            assert ms._num_seg == i+2
+            assert (i*2+1)*100000+50000 not in ms
+
+        for i in range(numseg-1):
+            assert mss[i] == cs
+            cs -= bitsingle((i*2+1)*100000+50000)
 
     def test34(self):
         # Test nodeset inheritance

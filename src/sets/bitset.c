@@ -1410,7 +1410,7 @@ NyMutBitSet_hasbit(NyMutBitSetObject *v, NyBit bit)
     r = (fp->bits & f.bits) != 0;
 out:
     Ny_END_CRITICAL_SECTION();
-    return r;
+    return r ^ v->cpl;
 }
 static int
 mutbitset_contains(NyMutBitSetObject *v, PyObject *w)
@@ -2285,6 +2285,7 @@ mutbitset_subtype_new_from_arg(PyTypeObject *type, PyObject *arg)
     NyMutBitSetObject *muts;
     NyImmBitSetObject *set = NULL;
     NyUnionObject *root = NULL;
+    int cpl = 0;
     if (arg) {
         if (PyObject_TypeCheck(arg, ms->ImmBitSet_Type)) {
             set = (NyImmBitSetObject *)Py_NewRef(arg);
@@ -2295,6 +2296,7 @@ mutbitset_subtype_new_from_arg(PyTypeObject *type, PyObject *arg)
             if (oms->root != &oms->fst_root) {
                 root = Ny_NEWREF(oms->root);
                 oms->cur_field = NULL;
+                cpl = oms->cpl;
             }
             Ny_END_CRITICAL_SECTION();
         }
@@ -2310,6 +2312,8 @@ mutbitset_subtype_new_from_arg(PyTypeObject *type, PyObject *arg)
             Py_CLEAR(muts);
             muts = r;
         }
+    } else {
+        muts->cpl = cpl;
     }
     return muts;
 }
