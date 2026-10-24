@@ -993,9 +993,11 @@ NyHeapView_iterate(NyHeapViewObject *hv, int (*visit)(PyObject *, void *),
         goto err_start;
     if (NySTWWorkList_InitOnStack(hv->ms, &to_visit) == -1)
         goto err_start;
-    r = iter_rec(ta.hv->root, &ta);
-    if (r == -1)
-        goto err_start;
+    if (ta.hv->root) {
+        r = iter_rec(ta.hv->root, &ta);
+        if (r == -1)
+            goto err_start;
+    }
     r = -1;
     while (NySTWWorkList_Size(ta.to_visit)) {
         PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
@@ -1078,7 +1080,7 @@ hv_heap(NyHeapViewObject *self, PyObject *args)
     ta.visited = hv_mutnodeset_new(self);
     if (!ta.visited)
         goto err_start;
-    if (hv_heap_rec(ta.hv->root, &ta) == -1)
+    if (ta.hv->root && hv_heap_rec(ta.hv->root, &ta) == -1)
         goto err_start;
     while (NySTWWorkList_Size(ta.to_visit)) {
         PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
@@ -1847,7 +1849,7 @@ hv_update_referrers(NyHeapViewObject *self, PyObject *args)
         goto err_start;
     if (NySTWWorkList_InitOnStack(self->ms, &trace_res) == -1)
         goto err_start;
-    if (NySTWWorkList_Push(ta.to_visit, ta.hv->root) == -1)
+    if (ta.hv->root && NySTWWorkList_Push(ta.to_visit, ta.hv->root) == -1)
         goto err_start;
     while (NySTWWorkList_Size(ta.to_visit)) {
         PyObject *obj = NySTWWorkList_Pop(ta.to_visit);
