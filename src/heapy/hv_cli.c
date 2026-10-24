@@ -55,8 +55,11 @@ hv_cli_type_classify(struct HeapycState *ms, NyHeapViewObject *hv, PyObject *obj
 static int
 hv_cli_type_le(PyObject *self, PyObject *a, PyObject *b)
 {
+    if (!PyType_Check(a) || !PyType_Check(b)) {
+        PyErr_Format(PyExc_TypeError, "hv_cli_type_le: types expected");
+        return -1;
+    }
     return (a == b) || PyType_IsSubtype((PyTypeObject *)a, (PyTypeObject *)b);
-
 }
 
 static NyObjectClassifierDef hv_cli_type_def = {
