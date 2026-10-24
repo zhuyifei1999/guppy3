@@ -284,6 +284,8 @@ frame_relate(NyHeapRelate *r)
         PyObject *name = PyTuple_GET_ITEM(co->co_localsplusnames, i);
         PyObject *val = PyStackRef_AsPyObjectBorrow(iv->localsplus[i]);
 
+        if (!val)
+            continue;
         if (val == r->tgt)
             if (r->visit(NYHR_LOCAL_VAR, Py_NewRef(name), r))
                 return 1;
@@ -291,7 +293,7 @@ frame_relate(NyHeapRelate *r)
         if (!(kind & CO_FAST_CELL) && !(kind & CO_FAST_FREE))
             continue;
 
-        if (PyCell_GET(val) == r->tgt)
+        if (PyCell_Check(val) && PyCell_GET(val) == r->tgt)
             if (r->visit(NYHR_CELL, Py_NewRef(name), r))
                 return 1;
     }
