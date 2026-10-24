@@ -383,6 +383,8 @@ hv_cli_inrel_classify(struct HeapycState *ms, InRelObject *self, PyObject *obj)
             continue;
         crva.hr.src = cur->tgt;
         xt = hv_extra_type(self->hv, Py_TYPE(crva.hr.src));
+        if (xt == &xt_error)  /* avoid assertion below */
+            goto err_start;
         assert(xt->xt_hv == self->hv);
         assert(self->hv == (void *)crva.hr.hv);
 

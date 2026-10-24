@@ -404,7 +404,7 @@ xt_he_traverse(struct ExtraType *xt, PyObject *obj, visitproc visit, void *arg)
 }
 
 
-static ExtraType xt_error = {
+ExtraType xt_error = {
     NULL,              /* xt_type */
     xt_error_size,     /* xt_size */
     xt_error_traverse, /* xt_traverse */
@@ -716,7 +716,9 @@ hv_is_obj_hidden(NyHeapViewObject *hv, PyObject *obj)
 {
     PyTypeObject *type = Py_TYPE(obj);
     ExtraType *xt = hv_extra_type(hv, type);
-    if (xt->xt_trav_code == XT_HE) {
+    if (xt == &xt_error) {
+        return -1;
+    } else if (xt->xt_trav_code == XT_HE) {
         Py_ssize_t offs = xt->xt_he_offs;
         PyObject **phe = (PyObject **)((char *)obj + offs);
         if (*phe == hv->_hiding_tag_) {

@@ -61,6 +61,7 @@ struct HeapycState {
     NyHeapDef HvTypes_HeapDef[4];
 };
 
+extern ExtraType xt_error;
 extern struct PyModuleDef heapyc_def;
 
 #endif /* Ny_HEAPY_H */
