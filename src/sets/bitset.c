@@ -1146,10 +1146,13 @@ kill_slot:
 static NyBitField *
 mutbitset_ins1(NyMutBitSetObject *v, NySetField *sf, NyBitField *f, NyBit pos)
 {
+    NyBit splitting_size;
+
     NY_ASSERT_OBJ_IMM_OR_LOCKED(v->ms, v);
 
-    if (f - sf->lo > v->splitting_size &&
-        sf->hi - f > v->splitting_size)
+    splitting_size = _Py_atomic_load_ssize_relaxed(&v->splitting_size);
+    if (f - sf->lo > splitting_size &&
+        sf->hi - f > splitting_size)
         f = mutbitset_split_ins1(v, sf, f, pos);
     else
         f = sf_ins1(v->ms, sf, f, pos);
@@ -4331,7 +4334,7 @@ static PyGetSetDef mutbitset_getsets[] = {
 
 #define OFF(x) offsetof(NyMutBitSetObject, x)
 static PyMemberDef mutbitset_members[] = {
-    {"_splitting_size", Py_T_INT, OFF(splitting_size)},
+    {"_splitting_size", Py_T_PYSSIZET, OFF(splitting_size)},
     {0} /* Sentinel */
 };
 
