@@ -2784,7 +2784,7 @@ NySlice_GetIndices(PySliceObject *r, NyBit *start, NyBit *stop)
         if (!PyLong_Check(r->stop)) goto notlong;
         *stop = PyLong_AsSsize_t(r->stop);
     }
-    return 0;
+    return PyErr_Occurred() ? -1 : 0;
 
 notlong:
     PyErr_SetString(PyExc_TypeError, "bitset slicing must use integers or None");
@@ -4631,6 +4631,8 @@ NyBitSet_Form(struct SetscState *ms, PyObject *args)
         return NULL;
     }
     flags = PyLong_AsLong(PyTuple_GET_ITEM(args, 0));
+    if (flags == -1 && PyErr_Occurred())
+        return NULL;
     str = PyTuple_GET_ITEM(args, 1);
     if (!PyBytes_Check(str)) {
         PyErr_SetString(PyExc_TypeError, "NyBitSet_Form(): 2nd arg must be bytes");
