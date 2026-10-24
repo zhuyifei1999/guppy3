@@ -78,8 +78,10 @@ NyModule_AddTypeWithSpec(PyObject *m, PyType_Spec *spec, PyObject *bases,
 
     assert(PyType_Check(t));
     if (addtomod) {
-        if (PyModule_AddType(m, (PyTypeObject *)t) == -1)
+        if (PyModule_AddType(m, (PyTypeObject *)t) == -1) {
+            Py_CLEAR(t);
             return -1;
+        }
     }
     if (state)
         *state = (PyTypeObject *)t;
