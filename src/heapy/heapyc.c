@@ -271,7 +271,6 @@ static int
 module_exec(PyObject *m)
 {
     struct HeapycState *ms = NyModule_AssertState(m);
-    PyObject *RootState, *HandleSignalException;
 
     if (import_sets(ms) == -1)
         return -1;
@@ -303,15 +302,13 @@ module_exec(PyObject *m)
                                  &ms->RootState_Type) == -1)
         return -1;
 
-    RootState = ms->RootState_Type->tp_alloc(ms->RootState_Type, 0);
-    if (PyModule_AddObjectRef(m, "RootState", RootState) == -1)
+    ms->RootState = ms->RootState_Type->tp_alloc(ms->RootState_Type, 0);
+    if (PyModule_AddObjectRef(m, "RootState", ms->RootState) == -1)
         return -1;
-    ms->RootState = RootState;
 
-    HandleSignalException = PyErr_NewException("guppy.heapy.heapyc.HandleSignalException", NULL, NULL);
-    if (PyModule_AddObjectRef(m, "HandleSignalException", HandleSignalException) == -1)
+    ms->HandleSignalException = PyErr_NewException("guppy.heapy.heapyc.HandleSignalException", NULL, NULL);
+    if (PyModule_AddObjectRef(m, "HandleSignalException", ms->HandleSignalException) == -1)
         return -1;
-    ms->HandleSignalException = HandleSignalException;
 
     ms->gc_mod = PyImport_ImportModule("gc");
     if (!ms->gc_mod)
