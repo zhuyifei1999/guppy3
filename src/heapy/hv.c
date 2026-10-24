@@ -1725,7 +1725,7 @@ hv_set_limitframe(NyHeapViewObject *self, PyObject *arg, void *unused)
 
     Ny_BEGIN_CRITICAL_SECTION(self);
     orf = self->limitframe;
-    if (Py_IsNone(arg)) {
+    if (arg == NULL || Py_IsNone(arg)) {
         self->limitframe = NULL;
     } else if (PyFrame_Check(arg)) {
         self->limitframe = Py_NewRef(arg);

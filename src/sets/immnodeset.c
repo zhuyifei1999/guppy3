@@ -310,7 +310,7 @@ static PyMemberDef immnodeset_members[] = {
 #undef OFF
 
 static  PyGetSetDef immnodeset_getset[] = {
-    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)0,
+    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)NULL,
 "S.is_immutable == True\n"
 "\n"
 "True since S is immutable."},

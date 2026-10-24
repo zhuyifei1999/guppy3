@@ -1136,7 +1136,7 @@ nodeset_get_is_immutable(NyNodeSetObject *self, void *unused)
 }
 
 static  PyGetSetDef nodeset_getset[] = {
-    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)0,
+    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)NULL,
 "S.is_immutable : bool\n"
 "\n"
 "True if S is immutable, else False."},
@@ -1145,7 +1145,7 @@ static  PyGetSetDef nodeset_getset[] = {
 };
 
 static  PyGetSetDef mutnodeset_getset[] = {
-    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)0,
+    {"is_immutable", (getter)nodeset_get_is_immutable, (setter)NULL,
 "S.is_immutable == False\n"
 "\n"
 "False since S is not immmutable."},

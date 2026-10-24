@@ -4085,7 +4085,7 @@ PyDoc_STRVAR(immbitset_is_immutable_doc,
 );
 
 static PyGetSetDef immbitset_getsets[] = {
-    {"is_immutable", (getter)immbitset_is_immutable, (setter)0, immbitset_is_immutable_doc},
+    {"is_immutable", (getter)immbitset_is_immutable, (setter)NULL, immbitset_is_immutable_doc},
     {0} /* Sentinel */
 };
 
@@ -4154,7 +4154,7 @@ cplbitset_traverse(NyHeapTraverse *ta)
 
 
 static PyGetSetDef cplbitset_getsets[] = {
-    {"is_immutable", (getter)immbitset_is_immutable, (setter)0, immbitset_is_immutable_doc},
+    {"is_immutable", (getter)immbitset_is_immutable, (setter)NULL, immbitset_is_immutable_doc},
     {0} /* Sentinel */
 };
 
@@ -4323,9 +4323,9 @@ mutbitset_is_immutable(NyMutBitSetObject *v)
 }
 
 static PyGetSetDef mutbitset_getsets[] = {
-    {"_num_seg", (getter)mutbitset_get_num_seg, (setter)0},
-    {"_indisize", (getter)anybitset_get_indisize, (setter)0},
-    {"is_immutable", (getter)mutbitset_is_immutable, (setter)0, mutbitset_is_immutable_doc},
+    {"_num_seg", (getter)mutbitset_get_num_seg, (setter)NULL},
+    {"_indisize", (getter)anybitset_get_indisize, (setter)NULL},
+    {"is_immutable", (getter)mutbitset_is_immutable, (setter)NULL, mutbitset_is_immutable_doc},
     {0} /* Sentinel */
 };
 
