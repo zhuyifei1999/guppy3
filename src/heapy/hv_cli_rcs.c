@@ -150,7 +150,7 @@ hv_cli_rcs_classify(struct HeapycState *ms, RetclasetObject *self, PyObject *obj
 
     Ny_BEGIN_CRITICAL_SECTION(self->rg);
     if (NyNodeGraph_Region(self->rg, obj, &lo, &hi) == -1)
-        goto err;
+        goto err_endcs;
     for (cur = lo; cur < hi; cur++) {
         if (Py_IsNone(cur->tgt))
             continue;

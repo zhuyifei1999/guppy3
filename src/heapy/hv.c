@@ -938,8 +938,8 @@ hv_delete_extra_type(NyHeapViewObject *hv, PyObject *wr)
         for (xtp = &hv->xt_table[i]; (xt = *xtp); xtp = &xt->xt_next) {
             if (xt->xt_weak_type == wr) {
                 *xtp = xt->xt_next;
+                Py_CLEAR(xt->xt_weak_type);
                 PyMem_Free(xt);
-                Py_CLEAR(wr);
                 r = Py_NewRef(Py_None);
                 goto out;
             }

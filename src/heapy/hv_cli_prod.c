@@ -55,14 +55,10 @@ static int lazy_init_hv_cli_prod(void)
         return 0;
     }
 
-    PyObject *_testcapimodule, *_testcapi_SIZEOF_PYGC_HEAD = NULL;
+    PyObject *_testcapi_SIZEOF_PYGC_HEAD = NULL;
 
-    _testcapimodule = PyImport_ImportModule(INTERNAL_MODULE);
-    if (!_testcapimodule)
-        goto Err;
-
-    _testcapi_SIZEOF_PYGC_HEAD = PyObject_GetAttrString(
-        _testcapimodule, "SIZEOF_PYGC_HEAD");
+    _testcapi_SIZEOF_PYGC_HEAD = PyImport_ImportModuleAttrString(
+        INTERNAL_MODULE, "SIZEOF_PYGC_HEAD");
     if (!_testcapi_SIZEOF_PYGC_HEAD)
         goto Err;
 
@@ -70,12 +66,10 @@ static int lazy_init_hv_cli_prod(void)
     if (sizeof_PyGC_Head < 0)
         goto Err;
 
-    Py_CLEAR(_testcapimodule);
     Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
     return 0;
 
 Err:
-    Py_CLEAR(_testcapimodule);
     Py_CLEAR(_testcapi_SIZEOF_PYGC_HEAD);
 
     if (!PyErr_ExceptionMatches(PyExc_Exception))

@@ -178,7 +178,7 @@ NyOnce_CallOnce(struct NyOnce *once, void (*fn)(void))
 #if NY_MASKED_VERSION_HEX < Py_PACK_VERSION(3, 13)
 # define NYPTR_ADJUSTED(is, attr, adj) ((void *)&(is)->attr)
 # define NYPTR_ADJUSTED_DEREF(is, attr, adj) ((is)->attr)
-# define NYPTR_ADJUST_FROM_INTEPSTATE(attr, dbgoff) 0
+# define NYPTR_ADJ_INTEPSTATE(attr, dbgoff) 0
 #else
 # define NYPTR_ADJUSTED(is, attr, adj) ((void *)((uintptr_t)(&(is)->attr) + adj))
 

@@ -94,6 +94,26 @@ class RelationTestCase(TestCase):
         ks.sort()
         self.assertEqual(ks, ['%s.keys()[0]', '%s.keys()[1]', '%s.keys()[2]'])
 
+    def test_frozendict_relation(self):
+        if self.version_info < (3, 15):
+            return
+
+        k1 = 'k1'
+        k2 = 'k2'
+        v1 = 'v1'
+        v2 = 'v2'
+        k3 = tuple(range(100))
+        v3 = tuple(range(100, 200))
+        x = frozendict({k1: v1, k2: v2, k3: v3})
+        self.chkrel(x, v1, "%s['k1']")
+        self.chkrel(x, v2, "%s['k2']")
+        self.chkrel(x, v3, "%s[(0, 1, 2, 3, 4, 5, ...)]")
+        ks = [str(self.relation(x, k1)),
+              str(self.relation(x, k2)),
+              str(self.relation(x, k3))]
+        ks.sort()
+        self.assertEqual(ks, ['%s.keys()[0]', '%s.keys()[1]', '%s.keys()[2]'])
+
     def test_dictproxy_relation(self):
         v1 = 'v1'
 

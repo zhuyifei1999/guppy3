@@ -303,7 +303,7 @@ frame_relate(NyHeapRelate *r)
     _PyStackRef *p;
     _PyStackRef *s = iv->localsplus + co->co_nlocalsplus;
     _PyStackRef *e = iv->stackpointer;
-    for (p = s; p < e; p++) {
+    for (p = s; e && p < e; p++) {
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
         if (PyStackRef_IsNullOrInt(*p))
             continue;
@@ -388,8 +388,10 @@ frame_traverse(NyHeapTraverse *ta) {
         // FIXME: is it okay to assume stacktop is always valid when !co?
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
         _PyStackRef *p;
+        _PyStackRef *s = iv->localsplus;
+        _PyStackRef *e = iv->stackpointer;
 
-        for (p = iv->localsplus; p < iv->stackpointer; p++) {
+        for (p = s; e && p < e; p++) {
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
             if (PyStackRef_IsNullOrInt(*p))
                 continue;
@@ -636,6 +638,14 @@ NyHeapDef NyStdTypes_HeapDef[] = {
         dict_traverse, /* traverse */
         dict_relate    /* relate */
     }, {
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
+        0,             /* flags */
+        NULL,          /* type */
+        NULL,          /* size */
+        dict_traverse, /* traverse */
+        dict_relate    /* relate */
+    }, {
+#endif
         0,          /* flags */
         NULL,       /* type */
         NULL,       /* size */
@@ -726,6 +736,9 @@ NyStdTypes_init_once(void)
     int x = 0;
 
     NyStdTypes_HeapDef[x++].type = &PyDict_Type;
+#if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 15)
+    NyStdTypes_HeapDef[x++].type = &PyFrozenDict_Type;
+#endif
     NyStdTypes_HeapDef[x++].type = &PyList_Type;
     NyStdTypes_HeapDef[x++].type = &PyTuple_Type;
     NyStdTypes_HeapDef[x++].type = &PySet_Type;

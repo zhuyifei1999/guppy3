@@ -232,11 +232,11 @@ horizon_on_dealloc(PyObject *v)
 #ifdef Py_GIL_DISABLED
         int hasobj = NyNodeSet_hasobj(r->hs, v);
         if (hasobj == -1)
-            Py_FatalError("horizon_on_dealloc: could not check object in nodeset");
+            Py_FatalError("could not check object in nodeset");
         if (hasobj)
 #endif
             if (NyNodeSet_clrobj(r->hs, v) == -1)
-                Py_FatalError("horizon_on_dealloc: could not clear object in nodeset");
+                Py_FatalError("could not clear object in nodeset");
     }
 
 #ifdef Py_GIL_DISABLED

@@ -237,6 +237,7 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->RootState);
     Py_VISIT(ms->HandleSignalException);
     Py_VISIT(ms->gc_mod);
+    Py_VISIT(ms->sets_mod);
 
     return 0;
 }
@@ -257,6 +258,7 @@ module_gc_clear(PyObject *m)
     Py_CLEAR(ms->RootState);
     Py_CLEAR(ms->HandleSignalException);
     Py_CLEAR(ms->gc_mod);
+    Py_CLEAR(ms->sets_mod);
 
     return 0;
 }
@@ -312,6 +314,11 @@ module_exec(PyObject *m)
 
     ms->gc_mod = PyImport_ImportModule("gc");
     if (!ms->gc_mod)
+        return -1;
+    /* This is pruely to make sure the pointers pointed to
+       by the capsules don't die */
+    ms->sets_mod = PyImport_ImportModule("guppy.sets.setsc");
+    if (!ms->sets_mod)
         return -1;
 
     ms->HvTypes_HeapDef[0] = (NyHeapDef){

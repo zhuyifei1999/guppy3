@@ -202,7 +202,7 @@ NyNodeGraph_AddEdge(NyNodeGraphObject *ng, PyObject *src, PyObject *tgt)
         goto out;
     }
 
-#if Py_GIL_DISABLED
+#ifdef Py_GIL_DISABLED
     /* Do nothing */
 #elif NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 12)
     assert((Py_uintptr_t)Py_TYPE(src) > 0x1000 &&
