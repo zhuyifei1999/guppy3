@@ -192,7 +192,10 @@ static Ny_thread_local int horizon_on_dealloc_reentrant;
 static void
 horizon_on_dealloc(PyObject *v)
 {
+    PyObject *type, *value, *traceback;
     NyHorizonObject *r;
+
+    PyErr_Fetch(&type, &value, &traceback);
 
 #ifdef Py_GIL_DISABLED
     if (horizon_on_dealloc_reentrant || NY_IS_WORLD_STOPPED()) {
@@ -211,6 +214,8 @@ horizon_on_dealloc(PyObject *v)
         for (r = rm.horizons; r; r = r->next)
             assert(!NyNodeSet_hasobj(r->hs, v));
 # endif
+
+        PyErr_Restore(type, value, traceback);
         return;
     }
 #endif
@@ -238,6 +243,8 @@ horizon_on_dealloc(PyObject *v)
     horizon_on_dealloc_reentrant = false;
 #endif
     PyMutex_Unlock(&rm_mutex);
+
+    PyErr_Restore(type, value, traceback);
 }
 
 static void
