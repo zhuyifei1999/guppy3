@@ -1534,7 +1534,7 @@ mutbitset_iop_field(NyMutBitSetObject *v, int op, NyBitField *w)
         if (w->bits) {
             f = mutbitset_findpos_mut(v, w->pos);
             if (!f)
-                return 0;
+                return PyErr_Occurred() ? -1 : 0;
             f->bits &= ~ w->bits;
         }
         break;
@@ -2415,7 +2415,7 @@ mutbitset_set_or_clr(NyMutBitSetObject *v, NyBit bitno, int set_or_clr)
 {
     NyBitField f, *fp;
     int ap = set_or_clr;
-    int r;
+    int r = -1;
 
     Ny_BEGIN_CRITICAL_SECTION(v);
     if (v->cpl)
@@ -2423,10 +2423,8 @@ mutbitset_set_or_clr(NyMutBitSetObject *v, NyBit bitno, int set_or_clr)
     bitno_to_field(bitno, &f);
     if (ap) {
         fp = mutbitset_findpos_ins(v, f.pos);
-        if (!fp) {
-            r = -1;
+        if (!fp)
             goto out;
-        }
         if (fp->bits & f.bits) {
             r = set_or_clr;
             goto out;
@@ -2434,6 +2432,8 @@ mutbitset_set_or_clr(NyMutBitSetObject *v, NyBit bitno, int set_or_clr)
         fp->bits |= f.bits;
     } else {
         fp = mutbitset_findpos_mut(v, f.pos);
+        if (!fp && PyErr_Occurred())
+            goto out;
         if (!(fp && (fp->bits & f.bits))) {
             r = set_or_clr;
             goto out;
@@ -2588,6 +2588,8 @@ mutbitset_append_or_remove(NyMutBitSetObject *v, PyObject *w, int ap, char *errm
         fp->bits |= f.bits;
     } else {
         fp = mutbitset_findpos_mut(v, f.pos);
+        if (!fp && PyErr_Occurred())
+            goto out;
         if (!(fp && (fp->bits & f.bits))) {
             PyErr_Format(PyExc_ValueError,
                          errmsg, bitno);
