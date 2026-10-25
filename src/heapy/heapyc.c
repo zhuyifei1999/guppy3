@@ -239,6 +239,14 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->gc_mod);
     Py_VISIT(ms->sets_mod);
 
+    /* We lie a bit to the GC here. RootState is not a GC type, but we know
+       if ms->RootState is set, we hold an extra ref to RootState_Type. */
+    if (ms->RootState) {
+        assert(Py_TYPE(ms->RootState)->tp_traverse == NULL);
+        assert(Py_TYPE(ms->RootState) == ms->RootState_Type);
+        Py_VISIT(ms->RootState_Type);
+    }
+
     return 0;
 }
 

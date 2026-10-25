@@ -64,6 +64,18 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->ImmBitSet_Omega);
     Py_VISIT(ms->BitSet_FormMethod);
 
+    /* See heapyc.c:module_gc_traverse */
+    if (ms->ImmBitSet_Empty) {
+        assert(Py_TYPE(ms->ImmBitSet_Empty)->tp_traverse == NULL);
+        assert(Py_TYPE(ms->ImmBitSet_Empty) == ms->ImmBitSet_Type);
+        Py_VISIT(ms->ImmBitSet_Type);
+    }
+    if (ms->ImmBitSet_Omega) {
+        assert(Py_TYPE(ms->ImmBitSet_Omega)->tp_traverse == NULL);
+        assert(Py_TYPE(ms->ImmBitSet_Omega) == ms->CplBitSet_Type);
+        Py_VISIT(ms->CplBitSet_Type);
+    }
+
     return 0;
 }
 
