@@ -976,7 +976,7 @@ nodeset_iop_chk_iterable(NyNodeSetObject *v, PyObject *w,
     }
     ww = w;
     if (PyObject_TypeCheck(w, v->ms->MutNodeSet_Type) &&
-            !PyUnstable_Object_IsUniquelyReferenced(w)) {
+            (w == (PyObject *)v || !PyUnstable_Object_IsUniquelyReferenced(w))) {
         /* Under freethreading, we will iterate w, needing w and w bitset's
            critical section, but we also need to mutate v with v and v bitset's
            critical section. The latter can suspend the former if it is shared,

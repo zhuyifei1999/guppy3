@@ -1403,17 +1403,18 @@ int
 NyMutBitSet_hasbit(NyMutBitSetObject *v, NyBit bit)
 {
     NyBitField f, *fp;
-    int r = 0;
+    int r = 0, cpl;
 
     bitno_to_field(bit, &f);
     Ny_BEGIN_CRITICAL_SECTION(v);
+    cpl = v->cpl;
     fp = mutbitset_findpos(v, f.pos);
     if (!fp)
         goto out;
     r = (fp->bits & f.bits) != 0;
 out:
     Ny_END_CRITICAL_SECTION();
-    return r ^ v->cpl;
+    return r ^ cpl;
 }
 static int
 mutbitset_contains(NyMutBitSetObject *v, PyObject *w)
@@ -2120,7 +2121,7 @@ mutbitset_iop_PyLongObject(NyMutBitSetObject *muts, int op, PyObject *v)
         num_bits = 0;
 
     num_poses = (NyBit)(num_bits / NyBits_N + 1);
-    /* fprintf(stderr, "x %f e %d num_bits %f num_poses %ld\n", x, e, num_bits, num_poses); */
+    /* fprintf(stderr, "x %f e %zd num_bits %f num_poses %zd\n", x, e, num_bits, num_poses); */
     num_bytes = num_poses * sizeof(NyBits);
     buf = PyMem_New(NyBits, num_poses);
     if (!buf) {
@@ -2628,7 +2629,7 @@ static PyObject *
 mutbitset_append(NyMutBitSetObject *v, PyObject *w)
 {
     return mutbitset_append_or_remove(v, w, 1,
-            "mutset.append(%ld): bit is already in the set.");
+            "mutset.append(%zd): bit is already in the set.");
 }
 
 static PyObject *
@@ -2641,7 +2642,7 @@ static PyObject *
 mutbitset_remove(NyMutBitSetObject *v, PyObject *w)
 {
     return mutbitset_append_or_remove(v, w, 0,
-           "mutset.remove(%ld): bit is not in the set.");
+           "mutset.remove(%zd): bit is not in the set.");
 }
 
 static PyObject *

@@ -965,11 +965,11 @@ nodegraph_relate(NyHeapRelate *r)
     NY_ASSERT_WORLD_STOPPED();
     for (i = 0; i < ng->used_size; i++) {
         if (r->tgt == ng->edges[i].src) {
-            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].src", i), r))
+            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%zd].src", i), r))
                 return 0;
         }
         if (r->tgt == ng->edges[i].tgt) {
-            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%d].tgt", i), r))
+            if (r->visit(NYHR_INTERATTR, PyUnicode_FromFormat("edges[%zd].tgt", i), r))
                 return 0;
         }
     }
