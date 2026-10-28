@@ -240,7 +240,17 @@ module_gc_traverse(PyObject *m, visitproc visit, void *arg)
     Py_VISIT(ms->sets_mod);
 
     /* We lie a bit to the GC here. RootState is not a GC type, but we know
-       if ms->RootState is set, we hold an extra ref to RootState_Type. */
+       if ms->RootState is set, we hold an extra ref to RootState_Type.
+
+       NOTE; This causes a use-after-clear hazard if a user keeps references
+       to the singletons while unloading everything else in the modules, because
+       the GC does not re-reach the module from the singleton. However, to
+       hit this hazard it requires an extremely deliberate setup, and only
+       causes segfaults (as a DOS attack) at best, considering that the
+       singleton will keep a refcount alive to the type, and the type to the
+       module, there will not be a use-after-free. Therefore this bug is
+       not worth fixing, considering the additional complexity and risks
+       converting rootstate and bitsets into GC types. */
     if (ms->RootState) {
         assert(Py_TYPE(ms->RootState)->tp_traverse == NULL);
         assert(Py_TYPE(ms->RootState) == ms->RootState_Type);
