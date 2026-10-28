@@ -1426,20 +1426,35 @@ mutbitset_contains(NyMutBitSetObject *v, PyObject *w)
 }
 
 static int
-mutbitset_clear(NyMutBitSetObject *v)
+mutbitset_reinit(NyMutBitSetObject *v, NyImmBitSetObject *set)
 {
+    NyImmBitSetObject *old_sets[NyUnion_MINSIZE];
+    NyUnionObject *old_root = NULL;
+    NyBit i, old_size = 0;
+    int r = 0;
+
     if (v->root != &v->fst_root) {
-        Py_CLEAR(v->root);
+        old_root = v->root;
     } else {
-        NyBit i;
-        for (i = 0; i < v->root->cur_size; i++)
-            Py_CLEAR(v->root->ob_field[i].set);
+        old_size = v->root->cur_size;
+        assert(old_size <= NyUnion_MINSIZE);
+        for (i = 0; i < old_size; i++) {
+            old_sets[i] = v->root->ob_field[i].set;
+            v->root->ob_field[i].set = NULL;
+        }
     }
+
     v->cur_field = NULL;
     v->root = &v->fst_root;
     Py_SET_SIZE(&v->fst_root, 0);
     v->fst_root.cur_size = 0;
-    return 0;
+    if (set)
+        r = mutbitset_initset(v, set);
+
+    Py_CLEAR(old_root);
+    for (i = 0; i < old_size; i++)
+        Py_CLEAR(old_sets[i]);
+    return r;
 }
 
 
@@ -1449,7 +1464,7 @@ mutbitset_dealloc(NyMutBitSetObject *v)
     if (PyObject_CallFinalizerFromDealloc((PyObject *)v))
         return;  /* resurrected */
     PyTypeObject *tp = Py_TYPE(v);
-    mutbitset_clear(v);
+    mutbitset_reinit(v, NULL);
     tp->tp_free((PyObject *)v);
     Py_CLEAR(tp);
 }
@@ -1792,11 +1807,18 @@ mutbitset_iop_immbitset(NyMutBitSetObject *v, int op, NyImmBitSetObject *w)
 static int
 mutbitset_reset(NyMutBitSetObject *v)
 {
+    NyImmBitSetObject *set;
     int r;
+
+    set = immbitset_realloc(v->ms, NULL, 1);
+    if (!set)
+        return -1;
+
     Ny_BEGIN_CRITICAL_SECTION(v);
-    mutbitset_clear(v);
-    r = mutbitset_initset(v, NULL);
+    r = mutbitset_reinit(v, set);
     Ny_END_CRITICAL_SECTION();
+
+    Py_CLEAR(set);
     return r;
 }
 
@@ -2646,7 +2668,7 @@ mutbitset_remove(NyMutBitSetObject *v, PyObject *w)
 }
 
 static PyObject *
-_mutbitset_clear(NyMutBitSetObject *self, PyObject *args)
+mutbitset_clear(NyMutBitSetObject *self, PyObject *args)
 {
     if (NyMutBitSet_clear(self) == -1)
         return NULL;
@@ -4230,7 +4252,7 @@ static PyMethodDef mutbitset_methods[] = {
     {"__reduce__", (PyCFunction)mutbitset_reduce, METH_NOARGS, "helper for pickle"},
     {"add",        (PyCFunction)mutbitset_add, METH_O, add_doc},
     {"append", (PyCFunction)mutbitset_append, METH_O, append_doc},
-    {"clear", (PyCFunction)_mutbitset_clear, METH_NOARGS, clear_doc},
+    {"clear", (PyCFunction)mutbitset_clear, METH_NOARGS, clear_doc},
     {"discard",    (PyCFunction)mutbitset_discard, METH_O, discard_doc},
     {"pop", (PyCFunction)mutbitset_pop, METH_VARARGS, pop_doc},
     {"remove", (PyCFunction)mutbitset_remove, METH_O, remove_doc},
