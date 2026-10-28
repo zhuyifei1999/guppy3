@@ -54,6 +54,18 @@ horizon_on_dealloc(PyObject *v);
 #if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 13)
 /* Post 3.13: Implemented via PyRefTracer */
 static PyMutex rm_mutex = {0};
+static PyMutex tracer_mutex = {0};
+
+#ifdef Py_GIL_DISABLED
+# define Py_BUILD_CORE
+/* PyMutex_LockFlags */
+#  include <internal/pycore_lock.h>
+# undef Py_BUILD_CORE
+# define RM_LOCK() PyMutex_LockFlags(&rm_mutex, _Py_LOCK_DONT_DETACH)
+#else
+# define RM_LOCK() PyMutex_Lock(&rm_mutex)
+#endif
+#define RM_UNLOCK() PyMutex_Unlock(&rm_mutex)
 
 static int
 horizon_tracer(PyObject *v, PyRefTracerEvent event, void *data)
@@ -72,7 +84,7 @@ static int
 horizon_install(void)
 {
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
-    assert(PyMutex_IsLocked(&rm_mutex));
+    assert(PyMutex_IsLocked(&tracer_mutex));
 # endif
 
     /* This is racy against other tracers, but we don't have a lock */
@@ -91,7 +103,7 @@ static void
 horizon_uninstall(void)
 {
 # if NY_MASKED_VERSION_HEX >= Py_PACK_VERSION(3, 14)
-    assert(PyMutex_IsLocked(&rm_mutex));
+    assert(PyMutex_IsLocked(&tracer_mutex));
 # endif
 
     /* This is racy other tracers, but we don't have a lock */
@@ -106,6 +118,8 @@ horizon_uninstall(void)
 /* Pre 3.13: Implemented via Patching */
 # define PyMutex_Lock(m) do {} while (0)
 # define PyMutex_Unlock(m) do {} while (0)
+# define RM_LOCK() do {} while (0)
+# define RM_UNLOCK() do {} while (0)
 
 static void horizon_patched_dealloc(PyObject *v);
 
@@ -210,17 +224,12 @@ horizon_on_dealloc(PyObject *v)
            should be known-temporary objects created during STW, since it is
            unsafe to release the last reference of arbitrary objects during
            STW, as a cascade of dealloc may reach into arbitrary Python code */
-# ifndef NDEBUG
-        for (r = rm.horizons; r; r = r->next)
-            assert(!NyNodeSet_hasobj(r->hs, v));
-# endif
-
         PyErr_Restore(type, value, traceback);
         return;
     }
 #endif
 
-    PyMutex_Lock(&rm_mutex);
+    RM_LOCK();
 #ifdef Py_GIL_DISABLED
     horizon_on_dealloc_reentrant = true;
 #endif
@@ -242,7 +251,7 @@ horizon_on_dealloc(PyObject *v)
 #ifdef Py_GIL_DISABLED
     horizon_on_dealloc_reentrant = false;
 #endif
-    PyMutex_Unlock(&rm_mutex);
+    RM_UNLOCK();
 
     PyErr_Restore(type, value, traceback);
 }
@@ -250,19 +259,22 @@ horizon_on_dealloc(PyObject *v)
 static void
 horizon_remove(NyHorizonObject *v)
 {
+    bool should_uninstall;
     NyHorizonObject **p;
 
-    PyMutex_Lock(&rm_mutex);
+    PyMutex_Lock(&tracer_mutex);
+    RM_LOCK();
     for (p = &rm.horizons; *p != v; p = &((*p)->next)) {
         if (!*p)
             Py_FatalError("no such horizon found");
     }
     *p = v->next;
+    should_uninstall = !rm.horizons;
+    RM_UNLOCK();
 
-    if (!rm.horizons)
+    if (should_uninstall)
         horizon_uninstall();
-    PyMutex_Unlock(&rm_mutex);
-
+    PyMutex_Unlock(&tracer_mutex);
 }
 
 static void
@@ -311,7 +323,7 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                                  kwlist,
                                  &X))
         return NULL;
-    /* Prevent objects from being dealllocated before we install the horizon */
+    /* Prevent objects from being deallocated before we install the horizon */
     mat = iterable_materialize(ms, X);
     if (!mat)
         return NULL;
@@ -325,11 +337,13 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         horizon_update_trav((PyObject *)hz, hz) == -1)
         goto err;
 
-    PyMutex_Lock(&rm_mutex);
+    PyMutex_Lock(&tracer_mutex);
+    RM_LOCK();
     should_install = !rm.horizons;
     hz->next = rm.horizons;
     rm.horizons = hz;
     hz->installed = true;
+    RM_UNLOCK();
 
     if (should_install) {
         /* The list must be published before the tracer is installed, which
@@ -338,13 +352,13 @@ horizon_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         if (horizon_install() == -1)
             goto err_unlock;
     }
-    PyMutex_Unlock(&rm_mutex);
+    PyMutex_Unlock(&tracer_mutex);
 
     Py_CLEAR(mat);
     return (PyObject *)hz;
 
 err_unlock:
-    PyMutex_Unlock(&rm_mutex);
+    PyMutex_Unlock(&tracer_mutex);
 err:
     Py_CLEAR(hz);
     Py_CLEAR(mat);
@@ -361,7 +375,10 @@ typedef struct {
 static int
 horizon_news_trav(PyObject *obj, NewsTravArg *ta)
 {
-    int hasobj = NyNodeSet_hasobj(ta->rg->hs, obj);
+    int hasobj;
+    RM_LOCK();
+    hasobj = NyNodeSet_hasobj(ta->rg->hs, obj);
+    RM_UNLOCK();
     if (hasobj == -1)
         return -1;
     if (!hasobj)
