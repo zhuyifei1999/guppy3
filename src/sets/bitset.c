@@ -2313,7 +2313,7 @@ mutbitset_subtype_new_from_arg(PyTypeObject *type, PyObject *arg)
     NyUnionObject *root = NULL;
     int cpl = 0;
     if (arg) {
-        if (PyObject_TypeCheck(arg, ms->ImmBitSet_Type)) {
+        if (Py_IS_TYPE(arg, ms->ImmBitSet_Type)) {
             set = (NyImmBitSetObject *)Py_NewRef(arg);
         } else if (PyObject_TypeCheck(arg, ms->MutBitSet_Type)) {
             NyMutBitSetObject *oms = (NyMutBitSetObject *)arg;
