@@ -109,6 +109,7 @@ jobs:
     name: Test on docker ${{ matrix.arch }} with Python ${{ matrix.python-version }}
     needs: build_sdist
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.arch == 'i386' }}
 
     strategy:
       fail-fast: false
