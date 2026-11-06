@@ -1,3 +1,160 @@
+    Version 3.2.0
+
+2026-11-06 YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Nothing changed, just releasing 3.2.0
+
+2026-11-01  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Changed mutbitset_subtype_new_from_arg to check immbitset type strictly
+
+2026-10-28  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Changed horizon to not detach thread in reftracer
+
+2026-10-27  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed mutbitset_reset hazard
+
+2026-10-25  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added workaround for module refcycle for GC
+
+2026-10-24  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed segfault on del hv.root
+    * Fixed bitset access splitting_size to use atomic
+    * Fixed various error paths
+
+2026-10-23  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed hv_std_size errors being squashed
+    * Fixed missing Py_NewRef to Py_NotImplemented returns
+    * Fixed __dir__ macros swallowing errors from PyUnicode_FromFormat
+      in rootstate
+    * Fixed mutbitset cpl copy & contains
+    * Added cache to hv_cli_dictof for non-findings
+    * Fixed NyModule_AddTypeWithSpec error path refleak
+    * Fixed segfault on del hv.limitframe
+    * Fixed hv_cli_type_le to check the input types before casting
+
+2026-10-21  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added iterable materialization before iterating in some functions
+    * Added NyNodeGraph_Swap for hv_cli_dictof
+    * Removed deprecated thread-id-only attr access in rootstate
+    * Removed unsafe PyType_Ready in xt_relate (called during STW)
+    * Replaced dict hiding logic with a full dict iteration
+    * Changed set_relate to use _PySet_NextEntry
+    * Changed horizon to avoid window of missing deallocations on init
+    * Changed nodeset to also lock inner bitset
+    * Fixed a horizon deadlock
+
+2026-10-20  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed nodeset_get_is_immutable false positive
+    * Fixed hv_cli_inrel_classify clearing STWMutNodeSet on stack in error path
+    * Added explicit warning on lack of support for 3.13 freethreading
+    * Split STW-safe memoization into a disjoint memorel_stw in hv_cli_rel
+    * Copy referrers to a separate dict before classify in hv_cli_rcs_classify
+    * Added reentrancy protection in horizon
+
+2026-10-19  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed version off-by-one in hv_get_member_offset
+    * Changed immbitset ob_length to atomic in immbitset_length
+    * Added NyOnce for running some initialization code only once
+    * Fixed some racy memoized dict updates
+
+2026-10-18  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed DeprecationWarning: builtin type ... has no __module__ attribute
+
+2026-10-17  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed mutbitset_slice read cpl without critical section
+    * Added preloading PyImport_ImportModule("gc") for gc_get_objects
+    * Added STW for hv_get_member_offset tp_mro access
+    * Fixed various critical section leaks in mutbitset_iop_*
+    * Added CS for reading size in NyImmNodeSet_SubtypeNewCopy
+    * Reduced CS coverage in mutbitset_iop_iterable
+    * Removed deprecated use of structmember.h
+    * Fixed some PyObject_Length return -1 swallow
+    * Added Python 3.15 support
+    * Removed Python 3.10 support
+
+2026-09-07  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Removed warning about pywin32 < 300
+
+2026-09-04  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added exception when encountering object with NULL metatype
+      during heap walk [emontnemery]
+
+2026-05-17  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Introduce riscv64 architecture to CI workflow [eshattow]
+
+2026-04-16  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added error when given unaligned pointer to nodeset
+
+2026-04-15  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed segfault when _PyObject_GetManagedDict returns NULL
+    * Fixed mutbitset_split_ins1 error path
+    * Removed MutNodeSetIter
+
+2026-04-14  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed NySlice_GetIndices return -1 without error
+    * Fixed some segfaults from PyUnicode_AsUTF8 NULL
+    * Fixed some segfaults from PyCapsule_GetName NULL
+
+2026-04-13  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added logic to abort traversal on signal in freethreading STW
+    * Added support for __del__ on inherited C classes
+    * Changed C refcounting to mostly Py_NewRef and Py_CLEAR
+    * Fixed a UAF in hv_heap
+
+2026-04-12  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Converted all types to heap types
+
+2026-04-10  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added array-based worklist for use during STW
+
+2026-04-09  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added non-refcounted MutNodeSet for use during STW
+
+2026-04-08  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Split C code into many compilation units
+    * Wrapped C docs in PyDoc_STRVAR & PyDoc_STR
+
+2026-04-07  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Fixed version comparisons in C code
+
+2026-04-06  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added critical sections to heapview
+
+2026-04-05  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added initial stop-the-world traverse & relate to heapyc
+    * Added critical sections to nodegraph
+    * Fixed double free in immbitset_lshift
+    * Fixed bad decref to fake object in mutbitset_getrange_mut
+
+2026-04-04  YiFei Zhu  <zhuyifei1999@gmail.com>
+
+    * Added critical sections to setsc
+
     Version 3.1.7
 
 2026-05-10  YiFei Zhu  <zhuyifei1999@gmail.com>
