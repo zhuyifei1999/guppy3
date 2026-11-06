@@ -193,9 +193,13 @@ jobs:
           path: ./wheelhouse/*.whl
 
   upload_pypi:
+    name: Upload release to PyPI
     needs: [test_matrix, test_arches, build_wheels_native, build_wheels_linux_qemu, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    environment: release
+    permissions:
+      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -208,12 +212,12 @@ jobs:
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/
+        # To test:
+        # with:
+        #   repository_url: https://test.pypi.org/legacy/
 
   create_github_release:
+    name: Create release on GitHub
     needs: upload_pypi
     runs-on: ubuntu-latest
     steps:
