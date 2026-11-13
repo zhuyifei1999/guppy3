@@ -1,3 +1,8 @@
+    Unreleased
+
+    * Group partition counts and sizes with commas and align expanded columns,
+      including identity and difference tables. Keep serialized statistics unchanged.
+
     Version 3.2.0
 
 2026-11-06 YiFei Zhu  <zhuyifei1999@gmail.com>
