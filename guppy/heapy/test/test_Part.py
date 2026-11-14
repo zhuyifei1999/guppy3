@@ -250,7 +250,21 @@ class NumberFormatCase(support.TestCase):
         def __sizeof__(self):
             return self.size
 
-    def make_objects(self, count=1, size=1234567890123, cls=None):
+    def setUp(self):
+        import sys
+
+        support.TestCase.setUp(self)
+
+        # We are creating 1000 objects in some tests. It's unrealistic to have
+        # sum of object sizes to be larger than the address space, so constrain
+        # the size on 32-bit arches to be about 1,234,567,000, the maximum
+        # number of digits before overflow, while on 64-bit arches we stress
+        # test it a bit.
+        self.sizelimit = 1234567890123 if sys.maxsize > 2**32 else 1234567
+
+    def make_objects(self, count=1, size=None, cls=None):
+        if size is None:
+            size = self.sizelimit
         cls = cls or self.Sized
         return [cls(size) for _ in range(count)]
 
@@ -354,7 +368,7 @@ class NumberFormatCase(support.TestCase):
 
     def test_real_partition_pagination_and_roundtrip(self):
         classes = [type('Row' + str(i), (self.Sized,), {}) for i in range(12)]
-        objects = [cls(1234567890123 + i) for i, cls in enumerate(classes)]
+        objects = [cls(self.sizelimit + i) for i, cls in enumerate(classes)]
         stat = self.iso(*objects).stat
         first, more = str(stat), str(stat.more)
         self.assertIn('<2 more rows.', first)
