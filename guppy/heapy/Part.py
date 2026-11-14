@@ -1,17 +1,18 @@
 class Format(object):
     __slots__ = 'impl', 'mod', 'widths'
+    percentage_precision = 0
 
     def __init__(self, impl):
         self.impl = impl
         self.mod = impl.mod
+        self.init_widths()
+
+    def init_widths(self):
         # Totals bound every row without expanding a lazy identity partition.
-        counts = [impl.count]
-        sizes = [impl.size]
-        if isinstance(self, DiffFormat):
-            counts += [impl.b_count, impl.count + impl.b_count]
-            sizes += [impl.b_size, impl.size + impl.b_size]
-            counts += [-abs(value) for value in counts[:]]
-            sizes += [-abs(value) for value in sizes[:]]
+        self._init_widths([self.impl.count], [self.impl.size])
+
+    def _init_widths(self, counts, sizes):
+        impl = self.impl
         indexes = [max(0, impl.numrows - 1)]
         # FastPartition retains its parent's index and cumulative size.
         # Only that one-row view needs inspection; never scan a full partition.
@@ -27,20 +28,16 @@ class Format(object):
             'cumulative': max(10, *(len(f'{value:,}') for value in sizes)),
         }
 
-        precision = 1 if isinstance(self, IdFormat) else 0
+        precision = self.percentage_precision
         minimum = 5 if precision else 3
         for key, values, total in (('countpct', counts, impl.count),
                                    ('sizepct', sizes, impl.size)):
             self.widths[key] = max([minimum] +
                 [len(f'{value * 100.0 / total:.{precision}f}') for value in values]
                 if total else [minimum])
-        if isinstance(self, DiffFormat):
-            self.widths['diffpct'] = max([9] +
-                [len(f'{value * 100.0 / impl.b_size:.3g}') for value in sizes]
-                if impl.b_size else [9])
 
     def _percentage(self, key, value, total):
-        precision = 1 if isinstance(self, IdFormat) else 0
+        precision = self.percentage_precision
         return f'{value * 100.0 / total:>{self.widths[key]}.{precision}f}'
 
     def _header(self, columns):
@@ -142,6 +139,7 @@ class SetFormat(Format):
 
 class IdFormat(Format):
     __slots__ = ()
+    percentage_precision = 1
 
     def get_label(self):
         impl = self.impl
@@ -174,6 +172,17 @@ class IdFormat(Format):
 class DiffFormat(Format):
     __slots__ = ()
 
+    def init_widths(self):
+        impl = self.impl
+        counts = [impl.count, impl.b_count, impl.count + impl.b_count]
+        sizes = [impl.size, impl.b_size, impl.size + impl.b_size]
+        counts += [-abs(value) for value in counts[:]]
+        sizes += [-abs(value) for value in sizes[:]]
+        self._init_widths(counts, sizes)
+        self.widths['diffpct'] = max([9] +
+            [len(f'{value * 100.0 / impl.b_size:.3g}') for value in sizes]
+            if impl.b_size else [9])
+
     def _percent_of_b(self, size):
         if self.impl.b_size != 0:
             return f'{size * 100.0 / self.impl.b_size:>{self.widths["diffpct"]}.3g}'
@@ -184,10 +193,10 @@ class DiffFormat(Format):
         impl = self.impl
         cw, sw = self.widths['count'], self.widths['size']
         x = (
-            'Summary of difference operation (A-B).\n' +
-            f'       {"Count":>{cw}} {"Size":>{sw}}\n' +
-            f'  A    {impl.count + impl.b_count:>{cw},} {impl.size + impl.b_size:>{sw},}\n' +
-            f'  B    {impl.b_count:>{cw},} {impl.b_size:>{sw},}\n' +
+            'Summary of difference operation (A-B).\n'
+            f'       {"Count":>{cw}} {"Size":>{sw}}\n'
+            f'  A    {impl.count + impl.b_count:>{cw},} {impl.size + impl.b_size:>{sw},}\n'
+            f'  B    {impl.b_count:>{cw},} {impl.b_size:>{sw},}\n'
             f'  A-B  {impl.count:>{cw},} {impl.size:>{sw},}  = {self._percent_of_b(impl.size)} % of B')
         if impl.count or impl.size:
             x += '\nDifferences by kind, largest absolute size diffs first.'
