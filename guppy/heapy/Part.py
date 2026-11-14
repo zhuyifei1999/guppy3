@@ -1,9 +1,51 @@
 class Format(object):
-    __slots__ = 'impl', 'mod'
+    __slots__ = 'impl', 'mod', 'widths'
+    percentage_precision = 0
 
     def __init__(self, impl):
         self.impl = impl
         self.mod = impl.mod
+        self.init_widths()
+
+    def init_widths(self):
+        # Totals bound every row without expanding a lazy identity partition.
+        self._init_widths([self.impl.count], [self.impl.size])
+
+    def _init_widths(self, counts, sizes):
+        impl = self.impl
+        indexes = [max(0, impl.numrows - 1)]
+        # FastPartition retains its parent's index and cumulative size.
+        # Only that one-row view needs inspection; never scan a full partition.
+        rows = getattr(impl, 'rows', ())[:1] if impl.numrows == 1 else ()
+        indexes += [row.index for row in rows if row.index is not None]
+        counts += [row.count for row in rows]
+        sizes += [row.size for row in rows]
+        sizes += [row.cumulsize for row in rows if row.cumulsize is not None]
+        self.widths = {
+            'index': max(6, *(len(f'{value:,}') for value in indexes)),
+            'count': max(6, *(len(f'{value:,}') for value in counts)),
+            'size': max(8, *(len(f'{value:,}') for value in sizes)),
+            'cumulative': max(10, *(len(f'{value:,}') for value in sizes)),
+        }
+
+        precision = self.percentage_precision
+        minimum = 5 if precision else 3
+        for key, values, total in (('countpct', counts, impl.count),
+                                   ('sizepct', sizes, impl.size)):
+            self.widths[key] = max([minimum] +
+                [len(f'{value * 100.0 / total:.{precision}f}') for value in values]
+                if total else [minimum])
+
+    def _percentage(self, key, value, total):
+        precision = self.percentage_precision
+        return f'{value * 100.0 / total:>{self.widths[key]}.{precision}f}'
+
+    def _header(self, columns):
+        return ' '.join(name.rjust(self.widths.get(key, width))
+                        for key, name, width in columns) + ' '
+
+    def _number(self, key, value):
+        return f'{value:>{self.widths[key]},}'
 
     def get_formatted_row(self, row):
         fr = self.get_stat_data(row)
@@ -56,7 +98,7 @@ class Format(object):
 
     def _oh_get_more_msg(self, start_lineno, end_lineno):
         nummore = self.impl.numrows-(end_lineno+1)
-        return "<%d more rows. Type e.g. '_.more' to view.>" % nummore
+        return f"<{nummore:,} more rows. Type e.g. '_.more' to view.>"
 
     def _oh_get_line_iter(self):
         for numrows, row in enumerate(self.impl.get_rows()):
@@ -72,26 +114,24 @@ class SetFormat(Format):
             s = 's'
         else:
             s = ''
-        return 'Partition of a set of %d object%s. Total size = %d bytes.' % (
-            impl.count, s, impl.size)
+        return f'Partition of a set of {impl.count:,} object{s}. Total size = {impl.size:,} bytes.'
 
     def get_rowdata(self, row):
         return '%d %d %s' % (row.count, row.size, row.name)
 
     def get_stat_header(self):
-        return (
-            ' Index  Count   %     Size   % Cumulative  % ')
+        return self._header((('index', 'Index', 6), ('count', 'Count', 6),
+                             ('countpct', '%', 3), ('size', 'Size', 8), ('sizepct', '%', 3),
+                             ('cumulative', 'Cumulative', 10), ('sizepct', '%', 3)))
 
     def get_stat_data(self, row):
-        format = '%6d %6d %3d %8d %3d %9d %3d '
         impl = self.impl
-        fr = format % (
-            row.index,
-            row.count, int('%.0f' % (row.count * 100.0/impl.count)),
-            row.size, int('%.0f' % (row.size * 100.0/impl.size)),
-            row.cumulsize, int('%.0f' % (row.cumulsize * 100.0/impl.size)),
-        )
-        return fr
+        return ' '.join((
+            self._number('index', row.index), self._number('count', row.count),
+            self._percentage('countpct', row.count, impl.count),
+            self._number('size', row.size), self._percentage('sizepct', row.size, impl.size),
+            self._number('cumulative', row.cumulsize),
+            self._percentage('sizepct', row.cumulsize, impl.size))) + ' '
 
     def load_statrow(self, r):
         return self.load_statrow_csk(r)
@@ -99,6 +139,7 @@ class SetFormat(Format):
 
 class IdFormat(Format):
     __slots__ = ()
+    percentage_precision = 1
 
     def get_label(self):
         impl = self.impl
@@ -106,27 +147,23 @@ class IdFormat(Format):
             s = 's'
         else:
             s = ''
-        return (
-            'Set of %d %s object%s. Total size = %d bytes.' % (
-                impl.count, impl.kindname, s, impl.size))
-        return part
+        return (f'Set of {impl.count:,} {impl.kindname} object{s}. '
+                f'Total size = {impl.size:,} bytes.')
 
     def get_rowdata(self, row):
         return '%d %s' % (row.size, row.name)
 
     def get_stat_header(self):
-        return (
-            ' Index     Size   %   Cumulative  %   ')
+        return self._header((('index', 'Index', 6), ('size', 'Size', 8),
+                             ('sizepct', '%', 5), ('cumulative', 'Cumulative', 10), ('sizepct', '%', 5)))
 
     def get_stat_data(self, row):
         impl = self.impl
-        format = '%6d %8d %5.1f %9d %5.1f '
-        fr = format % (
-            row.index,
-            row.size, (row.size * 100.0/impl.size),
-            row.cumulsize, row.cumulsize * 100.0/impl.size,
-        )
-        return fr
+        return ' '.join((
+            self._number('index', row.index), self._number('size', row.size),
+            self._percentage('sizepct', row.size, impl.size),
+            self._number('cumulative', row.cumulsize),
+            self._percentage('sizepct', row.cumulsize, impl.size))) + ' '
 
     def load_statrow(self, r):
         return self.load_statrow_sk(r)
@@ -135,21 +172,32 @@ class IdFormat(Format):
 class DiffFormat(Format):
     __slots__ = ()
 
+    def init_widths(self):
+        impl = self.impl
+        counts = [impl.count, impl.b_count, impl.count + impl.b_count]
+        sizes = [impl.size, impl.b_size, impl.size + impl.b_size]
+        counts += [-abs(value) for value in counts[:]]
+        sizes += [-abs(value) for value in sizes[:]]
+        self._init_widths(counts, sizes)
+        self.widths['diffpct'] = max([9] +
+            [len(f'{value * 100.0 / impl.b_size:.3g}') for value in sizes]
+            if impl.b_size else [9])
+
     def _percent_of_b(self, size):
         if self.impl.b_size != 0:
-            return '%9.3g' % (size*100.0/self.impl.b_size,)
+            return f'{size * 100.0 / self.impl.b_size:>{self.widths["diffpct"]}.3g}'
         else:
             return '   (n.a.)'
 
     def get_label(self):
         impl = self.impl
+        cw, sw = self.widths['count'], self.widths['size']
         x = (
-            'Summary of difference operation (A-B).\n' +
-            '        Count     Size\n' +
-            '  A    %6d %8d\n' % (impl.count+impl.b_count, impl.size+impl.b_size) +
-            '  B    %6d %8d\n' % (impl.b_count, impl.b_size) +
-            '  A-B  %6d %8d  = %s %% of B\n' % (impl.count, impl.size, self._percent_of_b(impl.size)))
-
+            'Summary of difference operation (A-B).\n'
+            f'       {"Count":>{cw}} {"Size":>{sw}}\n'
+            f'  A    {impl.count + impl.b_count:>{cw},} {impl.size + impl.b_size:>{sw},}\n'
+            f'  B    {impl.b_count:>{cw},} {impl.b_size:>{sw},}\n'
+            f'  A-B  {impl.count:>{cw},} {impl.size:>{sw},}  = {self._percent_of_b(impl.size)} % of B')
         if impl.count or impl.size:
             x += '\nDifferences by kind, largest absolute size diffs first.'
         return x
@@ -158,20 +206,15 @@ class DiffFormat(Format):
         return '%d %d %s' % (row.count, row.size, row.name)
 
     def get_stat_header(self):
-        return (
-            ' Index  Count     Size  Cumulative  % of B ')
+        return self._header((('index', 'Index', 6), ('count', 'Count', 6),
+                             ('size', 'Size', 8), ('cumulative', 'Cumulative', 10),
+                             ('diffpct', '% of B', 9)))
 
     def get_stat_data(self, row):
-        impl = self.impl
-        format = '%6d %6d %8d %9d %s '
-        fr = format % (
-            row.index,
-            row.count,
-            row.size,
-            row.cumulsize,
-            self._percent_of_b(row.cumulsize),
-        )
-        return fr
+        return ' '.join((
+            self._number('index', row.index), self._number('count', row.count),
+            self._number('size', row.size), self._number('cumulative', row.cumulsize),
+            self._percent_of_b(row.cumulsize))) + ' '
 
     def load_statrow(self, r):
         return self.load_statrow_csk(r)

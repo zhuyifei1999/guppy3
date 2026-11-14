@@ -77,11 +77,11 @@ of classification criteria.
 >>> from guppy import hpy; hp=hpy()
 >>> hp.iso(1, 10, [], [2], [3,4]).by(hp.Type & hp.Size)
 Partition of a set of 5 objects. Total size = 296 bytes.
- Index  Count   %     Size   % Cumulative  % Type & Individual Size
-     0      1  20       88  30        88  30 list & 88
-     1      1  20       80  27       168  57 list & 80
-     2      1  20       72  24       240  81 list & 72
-     3      2  40       56  19       296 100 int & 28
+ Index  Count   %     Size   % Cumulative   % Type & Individual Size
+     0      1  20       88  30         88  30 list & 88
+     1      1  20       80  27        168  57 list & 80
+     2      1  20       72  24        240  81 list & 72
+     3      2  40       56  19        296 100 int & 28
 >>>
 ....c: end pre
 
@@ -190,13 +190,13 @@ kind. The owner, if any, is classified by x.
 >>> from guppy import hpy; hp=hpy()
 >>> h=hp.heap()&dict
 >>> h.by(hp.Size.dictof)
-Partition of a set of 1013 objects. Total size = 529512 bytes.
- Index  Count   %     Size   % Cumulative  % Dict of Individual Size
-     0     79   8   139704  26    139704  26 dict of        88
-     1    198  20   114712  22    254416  48 dict of       400
-     2    167  16    92384  17    346800  65 dict of      1064
-     3    172  17    81712  15    428512  81 dict (no owner)
-     4     53   5    29304   6    457816  86 dict of       896
+Partition of a set of 1,013 objects. Total size = 529,512 bytes.
+ Index  Count   %     Size   % Cumulative   % Dict of Individual Size
+     0     79   8  139,704  26    139,704  26 dict of        88
+     1    198  20  114,712  22    254,416  48 dict of       400
+     2    167  16   92,384  17    346,800  65 dict of      1064
+     3    172  17   81,712  15    428,512  81 dict (no owner)
+     4     53   5   29,304   6    457,816  86 dict of       896
 ....c: end pre
 
 ....t: This shows that there are 140 dicts that are owned by
@@ -249,9 +249,9 @@ Show the objects in the heap that are referred from only the dict of __main__.
 >>> from guppy import hpy; hp=hpy()
 >>> hp.heap() & hp.Module.dictof.sokind(hp.Module('__main__')).refdby
 Partition of a set of 2 objects. Total size = 305 bytes.
- Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
-     0      1  50      248  81       248  81 dict (no owner)
-     1      1  50       57  19       305 100 str
+ Index  Count   %     Size   % Cumulative   % Kind (class / dict of class)
+     0      1  50      248  81        248  81 dict (no owner)
+     1      1  50       57  19        305 100 str
 >>>
 ...c: end pre
 
