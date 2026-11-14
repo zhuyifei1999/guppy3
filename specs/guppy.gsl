@@ -20,11 +20,11 @@ object on demand when needed.
 ....pre
 >>> from guppy import hpy
 >>> hpy().heap() # Show current reachable heap
-Partition of a set of 30976 objects. Total size = 3544220 bytes.
- Index  Count   %     Size   % Cumulative  % Kind (class / dict of class)
-     0   8292  27   739022  21    739022  21 str
+Partition of a set of 30,976 objects. Total size = 3,544,220 bytes.
+ Index  Count   %      Size   % Cumulative   % Kind (class / dict of class)
+     0  8,292  27   739,022  21    739,022  21 str
 \...
-     9    172   1    81712   2   3054020  86 dict (no owner)
+     9    172   1    81,712   2  3,054,020  86 dict (no owner)
 <89 more rows. Type e.g. '_.more' to view.>
 >>> 
 ...d: To see more about how the heapy object may be used, follow the
