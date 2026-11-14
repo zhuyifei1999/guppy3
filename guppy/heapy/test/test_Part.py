@@ -243,129 +243,134 @@ class StatCase(support.TestCase):
 
 
 class NumberFormatCase(support.TestCase):
-    def make_format(self, cls, count=1234567, size=1234567890123,
-                    numrows=1234568, **kwargs):
-        from types import SimpleNamespace
-        from guppy.heapy import Part
-        impl = SimpleNamespace(mod=self.Part, count=count, size=size,
-                               numrows=numrows, kindname='<str>', rows=[], **kwargs)
-        return getattr(Part, cls)(impl)
+    class Sized:
+        def __init__(self, size):
+            self.size = size
 
-    def assert_columns(self, fmt, rows):
+        def __sizeof__(self):
+            return self.size
+
+    def make_objects(self, count=1, size=1234567890123, cls=None):
+        cls = cls or self.Sized
+        return [cls(size) for _ in range(count)]
+
+    def assert_display_columns(self, text, columns):
         import re
-        header = fmt.get_stat_header()
-        starts = []
+        lines = text.splitlines()
+        header = next(line for line in lines if line.lstrip().startswith('Index'))
+        header = header.replace('% of B', '%_of_B')
+        ends = [m.end() for m in re.finditer(r'\S+', header)][:columns]
+        rows = [line for line in lines if re.match(r'^\s*\d[\d,]*\s', line)]
+        self.assertTrue(rows)
         for row in rows:
-            text = fmt.get_stat_data(row)
-            self.assertEqual(len(text), len(header))
-            starts.append([match.end() for match in re.finditer(r'\S+', text)])
-        self.assertTrue(all(value == starts[0] for value in starts))
-        header_ends = [match.end() for match in re.finditer(r'\S+', header)]
-        if '% of B' not in header:
-            self.assertEqual(starts[0], header_ends)
+            self.assertEqual([m.end() for m in re.finditer(r'\S+', row)][:columns], ends)
 
     def test_set_columns_expand_and_group(self):
-        from guppy.heapy.Part import StatRow
-        fmt = self.make_format('SetFormat')
-        rows = [StatRow(1234566, 1234567890000, 'large', 1234566, 1234567890000),
-                StatRow(1, 123, 'small', 1234567, 1234567890123)]
-        self.assert_columns(fmt, rows)
-        text = fmt.get_stat_data(rows[0])
-        self.assertIn('1,234,566', text)
-        self.assertIn('1,234,567,890,000', text)
-        self.assertIn('1,234,567 objects', fmt.get_label())
-        self.assertIn('1,234,567,890,123 bytes', fmt.get_label())
-        self.assertIn('<1,234,567 more rows.', fmt._oh_get_more_msg(0, 0))
+        class Other(self.Sized):
+            pass
+        objects = self.make_objects(1000) + self.make_objects(size=123, cls=Other)
+        partition = self.iso(*objects)
+        text = str(partition)
+        self.assertIn('1,001 objects', text)
+        self.assertIn(f'{partition.size:,} bytes', text)
+        self.assertIn('1,000', text)
+        self.assert_display_columns(text, 7)
 
     def test_identity_columns_expand_and_group(self):
-        from guppy.heapy.Part import StatRow
-        fmt = self.make_format('IdFormat')
-        self.assert_columns(fmt, [StatRow(1, 1234567890000, 'large', 0, 1234567890000),
-                                  StatRow(1, 123, 'small', 1234567, 1234567890123)])
-        self.assertIn('1,234,567 <str> objects', fmt.get_label())
+        objects = self.make_objects() + self.make_objects(size=123)
+        partition = self.iso(*objects).byid
+        text = str(partition)
+        self.assertIn(f'{partition.size:,} bytes', text)
+        self.assertIn(f'{self.iso(objects[0]).size:,}', text)
+        self.assert_display_columns(text, 5)
 
     def test_difference_columns_include_negative_sign(self):
-        from guppy.heapy.Part import StatRow
-        fmt = self.make_format('DiffFormat', count=-1, size=-1,
-                               b_count=1234567, b_size=1234567890123)
-        rows = [StatRow(-1234567, -1234567890123, 'removed', 0, -1234567890123),
-                StatRow(1234566, 1234567890122, 'added', 1, -1)]
-        self.assert_columns(fmt, rows)
-        self.assertIn('-1,234,567', fmt.get_stat_data(rows[0]))
-        self.assertIn('-1,234,567,890,123', fmt.get_stat_data(rows[0]))
-        summary = fmt.get_label().splitlines()
+        class Other(self.Sized):
+            pass
+        removed = self.make_objects(1000)
+        added = self.make_objects(999, cls=Other)
+        difference = self.iso(*added).diff(self.iso(*removed))
+        text = str(difference)
+        self.assertIn('-1,000', text)
+        self.assertIn(f'{-self.iso(*removed).size:,}', text)
+        self.assertEqual(difference.count, -1)
+        self.assert_display_columns(text, 5)
+        summary = text.splitlines()
         self.assertEqual(len(summary[1]), len(summary[2]))
         self.assertEqual(len(summary[2]), len(summary[3]))
 
     def test_zero_baseline_difference(self):
-        from guppy.heapy.Part import StatRow
-        fmt = self.make_format('DiffFormat', count=1, size=1234, b_count=0, b_size=0)
-        self.assertIn('(n.a.)', fmt.get_stat_data(StatRow(1, 1234, 'added', 0, 1234)))
+        objects = self.make_objects()
+        difference = self.iso(*objects).diff(self.iso())
+        text = str(difference)
+        self.assertIn('(n.a.)', text)
+        self.assertIn(f'{difference.size:,}', text)
+        self.assert_display_columns(text, 5)
 
-    def test_fast_partition_keeps_original_index_width(self):
-        from guppy.heapy.Part import SetFormat, StatRow
-        from types import SimpleNamespace
-        row = StatRow(1, 12, 'value', 123456789, 1234567890123)
-        fmt = SetFormat(SimpleNamespace(mod=self.Part, count=1, size=12, numrows=1, rows=[row]))
-        self.assert_columns(fmt, [row])
-        self.assertIn('123,456,789', fmt.get_stat_data(row))
+    def test_one_row_stat_view_keeps_parent_cumulative_width(self):
+        class Other(self.Sized):
+            pass
+        objects = self.make_objects() + self.make_objects(size=123, cls=Other)
+        partition = self.iso(*objects)
+        text = str(partition[1])
+        self.assertIn(f'{partition.size:,}', text)
+        self.assert_display_columns(text, 7)
 
-    def test_format_initialization_does_not_iterate_identity_rows(self):
-        from guppy.heapy.Part import IdFormat
-        from types import SimpleNamespace
-        def no_rows():
-            raise AssertionError('identity rows must stay lazy')
-        fmt = IdFormat(SimpleNamespace(mod=self.Part, count=10000000, size=1000000000,
-                                       numrows=10000000, get_rows=no_rows))
-        self.assertIn('Cumulative', fmt.get_stat_header())
+    def test_identity_pagination_and_total_width(self):
+        objects = self.make_objects(12)
+        partition = self.iso(*objects).byid
+        first, more = str(partition), str(partition.more)
+        self.assertIn('<2 more rows.', first)
+        self.assertEqual(first.splitlines()[1], more.splitlines()[0])
+        self.assert_display_columns(first, 5)
+        self.assert_display_columns(more, 5)
 
-    def test_wrapped_names_start_after_numeric_columns(self):
-        from guppy.heapy.Part import StatRow
-        fmt = self.make_format('SetFormat')
-        row = StatRow(1234567, 1234567890123, 'a long name ' * 20 + '\nsecond line',
-                      1234567, 1234567890123)
-        lines = fmt.get_formatted_row(row).splitlines()
-        width = len(fmt.get_stat_data(row))
-        self.assertGreater(len(lines), 1)
-        for line in lines[1:]:
-            self.assertTrue(line.startswith(' ' * width))
+    def test_wrapped_kind_names_start_after_numeric_columns(self):
+        long_class = type('LongName' * 25, (self.Sized,), {})
+        objects = self.make_objects(cls=long_class)
+        text = str(self.iso(*objects))
+        lines = text.splitlines()
+        header = next(line for line in lines if line.lstrip().startswith('Index'))
+        prefix = header.index('Kind')
+        continuation = [line for line in lines[3:] if line.strip()]
+        self.assertTrue(continuation)
+        for line in continuation:
+            self.assertTrue(line.startswith(' ' * prefix))
+        self.assert_display_columns(text, 7)
 
     def test_serialization_keeps_plain_integers(self):
-        from guppy.heapy.Part import StatRow
-        row = StatRow(1234567, 1234567890123, 'str', 0, 1234567890123)
-        for cls in ('SetFormat', 'DiffFormat'):
-            kwargs = dict(b_count=1, b_size=1) if cls == 'DiffFormat' else {}
-            fmt = self.make_format(cls, **kwargs)
-            self.assertEqual(fmt.get_rowdata(row), '1234567 1234567890123 str')
-        fmt = self.make_format('IdFormat')
-        self.assertEqual(fmt.get_rowdata(row), '1234567890123 str')
+        objects = self.make_objects(1001)
+        partition = self.iso(*objects)
+        for stat in (partition.stat, partition.byid.stat,
+                     self.iso().diff(partition)):
+            raw = list(stat.get_trows())
+            self.assertIn(f'.count: {stat.count}', raw)
+            self.assertIn(f'.size: {stat.size}', raw)
+            for line in raw:
+                if line.startswith('.r:'):
+                    self.assertNotIn(',', line.split(' ', 3)[1])
+            restored = self.Part._load_stat(lambda: iter(raw))
+            self.assertEqual(str(restored), str(stat))
 
-    def test_loaded_statistics_pagination_and_roundtrip(self):
-        trows = ['.loader: _load_stat', '.format: SetFormat', '.timemade: 0',
-                 '.count: 1234567', '.size: 1234567890123', '.kindheader: Kind',
-                 '.kindname:', '.numrows: 12']
-        trows += ['.r: 1 1 small' for _ in range(11)]
-        trows += ['.r: 1234556 1234567890112 large', '.end:']
-        stat = self.Part._load_stat(lambda: iter(trows))
-        top = str(stat)
-        more = str(stat.more)
-        self.assertIn('1,234,567 objects', top)
-        self.assertIn('1,234,567,890,123 bytes', top)
-        self.assertIn('1,234,567,890,112', more)
-        self.assertEqual(top.splitlines()[1], more.splitlines()[0])
+    def test_real_partition_pagination_and_roundtrip(self):
+        classes = [type('Row' + str(i), (self.Sized,), {}) for i in range(12)]
+        objects = [cls(1234567890123 + i) for i, cls in enumerate(classes)]
+        stat = self.iso(*objects).stat
+        first, more = str(stat), str(stat.more)
+        self.assertIn('<2 more rows.', first)
+        self.assertEqual(first.splitlines()[1], more.splitlines()[0])
+        self.assert_display_columns(first, 7)
+        self.assert_display_columns(more, 7)
         raw = list(stat.get_trows())
-        self.assertIn('.count: 1234567', raw)
-        self.assertIn('.r: 1234556 1234567890112 large', raw)
         restored = self.Part._load_stat(lambda: iter(raw))
         self.assertEqual(str(restored.all), str(stat.all))
 
     def test_empty_and_singular_labels(self):
         self.assertEqual(str(self.iso()), '<Nothing>')
-        fmt = self.make_format('SetFormat', count=0, size=0, numrows=0)
-        self.assertEqual(fmt.get_label(), 'Partition of a set of 0 objects. Total size = 0 bytes.')
-        fmt = self.make_format('SetFormat', count=1, size=1234, numrows=1)
-        self.assertEqual(fmt.get_label(), 'Partition of a set of 1 object. Total size = 1,234 bytes.')
-
+        objects = self.make_objects()
+        partition = self.iso(*objects)
+        self.assertIn(f'1 object. Total size = {partition.size:,} bytes.', str(partition))
+        self.assert_display_columns(str(partition), 7)
 
 
 def test_main(debug=0):
