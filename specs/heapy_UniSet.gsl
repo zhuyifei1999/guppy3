@@ -531,9 +531,9 @@ x, forming a new set of the result. This works as follows:
 ....pre
 >>> hp.iso({'a':'b'}, {'a':1}).maprox['a'].byid
 Set of 2 <mixed> objects. Total size = 40 bytes.
- Index     Size   %   Cumulative  %   Brief
-     0       28  70.0        28  70.0 str: 'b'
-     1       12  30.0        40 100.0 int: 1
+ Index     Size     % Cumulative     % Brief
+     0       28  70.0         28  70.0 str: 'b'
+     1       12  30.0         40 100.0 int: 1
 >>>
 ...c: end dwh
 
